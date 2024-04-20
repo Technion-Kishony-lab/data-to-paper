@@ -9,47 +9,55 @@ from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
 
 @dataclass
 class Product:
+    """
+    A product is a piece of information that is generated during the conversation.
+    A product needs to know how to be presented:
+    - as markdown, to be included in a pre-conversation context.
+    - as html, to be be shown in the app.
+    """
     name: str = None
     stage: Stage = None
+    pre_text_for_markdown: str = None
+    pre_text_for_html: str = None
+    show_markdown_with_code_blocks: bool = True
 
-    def get_stage(self, **kwargs):
+    def _get_pre_text_for_markdown(self, level: int, **kwargs) -> str:
+        return self.pre_text_for_markdown or ''
+
+    def _get_pre_text_for_html(self, level: int, **kwargs) -> str:
+        return self.pre_text_for_html if self.pre_text_for_html is not None \
+            else self.pre_text_for_markdown
+
+    def get_stage(self, **kwargs) -> Stage:
         return self.stage
 
     def is_valid(self):
         raise NotImplementedError
 
-    def _get_content_as_text(self, level: int, **kwargs):
+    def _get_content_as_markdown(self, level: int, **kwargs) -> str:
         return ''
 
-    def _get_content_as_markdown(self, level: int, **kwargs):
-        return self._get_content_as_text(level, **kwargs)
-
-    def _get_content_as_html(self, level: int, **kwargs):
+    def _get_content_as_html(self, level: int, **kwargs) -> str:
         return format_text_with_code_blocks(self._get_content_as_markdown(level, **kwargs), from_md=True,
                                             is_html=True, width=None)
 
-    def get_header(self, **kwargs):
+    def get_header(self, **kwargs) -> str:
         return self.name
 
-    def as_text(self, level: int = 0, **kwargs):
-        return self.get_header(**kwargs) + '\n' + self._get_content_as_text(level, **kwargs)
-
-    def as_markdown(self, level: int = 0, **kwargs):
+    def as_markdown(self, level: int = 1, **kwargs) -> str:
+        """
+        Return the product in the form to be included in a pre-conversation context.
+        Typically, this is a markdown format.
+        """
+        content = self._get_content_as_markdown(level, **kwargs)
+        if self.show_markdown_with_code_blocks:
+            return wrap_text_with_triple_quotes(content, 'markdown')
         return ('#' * level + ' ' + self.get_header(**kwargs) + '\n' +
-                wrap_text_with_triple_quotes(self._get_content_as_markdown(level, **kwargs), 'md'))
+                self._get_pre_text_for_markdown(level, **kwargs) +
+                content)
 
     def as_html(self, level: int = 0, **kwargs):
         return f'<h{level}>{self.get_header(**kwargs)}</h{level}>' + self._get_content_as_html(level, **kwargs)
-
-    def as_specified_format(self, format_name: str = 'markdown', level: int = 0, **kwargs):
-        return getattr(self, f'as_{format_name}')(level, **kwargs)
-
-    def to_extracted_test(self):
-        raise NotImplementedError
-
-    @classmethod
-    def from_extracted_test(cls, text):
-        raise NotImplementedError
 
 
 @dataclass
@@ -59,15 +67,8 @@ class ValueProduct(Product):
     def is_valid(self):
         return self.value is not None
 
-    def _get_content_as_text(self, level: int, **kwargs):
+    def _get_content_as_markdown(self, level: int, **kwargs):
         return str(self.value)
-
-    def to_extracted_test(self):
-        return self.value
-
-    @classmethod
-    def from_extracted_test(cls, text):
-        return cls(value=text)
 
     def __getitem__(self, item):
         return self.value[item]

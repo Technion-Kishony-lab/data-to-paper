@@ -13,7 +13,7 @@ class GoalAndHypothesisProduct(ValueProduct):
     stage: ScientificStages = ScientificStages.GOAL
     value: str = None
 
-    def _get_content_as_text(self, level: int, **kwargs):
+    def _get_content_as_markdown(self, level: int, **kwargs):
         return self.value.replace('\n# ', '\n' + '#' * (level + 1) + ' ')
 
 
@@ -29,7 +29,7 @@ class MostSimilarPapersProduct(ValueProduct):
             is_html=is_html,
         ) for citation in self.value)
 
-    def _get_content_as_text(self, level: int, **kwargs):
+    def _get_content_as_markdown(self, level: int, **kwargs):
         return self._get_citations(is_html=False)
 
     def _get_content_as_html(self, level: int, **kwargs):

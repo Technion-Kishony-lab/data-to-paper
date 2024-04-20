@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Optional, Tuple, Union, Iterable
+from typing import Any, Optional, Tuple, Union, Iterable, Type
 
-from data_to_paper.base_products.product import Product
+from data_to_paper.base_products.product import Product, ValueProduct
 from data_to_paper.base_steps.converser import Converser
 from data_to_paper.base_steps.exceptions import FailedCreatingProductException
 from data_to_paper.conversation.message_designation import RangeMessageDesignation, SingleMessageDesignation
@@ -107,6 +107,12 @@ ExtractedText = Union[str, Iterable[str]]
 
 @dataclass
 class ResultConverser(Converser):
+    """
+    A converser that is designed to extract a result from a conversation.
+    response        ---> extracted_text ---> valid_result --> Product
+                                                                /
+    fresh_response  <--- extracted_text <--- valid_result  <---
+    """
 
     performer: str = 'scientist'
 
@@ -146,6 +152,7 @@ class ResultConverser(Converser):
 
     # Output:
     stage: Stage = None
+    product_type: Type[ValueProduct] = None  # the type of the product that will be generated. If None, non-product result.
     valid_result: Union[Product, Any] = field(default_factory=NoResponse)
     _valid_result_update_count: int = 0
 
@@ -153,9 +160,9 @@ class ResultConverser(Converser):
         valid_result = self._get_valid_result()
         if isinstance(valid_result, Product):
             return valid_result.as_html(2)
-        return format_text_with_code_blocks(self.get_valid_result_as_text_blocks(), width=None, is_html=True)
+        return format_text_with_code_blocks(self.get_valid_result_as_markdown(), width=None, is_html=True, from_md=True)
 
-    def get_valid_result_as_text_blocks(self) -> str:
+    def get_valid_result_as_markdown(self) -> str:
         valid_result = self._get_valid_result()
         if isinstance(valid_result, Product):
             return valid_result.as_markdown(2)
@@ -188,6 +195,7 @@ class ResultConverser(Converser):
         Typically, the method is called
         "usable" often, but not always, require passing all rule-based checks.
         """
+        valid_result = self._convert_valid_result_to_product(valid_result)
         if isinstance(valid_result, Product):
             if valid_result.stage is None:
                 valid_result.stage = self.stage
@@ -241,8 +249,13 @@ class ResultConverser(Converser):
         raise SelfResponseError(format_value(self, error_message), rewind=rewind, bump_model=bump_model,
                                 add_iterations=add_iterations)
 
+    """
+    Response --> extracted_text --> valid_result --> Product
+    """
+
     def _check_response_and_get_extracted_text(self, response: str) -> ExtractedText:
         """
+        # Response --> extracted_text #
         Check the response from self and extract the part(s) that should be used to get the valid result and
         to compose a fresh looking response.
         If there are errors that require self to revise the response, call _raise_self_response_error.
@@ -251,6 +264,7 @@ class ResultConverser(Converser):
 
     def _check_extracted_text_and_update_valid_result(self, extracted_text: ExtractedText):
         """
+        # extracted_text --> valid_result #
         Check the extracted_text and extract the needed information into valid_result.
         If we get a result that is "usable", we update it using valid_result, by calling _update_valid_result.
         If there are errors that require self to revise the response, call _raise_self_response_error.
@@ -260,8 +274,22 @@ class ResultConverser(Converser):
         """
         self._update_valid_result(extracted_text)
 
+    def _convert_valid_result_to_product(self, valid_result: Any) -> Union[Product, Any]:
+        """
+        # valid_result --> Product #
+        Convert the valid result to a product.
+        """
+        if self.product_type is None:
+            return valid_result
+        return self.product_type(value=valid_result)
+
+    """
+    fresh_response <-- extracted_text <-- valid_result <-- Product
+    """
+
     def _convert_extracted_text_to_fresh_looking_response(self, extracted_text: ExtractedText) -> str:
         """
+        # fresh_response <-- extracted_text #
         Convert the extracted text to a response that can be posted to the conversation.
         """
         if isinstance(extracted_text, str):
@@ -270,18 +298,29 @@ class ResultConverser(Converser):
 
     def _convert_valid_result_back_to_extracted_text(self, valid_result: Any) -> ExtractedText:
         """
+        # extracted_text <-- valid_result #
         Convert the valid result to an extracted result.
         """
-        if isinstance(valid_result, Product):
-            return valid_result.to_extracted_test()
         return str(valid_result)
+
+    def _convert_product_back_to_valid_result(self, product: Union[Product, Any]) -> Any:
+        """
+        # valid_result <-- Product #
+        Convert the product to a valid result.
+        """
+        if isinstance(product, ValueProduct):
+            return product.value
+        return product
 
     def _convert_valid_results_to_fresh_looking_response(self, valid_results: Any) -> str:
         """
+        # fresh_response <-- extracted_text <-- valid_result <-- Product #
         Convert the valid results to a response that can be posted to the conversation.
         """
-        return self._convert_extracted_text_to_fresh_looking_response(
-            self._convert_valid_result_back_to_extracted_text(valid_results))
+        valid_results = self._convert_product_back_to_valid_result(valid_results)
+        extracted_text = self._convert_valid_result_back_to_extracted_text(valid_results)
+        fresh_response = self._convert_extracted_text_to_fresh_looking_response(extracted_text)
+        return fresh_response
 
     def _rewind_conversation_to_first_response(self, offset: int = 0, last: int = -1, start: int = None):
         """

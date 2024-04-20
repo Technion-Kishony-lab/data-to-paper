@@ -47,7 +47,7 @@ class LiteratureSearchQueriesProduct(ValueProduct):
     name: str = "Literature Search Queries"
     value: Dict[str, List[str]] = None
 
-    def _get_content_as_text(self, level: int, **kwargs):
+    def _get_content_as_markdown(self, level: int, **kwargs):
         s = ''
         level_str = '#' * (level + 1)
         for scope, queries in self.value.items():
@@ -70,7 +70,7 @@ class CitationCollectionProduct(ValueProduct):
             embedding_target=embedding_target,
         ) for citation in self.value)
 
-    def _get_content_as_text(self, level: int, style: str = None,
+    def _get_content_as_markdown(self, level: int, style: str = None,
                              embedding_target: Optional[np.ndarray] = None):
         return self._get_citations_as_str(is_html=False, style=style, embedding_target=embedding_target)
 
@@ -234,11 +234,11 @@ class LiteratureSearch(ValueProduct):
         #
         return f'"{scope}"-related literature search' if scope is not None else self.name
 
-    def _get_content_as_text(self, level: int, scope: Optional[str] = None, style: str = 'llm', **kwargs) -> str:
+    def _get_content_as_markdown(self, level: int, scope: Optional[str] = None, style: str = 'llm', **kwargs) -> str:
         if scope is None:
             s = ''
             for scope in self:
-                s += self._get_content_as_text(level, scope=scope, style=style)
+                s += self._get_content_as_markdown(level, scope=scope, style=style)
         else:
             s = self.pretty_repr_for_scope_and_query(style='print', scope=scope,
                                                      **self.scopes_to_search_params[scope].to_dict())

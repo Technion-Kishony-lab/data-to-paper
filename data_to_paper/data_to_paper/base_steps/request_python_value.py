@@ -41,7 +41,7 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
     def parent_type(self) -> type:
         return get_origin(self.value_type)
 
-    def get_valid_result_as_text_blocks(self) -> str:
+    def get_valid_result_as_markdown(self) -> str:
         return wrap_text_with_triple_quotes(self.valid_result, 'python')
 
     def _check_response_and_get_extracted_text(self, response: str) -> str:

@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass, field
-from typing import Tuple, Dict, Any, Iterable, List, Collection
+from typing import Tuple, Dict, Any, Iterable, List, Collection, Type, Union
 
 from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
@@ -8,6 +8,7 @@ from data_to_paper.base_steps.result_converser import Rewind, ExtractedText
 from data_to_paper.base_steps import BaseProductsQuotedReviewGPT, PythonDictReviewBackgroundProductsConverser, \
     PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser, \
     PythonDictWithDefinedKeysReviewBackgroundProductsConverser
+from data_to_paper.base_products.product import ValueProduct
 
 from data_to_paper.servers.custom_types import Citation
 
@@ -103,10 +104,12 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
         respond solely with "{termination_phrase}".
     """)
 
+    product_type: Type[ValueProduct] = GoalAndHypothesisProduct
+
     def _check_extracted_text_and_update_valid_result(self, extracted_text: str):
         if '\n# Research Goal:' not in extracted_text or '\n# Hypothesis:' not in extracted_text:
             self._raise_self_response_error(self.quote_request)
-        self._update_valid_result(GoalAndHypothesisProduct(value=extracted_text))
+        self._update_valid_result(extracted_text)
 
 
 @dataclass
@@ -158,12 +161,11 @@ class GetMostSimilarCitations(ShowCitationProducts, PythonDictReviewBackgroundPr
         available_citations = self._get_available_citations()
         return [citation for citation in available_citations if citation.bibtex_id in ids_to_titles]
 
-    def _update_valid_result(self, valid_result: Dict[str, str]):
-        super()._update_valid_result(MostSimilarPapersProduct(value=self._get_overlapping_citations(valid_result)))
+    def _convert_valid_result_to_product(self, valid_result: Dict[str, str]) -> MostSimilarPapersProduct:
+        return MostSimilarPapersProduct(value=self._get_overlapping_citations(valid_result))
 
-    def _convert_valid_result_back_to_extracted_text(self, valid_result: Any) -> ExtractedText:
-        return super()._convert_valid_result_back_to_extracted_text(
-            {citation.bibtex_id: citation.title for citation in valid_result})
+    def _convert_product_back_to_valid_result(self, product: MostSimilarPapersProduct) -> Dict[str, str]:
+        return {citation.bibtex_id: citation.title for citation in product}
 
 
 @dataclass
@@ -227,6 +229,8 @@ class NoveltyAssessmentReview(ShowCitationProducts, PythonDictWithDefinedKeysRev
         ```
         """)
 
+    product_type: Type[ValueProduct] = NoveltyAssessmentProduct
+
     def _check_response_value(self, response_value: Any) -> Any:
         response_value = super()._check_response_value(response_value)
         errors = []
@@ -247,9 +251,6 @@ class NoveltyAssessmentReview(ShowCitationProducts, PythonDictWithDefinedKeysRev
                 f"Your response should be formatted as a Python dictionary, like this:\n"
                 "{'similarities': List[str], 'differences': List[str], 'choice': str, 'explanation': str}")
         return response_value
-
-    def _update_valid_result(self, valid_result: Dict[str, Any]):
-        super()._update_valid_result(NoveltyAssessmentProduct(value=valid_result))
 
 
 @dataclass
@@ -329,6 +330,7 @@ class HypothesesTestingPlanReviewGPT(PythonDictReviewBackgroundProductsConverser
         """)
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.PlanReviewer
+    product_type: Type[ValueProduct] = HypothesisTestingPlanProduct
 
     def _check_response_value(self, response_value: Any) -> Any:
         """
@@ -344,6 +346,3 @@ class HypothesesTestingPlanReviewGPT(PythonDictReviewBackgroundProductsConverser
             {re.sub(pattern=r'hypothesis \d+:|hypothesis:|hypothesis :',
                     repl='', string=k, flags=re.IGNORECASE).strip(): v
              for k, v in response_value.items()})
-
-    def _update_valid_result(self, valid_result: Dict[str, str]):
-        super()._update_valid_result(HypothesisTestingPlanProduct(value=valid_result))

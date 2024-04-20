@@ -152,6 +152,7 @@ TAGS_TO_FORMATTERS: Dict[Optional[str], Tuple[Callable, Callable]] = {
     '': BLOCK_FORMATTER,
     True: BLOCK_FORMATTER,
     'text': REGULAR_FORMATTER,
+    'markdown': REGULAR_FORMATTER,
     'md': REGULAR_FORMATTER,
     'python': (python_to_highlighted_text, python_to_highlighted_html),
     'output': (light_text, output_to_highlighted_html),
@@ -168,7 +169,7 @@ TAGS_TO_FORMATTERS: Dict[Optional[str], Tuple[Callable, Callable]] = {
 
 NEEDS_NO_WRAPPING_FOR_NO_HTML = {'python', 'output', 'html', 'header'}
 NEEDS_NO_WRAPPING_FOR_HTML = {'python', 'output', 'html', 'header', 'latex'}
-POSSIBLE_MARKDOWN_LABELS = {'md', 'text', '', True, False}
+POSSIBLE_MARKDOWN_LABELS = {'markdown', 'text', '', True, False}
 
 
 def is_text_md(text: str) -> bool:
@@ -183,7 +184,7 @@ def format_text_with_code_blocks(text: str, text_color: str = '', from_md: Optio
         label, section, _, = formatted_section.to_tuple()
         formatter = TAGS_TO_FORMATTERS.get(label, BLOCK_FORMATTER)[is_html]
         is_section_md = \
-            label == 'md' or label in POSSIBLE_MARKDOWN_LABELS and (from_md or from_md is None and is_text_md(section))
+            label == 'markdown' or label in POSSIBLE_MARKDOWN_LABELS and (from_md or from_md is None and is_text_md(section))
         if not is_html and label not in ['python', 'header', 'comment', 'system']:
             section = FormattedSections([formatted_section]).to_text()
         if is_html:
