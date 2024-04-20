@@ -7,22 +7,25 @@ from data_to_paper.utils.text_formatting import dedent_triple_quote_str
 
 import openai
 
-from typing import List, Union, Optional
+from typing import List, Union, Optional, Callable
 
 import tiktoken
 
-from data_to_paper.env import OPENAI_MODELS_TO_ORGANIZATIONS_API_KEYS_AND_API_BASE_URL
+from data_to_paper.env import OPENAI_MODELS_TO_ORGANIZATIONS_API_KEYS_AND_API_BASE_URL, RECORD_INTERACTIONS
 from data_to_paper.utils.print_to_file import print_and_log_red, print_and_log
-from data_to_paper.run_gpt_code.timeout_context import timeout_context
 from data_to_paper.exceptions import TerminateException
+from data_to_paper.utils.serialize import SerializableValue, deserialize_serializable_value
 
 from .base_server import ListServerCaller
 from .model_engine import ModelEngine
 
 from typing import TYPE_CHECKING
+
+from .serialize_exceptions import serialize_exception, is_exception, de_serialize_exception
+
 if TYPE_CHECKING:
     from data_to_paper.conversation.message import Message
-
+    from data_to_paper.interactive import HumanAction, BaseApp
 
 TIME_LIMIT_FOR_OPENAI_CALL = 300  # seconds
 MAX_NUM_LLM_ATTEMPTS = 5
@@ -50,6 +53,14 @@ class UserAbort(TerminateException):
     pass
 
 
+@dataclass
+class LLMResponse(SerializableValue):
+    """
+    Class to store LLM response.
+    value: str - the response from the LLM.
+    """
+
+
 def _get_actual_model_engine(model_engine: Optional[ModelEngine]) -> ModelEngine:
     """
     Return the actual model engine to use for the given model engine.
@@ -65,13 +76,21 @@ class OpenaiSeverCaller(ListServerCaller):
 
     @staticmethod
     def _check_before_spending_money(messages: List[Message], model_engine: ModelEngine):
-        if False and model_engine > ModelEngine.DEFAULT:
-            while True:
-                answer = input(f'CONFIRM USING {model_engine} (y/n): ').lower()
-                if answer == 'y':
-                    break
-                elif answer == 'n':
-                    raise UserAbort()
+        while False:
+            user_choice = input(dedent_triple_quote_str("""
+            Please carefully check that you are willing to proceed with this LLM API call.
+            We suggest reading the current ongoing conversation and especially the last USER message \t
+            to understand the instructions we are sending to the LLM.
+            If you are willing to proceed, please type Y, otherwise type N.
+            Note: if you choose N, the program will immediately abort.
+            """))
+
+            if user_choice.lower() == 'n':
+                raise UserAbort(reason="User chose to abort the program.")
+            elif user_choice.lower() == 'y':
+                break
+            else:
+                print_and_log_red('Invalid input. Please choose Y/N.', should_log=False)
         print_and_log_red('Calling the LLM-API for real.', should_log=False)
 
     @staticmethod
@@ -82,30 +101,25 @@ class OpenaiSeverCaller(ListServerCaller):
         print_and_log_red(f'Total: {tokens_in} prompt tokens, {tokens_out} returned tokens, '
                           f'cost: ${(tokens_in * pricing_in + tokens_out * pricing_out) / 1000:.2f}.',
                           should_log=False)
-        # time.sleep(6)
+
+    def get_server_response(self, *args, **kwargs) -> Union[LLMResponse, HumanAction, Exception]:
+        """
+        returns the response from the server after post-processing. allows recording and replaying.
+        """
+        action = super().get_server_response(*args, **kwargs)
+        if isinstance(action, str):
+            action = LLMResponse(action)  # Backward compatibility
+        return action
 
     @staticmethod
-    def _get_server_response(messages: List[Message], model_engine: ModelEngine, **kwargs) -> str:
+    def _get_server_response(messages: List[Message], model_engine: Union[ModelEngine, Callable], **kwargs
+                             ) -> Union[LLMResponse, HumanAction, Exception]:
         """
         Connect with openai to get response to conversation.
         """
+        if not isinstance(model_engine, ModelEngine):
+            return model_engine(messages, **kwargs)
         if os.environ['CLIENT_SERVER_MODE'] == 'False':
-            while True:
-                user_choice = input(dedent_triple_quote_str("""
-                Please carefully check that you are willing to proceed with this LLM API call.
-                We suggest reading the current ongoing conversation and especially the last USER message \t
-                to understand the instructions we are sending to the LLM.
-                If you are willing to proceed, please type Y, otherwise type N.
-                Note: if you choose N, the program will immediately abort.
-                """))
-
-                if user_choice.lower() == 'n':
-                    raise UserAbort(reason="User chose to abort the program.")
-                elif user_choice.lower() == 'y':
-                    break
-                else:
-                    print_and_log_red('Invalid input. Please choose Y/N.', should_log=False)
-
             OpenaiSeverCaller._check_before_spending_money(messages, model_engine)
 
         organization, api_key, api_base_url = OPENAI_MODELS_TO_ORGANIZATIONS_API_KEYS_AND_API_BASE_URL[model_engine] \
@@ -116,12 +130,12 @@ class OpenaiSeverCaller(ListServerCaller):
         openai.organization = organization
         for attempt in range(MAX_NUM_LLM_ATTEMPTS):
             try:
-                with timeout_context(TIME_LIMIT_FOR_OPENAI_CALL):
-                    response = openai.ChatCompletion.create(
-                        model=model_engine.value,
-                        messages=[message.to_llm_dict() for message in messages],
-                        **kwargs,
-                    )
+                # TODO: Need to implement timeout. Our current timeout_context() is not working on a Worker of Qt.
+                response = openai.ChatCompletion.create(
+                    model=model_engine.value,
+                    messages=[message.to_llm_dict() for message in messages],
+                    **kwargs,
+                )
                 break
             except openai.error.InvalidRequestError:
                 raise
@@ -138,7 +152,25 @@ class OpenaiSeverCaller(ListServerCaller):
 
         content = response['choices'][0]['message']['content']
         OpenaiSeverCaller._check_after_spending_money(content, messages, model_engine)
-        return content
+        return LLMResponse(content)
+
+    @staticmethod
+    def _serialize_record(record: Union[SerializableValue, Exception]):
+        if isinstance(record, Exception):
+            return serialize_exception(record)
+        if isinstance(record, SerializableValue):
+            return record.serialize()
+        raise ValueError(f'Cannot serialize record of type {type(record)}:\n{record}')
+
+    @staticmethod
+    def _deserialize_record(serialized_record):
+        if is_exception(serialized_record):
+            return de_serialize_exception(serialized_record)
+        try:
+            return deserialize_serializable_value(serialized_record)
+        except ValueError:
+            # compatible with previous versions:
+            return LLMResponse(serialized_record)
 
 
 OPENAI_SERVER_CALLER = OpenaiSeverCaller()
@@ -185,9 +217,10 @@ def try_get_llm_response(messages: List[Message],
     if tokens + expected_tokens_in_response < ModelEngine.DEFAULT.max_tokens and model_engine > ModelEngine.DEFAULT:
         print_and_log(f'WARNING: Consider using {ModelEngine.DEFAULT} (max {ModelEngine.DEFAULT.max_tokens} tokens).',
                       should_log=False)
-
     try:
-        return OPENAI_SERVER_CALLER.get_server_response(messages, model_engine=model_engine, **kwargs)
+        action = OPENAI_SERVER_CALLER.get_server_response(messages, model_engine=model_engine, **kwargs)
+        assert isinstance(action, LLMResponse)
+        return action.value
     except openai.error.InvalidRequestError as e:
         # TODO: add here any other exception that can be addressed by changing the number of tokens
         #     or bump up the model engine
@@ -195,3 +228,15 @@ def try_get_llm_response(messages: List[Message],
             return e
         else:
             raise
+
+
+def get_human_response(app: BaseApp, **kwargs) -> HumanAction:
+    """
+    Allow the user to edit a message and return the edited message.
+    Return None if the user did not change the message.
+    """
+    if RECORD_INTERACTIONS:
+        return OPENAI_SERVER_CALLER.get_server_response(
+            [], model_engine=lambda messages, **k: app.request_action(**k), **kwargs)
+    else:
+        return app.request_action(**kwargs)

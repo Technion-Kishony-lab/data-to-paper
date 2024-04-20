@@ -13,6 +13,8 @@ from data_to_paper.latex.clean_latex import wrap_as_latex_code_output, replace_s
 from data_to_paper.run_gpt_code.base_run_contexts import RunContext
 
 from data_to_paper.code_and_output_files.output_file_requirements import OutputFileRequirementsWithContent
+from data_to_paper.utils import format_text_with_code_blocks
+from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
 
 if TYPE_CHECKING:
     from data_to_paper.run_gpt_code.overrides.dataframes.dataframe_operations import DataframeOperations
@@ -60,7 +62,7 @@ class CodeAndOutput:
         return '\n'.join(lines)
 
     def _get_label_for_file(self, filename: str) -> str:
-        return convert_str_to_latex_label(self.name + '-' + filename, 'code')
+        return convert_str_to_latex_label((self.name or '') + '-' + filename, 'code')
 
     def _get_code_with_hypertargets(self) -> str:
         code = self.code
@@ -97,23 +99,33 @@ class CodeAndOutput:
                 s += '\n\n' + wrap_as_latex_code_output(content)
         return s
 
-    def to_text(self):
-        s = f"{self.name} Code and Output\n"
+    def to_text(self, with_header: bool = True):
+        s = ''
+        if with_header:
+            if self.name is None:
+                s = f"# Code and Output\n"
+            else:
+                s = f"# {self.name} Code and Output\n"
         if self.code:
-            s += "Code:\n"
-            s += self.code + '\n\n'
+            s += "## Code:\n"
+            s += wrap_text_with_triple_quotes(self.code, 'python') + '\n'
         if self.provided_code:
-            s += "Provided Code:\n"
-            s += self.provided_code + '\n\n'
+            s += "## Provided Code:\n"
+            s += wrap_text_with_triple_quotes(self.provided_code, 'python') + '\n'
         if self.code_explanation:
-            s += "Code Description:\n"
-            s += self.code_explanation + '\n\n'
-        outputs = self.created_files.get_created_content_files_to_pretty_contents(
-            content_view=ContentViewPurpose.FINAL_APPENDIX)
+            s += "## Code Description:\n"
+            s += wrap_text_with_triple_quotes(self.code_explanation, 'latex') + '\n'
+        if self.created_files:
+            outputs = self.created_files.get_created_content_files_to_pretty_contents(
+                content_view=ContentViewPurpose.APP_HTML)
+        else:
+            outputs = None
 
         if outputs:
-            s += "Code Output:\n"
+            s += "## Code Output:\n"
             for filename, output in outputs.items():
-                s += f'\n\n{filename}\n'
-                s += '\n' + output
+                s += f'### {output}\n'
         return s
+
+    def as_html(self):
+        return format_text_with_code_blocks(self.to_text(), from_md=True, is_html=True)

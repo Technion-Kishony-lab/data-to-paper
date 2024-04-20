@@ -3,16 +3,16 @@ from typing import Optional, Set, Iterable, Union, List
 
 from data_to_paper.utils.print_to_file import print_and_log_red
 from data_to_paper.base_cast import Agent
-from data_to_paper.servers.llm_call import try_get_llm_response
+from data_to_paper.servers.llm_call import try_get_llm_response, get_human_response
 from data_to_paper.servers.model_engine import OPENAI_CALL_PARAMETERS_NAMES, OpenaiCallParameters, ModelEngine
 from data_to_paper.run_gpt_code.code_utils import add_label_to_first_triple_quotes_if_missing
 
 from .actions_and_conversations import ActionsAndConversations, Conversations, Actions
 from .conversation import Conversation
-from .message import Message, Role, create_message, CodeMessage
+from .message import Message, Role, create_message, create_message_from_other_message
 from .message_designation import GeneralMessageDesignation, convert_general_message_designation_to_list
 from .conversation_actions import ConversationAction, AppendMessage, DeleteMessages, ResetToTag, \
-    AppendLLMResponse, FailedLLMResponse, ReplaceLastResponse, CopyMessagesBetweenConversations, \
+    AppendLLMResponse, FailedLLMResponse, ReplaceLastMessage, \
     CreateConversation, AddParticipantsToConversation, SetTypingAgent
 
 
@@ -43,6 +43,8 @@ class ConversationManager:
 
     user_agent: Agent = None
     "The agent who is playing the user in the conversation."
+
+    human_agent: Agent = None
 
     @property
     def conversations(self) -> Conversations:
@@ -95,14 +97,12 @@ class ConversationManager:
     def add_participants(self, agents: Iterable[Agent]):
         self._create_and_apply_action(AddParticipantsToConversation, participants=set(agents))
 
-    def initialize_conversation_if_needed(self) -> bool:
+    def initialize_conversation_if_needed(self):
         if self.conversation is None:
             self.create_conversation()
-            return True
         else:
             if self.participants - self.conversation.participants:
                 self.add_participants(self.participants - self.conversation.participants)
-            return False
 
     def append_message(self, message: Message, comment: Optional[str] = None, reverse_roles_for_web: bool = False,
                        **kwargs):
@@ -116,7 +116,7 @@ class ConversationManager:
             message=message, comment=comment, **kwargs)
 
     def create_and_append_message(self, role: Role, content: str, tag: Optional[str], comment: Optional[str] = None,
-                                  ignore: bool = False, previous_code: Optional[str] = None,
+                                  ignore: bool = False, previous_code: Optional[str] = None, is_code: bool = False,
                                   context: Optional[List[Message]] = None,
                                   is_background: bool = False, reverse_roles_for_web: bool = False, **kwargs):
         """
@@ -130,7 +130,8 @@ class ConversationManager:
             agent = None
         self._create_and_apply_set_typing_action(agent=agent, reverse_roles_for_web=reverse_roles_for_web, **kwargs)
         message = create_message(role=role, content=content, tag=tag, agent=agent, ignore=ignore,
-                                 context=context, previous_code=previous_code, is_background=is_background)
+                                 context=context, previous_code=previous_code, is_code=is_code,
+                                 is_background=is_background)
         self.append_message(message, comment, reverse_roles_for_web=reverse_roles_for_web, **kwargs)
 
     def append_system_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
@@ -228,22 +229,6 @@ class ConversationManager:
             index, _ = indices_and_messages.pop(1)
             actual_hidden_messages.append(index)
 
-    def regenerate_previous_response(self, comment: Optional[str] = None) -> Message:
-        last_action = self.actions.get_actions_for_conversation(self.conversation_name)[-1]
-        assert isinstance(last_action, AppendLLMResponse)
-        last_message = self.conversation[-1]
-        assert last_message.role is Role.ASSISTANT
-        openai_call_parameters = last_message.openai_call_parameters
-        openai_call_parameters = openai_call_parameters.to_dict() if openai_call_parameters else {}
-        self.delete_messages(-1)  # delete last message.
-        return self.get_and_append_assistant_message(
-            comment=comment,
-            tag=last_message.tag,
-            is_code=isinstance(last_message, CodeMessage),
-            previous_code=last_message.previous_code if isinstance(last_message, CodeMessage) else None,
-            hidden_messages=last_action.hidden_messages,
-            **openai_call_parameters)
-
     def _try_get_and_append_llm_response(self, tag: Optional[str], comment: Optional[str] = None,
                                          is_code: bool = False, previous_code: Optional[str] = None,
                                          hidden_messages: GeneralMessageDesignation = None,
@@ -279,6 +264,17 @@ class ConversationManager:
             AppendLLMResponse, comment=comment, hidden_messages=hidden_messages, message=message, **kwargs)
         return message
 
+    def optionally_edit_and_replace_last_message(self, default_content: Optional[str] = None) -> Optional[Message]:
+        """
+        Allow the user to edit the last message and replace it with the edited message.
+        Return the edited message, or None if the user chose not to edit the message.
+        """
+        previous_content = self.conversation[-1].content
+        new_content = get_human_response(initial_content=previous_content, default_content=default_content)
+        if new_content is None:
+            return None
+        return self.replace_last_message(new_content, agent=self.human_agent)
+
     def reset_back_to_tag(self, tag: str, comment: Optional[str] = None):
         """
         Reset the conversation to the last message with the specified tag.
@@ -293,24 +289,12 @@ class ConversationManager:
         """
         self._create_and_apply_action(DeleteMessages, comment=comment, message_designation=message_designation)
 
-    def replace_last_response(self, content: str, comment: Optional[str] = None, tag: Optional[str] = None):
+    def replace_last_message(self, content: str, agent: Optional[Agent] = None, comment: Optional[str] = None
+                             ) -> Message:
         """
-        Replace the last response with the specified content.
+        Replace the last message with the specified content.
         """
-        self._create_and_apply_action(
-            ReplaceLastResponse,
-            comment=comment,
-            message=Message(role=Role.SURROGATE, content=content, tag=tag, agent=self.assistant_agent))
-        return content
-
-    def copy_messages_from_another_conversations(self, source_conversation: Conversation,
-                                                 message_designation: GeneralMessageDesignation,
-                                                 comment: Optional[str] = None):
-        """
-        Copy messages from one conversation to another.
-        """
-        self._create_and_apply_action(
-            CopyMessagesBetweenConversations,
-            comment=comment,
-            source_conversation_name=source_conversation.conversation_name,
-            message_designation=message_designation)
+        message = create_message_from_other_message(
+            other_message=self.conversation[-1], content=content, agent=agent)
+        self._create_and_apply_action(ReplaceLastMessage, comment=comment, message=message)
+        return message

@@ -37,6 +37,9 @@ class Mutable:
     def __ge__(self, other):
         return self.val >= other
 
+    def __bool__(self):
+        return bool(self.val)
+
 
 @dataclass
 class Flag(Mutable):

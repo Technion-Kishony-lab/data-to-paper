@@ -5,10 +5,10 @@ from typing import Tuple, List, Set, Optional, Iterable
 from data_to_paper.base_steps import LatexReviewBackgroundProductsConverser, \
     CheckReferencedNumericReviewBackgroundProductsConverser
 from data_to_paper.base_steps.exceptions import FailedCreatingProductException
+from data_to_paper.base_steps.literature_search import GET_LITERATURE_SEARCH_FOR_PRINT
 from data_to_paper.latex.tables import get_table_label
 from data_to_paper.research_types.scientific_research.cast import ScientificAgent
-from data_to_paper.research_types.scientific_research.scientific_products import ScientificProducts, \
-    DEFAULT_LITERATURE_SEARCH_STYLE
+from data_to_paper.research_types.scientific_research.scientific_products import ScientificProducts
 from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.research_types.scientific_research.model_engines import get_model_engine_for_class
 from data_to_paper.servers.custom_types import Citation
@@ -35,7 +35,7 @@ class ShowCitationProducts:
         contents = []
         for product_field in self.background_product_fields:
             if product_field.startswith('literature_search') and self.products.is_product_available(product_field):
-                with DEFAULT_LITERATURE_SEARCH_STYLE.temporary_set('print'):
+                with GET_LITERATURE_SEARCH_FOR_PRINT.temporary_set(True):
                     product = self.products[product_field]
                     contents.append(f'{product.name}:\n{product.description}')
         return contents
@@ -103,7 +103,7 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
         3. Write the article in a way that is fully consistent with the scientific results we have.
         """)
 
-    user_initiation_prompt: str = dedent_triple_quote_str("""
+    mission_prompt: str = dedent_triple_quote_str("""
         Based on the material provided above ({actual_background_product_names}), \t
         please {goal_verb} only the {goal_noun} for a {journal_name} article.
         Do not write any other parts!
@@ -216,7 +216,7 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
         return section
 
     def write_sections_with_citations(self) -> List[Tuple[str, Set[Citation]]]:
-        sections: List[str] = self.run_dialog_and_get_valid_result()
+        sections: List[str] = self.run_and_get_valid_result()
         sections_and_citations = []
         for section in sections:
             sections_and_citations.append(
@@ -288,7 +288,7 @@ class SecondTitleAbstractSectionWriterReviewGPT(FirstTitleAbstractSectionWriterR
                                              'literature_search:writing:dataset',
                                              'literature_search:writing:results',
                                              'title_and_abstract')
-    user_initiation_prompt: str = dedent_triple_quote_str("""
+    mission_prompt: str = dedent_triple_quote_str("""
         Bases on the material provided above ({actual_background_product_names}), please help me improve the \t
         title and abstract for a {journal_name} research paper. 
 
@@ -409,10 +409,10 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
 
     section_review_specific_instructions: str = "{section_specific_instructions}"
 
-    def _check_extracted_result_and_get_valid_result(self, extracted_result: List[str]):
+    def _check_extracted_text_and_update_valid_result(self, extracted_text: List[str]):
         # Warn on "version = ..." :
         # e.g. "version = 1.2.3", "version 1.2.3", "Python 3.7", "Python 3.7.1"
-        response = self._get_fresh_looking_response('', extracted_result)
+        response = self._convert_extracted_text_to_fresh_looking_response(extracted_text)
         pattern = r'version(?:\s*=\s*|\s+)(\d+\.\d+(\.\d+)?)|Python\s+(\d+\.\d+)'
         if re.findall(pattern, response):
             self._raise_self_response_error(
@@ -425,11 +425,11 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
             self._raise_self_response_error(
                 f'The Methods section should only have the following 3 subsections: '
                 f'Data Source, Data Preprocessing, Data Analysis. ')
-        return super()._check_extracted_result_and_get_valid_result(extracted_result)
+        return super()._check_extracted_text_and_update_valid_result(extracted_text)
 
-    def run_dialog_and_get_valid_result(self) -> list:
+    def run_and_get_valid_result(self) -> list:
         # Add code availability statement:
-        response = [super().run_dialog_and_get_valid_result()[0] +
+        response = [super().run_and_get_valid_result()[0] +
                     '\\subsection{Code Availability}\n\n'
                     'Custom code used to perform the data preprocessing and analysis, '
                     'as well as the raw code outputs, are provided in Supplementary Methods.']
@@ -518,7 +518,7 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         With-treatment response: \\hypertarget{Z2a}{0.87}
 
         Treatment regression: 
-        coef = \\hypertarget{Z3a}{0.17}, STD = \\hypertarget{Z3b}{0.072}, pvalue = \\hypertarget{Z3c}{0.007}
+        coef = \\hypertarget{Z3a}{0.17}, STD = \\hypertarget{Z3b}{0.072}, pvalue = <\\hypertarget{Z3c}{1e-6}
         ```
 
         Then, here are some examples of proper ways to report these provided source values:
@@ -527,7 +527,7 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         group had a response of \\hyperlink{Z2a}{0.87}.
 
         The regression coefficient for the treatment was \\hyperlink{Z3a}{0.17} with a standard deviation of \t
-        \\hyperlink{Z3b}{0.072} (P-value: \\hyperlink{Z3c}{0.007}).
+        \\hyperlink{Z3b}{0.072} (P-value: < \\hyperlink{Z3c}{1e-6}).
         ```
 
         And are some examples of proper ways to calculate dependent values, using the \\num command:
@@ -558,7 +558,7 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         The no-treatment response was \\hyperlink{Z1a}{0.65} (STD: [unknown]).
         ```
         """)
-    other_initiation_prompt: str = dedent_triple_quote_str("""
+    other_mission_prompt: str = dedent_triple_quote_str("""
         Based on the material provided above, please write the Results section for a {journal_name} research paper.
 
         {general_result_instructions}

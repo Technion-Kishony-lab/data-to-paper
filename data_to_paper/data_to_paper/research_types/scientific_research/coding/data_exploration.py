@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
-from typing import Tuple, Optional, Dict, Any, Iterable
+from typing import Tuple, Optional, Dict, Any, Collection
 
+from data_to_paper.base_steps.request_code import CodeReviewPrompt
 from data_to_paper.code_and_output_files.output_file_requirements import OutputFileRequirements
 from data_to_paper.research_types.scientific_research.cast import ScientificAgent
 from data_to_paper.research_types.scientific_research.coding.base_code_conversers import BaseScientificCodeProductsGPT
@@ -28,7 +29,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
 
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy')
 
-    user_initiation_prompt: str = dedent_triple_quote_str("""
+    mission_prompt: str = dedent_triple_quote_str("""
         As part of a data-exploration phase, please write a complete short Python code for getting a \t
         first sense of the data. 
 
@@ -71,8 +72,8 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         Do not send any presumed output examples.
         """)
 
-    code_review_prompts: Iterable[Tuple[str, bool, str]] = (
-        ('*', False, dedent_triple_quote_str("""
+    code_review_prompts: Collection[CodeReviewPrompt] = (
+        CodeReviewPrompt('*', False, dedent_triple_quote_str("""
         I ran your code.
 
         Here is the content of the output file that the code created:

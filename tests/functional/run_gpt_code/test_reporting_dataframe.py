@@ -175,8 +175,8 @@ def test_raise_on_call():
     with TrackDataFrames():
         df = pd.DataFrame()
         with pytest.raises(UnAllowedDataframeMethodCall) as exc:
-            df.to_html()
-    assert 'to_html' in str(exc.value)
+            df.to_json()
+    assert 'to_json' in str(exc.value)
 
 
 def test_df_to_latex():

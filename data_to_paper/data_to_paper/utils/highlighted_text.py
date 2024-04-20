@@ -1,3 +1,4 @@
+import re
 from typing import Optional, Dict, Tuple, Callable
 from functools import partial
 
@@ -12,7 +13,8 @@ from pygments import highlight, token
 
 from .formatted_sections import FormattedSections
 from .text_formatting import wrap_string
-
+from data_to_paper.latex.latex_to_html import convert_latex_to_html
+from ..env import CHOSEN_APP
 
 COLORS_TO_LIGHT_COLORS = {
     colorama.Fore.BLACK: colorama.Fore.LIGHTBLACK_EX,
@@ -30,7 +32,11 @@ style = get_style_by_name("monokai")
 terminal_formatter = Terminal256Formatter(style=style)
 html_formatter = HtmlFormatter(style=style, cssclass='text_highlight')
 html_textblock_formatter = HtmlFormatter(style=style, cssclass='textblock_highlight')
-html_code_formatter = HtmlFormatter(style=style, cssclass="code_highlight", prestyles="margin-left: 1.5em;")
+
+if CHOSEN_APP == 'pyside':
+    html_code_formatter = HtmlFormatter(style=style)
+else:
+    html_code_formatter = HtmlFormatter(style=style, cssclass="code_highlight", prestyles="margin-left: 1.5em;")
 
 
 class CSVLexer(RegexLexer):
@@ -65,7 +71,32 @@ def python_to_highlighted_text(code_str: str, color: str = '') -> str:
         return code_str
 
 
-def text_to_html(text: str, textblock: bool = False) -> str:
+def md_to_html(md):
+    """
+    Convert markdown to html
+    """
+    # Convert headers
+    md = re.sub(pattern=r'(?m)^#### (.*)', repl=r'<h4>\1</h4>', string=md)
+    md = re.sub(pattern=r'(?m)^### (.*)', repl=r'<h3>\1</h3>', string=md)
+    md = re.sub(pattern=r'(?m)^## (.*)', repl=r'<h2>\1</h2>', string=md)
+    md = re.sub(pattern=r'(?m)^# (.*)', repl=r'<h1>\1</h1>', string=md)
+
+    # Convert lists to bullets
+    md = re.sub(pattern=r'(?m)^- (.*)', repl=r'<li>- \1</li>', string=md)
+
+    # Convert bold and italic
+    md = re.sub(pattern=r'\*\*(.*)\*\*', repl=r'<b>\1</b>', string=md)
+    md = re.sub(pattern=r'\*(.*)\*', repl=r'<i>\1</i>', string=md)
+    md = md.replace('\n\n', '<br>')
+    return md
+
+
+def text_to_html(text: str, textblock: bool = False, from_md: bool = False) -> str:
+    if not textblock and CHOSEN_APP == 'pyside':
+        if from_md:
+            return md_to_html(text)
+        return text.replace('\n', '<br>')
+
     # using some hacky stuff to get around pygments not highlighting text blocks, while kipping newlines as <br>
     text = '|' + text + '|'
     if textblock:
@@ -109,6 +140,10 @@ def get_pre_html_format(text,
     return s + text + '</pre>'
 
 
+def identity(text: str) -> str:
+    return text
+
+
 REGULAR_FORMATTER = (colored_text, text_to_html)
 BLOCK_FORMATTER = (light_text, partial(text_to_html, textblock=True))
 
@@ -117,9 +152,11 @@ TAGS_TO_FORMATTERS: Dict[Optional[str], Tuple[Callable, Callable]] = {
     '': BLOCK_FORMATTER,
     True: BLOCK_FORMATTER,
     'text': REGULAR_FORMATTER,
+    'markdown': REGULAR_FORMATTER,
+    'md': REGULAR_FORMATTER,
     'python': (python_to_highlighted_text, python_to_highlighted_html),
     'output': (light_text, output_to_highlighted_html),
-    'html': (colored_text, get_pre_html_format),
+    'html': (colored_text, identity),
     'highlight': (colored_text, partial(get_pre_html_format, color='#334499', font_size=20, font_weight='bold',
                                         font_family="'Courier', sans-serif")),
     'comment': (colored_text, partial(get_pre_html_format, color='#424141', font_style='italic', font_size=16,
@@ -127,24 +164,38 @@ TAGS_TO_FORMATTERS: Dict[Optional[str], Tuple[Callable, Callable]] = {
     'system': (colored_text, partial(get_pre_html_format, color='#20191D', font_style='italic', font_size=16,
                                      font_family="'Courier', sans-serif")),
     'header': (light_text, partial(get_pre_html_format, color='#FF0000', font_size=12)),
+    'latex': (colored_text, convert_latex_to_html),
 }
 
-NEEDS_NO_WRAPPING = {'python', 'output', 'html'}
+NEEDS_NO_WRAPPING_FOR_NO_HTML = {'python', 'output', 'html', 'header'}
+NEEDS_NO_WRAPPING_FOR_HTML = {'python', 'output', 'html', 'header', 'latex'}
+POSSIBLE_MARKDOWN_LABELS = {'markdown', 'text', '', True, False}
 
 
-def format_text_with_code_blocks(text: str, text_color: str = '',
-                                 width: int = 80, is_html: bool = False) -> str:
+def is_text_md(text: str) -> bool:
+    return text.strip().startswith('#')
+
+
+def format_text_with_code_blocks(text: str, text_color: str = '', from_md: Optional[bool] = None,
+                                 width: Optional[int] = 150, is_html: bool = False) -> str:
     s = ''
     formatted_sections = FormattedSections.from_text(text)
     for formatted_section in formatted_sections:
         label, section, _, = formatted_section.to_tuple()
         formatter = TAGS_TO_FORMATTERS.get(label, BLOCK_FORMATTER)[is_html]
+        is_section_md = (label == 'markdown' or label in POSSIBLE_MARKDOWN_LABELS
+                         and (from_md or from_md is None and is_text_md(section)))
         if not is_html and label not in ['python', 'header', 'comment', 'system']:
             section = FormattedSections([formatted_section]).to_text()
-        if label not in NEEDS_NO_WRAPPING:
-            section = wrap_string(section, width=width)
         if is_html:
-            s += formatter(section)
+            if label not in NEEDS_NO_WRAPPING_FOR_HTML:
+                section = wrap_string(section, width=width)
+            if formatter == text_to_html:
+                s += formatter(section, from_md=is_section_md)
+            else:
+                s += formatter(section)
         else:
+            if label not in NEEDS_NO_WRAPPING_FOR_NO_HTML:
+                section = wrap_string(section, width=width)
             s += formatter(section, text_color)
     return s

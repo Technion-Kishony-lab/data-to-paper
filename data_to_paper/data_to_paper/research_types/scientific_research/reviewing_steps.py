@@ -1,16 +1,19 @@
 import re
 from dataclasses import dataclass, field
-from typing import Tuple, Dict, Any, Iterable, List
+from typing import Tuple, Dict, Any, Iterable, List, Collection, Type
 
 from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.base_steps.result_converser import Rewind
 from data_to_paper.base_steps import BaseProductsQuotedReviewGPT, PythonDictReviewBackgroundProductsConverser, \
-    PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser
+    PythonDictWithDefinedKeysReviewBackgroundProductsConverser
+from data_to_paper.base_products.product import ValueProduct
 
 from data_to_paper.servers.custom_types import Citation
 
 from .cast import ScientificAgent
+from .product_types import GoalAndHypothesisProduct, MostSimilarPapersProduct, NoveltyAssessmentProduct, \
+    HypothesisTestingPlanProduct
 from .scientific_products import ScientificProducts
 from .writing_steps import ShowCitationProducts
 from .model_engines import get_model_engine_for_class
@@ -58,12 +61,12 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
 
         * Make sure that your suggested hypothesis can be studied using only the provided dataset, \t
         without requiring any additional data. In particular, pay attention to using only data available \t
-        based on the provided headers of our data files (see "{data_file_descriptions}", above).
+        based on the provided headers of our data files (see "{data_file_descriptions_no_headers}", above).
 
         {project_specific_goal_guidelines}\t
         * Do not suggest methodology. Just the goal and an hypothesis. 
         """)
-    user_initiation_prompt: str = dedent_triple_quote_str("""\n
+    mission_prompt: str = dedent_triple_quote_str("""\n
         Please suggest a research goal and an hypothesis that can be studied using only the provided dataset. 
         The goal and hypothesis should be interesting and novel.
         {goal_guidelines}
@@ -73,10 +76,10 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
         INSTRUCTIONS FOR FORMATTING YOUR RESPONSE:
         Please return the goal and hypothesis enclosed within triple-backticks, like this:
         ```
-        Research Goal: 
+        # Research Goal: 
         <your research goal here>
 
-        Hypothesis: 
+        # Hypothesis: 
         <your hypothesis here>
         ```
         """)
@@ -100,6 +103,13 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
         respond solely with "{termination_phrase}".
     """)
 
+    product_type: Type[ValueProduct] = GoalAndHypothesisProduct
+
+    def _check_extracted_text_and_update_valid_result(self, extracted_text: str):
+        if '\n# Research Goal:' not in extracted_text or '\n# Hypothesis:' not in extracted_text:
+            self._raise_self_response_error(self.quote_request)
+        self._update_valid_result(extracted_text)
+
 
 @dataclass
 class GetMostSimilarCitations(ShowCitationProducts, PythonDictReviewBackgroundProductsConverser):
@@ -118,7 +128,7 @@ class GetMostSimilarCitations(ShowCitationProducts, PythonDictReviewBackgroundPr
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions_no_headers', 'research_goal',
                                                   'literature_search:goal:dataset', 'literature_search:goal:questions')
 
-    user_initiation_prompt: str = dedent_triple_quote_str("""
+    mission_prompt: str = dedent_triple_quote_str("""
         From the literature search above, list up to 5 key papers whose results are most \t
         similar/overlapping with our research goal and hypothesis.
 
@@ -146,38 +156,52 @@ class GetMostSimilarCitations(ShowCitationProducts, PythonDictReviewBackgroundPr
         response_value = type(response_value)({key: bibtex_ids_to_citations[key].title for key in response_value})
         return response_value
 
-    def get_overlapping_citations(self) -> List[Citation]:
-        ids_to_titles = self.run_dialog_and_get_valid_result()
+    def _get_overlapping_citations(self, ids_to_titles: Dict[str, str]) -> List[Citation]:
         available_citations = self._get_available_citations()
         return [citation for citation in available_citations if citation.bibtex_id in ids_to_titles]
 
+    def _convert_valid_result_to_product(self, valid_result: Dict[str, str]) -> MostSimilarPapersProduct:
+        return MostSimilarPapersProduct(value=self._get_overlapping_citations(valid_result))
+
+    def _convert_product_back_to_valid_result(self, product: MostSimilarPapersProduct) -> Dict[str, str]:
+        return {citation.bibtex_id: citation.title for citation in product}
+
 
 @dataclass
-class IsGoalOK(ShowCitationProducts, PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser):
+class NoveltyAssessmentReview(ShowCitationProducts, PythonDictWithDefinedKeysReviewBackgroundProductsConverser):
     products: ScientificProducts = None
-    model_engine: ModelEngine = field(default_factory=lambda: get_model_engine_for_class(IsGoalOK))
-    value_type: type = Dict[str, str]
+    model_engine: ModelEngine = field(default_factory=lambda: get_model_engine_for_class(NoveltyAssessmentReview))
+    value_type: type = Dict[str, Any]
     allowed_values_for_keys: Dict[str, Iterable] = field(default_factory=lambda: {'choice': ('OK', 'REVISE')})
     default_rewind_for_result_error: Rewind = Rewind.AS_FRESH_CORRECTION  # to maintain chain of thought
-    goal_noun: str = 'research goal and hypothesis'
+    goal_noun: str = 'novelty assessment'
     goal_verb: str = 'check'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.GoalReviewer
     conversation_name: str = 'is_goal_ok'
+    requested_keys: Collection[str] = ('similarities', 'differences', 'choice', 'explanation')
     is_new_conversation: bool = None  # this will create "research_goal_0", etc.
     background_product_fields: Tuple[str, ...] = ('general_dataset_description', 'research_goal',
-                                                  'literature_search:goal:goal and hypothesis')
+                                                  'most_similar_papers')
+    sentence_to_add_at_the_end_of_reviewer_response: str = dedent_triple_quote_str("""
+        Please correct your {goal_noun} based on the feedback provided.
+        Make sure to return your full assessment, as \t
+        a Python dictionary {'similarities': List[str], 'differences': List[str], 'choice': str, 'explanation': str}.
+        """)
 
-    user_initiation_prompt: str = dedent_triple_quote_str("""
-        Given the related papers listed above, please follow these 3 steps:
+    mission_prompt: str = dedent_triple_quote_str("""
+        We would like to assess the novelty of our {research_goal} with respect to the literature.
+        Given the related papers listed above, please return a Python dictionary \t
+        with the following structure \t
+        {'similarities': List[str], 'differences': List[str], 'choice': str, 'explanation': str}: 
 
-        (1) Provide a bullet-point list of potential similarities between our goal and hypothesis, \t
+        * 'similarities': Provide a List[str] of potential similarities between our goal and hypothesis, \t
         and the related papers listed above.
 
-        (2) Determine in what ways, if any, our stated goal and hypothesis are distinct from the related papers \t
-        listed above.
+        * 'differences': Provide a List[str] of potential differences, if any, between our stated {research_goal} \t
+        and the related papers listed above.
 
-        (3) Given your assessment above, choose one of the following two options:
+        * 'choice': Given your assessment above, choose one of the following two options:
 
         a. Our goal and hypothesis offer a significant novelty compared to existing literature, and \t
         will likely lead to interesting and novel findings {'choice': 'OK'}.
@@ -185,13 +209,47 @@ class IsGoalOK(ShowCitationProducts, PythonDictWithDefinedKeysAndValuesReviewBac
         b. Our goal and hypothesis have overlap with existing literature, and I can suggest ways to \t
         revise them to make them more novel {'choice': 'REVISE'}.
 
-        Your response for this part should be formatted as a Python dictionary mapping 'choice' to \t
-        either 'OK' or 'REVISE'. 
-        Namely, return either: {'choice': 'OK'} or {'choice': 'REVISE'}
+        * 'explanation': Provide a brief explanation of your choice.
+
+        Your response should be formatted as a Python dictionary, like this:
+        ```python
+        {
+            'similarities': ['Our research goal is similar to the paper by ... in that ...',
+                             'Our research goal somewhat overlaps with the findings of ...'],
+                             'Our hypothesis is similar to the paper by ... in that ...'],
+            'differences': ['Our goal and hypothesis are distinct because ...',
+                            'Our hypothesis differs from the paper by ... in that ...'],
+            'choice': 'OK'  # or 'REVISE'
+            'explanation': 'While our goal and hypothesis have some overlap with existing literature, \t
+                            I believe that the ... aspect of our research is novel and will lead to ...'
+                            # or 'The overlap with the result of ... is too significant, and I think we can \t
+                            # revise our goal to make it more novel, for example by ...'
+        }
+        ```
         """)
 
-    def is_goal_ok(self):
-        return self.run_and_get_valid_result()['choice'] == 'OK'
+    product_type: Type[ValueProduct] = NoveltyAssessmentProduct
+
+    def _check_response_value(self, response_value: Any) -> Any:
+        response_value = super()._check_response_value(response_value)
+        errors = []
+        if response_value['choice'] not in ['OK', 'REVISE']:
+            errors.append(f"Invalid choice: {response_value['choice']}. Choose 'OK' or 'REVISE'.")
+        if not isinstance(response_value['explanation'], str):
+            errors.append(f"Explanation must be a string.")
+        for key in ['similarities', 'differences']:
+            if not isinstance(response_value[key], list):
+                errors.append(f"'{key}' must be a list of strings.")
+            for item in response_value[key]:
+                if not isinstance(item, str):
+                    errors.append(f"Each item in '{key}' must be a string.")
+        if errors:
+            errors = '\n'.join(errors)
+            self._raise_self_response_error(
+                f"Errors in response structure:\n{errors}\n"
+                f"Your response should be formatted as a Python dictionary, like this:\n"
+                "{'similarities': List[str], 'differences': List[str], 'choice': str, 'explanation': str}")
+        return response_value
 
 
 @dataclass
@@ -200,8 +258,8 @@ class ReGoalReviewGPT(GoalReviewGPT):
     max_reviewing_rounds: int = 0
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions_no_headers',
                                                   'codes_and_outputs:data_exploration',
-                                                  'research_goal', 'literature_search:goal:goal and hypothesis')
-    user_initiation_prompt: str = dedent_triple_quote_str("""
+                                                  'research_goal', 'most_similar_papers')
+    mission_prompt: str = dedent_triple_quote_str("""
         Based on the result of the literature search above, \t
         please revise, or completely re-write, the research goal and hypothesis that we have so that they \t
         do not completely overlap existing literature.
@@ -224,13 +282,13 @@ class HypothesesTestingPlanReviewGPT(PythonDictReviewBackgroundProductsConverser
     is_new_conversation: bool = None  # this will create "hyp_testing_plan_0", etc.
     goal_noun: str = 'hypothesis testing plan'
     goal_verb: str = 'write'
-    user_initiation_prompt: str = dedent_triple_quote_str("""
+    mission_prompt: str = dedent_triple_quote_str("""
         We would like to test the specified hypotheses using the provided dataset.
 
         Please follow these two steps:
 
         (1) Return a bullet-point review of relevant statistical issues.
-        Read the "{data_file_descriptions}" and the "{codes_and_outputs:data_exploration}" provided above, \t
+        Read the "{data_file_descriptions_no_headers}" and the "{codes_and_outputs:data_exploration}" provided above, \t
         and then for each of the following generic \t
         statistical issues determine if they are relevant for our case and whether they should be accounted for: 
         * multiple comparisons.
@@ -271,6 +329,7 @@ class HypothesesTestingPlanReviewGPT(PythonDictReviewBackgroundProductsConverser
         """)
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.PlanReviewer
+    product_type: Type[ValueProduct] = HypothesisTestingPlanProduct
 
     def _check_response_value(self, response_value: Any) -> Any:
         """

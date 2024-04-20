@@ -22,10 +22,13 @@ from data_to_paper.base_products import DataFileDescriptions
 from data_to_paper.run_gpt_code.code_runner import RUN_CACHE_FILEPATH
 
 from .base_products_conversers import ProductsHandler
+from data_to_paper.interactive.app_interactor import AppInteractor
+from ..interactive import PanelNames
+from ..utils import format_text_with_code_blocks, dedent_triple_quote_str
 
 
 @dataclass
-class BaseStepsRunner(ProductsHandler):
+class BaseStepsRunner(ProductsHandler, AppInteractor):
     """
     A base class for running a series of steps whose Products gradually accumulate towards a high level goal.
     """
@@ -70,6 +73,7 @@ class BaseStepsRunner(ProductsHandler):
         """
         self.current_stage = stage
         self.actions_and_conversations.actions.apply_action(AdvanceStage(stage=stage))
+        self._app_advance_stage(stage)
 
     def set_active_conversation(self, agent: Agent):
         """
@@ -86,7 +90,8 @@ class BaseStepsRunner(ProductsHandler):
         if agent is not None:
             self.set_active_conversation(agent=agent)
 
-    def send_product_to_client(self, product_field: str, save_to_file: bool = False):
+    def send_product_to_client(self, product_field: str, save_to_file: bool = False,
+                               should_send: bool = True):
         """
         Get the base GPT script file.
         """
@@ -94,11 +99,19 @@ class BaseStepsRunner(ProductsHandler):
             filename = product_field + '.txt'
             with open(self.output_directory / filename, 'w') as file:
                 file.write(self.products.get_description(product_field))
+        if not should_send:
+            return
         self.actions_and_conversations.actions.apply_action(
             SetProduct(
                 stage=self.products.get_stage(product_field),
                 products=self.products,
                 product_field=product_field))
+        if self.app:
+            product = self.products.get_description_as_html(product_field)
+            self._app_send_product_of_stage(
+                stage=self.products.get_stage(product_field),
+                product_text=product,
+            )
 
     @property
     def absolute_data_folder(self):
@@ -186,3 +199,22 @@ class BaseStepsRunner(ProductsHandler):
             for product in PRODUCTS_TO_SEND_TO_CLIENT:
                 self.send_final_products_to_client(product_name=product)
             self.advance_stage(Stages.FINISHED)
+
+            msg = dedent_triple_quote_str("""
+                ## Completed
+                This *data-to-paper* research cycle is now completed.
+                The manuscript is ready. 
+                The paper.pdf file is in:
+                {output_directory}
+
+                Please download the created manuscript and check it rigorously and carefully.
+                \n
+                *Remember that the process is not error-free and the responsibility for the final manuscript \t
+                remains with you.*
+                \n
+                You can close the app now.
+                """).format(output_directory=self.output_directory)
+            msg = format_text_with_code_blocks(msg, from_md=True, is_html=True)
+            self._app_clear_panels()
+            self._app_send_prompt(PanelNames.MISSION_PROMPT, msg)
+            self._app_send_product_of_stage(Stages.FINISHED, msg)

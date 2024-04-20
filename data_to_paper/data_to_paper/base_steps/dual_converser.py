@@ -1,13 +1,14 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional, Tuple, Any
+from typing import Optional
 
 from data_to_paper.conversation import ConversationManager, GeneralMessageDesignation, Message
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.replacer import StrOrReplacer, format_value
 from data_to_paper.utils.print_to_file import print_and_log_magenta
 from data_to_paper.utils.text_counting import is_bulleted_list
-from data_to_paper.env import TEXT_WIDTH
+from data_to_paper.interactive import PanelNames
+from data_to_paper.env import TEXT_WIDTH, CHOSEN_APP
 from data_to_paper.run_gpt_code.code_utils import extract_content_of_triple_quote_block, FailedExtractingBlock, \
     IncompleteBlockFailedExtractingBlock
 
@@ -81,21 +82,25 @@ class DualConverserGPT(Converser):
                                                         hidden_messages: GeneralMessageDesignation = None,
                                                         expected_tokens_in_response: int = None,
                                                         **kwargs) -> Message:
-        return self.other_conversation_manager.get_and_append_assistant_message(
+        self._app_set_status(PanelNames.FEEDBACK, 'Reviewer LLM is thinking...')
+        self._app_send_prompt(PanelNames.FEEDBACK)
+        message = self.other_conversation_manager.get_and_append_assistant_message(
             tag=tag,
             comment=comment,
             is_code=is_code, previous_code=previous_code,
             model_engine=model_engine or self.model_engine,
             expected_tokens_in_response=expected_tokens_in_response,
             hidden_messages=hidden_messages, **kwargs)
+        self._app_set_status(PanelNames.FEEDBACK)
+        return message
 
     def apply_to_other_append_user_message(self, content: StrOrReplacer, tag: Optional[StrOrReplacer] = None,
                                            comment: Optional[StrOrReplacer] = None,
                                            ignore: bool = False,
                                            previous_code: Optional[str] = None, is_background: bool = False,
-                                           should_format: bool = True, **kwargs) -> Message:
+                                           **kwargs) -> Message:
         return self.other_conversation_manager.append_user_message(
-            content=format_value(self, content, should_format),
+            content=format_value(self, content),
             tag=tag,
             comment=comment,
             previous_code=previous_code,
@@ -103,9 +108,9 @@ class DualConverserGPT(Converser):
 
     def apply_to_other_append_system_message(self, content: StrOrReplacer, tag: Optional[StrOrReplacer] = None,
                                              comment: Optional[StrOrReplacer] = None,
-                                             should_format: bool = True, **kwargs) -> Message:
+                                             **kwargs) -> Message:
         return self.other_conversation_manager.append_system_message(
-            content=format_value(self, content, should_format),
+            content=format_value(self, content),
             tag=tag,
             comment=comment,
             **kwargs)
@@ -116,9 +121,9 @@ class DualConverserGPT(Converser):
                                                 ignore: bool = False,
                                                 previous_code: Optional[str] = None,
                                                 is_background: bool = False,
-                                                should_format: bool = True, **kwargs) -> Message:
+                                                **kwargs) -> Message:
         return self.other_conversation_manager.append_surrogate_message(
-            content=format_value(self, content, should_format),
+            content=format_value(self, content),
             tag=tag,
             comment=comment,
             previous_code=previous_code,
@@ -187,6 +192,9 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
     # AS_FRESH: keep only the last response posted as fresh
     # ACCUMULATE (default, also None): keep all responses
 
+    human_review: bool = True
+    # whether to ask for human review after the LLM-dialog is completed
+
     def __post_init__(self):
         if self.max_reviewing_rounds == 0:
             # we are not reviewing, so this is essentially a single conversation
@@ -198,6 +206,10 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
             self.other_conversation_manager.user_agent = self.assistant_agent
 
         self.round_num = 0
+
+    @property
+    def are_we_reviewing_at_all(self) -> bool:
+        return self.max_reviewing_rounds > 0
 
     def get_response_from_other_in_response_to_response_from_self(self, altered_self_response: str) -> Message:
         """
@@ -227,36 +239,37 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
         self.apply_append_user_message(altered_other_response)
         return self.apply_get_and_append_assistant_message()
 
+    def _alter_self_response(self, response: str) -> str:
+        """
+        Alter the response from self before sending it to other.
+        """
+        return response
+
     def _alter_other_response(self, response: str) -> str:
         """
         Alter the response from other before sending it to self.
         """
         return response
 
-    def _is_reviewer_response_terminating(self, reviewer_response: str, termination_phrase: str) -> Optional[bool]:
+    def get_termination_phrase(self) -> str:
+        return format_value(self, self.termination_phrase)
+
+    def _is_reviewer_response_terminating(self, reviewer_response: str) -> Optional[bool]:
         """
         Check if the response from the reviewer indicates that the reviewer is satisfied.
         True: the reviewer is satisfied and the dialog is completed.
         False: the reviewer is not satisfied and the dialog continues.
         None: the reviewer response is ambiguous.
         """
-        is_phrase = termination_phrase.lower() in reviewer_response.lower()
+        if reviewer_response.strip() == '':
+            # Empty response, like from a human reviewer, is terminating:
+            return True
+        is_phrase = self.get_termination_phrase().lower() in reviewer_response.lower()
         if not is_phrase:
             return False
         if not is_bulleted_list(reviewer_response):
             return True
         return None
-
-    def is_completed(self) -> bool:
-        """
-        The dialog is completed when the other agent terminates the conversation, by responding with the
-        termination phrase.
-        """
-        if len(self.other_conversation) <= 1:
-            return False
-        reviewer_response = self.other_conversation.get_last_response()
-        termination_phrase = format_value(self, self.termination_phrase)
-        return self._is_reviewer_response_terminating(reviewer_response, termination_phrase) is not False
 
     def run_dialog(self) -> CycleStatus:
         """
@@ -265,48 +278,62 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
         """
         conversation_len_before_first_round = len(self.conversation)
         while True:
-            response, extracted_result, cycle_status = self.run_one_cycle()
+            cycle_status = self.run_one_cycle()
             if cycle_status is not CycleStatus.NOT_APPROVED_BY_OTHER:
                 break
-
+        valid_result = self._get_valid_result()
         if self.rewind_after_end_of_review == Rewind.DELETE_ALL:
             self._rewind_conversation_to_first_response(-1, -1, start=conversation_len_before_first_round)
         elif self.rewind_after_end_of_review == Rewind.AS_FRESH:
             self._rewind_conversation_to_first_response(0, -1, start=conversation_len_before_first_round)
-            self.apply_append_surrogate_message(self._get_fresh_looking_response(response, extracted_result),
+            self.apply_append_surrogate_message(self._convert_valid_results_to_fresh_looking_response(valid_result),
                                                 web_conversation_name=None)
         return cycle_status
 
-    def run_one_cycle(self) -> Tuple[Optional[str], Optional[str], CycleStatus]:
+    def run_one_cycle(self) -> CycleStatus:
         """
         Run one cycle of the dialog. Makes updates to valid_result by calling
         _check_and_extract_value_from_self_response().
         """
         is_last_round = self.round_num >= self.max_reviewing_rounds
-        self_response, extracted_result = self._iterate_until_valid_response(alter_web_response=not is_last_round)
-        if self_response is None:
-            return self_response, extracted_result, CycleStatus.FAILED_CHECK_SELF_RESPONSE
+        is_converged, is_new_valid_result = self._iterate_until_valid_response(alter_web_response=not is_last_round)
+        if not is_new_valid_result:
+            return CycleStatus.FAILED_CHECK_SELF_RESPONSE
 
         # We have a valid response from self. Now we can proceed with the dialog:
-        if is_last_round:
+        if is_last_round and not (self.human_review and CHOSEN_APP != None):  # noqa
             if self.fake_performer_message_to_add_after_max_rounds is not None:
                 self.apply_append_surrogate_message(self.fake_performer_message_to_add_after_max_rounds, ignore=True)
-            return self_response, extracted_result, CycleStatus.MAX_ROUNDS_EXCEEDED
-
-        altered_self_response = self._alter_self_response(self_response, extracted_result)
-        other_message = self.get_response_from_other_in_response_to_response_from_self(altered_self_response)
-        other_response = other_message.content
+            return CycleStatus.MAX_ROUNDS_EXCEEDED
+        valid_result = self._get_valid_result()
+        fresh_looking_self_response = self._convert_valid_results_to_fresh_looking_response(valid_result)
+        altered_self_response = self._alter_self_response(fresh_looking_self_response)
+        if is_last_round:
+            other_message = None
+            other_response = self.get_termination_phrase()
+        else:
+            other_message = self.get_response_from_other_in_response_to_response_from_self(altered_self_response)
+            other_response = other_message.content
+        if self.human_review and self.app:
+            other_response = self._app_receive_text(PanelNames.FEEDBACK, '',
+                                                    title='Review my response. Tell me what you want to correct.',
+                                                    optional_suggestions={'AI': other_response,
+                                                                          'Default': self.get_termination_phrase()})
+            # replace other response with the human response in other conversation:
+            if self.are_we_reviewing_at_all:
+                self.apply_to_other_delete_messages(-1)
+                self.apply_to_other_append_surrogate_message(other_response)
         altered_other_response = self._alter_other_response(other_response)
-        if self.is_completed():
+        if self._is_reviewer_response_terminating(other_response):
             if self.append_termination_response_to_self:
-                self.apply_append_user_message(other_response, context=other_message.context)
+                self.apply_append_user_message(other_response, context=other_message.context if other_message else None)
                 if self.fake_performer_message_to_add_after_reviewer_approval:
                     self.apply_append_surrogate_message(self.fake_performer_message_to_add_after_reviewer_approval,
                                                         ignore=True)
-            return self_response, extracted_result, CycleStatus.APPROVED_BY_OTHER
+            return CycleStatus.APPROVED_BY_OTHER
 
         self.get_response_from_self_in_response_to_response_from_other(altered_other_response)
-        return self_response, extracted_result, CycleStatus.NOT_APPROVED_BY_OTHER
+        return CycleStatus.NOT_APPROVED_BY_OTHER
 
 
 @dataclass
@@ -342,42 +369,33 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
 
     sentence_to_add_at_the_end_of_performer_response: str = None
 
-    @property
-    def are_we_reviewing_at_all(self) -> bool:
-        return self.max_reviewing_rounds > 0
-
     def _alter_other_response(self, response: str) -> str:
         return response + '\n' + self.sentence_to_add_at_the_end_of_reviewer_response
 
-    def _alter_self_response(self, response: str, expected_result: Optional[str] = None) -> str:
-        response = super()._alter_self_response(response, expected_result)
+    def _alter_self_response(self, response: str) -> str:
+        response = super()._alter_self_response(response)
         if self.sentence_to_add_at_the_end_of_performer_response:
             return response + '\n' + self.sentence_to_add_at_the_end_of_performer_response
         else:
             return response
 
-    def initialize_dialog(self):
+    def _print_conversation_header(self):
         print_and_log_magenta('==== Starting conversation ' + '=' * (TEXT_WIDTH - 27))
         print_and_log_magenta(self.conversation_name.center(TEXT_WIDTH))
         if self.are_we_reviewing_at_all:
             print_and_log_magenta(self.other_conversation_name.center(TEXT_WIDTH))
         print_and_log_magenta('=' * TEXT_WIDTH)
 
-        self.initialize_conversation_if_needed(print_header=False)
+    def initialize_conversation_if_needed(self):
+        super().initialize_conversation_if_needed()
         if self.are_we_reviewing_at_all:
             self.initialize_other_conversation_if_needed()
 
-    def initialize_and_run_dialog(self) -> CycleStatus:
-        self.initialize_dialog()
-        return self.run_dialog()
-
-    def run_dialog_and_get_valid_result_and_termination_reason(self) -> Tuple[Any, CycleStatus]:
-        termination_reason = self.initialize_and_run_dialog()
-        result = self.get_valid_result()
-        return result, termination_reason
-
-    def run_dialog_and_get_valid_result(self):
-        return self.run_dialog_and_get_valid_result_and_termination_reason()[0]
+    def _run_and_return_termination_reason(self, with_review: bool = True) -> CycleStatus:
+        if with_review:
+            return self.run_dialog()
+        else:
+            return super()._run_and_return_termination_reason()
 
 
 @dataclass
@@ -391,7 +409,7 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
     quote_request: str = '\n\nPlease return your answer enclosed within triple-backticks ' \
                          '(but send text, not code).'
     flanked_header: str = '\n\nMake sure you are flanking the entire response and not just the headers.'
-    user_initiation_prompt: str = ReviewDialogDualConverserGPT.user_initiation_prompt + '\n{quote_request}'
+    mission_prompt: str = ReviewDialogDualConverserGPT.mission_prompt + '\n{quote_request}'
 
     sentence_to_add_at_the_end_of_reviewer_response: str = dedent_triple_quote_str("""\n\n
         Please correct your response according to any points you find relevant and applicable in my feedback.
@@ -401,16 +419,14 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
 
     rewind_after_getting_a_valid_response: Optional[Rewind] = Rewind.AS_FRESH
 
-    def _get_fresh_looking_response(self, response: str, extracted_results: Optional[str]) -> str:
-        if extracted_results is None:
-            return response
-        return 'Here is the {goal_noun}:\n\n```' + extracted_results + '```\n\n'
+    def _convert_extracted_text_to_fresh_looking_response(self, extracted_text: str) -> str:
+        return 'Here is the {goal_noun}:\n\n```' + extracted_text + '```\n\n'
 
-    def _check_extracted_result_and_get_valid_result(self, extracted_result: str):
-        self._check_flanked_response_is_not_just_header(extracted_result)
-        self.valid_result = extracted_result
+    def _check_extracted_text_and_update_valid_result(self, extracted_text: str):
+        self._check_flanked_response_is_not_just_header(extracted_text)
+        self._update_valid_result(extracted_text)
 
-    def _check_response_and_get_extracted_result(self, response: str) -> str:
+    def _check_response_and_get_extracted_text(self, response: str) -> str:
         try:
             return extract_content_of_triple_quote_block(response, self.goal_noun, None)
         except FailedExtractingBlock as e:

@@ -1,5 +1,5 @@
-from dataclasses import dataclass
-from typing import Dict, List, Collection, Optional
+from dataclasses import dataclass, field
+from typing import Dict, List, Collection, Optional, Any
 
 from data_to_paper.utils import dedent_triple_quote_str, word_count
 from data_to_paper.utils.nice_list import NiceDict, NiceList
@@ -8,13 +8,16 @@ from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLE
     SEMANTIC_SCHOLAR_EMBEDDING_SERVER_CALLER
 
 from .request_python_value import PythonDictWithDefinedKeysReviewBackgroundProductsConverser
-from .literature_search import LiteratureSearch
+from .literature_search import LiteratureSearch, QueryCitationCollectionProduct, \
+    LiteratureSearchQueriesProduct
+from ..interactive import PanelNames
 
 
 @dataclass
 class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundProductsConverser):
     number_of_papers_per_query: int = 100
     max_reviewing_rounds: int = 0
+    literature_search: LiteratureSearch = field(default_factory=LiteratureSearch)
     domains_to_definitions_and_examples = {
         'dataset': {
             'definition': 'papers that use the same or similar datasets as in our study',
@@ -45,7 +48,7 @@ class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
     value_type: type = Dict[str, List[str]]
     goal_noun: str = 'literature search queries'
     goal_verb: str = 'write'
-    user_initiation_prompt: str = dedent_triple_quote_str("""
+    mission_prompt: str = dedent_triple_quote_str("""
         Please write literature-search queries that we can use to search for papers related to our study.
 
         You would need to compose search queries to identify prior papers covering these {num_scopes} areas:
@@ -99,7 +102,8 @@ class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
 
     def _check_response_value(self, response_value: dict) -> NiceDict:
         super()._check_response_value(response_value)
-        self.valid_result = response_value  # The queries are 'valid' even if they have too many words
+        # The queries are 'valid' even if they have too many words:
+        self._update_valid_result(response_value)
         too_long_queries = []
         for queries in response_value.values():
             for query in queries:
@@ -119,14 +123,23 @@ class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
                          for k, v in response_value.items()})
 
     def get_literature_search(self) -> LiteratureSearch:
-        scopes_to_list_of_queries = self.run_dialog_and_get_valid_result()
-        literature_search = LiteratureSearch()
+        scopes_to_list_of_queries = self.run_and_get_valid_result()
+        literature_search = self.literature_search
+        server_name = SEMANTIC_SCHOLAR_SERVER_CALLER.name
+        html = f'<h2>Querying Citations</h2>'
+        html += f'<p>Searching "{server_name}" ' \
+                f'for papers related to our study in the following areas:</p>'
+        self._app_set_status(PanelNames.FEEDBACK, 'Querying citations...')
         for scope, queries in scopes_to_list_of_queries.items():
             queries_to_citations = {}
+            html += f'<h3>{scope.title()}-related queries:</h3>'
             for query in queries:
                 citations = SEMANTIC_SCHOLAR_SERVER_CALLER.get_server_response(query,
                                                                                rows=self.number_of_papers_per_query)
                 num_citations = len(citations)
+                html += (f'<p><b style="color: #1E90FF;">Query:</b> "{query}". '
+                         f'Found: <b style="color: #1E90FF;">{num_citations} citations.</b></p>')
+                self._app_send_prompt(PanelNames.FEEDBACK, html, provided_as_html=True)
                 self.comment(f'\nQuerying Semantic Scholar. '
                              f'Found {num_citations} / {self.number_of_papers_per_query} citations. '
                              f'Query: "{query}".')
@@ -138,11 +151,13 @@ class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
                             f'The following citations specified in the excluded citation list were excluded:\n')
                         for citation in excluded_citations:
                             print_and_log_red(f'{citation}\n\n')
-                        citations = [citation for citation in citations if citation not in excluded_citations]
+                        citations = QueryCitationCollectionProduct(
+                            query=query,
+                            value=[citation for citation in citations if citation not in excluded_citations])
 
                 queries_to_citations[query] = citations
 
-            literature_search.scopes_to_queries_to_citations[scope] = queries_to_citations
+            literature_search[scope] = queries_to_citations
 
         # Calculate embedding vector
         if self.get_title() is not None and self.get_abstract() is not None:
@@ -152,4 +167,8 @@ class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
                     "title": self.get_title(),
                     "abstract": self.get_abstract()})
 
+        self._app_request_continue()
         return literature_search
+
+    def _update_valid_result(self, valid_result: Any):
+        super()._update_valid_result(LiteratureSearchQueriesProduct(value=valid_result))

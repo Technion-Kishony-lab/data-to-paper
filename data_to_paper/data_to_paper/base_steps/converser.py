@@ -9,6 +9,8 @@ from data_to_paper.conversation.actions_and_conversations import ActionsAndConve
 from data_to_paper.env import COALESCE_WEB_CONVERSATIONS, TEXT_WIDTH
 from data_to_paper.conversation.conversation import WEB_CONVERSATION_NAME_PREFIX
 from data_to_paper.conversation import ConversationManager, GeneralMessageDesignation
+from data_to_paper.interactive import PanelNames
+from data_to_paper.interactive.app_interactor import AppInteractor
 from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils.copier import Copier
 from data_to_paper.utils.replacer import StrOrReplacer, format_value
@@ -17,7 +19,7 @@ from data_to_paper.base_cast import Agent
 
 
 @dataclass
-class Converser(Copier):
+class Converser(Copier, AppInteractor):
     """
     A base class for agents interacting with LLMs.
     """
@@ -91,21 +93,28 @@ class Converser(Copier):
     def conversation(self):
         return self.conversation_manager.conversation
 
-    def initialize_conversation_if_needed(self, print_header: bool = True):
-        if self.conversation_manager.initialize_conversation_if_needed():
-            if print_header:
-                print_and_log_magenta('==== Starting conversation ' + '=' * (TEXT_WIDTH - 27))
-                print_and_log_magenta(self.conversation_name.center(TEXT_WIDTH))
-                print_and_log_magenta('=' * TEXT_WIDTH)
+    def _print_conversation_header(self):
+        print_and_log_magenta('==== Starting conversation ' + '=' * (TEXT_WIDTH - 27))
+        print_and_log_magenta(self.conversation_name.center(TEXT_WIDTH))
+        print_and_log_magenta('=' * TEXT_WIDTH)
+
+    def _upon_conversation_initiation(self):
+        self._print_conversation_header()
+        self._app_clear_panels()
+
+    def initialize_conversation_if_needed(self):
+        if self.conversation is None:
+            self._upon_conversation_initiation()
+        self.conversation_manager.initialize_conversation_if_needed()
         if len(self.conversation) == 0 and self.system_prompt:
             self.apply_append_system_message(self.system_prompt)
 
     def comment(self, comment: StrOrReplacer, tag: Optional[StrOrReplacer] = None, as_action: bool = True,
-                should_format: bool = True, **kwargs):
+                **kwargs):
         """
         Print a comment, either directly, or as an action appending a COMMENTER message to the conversation (default).
         """
-        comment = format_value(self, comment, should_format)
+        comment = format_value(self, comment)
         if as_action:
             self.conversation_manager.append_commenter_message(
                 content=comment,
@@ -120,8 +129,11 @@ class Converser(Copier):
                                                model_engine: Optional[ModelEngine] = None,
                                                hidden_messages: GeneralMessageDesignation = None,
                                                expected_tokens_in_response: int = None,
+                                               send_to_app: bool = True,
                                                **kwargs) -> Message:
-        return self.conversation_manager.get_and_append_assistant_message(
+        if send_to_app and self.app:
+            self._app_set_status(PanelNames.RESPONSE, 'LLM is thinking...')
+        message = self.conversation_manager.get_and_append_assistant_message(
             tag=tag,
             comment=comment,
             is_code=is_code, previous_code=previous_code,
@@ -129,14 +141,28 @@ class Converser(Copier):
             expected_tokens_in_response=expected_tokens_in_response,
             hidden_messages=hidden_messages,
             **{**self.llm_parameters, **kwargs})
+        if send_to_app and self.app:
+            self._app_send_prompt(PanelNames.RESPONSE, message.pretty_content(with_header=False, is_html=True),
+                                  provided_as_html=True)
+            self._app_set_status(PanelNames.RESPONSE)
+        return message
 
     def apply_append_user_message(self, content: StrOrReplacer, tag: Optional[StrOrReplacer] = None,
                                   comment: Optional[StrOrReplacer] = None,
                                   ignore: bool = False, reverse_roles_for_web: bool = False,
                                   previous_code: Optional[str] = None, is_background: bool = False,
-                                  should_format: bool = True, **kwargs):
+                                  send_to_app: Optional[bool] = None, app_panel: PanelNames = PanelNames.FEEDBACK,
+                                  allow_editing: bool = False,
+                                  **kwargs):
+        content = format_value(self, content)
+        if send_to_app is None:
+            send_to_app = not is_background and not ignore
+        if send_to_app and self.app:
+            if allow_editing:
+                content = self._app_receive_text(app_panel, content)
+            self._app_send_prompt(app_panel, content)
         return self.conversation_manager.append_user_message(
-            content=format_value(self, content, should_format),
+            content=content,
             tag=tag,
             comment=comment,
             ignore=ignore, reverse_roles_for_web=reverse_roles_for_web,
@@ -145,9 +171,14 @@ class Converser(Copier):
     def apply_append_system_message(self, content: StrOrReplacer, tag: Optional[StrOrReplacer] = None,
                                     comment: Optional[StrOrReplacer] = None,
                                     ignore: bool = False, reverse_roles_for_web: bool = False,
-                                    should_format: bool = True, **kwargs):
+                                    send_to_app: Optional[bool] = None,
+                                    **kwargs):
+        if send_to_app is None:
+            send_to_app = not ignore
+        if send_to_app and self.app:
+            self._app_send_prompt(PanelNames.SYSTEM_PROMPT, content)
         return self.conversation_manager.append_system_message(
-            content=format_value(self, content, should_format),
+            content=format_value(self, content),
             tag=tag,
             comment=comment,
             ignore=ignore,
@@ -157,9 +188,14 @@ class Converser(Copier):
                                        tag: Optional[StrOrReplacer] = None, comment: Optional[StrOrReplacer] = None,
                                        ignore: bool = False, reverse_roles_for_web: bool = False,
                                        previous_code: Optional[str] = None, is_background: bool = False,
-                                       should_format: bool = True, **kwargs):
+                                       send_to_app: Optional[bool] = False,
+                                       **kwargs):
+        if send_to_app is None:
+            send_to_app = not is_background and not ignore
+        if send_to_app and self.app:
+            self._app_send_prompt(PanelNames.RESPONSE, content)
         return self.conversation_manager.append_surrogate_message(
-            content=format_value(self, content, should_format),
+            content=format_value(self, content),
             tag=tag,
             comment=comment,
             ignore=ignore, reverse_roles_for_web=reverse_roles_for_web,

@@ -17,15 +17,11 @@ class DirectorProductGPT(BackgroundProductsConverser):
 
     no_product_message: str = 'No, I do not have a {product_name} for you.'
     acknowledge_no_product_message: str = 'Ok, thank you for letting me know.'
-    user_initiation_prompt: str = None
+    mission_prompt: str = None
 
     # inputs:
-    product_field: str = None
+    product_name: str = None
     returned_product: Any = None
-
-    @property
-    def product_name(self):
-        return self.products.get_name(self.product_field) if self.product_field is not None else None
 
     def _get_product_from_director(self):
         """

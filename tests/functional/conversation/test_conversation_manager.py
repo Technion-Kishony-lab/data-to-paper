@@ -1,6 +1,6 @@
 from _pytest.fixtures import fixture
 
-from data_to_paper.conversation.conversation_actions import ReplaceLastResponse
+from data_to_paper.conversation.conversation_actions import ReplaceLastMessage
 from data_to_paper.conversation.conversation_manager import ConversationManager
 from data_to_paper.servers.llm_call import OPENAI_SERVER_CALLER
 from data_to_paper.conversation.message_designation import RangeMessageDesignation
@@ -51,20 +51,6 @@ def test_conversation_manager_adding_messages_with_kwargs(manager):
 
     assert len(manager.conversation) == 5
     assert manager.conversation.get_last_response() in ['a', 'b', 'c']
-
-
-def test_conversation_manager_regenerate_response(manager, actions):
-    with OPENAI_SERVER_CALLER.mock([
-        'The answer is ...',
-        'The answer is 4',
-    ]):
-        manager.append_user_message('How much is 2 + 2', tag='math question', comment='this is a math question')
-        manager.get_and_append_assistant_message(tag='math answer')
-        manager.regenerate_previous_response()
-
-    assert len(manager.conversation) == 3
-    assert len(actions) == 6
-    assert manager.conversation[-1].content == 'The answer is 4'
 
 
 def test_conversation_manager_bump_model_then_retry__with_fewer_messages(manager, actions, openai_exception):
@@ -118,29 +104,10 @@ def test_conversation_manager_delete_messages(manager):
 def test_conversation_manager_replace_last_response(manager, actions):
     manager.append_surrogate_message('preliminary message. to be replaced')
     original_len = len(manager.conversation)
-    manager.replace_last_response('new response')
+    manager.replace_last_message('new response')
     assert manager.conversation.get_last_response() == 'new response'
-    assert isinstance(actions[-1], ReplaceLastResponse)
+    assert isinstance(actions[-1], ReplaceLastMessage)
     assert len(manager.conversation) == original_len
-
-
-def test_conversation_manager_copy_messages_from_another_conversations(actions_and_conversations):
-    manager1 = ConversationManager(actions_and_conversations=actions_and_conversations,
-                                   conversation_name='conversation1')
-    manager1.create_conversation()
-    manager1.append_user_message('m1')
-    manager1.append_user_message('m2', tag='tag2')
-    manager1.append_user_message('m3')
-    manager1.append_user_message('m4')
-
-    manager2 = ConversationManager(actions_and_conversations=actions_and_conversations,
-                                   conversation_name='conversation2')
-    manager2.create_conversation()
-    manager2.copy_messages_from_another_conversations(
-        message_designation=RangeMessageDesignation.from_('tag2', -1),
-        source_conversation=manager1.conversation,
-    )
-    assert [m.content for m in manager2.conversation] == ['m2', 'm3', 'm4']
 
 
 def test_conversation_manager_adds_python_header(manager):

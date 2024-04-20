@@ -9,6 +9,7 @@ if TYPE_OF_MODELS == 'closed':
         "BaseCreateTablesCodeProductsGPT": ModelEngine.GPT4,
         "GetMostSimilarCitations": ModelEngine.GPT4,
         "IsGoalOK": ModelEngine.GPT4,
+        "NoveltyAssessmentReview": ModelEngine.GPT4,
         "GoalReviewGPT": ModelEngine.GPT4,
         'SectionWriterReviewBackgroundProductsConverser': ModelEngine.GPT4_TURBO,
         "IntroductionSectionWriterReviewGPT": ModelEngine.GPT4,
@@ -20,7 +21,7 @@ elif TYPE_OF_MODELS == 'open':
         "DataExplorationCodeProductsGPT": ModelEngine.GPT4,
         "BaseCreateTablesCodeProductsGPT": ModelEngine.CODELLAMA,
         "GetMostSimilarCitations": ModelEngine.LLAMA_2_70b,
-        "IsGoalOK": ModelEngine.LLAMA_2_70b,
+        "NoveltyAssessmentReview": ModelEngine.LLAMA_2_70b,
         "IntroductionSectionWriterReviewGPT": ModelEngine.LLAMA_2_70b,
         "DiscussionSectionWriterReviewGPT": ModelEngine.LLAMA_2_70b,
     }

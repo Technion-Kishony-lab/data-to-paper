@@ -21,6 +21,7 @@ from data_to_paper.run_gpt_code.code_runner import CodeRunner, BaseCodeRunner
 from data_to_paper.run_gpt_code.code_utils import FailedExtractingBlock, IncompleteBlockFailedExtractingBlock
 from data_to_paper.run_gpt_code.exceptions import FailedRunningCode, UnAllowedFilesCreated, \
     CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule
+from data_to_paper.interactive import PanelNames
 
 from data_to_paper.base_cast import Agent
 
@@ -81,7 +82,7 @@ class DebuggerConverser(BackgroundProductsConverser):
 
     additional_contexts: Optional[Dict[str, Any]] = None
 
-    user_initiation_prompt: str = None
+    mission_prompt: str = None
     assistant_agent: Agent = None
     user_agent: Agent = None
 
@@ -442,7 +443,8 @@ class DebuggerConverser(BackgroundProductsConverser):
             comment=comment,
         )
 
-    def _respond_to_issues(self, issues: Union[RunIssue, List[RunIssue], RunIssues], code: Optional[str] = None):
+    def _respond_to_issues(self, issues: Union[None, RunIssue, List[RunIssue], RunIssues],
+                           code_and_output: Optional[CodeAndOutput] = None) -> Optional[CodeAndOutput]:
         """
         We post a response to the assistant code, based on the issues.
         We also need to delete (some) of the previous exchange.
@@ -464,6 +466,10 @@ class DebuggerConverser(BackgroundProductsConverser):
         - Leave the response as is ("leave")
         - Regenerate ("regen0", "regen1", "regen2": the original response, the second response, the third response)
         """
+        if code_and_output and self.app:
+            self._app_send_prompt(PanelNames.PRODUCT, code_and_output.as_html(), provided_as_html=True)
+        if issues is None:
+            return code_and_output
         # Get Problem
         if isinstance(issues, RunIssue):
             issues = [issues]
@@ -510,12 +516,13 @@ class DebuggerConverser(BackgroundProductsConverser):
 
         # Apply Action
         if action == "repost":
-            self._post_code_as_fresh(code, problem, action_stage)
+            self._post_code_as_fresh(code_and_output.code, problem, action_stage)
 
         message, comment = issues.get_message_and_comment(
             end_with=format_value(self, self.prompt_to_append_at_end_of_response))
+        message += '\n\nREGENERATE' if action == "regenerate" else ''
         self.apply_append_user_message(
-            content=message + ('\n\nREGENERATE' if action == "regenerate" else ''),
+            content=message,
             comment=self.iteration_str + ': ' + comment,
         )
 
@@ -529,25 +536,24 @@ class DebuggerConverser(BackgroundProductsConverser):
             self._requesting_small_change = False
         else:
             self._requesting_small_change = issues.do_all_issues_request_small_change()
+        return None
 
-    def _get_code_and_respond_to_issues(self) -> Optional[CodeAndOutput]:
+    def _get_code_and_respond_to_issues(self, response: str) -> Optional[CodeAndOutput]:
         """
         Get a code from the LLM, run it and return code and result.
         If the code fails, notify the LLM and return None.
         """
-        response = self.apply_get_and_append_assistant_message(is_code=True, previous_code=self.previous_code).content
         code_runner = self._get_code_runner(response)
 
         # Try to extract the code:
         try:
             code = code_runner.get_raw_code()
         except IncompleteBlockFailedExtractingBlock:
-            self._respond_to_issues(self._get_issue_for_incomplete_code_block())
-            return None
+            return self._respond_to_issues(self._get_issue_for_incomplete_code_block())
         except FailedExtractingBlock as e:
-            self._respond_to_issues(self._get_issue_for_missing_or_multiple_code_blocks(e))
-            return None
+            return self._respond_to_issues(self._get_issue_for_missing_or_multiple_code_blocks(e))
 
+        code_and_output = code_runner.code_and_output_cls(code=code)
         # We were able to extract the code. We now statically check the code before running it.
         static_code_check_issues = []
         if self._requesting_small_change:
@@ -556,8 +562,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         static_code_check_issues.extend(self._get_issues_for_static_code_check(code))
 
         if static_code_check_issues:
-            self._respond_to_issues(static_code_check_issues, code)
-            return None
+            return self._respond_to_issues(static_code_check_issues, code_and_output)
 
         # Code passes static checks. We can now run the code.
         code_and_output, issues, contexts, exception = code_runner.run()
@@ -581,8 +586,7 @@ class DebuggerConverser(BackgroundProductsConverser):
                         break
                 else:
                     run_time_issue = self._get_issue_for_regular_exception_or_warning(exception, code_runner)
-            self._respond_to_issues(run_time_issue, code)
-            return None
+            return self._respond_to_issues(run_time_issue, code_and_output)
 
         # The code ran without raising exceptions.
         # We now check for issues in the output files as well as issues collected during the run:
@@ -593,10 +597,9 @@ class DebuggerConverser(BackgroundProductsConverser):
         if output_issues:
             # if the code ran, but output was incorrect, we delete any created files:
             code_and_output.created_files.delete_all_created_files(self.data_folder)
-            self._respond_to_issues(output_issues, code)
-            return None
+            return self._respond_to_issues(output_issues, code_and_output)
 
-        return code_and_output
+        return self._respond_to_issues(None, code_and_output)
 
     def run_debugging(self) -> Optional[CodeAndOutput]:
         """
@@ -606,7 +609,12 @@ class DebuggerConverser(BackgroundProductsConverser):
         """
         self.initialize_conversation_if_needed()
         for self.debug_iteration in range(1, self.max_debug_iterations + 1):
-            code_and_output = self._get_code_and_respond_to_issues()
+            response = self.apply_get_and_append_assistant_message(is_code=True,
+                                                                   previous_code=self.previous_code).content
+            self._app_set_status(PanelNames.FEEDBACK, 'Running and checking code')
+            self._app_send_prompt(PanelNames.FEEDBACK)
+            code_and_output = self._get_code_and_respond_to_issues(response)
+            self._app_set_status(PanelNames.FEEDBACK)
             if code_and_output is not None:
                 return code_and_output
         self.apply_append_user_message(

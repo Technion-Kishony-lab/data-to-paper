@@ -3,9 +3,11 @@ from copy import copy
 import numpy as np
 
 from dataclasses import dataclass, field
-from typing import Optional, Dict, List, Iterable
+from typing import Optional, Dict, List, Iterable, NamedTuple
 
+from data_to_paper.base_products.product import ValueProduct
 from data_to_paper.utils.iterators import interleave
+from data_to_paper.utils.mutable import Flag
 from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.servers.custom_types import Citation
 
@@ -39,12 +41,93 @@ CITATION_REPR_FIELDS_FOR_LLM = \
     ('bibtex_id', 'title', 'journal_and_year', 'tldr', 'influence')
 CITATION_REPR_FIELDS_FOR_PRINT = \
     ('query', 'search_rank', 'bibtex_id', 'title', 'journal_and_year', 'tldr', 'influence', 'embedding_similarity')
+GET_LITERATURE_SEARCH_FOR_PRINT = Flag(False)
 
 
 @dataclass
-class LiteratureSearch:
-    scopes_to_queries_to_citations: Dict[str, Dict[str, List[Citation]]] = field(default_factory=dict)
+class LiteratureSearchQueriesProduct(ValueProduct):
+    name: str = "Literature Search Queries"
+    value: Dict[str, List[str]] = None
+
+    def _get_content_as_markdown(self, level: int, **kwargs):
+        s = ''
+        level_str = '#' * (level + 1)
+        for scope, queries in self.value.items():
+            s += f'{level_str} {scope.title()}\n'
+            for query in queries:
+                s += f'- "{query}"\n'
+        return s
+
+
+@dataclass
+class CitationCollectionProduct(ValueProduct):
+    name: str = "Citation List"
+    value: List[Citation] = None
+
+    def _get_citations_as_str(self, is_html: bool, style: str = None,
+                              embedding_target: Optional[np.ndarray] = None) -> str:
+        return '\n'.join(citation.pretty_repr(
+            fields=CITATION_REPR_FIELDS_FOR_LLM if style == 'llm' else CITATION_REPR_FIELDS_FOR_PRINT,
+            is_html=is_html,
+            embedding_target=embedding_target,
+        ) for citation in self.value)
+
+    def _get_content_as_markdown(self, level: int, style: str = None,
+                                 embedding_target: Optional[np.ndarray] = None):
+        return self._get_citations_as_str(is_html=False, style=style, embedding_target=embedding_target)
+
+    def _get_content_as_html(self, level: int, style: str = None,
+                             embedding_target: Optional[np.ndarray] = None):
+        return self._get_citations_as_str(is_html=True, style=style)
+
+
+@dataclass
+class QueryCitationCollectionProduct(CitationCollectionProduct):
+    name: str = "Query Citation List"
+    query: str = None
+
+    def get_header(self):
+        return f'{self.name} for "{self.query}"'
+
+
+@dataclass
+class SortedCitationCollectionProduct(CitationCollectionProduct):
+    name: str = "Sorted Citation List"
+    scope: Optional[str] = None
+    query: Optional[str] = None
+    total: int = None
+    distribution_factor: Optional[float] = None
+    sort_by_similarity: bool = False
+    minimal_influence: int = 0
+
+    def get_header(self, style: str, **kwargs: str):
+        s = super().get_header()
+        s += f', Scope: "{self.scope}"' if self.scope is not None else ''
+        s += f', Query: "{self.query}"' if self.query is not None else ''
+        if style != 'llm':
+            s += f', Total: {self.total}' if self.total is not None else ''
+            s += f', Distribution Factor: {self.distribution_factor}' if self.distribution_factor is not None else ''
+            s += f', Sort by Similarity: {self.sort_by_similarity}' if self.sort_by_similarity else ''
+            s += f', Minimal Influence: {self.minimal_influence}' if self.minimal_influence > 0 else ''
+        return s
+
+
+class LiteratureSearchParams(NamedTuple):
+    total: int
+    minimal_influence: int
+    distribution_factor: Optional[float]
+    sort_by_similarity: bool
+
+    def to_dict(self) -> dict:
+        return self._asdict()
+
+
+@dataclass
+class LiteratureSearch(ValueProduct):
+    # value is scopes_to_queries_to_citations
+    value: Dict[str, Dict[str, CitationCollectionProduct]] = field(default_factory=dict)
     embedding_target: Optional[np.ndarray] = None
+    scopes_to_search_params: Dict[str, LiteratureSearchParams] = field(default_factory=dict)
 
     def get_queries(self, scope: Optional[str] = None) -> List[str]:
         """
@@ -52,14 +135,14 @@ class LiteratureSearch:
         if scope=None, return all queries.
         """
         if scope is None:
-            queries = sum([self.get_queries(scope) for scope in self.scopes_to_queries_to_citations], [])
+            queries = sum([self.get_queries(scope) for scope in self], [])
         else:
-            queries = list(self.scopes_to_queries_to_citations[scope].keys())
+            queries = list(self[scope].keys())
         return NiceList(queries, wrap_with='"', separator='\n', prefix='\n', suffix='\n')
 
     def get_citations(self, scope: Optional[str] = None, query: Optional[str] = None,
                       total: int = None, distribution_factor: Optional[float] = None,
-                      sort_by_similarity: bool = False, minimal_influence: int = 0) -> List[Citation]:
+                      sort_by_similarity: bool = False, minimal_influence: int = 0) -> CitationCollectionProduct:
         """
         Return the citations in the given scope.
         If embedding_target is not None, sort the citations by embedding similarity.
@@ -70,24 +153,24 @@ class LiteratureSearch:
             assert query is None
             citations = unite_citation_lists((self.get_citations(
                     scope=scope,
-                    total=int(total / len(self.scopes_to_queries_to_citations) * distribution_factor) + 1
+                    total=int(total / len(self) * distribution_factor) + 1
                     if distribution_factor and total is not None else None,
                     minimal_influence=minimal_influence,
                     distribution_factor=distribution_factor,
                     sort_by_similarity=sort_by_similarity,
-            ) for scope in self.scopes_to_queries_to_citations))
+            ) for scope in self))
         elif query is None:
             citations = unite_citation_lists((self.get_citations(
                     scope=scope,
                     query=query,
-                    total=int(total / len(self.scopes_to_queries_to_citations[scope]) * distribution_factor) + 1
+                    total=int(total / len(self[scope]) * distribution_factor) + 1
                     if distribution_factor and total is not None else None,
                     minimal_influence=minimal_influence,
                     distribution_factor=distribution_factor,
                     sort_by_similarity=sort_by_similarity,
-                ) for query in self.scopes_to_queries_to_citations[scope]))
+                ) for query in self[scope]))
         else:
-            citations = self.scopes_to_queries_to_citations[scope][query]
+            citations = self[scope][query]
         citations = list(citations)
 
         if minimal_influence > 0:
@@ -100,11 +183,15 @@ class LiteratureSearch:
             citations = sorted(citations, key=lambda citation: citation.search_rank)
 
         if total is None:
-            return citations
-        if total < 0:
-            return citations[total:]
+            pass
+        elif total < 0:
+            citations = citations[total:]
         else:
-            return citations[:total]
+            citations = citations[:total]
+        return SortedCitationCollectionProduct(value=citations, scope=scope, query=query,
+                                               total=total, distribution_factor=distribution_factor,
+                                               sort_by_similarity=sort_by_similarity,
+                                               minimal_influence=minimal_influence)
 
     def pretty_repr(self, with_scope_and_queries: bool = False,
                     total: int = None, distribution_factor: Optional[float] = None,
@@ -113,13 +200,13 @@ class LiteratureSearch:
                     style: str = None,
                     ) -> str:
         s = ''
-        for scope in self.scopes_to_queries_to_citations:
+        for scope in self:
             if with_scope_and_queries:
                 s += '\n\n'
                 s += f'Scope: {repr(scope)}\n'
                 s += f'Queries: {repr(self.get_queries(scope))}\n'
             s += self.pretty_repr_for_scope_and_query(scope=scope,
-                                                      total=total // len(self.scopes_to_queries_to_citations) + 1,
+                                                      total=total // len(self) + 1,
                                                       distribution_factor=distribution_factor,
                                                       sort_by_similarity=sort_by_similarity,
                                                       minimal_influence=minimal_influence,
@@ -140,14 +227,35 @@ class LiteratureSearch:
                                        sort_by_similarity=sort_by_similarity,
                                        minimal_influence=minimal_influence,
                                        )
+        if GET_LITERATURE_SEARCH_FOR_PRINT:
+            style = 'print'
         return '\n'.join(citation.pretty_repr(
             fields=CITATION_REPR_FIELDS_FOR_LLM if style == 'llm' else CITATION_REPR_FIELDS_FOR_PRINT,
             is_html=style == 'html',
             embedding_target=self.embedding_target,
         ) for citation in citations)
 
-    def get_citation(self, bibtex_id: str) -> Optional[Citation]:
-        for citation in self.get_citations():
-            if citation.bibtex_id == bibtex_id:
-                return citation
-        return None
+    def get_header(self, scope: Optional[str] = None, **kwargs):
+        #
+        return f'"{scope}"-related literature search' if scope is not None else self.name
+
+    def _get_content_as_markdown(self, level: int, scope: Optional[str] = None, style: str = 'llm', **kwargs) -> str:
+        if scope is None:
+            s = ''
+            for scope in self:
+                s += self._get_content_as_markdown(level, scope=scope, style=style)
+        else:
+            s = self.pretty_repr_for_scope_and_query(scope=scope, style=style,
+                                                     **self.scopes_to_search_params[scope].to_dict())
+        return s
+
+    def _get_content_as_html(self, level: int, scope: Optional[str] = None, style: str = 'html', **kwargs) -> str:
+        if scope is None:
+            s = 'We searched for papers in the following scopes:\n'
+            for scope in self:
+                s += f'<h{level + 1}>{scope.title()}-related papers</h{level + 1}>\n'
+                s += self._get_content_as_html(level, scope=scope, style=style)
+        else:
+            s = self.pretty_repr_for_scope_and_query(scope=scope, style=style,
+                                                     **self.scopes_to_search_params[scope].to_dict())
+        return s

@@ -54,7 +54,7 @@ class DemoStepsRunner(BaseStepsRunner):
 
         # Paper sections
         section_names = ['title', 'abstract']
-        sections = WriteTitleAndAbstract.from_(self, section_names=section_names).run_dialog_and_get_valid_result()
+        sections = WriteTitleAndAbstract.from_(self, section_names=section_names).run_and_get_valid_result()
         for section_name, section in zip(section_names, sections):
             products.paper_sections[section_name] = section
         self.send_product_to_client('paper_sections')

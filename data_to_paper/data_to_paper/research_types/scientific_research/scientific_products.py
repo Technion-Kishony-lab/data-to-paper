@@ -1,8 +1,9 @@
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional, Dict, Tuple, Set, List, Union, NamedTuple
+from typing import Optional, Dict, Tuple, Set, List, Union
 
 from data_to_paper.base_steps import LiteratureSearch
+from data_to_paper.base_steps.literature_search import LiteratureSearchParams
 from data_to_paper.code_and_output_files.file_view_params import ContentView, ContentViewPurpose
 from data_to_paper.code_and_output_files.ref_numeric_values import replace_hyperlinks_with_values
 from data_to_paper.code_and_output_files.referencable_text import hypertarget_if_referencable_text
@@ -12,13 +13,15 @@ from data_to_paper.latex.latex_to_pdf import evaluate_latex_num_command
 from data_to_paper.latex.tables import add_tables_to_paper_section, get_table_caption
 
 from data_to_paper.research_types.scientific_research.cast import ScientificAgent
+from data_to_paper.research_types.scientific_research.product_types import HypothesisTestingPlanProduct, \
+    NoveltyAssessmentProduct, GoalAndHypothesisProduct, MostSimilarPapersProduct, NoveltySummaryProduct
 from data_to_paper.research_types.scientific_research.scientific_stage import ScientificStages, \
     SECTION_NAMES_TO_WRITING_STAGES
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
-from data_to_paper.utils.mutable import Mutable
+
 from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.base_products import DataFileDescriptions, DataFileDescription, Products, \
-    NameDescriptionStageGenerator
+    NameDescriptionStageGenerator, ProductGenerator
 from data_to_paper.utils.types import ListBasedSet, MemoryDict
 from data_to_paper.servers.custom_types import Citation
 
@@ -26,7 +29,7 @@ CODE_STEPS_TO_STAGES_NAMES_AGENTS: Dict[str, Tuple[Stage, str, ScientificAgent]]
     'data_exploration': (ScientificStages.EXPLORATION, 'Data Exploration', ScientificAgent.DataExplorer),
     # 'data_preprocessing': (ScientificStages.PREPROCESSING, 'Data Preprocessing', ScientificAgent.DataPreprocessor),
     'data_analysis': (ScientificStages.CODE, 'Data Analysis', ScientificAgent.Debugger),
-    'data_to_latex': (ScientificStages.INTERPRETATION, 'LaTeX Table Design', ScientificAgent.InterpretationReviewer),
+    'data_to_latex': (ScientificStages.TABLES, 'LaTeX Table Design', ScientificAgent.InterpretationReviewer),
 }
 
 
@@ -73,31 +76,27 @@ def convert_description_of_created_files_to_string(description_of_created_files:
     )
 
 
-class LiteratureSearchParams(NamedTuple):
-    total: int
-    minimal_influence: int
-    distribution_factor: Optional[float]
-    sort_by_similarity: bool
-
-    def to_dict(self) -> dict:
-        return self._asdict()
-
-
-STAGE_AND_SCOPE_TO_LITERATURE_SEARCH_PARAMS: Dict[Tuple[str, str], LiteratureSearchParams] = {
-
-    ('goal', 'dataset'): LiteratureSearchParams(12, 2, 2.0, False),
-    ('goal', 'questions'): LiteratureSearchParams(12, 2, 2.0, False),
-    ('goal', 'goal and hypothesis'): LiteratureSearchParams(10, 0, 1, False),
-
-    ('writing', 'background'): LiteratureSearchParams(12, 5, 2.0, True),
-    ('writing', 'dataset'): LiteratureSearchParams(12, 2, 2.0, False),
-    ('writing', 'methods'): LiteratureSearchParams(6, 10, 1.5, False),
-    ('writing', 'results'): LiteratureSearchParams(12, 1, 2.0, True),
-
+STAGE_AND_SCOPE_TO_LITERATURE_SEARCH_PARAMS = {
+    'goal': ({
+        'dataset': LiteratureSearchParams(12, 2, 2.0, False),
+        'questions': LiteratureSearchParams(12, 2, 2.0, False),
+    }, "Literature Search for Goal", ScientificStages.LITERATURE_REVIEW_GOAL),
+    'writing': ({
+        'background': LiteratureSearchParams(12, 5, 2.0, True),
+        'dataset': LiteratureSearchParams(12, 2, 2.0, False),
+        'methods': LiteratureSearchParams(6, 10, 1.5, False),
+        'results': LiteratureSearchParams(12, 1, 2.0, True),
+    }, "Literature Search for Writing", ScientificStages.LITERATURE_REVIEW_WRITING),
 }
 
 
-DEFAULT_LITERATURE_SEARCH_STYLE = Mutable('llm')
+def _create_literature_search(stage: str) -> LiteratureSearch:
+    params = STAGE_AND_SCOPE_TO_LITERATURE_SEARCH_PARAMS[stage]
+    return LiteratureSearch(name=params[1], stage=params[2], scopes_to_search_params=params[0])
+
+
+def _get_literature_searchs() -> Dict[str, LiteratureSearch]:
+    return {stage: _create_literature_search(stage) for stage in STAGE_AND_SCOPE_TO_LITERATURE_SEARCH_PARAMS}
 
 
 @dataclass
@@ -108,9 +107,11 @@ class ScientificProducts(Products):
     """
     data_file_descriptions: DataFileDescriptions = field(default_factory=DataFileDescriptions)
     codes_and_outputs: Dict[str, CodeAndOutput] = field(default_factory=dict)
-    research_goal: Optional[str] = None
-    literature_search: Dict[str, LiteratureSearch] = field(default_factory=dict)
-    hypothesis_testing_plan: Optional[Dict[str, str]] = None
+    research_goal: GoalAndHypothesisProduct = None
+    novelty_assessment: NoveltyAssessmentProduct = None
+    literature_search: Dict[str, LiteratureSearch] = field(default_factory=_get_literature_searchs)
+    most_similar_papers: MostSimilarPapersProduct = None
+    hypothesis_testing_plan: HypothesisTestingPlanProduct = None
     paper_sections_and_optional_citations: Dict[str, Union[str, Tuple[str, Set[Citation]]]] = \
         field(default_factory=MemoryDict)
 
@@ -130,14 +131,6 @@ class ScientificProducts(Products):
             in self.codes_and_outputs[
                 'data_to_latex'].created_files.get_created_content_files_to_pretty_contents(content_view).items()
             if file.endswith('.tex')]}
-
-    @property
-    def pretty_hypothesis_testing_plan(self) -> str:
-        """
-        Return the hypothesis testing plan in a pretty way.
-        """
-        return '\n'.join(f'Hypothesis: {hypothesis}\nStatistical Test: {test}\n'
-                         for hypothesis, test in self.hypothesis_testing_plan.items())
 
     def get_all_latex_tables(self, content_view: ContentView) -> List[str]:
         """
@@ -255,21 +248,21 @@ class ScientificProducts(Products):
 
             'data_file_descriptions': NameDescriptionStageGenerator(
                 'Description of the Original Dataset',
-                'DESCRIPTION OF THE ORIGINAL DATASET\n\n{}',
+                '{}',
                 ScientificStages.DATA,
                 lambda: self.data_file_descriptions,
             ),
 
             'data_file_descriptions_no_headers': NameDescriptionStageGenerator(
                 'Description of the Original Dataset',
-                'DESCRIPTION OF THE ORIGINAL DATASET\n\n{}',
+                '{}',
                 ScientificStages.DATA,
                 lambda: self.data_file_descriptions.pretty_repr(num_lines=0),
             ),
 
             'data_file_descriptions_no_headers_linked': NameDescriptionStageGenerator(
-                'Description of the Original Dataset',
-                'DESCRIPTION OF THE ORIGINAL DATASET (with hypertargets)\n\n{}',
+                'Description of the Original Dataset (with hypertargets)',
+                '{}',
                 ScientificStages.DATA,
                 lambda: self.data_file_descriptions.pretty_repr(
                     num_lines=0, content_view=ContentViewPurpose.HYPERTARGET_PRODUCT),
@@ -285,69 +278,38 @@ class ScientificProducts(Products):
             # GOAL AND PLAN
             # ==============
 
-            'research_goal': NameDescriptionStageGenerator(
-                'Research Goal',
-                'Here is our Research Goal\n\n{}',
-                ScientificStages.GOAL,
+            'research_goal': ProductGenerator(
                 lambda: self.research_goal,
+                {},
             ),
 
-            'hypothesis_testing_plan': NameDescriptionStageGenerator(
-                'Hypothesis Testing Plan',
-                'Here is our Hypothesis Testing Plan:\n\n{}',
-                ScientificStages.PLAN,
-                lambda: str(self.pretty_hypothesis_testing_plan),
+            'hypothesis_testing_plan': ProductGenerator(
+                lambda: self.hypothesis_testing_plan,
+                {},
             ),
 
             # LITERATURE SEARCH
             # =================
 
-            'literature_search:{}:{}': NameDescriptionStageGenerator(
-                '{name}',
-                '{description}',
-                ScientificStages.WRITING,
-                lambda stage, scope: {
-                    'name': self['literature_search:{}:{}:{}'.format(
-                        stage, scope, DEFAULT_LITERATURE_SEARCH_STYLE.val)].name,
-                    'description': self['literature_search:{}:{}:{}'.format(
-                        stage, scope, DEFAULT_LITERATURE_SEARCH_STYLE.val)].description,
-                }
+            'literature_search:{}': ProductGenerator(
+                lambda stage: self.literature_search[stage],
+                lambda stage: dict(stage=stage, scope=None),
             ),
 
-            'literature_search:{}:{}:{}': NameDescriptionStageGenerator(
-                '{scope}-related Literature Search',
-                'Here are citations from our Literature Search for papers related to the {scope} of our study:\n\n'
-                '{papers}',
-                ScientificStages.WRITING,
-                lambda stage, scope, style: {
-                    'scope': scope.title(),
-                    'papers': self.literature_search[stage].pretty_repr_for_scope_and_query(
-                        scope=scope,
-                        style=style,
-                        **STAGE_AND_SCOPE_TO_LITERATURE_SEARCH_PARAMS[(stage, scope)].to_dict()
-                    ),
-                }
+            'literature_search:{}:{}': ProductGenerator(
+                lambda stage, scope: self.literature_search[stage],
+                lambda stage, scope: dict(stage=stage, scope=scope),
             ),
 
-            'scope_and_literature_search': NameDescriptionStageGenerator(
-                'Scope and Literature Search',
-                'Here is a draft of the abstract, written as a basis for the literature search below:\n\n'
-                '{title}\n\n{abstract}\n\n'
-                'LITERATURE SEARCH\n\n'
-                'We searched for papers related to the Background, Dataset, Methods, and Results of our paper. \n\n'
-                '```html\n{background}\n```\n\n'
-                '```html\n{dataset}\n```\n\n'
-                '```html\n{methods}\n```\n\n'
-                '```html\n{results}\n```\n\n',
-                ScientificStages.LITERATURE_REVIEW_AND_SCOPE,
-                lambda: {
-                    'title': self.get_title(),
-                    'abstract': self.get_abstract(),
-                    'background': self['literature_search:writing:background:html'].description,
-                    'dataset': self['literature_search:writing:dataset:html'].description,
-                    'methods': self['literature_search:writing:methods:html'].description,
-                    'results': self['literature_search:writing:results:html'].description,
-                },
+            'most_similar_papers': ProductGenerator(
+                lambda: self.most_similar_papers,
+                {},
+            ),
+
+            'novelty_assessment': ProductGenerator(
+                lambda: NoveltySummaryProduct(novelty_assessment=self.novelty_assessment,
+                                              most_similar_papers=self.most_similar_papers),
+                {},
             ),
 
             # CODE
@@ -396,7 +358,7 @@ class ScientificProducts(Products):
                 lambda code_step: get_code_stage(code_step),
                 lambda code_step: {
                     'code_name': self.codes_and_outputs[code_step].name,
-                    'description': self.codes_and_outputs[code_step].to_text()},
+                    'description': self.codes_and_outputs[code_step].to_text(with_header=False)},
             ),
 
             'created_files:{}': NameDescriptionStageGenerator(
@@ -446,24 +408,25 @@ class ScientificProducts(Products):
             # WRITING
             # =======
 
+            'title_and_abstract_first': NameDescriptionStageGenerator(
+                'Title and Abstract (initial draft)',
+                "```latex\n{}\n\n{}```",
+                ScientificStages.INTERPRETATION,
+                lambda: (self.get_paper_sections_without_citations()['title'],
+                         self.get_paper_sections_without_citations()['abstract']),
+            ),
+
             'title_and_abstract': NameDescriptionStageGenerator(
                 'Title and Abstract',
-                "Here are the title and abstract of the paper:\n\n{}\n\n{}",
+                "```latex\n{}\n\n{}```",
                 ScientificStages.WRITING_TITLE_AND_ABSTRACT,
                 lambda: (self.get_paper_sections_without_citations()['title'],
                          self.get_paper_sections_without_citations()['abstract']),
             ),
 
-            'most_updated_paper': NameDescriptionStageGenerator(
-                'Most Updated Draft of the Paper',
-                '{}',
-                ScientificStages.WRITING,
-                lambda: '\n\n'.join(self.get_tabled_paper_sections(ContentViewPurpose.FINAL_INLINE).values())
-            ),
-
             'paper_sections:{}': NameDescriptionStageGenerator(
                 '{section_name} Section of the Paper',
-                'Here is the {section_name} section of the paper:\n\n{content}',
+                '```latex\n{content}\n```',
                 lambda section_name: SECTION_NAMES_TO_WRITING_STAGES[section_name],
                 lambda section_name: {'section_name': section_name.title(),
                                       'content': self.get_paper_sections_without_citations(

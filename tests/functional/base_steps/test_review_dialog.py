@@ -25,7 +25,7 @@ def test_review_cycle():
         'I hereby approve'
     ],
             record_more_if_needed=False):
-        assert requester.run_dialog_and_get_valid_result() == 'Thank you. Here is my improved version'
+        assert requester.run_and_get_valid_result() == 'Thank you. Here is my improved version'
     assert len(requester.conversation) == 3
 
 
@@ -38,5 +38,5 @@ def test_ambiguous_reviewer():
         'I hereby approve'
     ],
             record_more_if_needed=False):
-        assert requester.run_dialog_and_get_valid_result() == 'This is my first draft'
+        assert requester.run_and_get_valid_result() == 'This is my first draft'
     assert len(requester.conversation) == 3

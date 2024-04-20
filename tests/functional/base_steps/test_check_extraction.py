@@ -18,7 +18,7 @@ from .utils import TestProductsReviewGPT
 def products():
     products = Mock()
     products.get_name = Mock(return_value='field 1')
-    products.get_description = Mock(
+    products.get_description_for_llm = Mock(
         return_value='Some numbers: \\hypertarget{A0}{0.123}, \\hypertarget{A1}{0.236}, \\hypertarget{A2}{4.56e-04}, '
                      '\\hypertarget{A3}{9876321}, \\hypertarget{A4}{4321}')
     products.is_product_available = Mock(return_value=True)
@@ -34,9 +34,9 @@ class TestCheckReferencedNumericReviewBackgroundProductsConverser(
     rewind_after_end_of_review: Rewind = Rewind.ACCUMULATE
     rewind_after_getting_a_valid_response: Optional[Rewind] = Rewind.ACCUMULATE
 
-    def _check_response_and_get_extracted_result(self, response: str):
+    def _check_response_and_get_extracted_text(self, response: str):
         response = self._check_extracted_numbers(response)
-        return super()._check_response_and_get_extracted_result(response)
+        return super()._check_response_and_get_extracted_text(response)
 
 
 @fixture()
@@ -55,7 +55,7 @@ def test_referenced_based_numeric_converser(numeric_converser):
         'OK: \\hyperlink{A3}{9876321}, \\hyperlink{A4}{4321}',
         'Correct extractions: \\hyperlink{A3}{9876321}, \\hyperlink{A4}{4321}',
     ], record_more_if_needed=False):
-        numeric_converser.run_dialog_and_get_valid_result()
+        numeric_converser.run_and_get_valid_result()
 
 
 @dataclass
@@ -69,9 +69,9 @@ class TestCheckExtractionReviewBackgroundProductsConverser(TestProductsReviewGPT
     def _get_text_from_which_response_should_be_extracted(self) -> str:
         return '0.123, 0.236, 4.56e-04, 9876321, 4321'
 
-    def _check_response_and_get_extracted_result(self, response: str):
+    def _check_response_and_get_extracted_text(self, response: str):
         response = self._check_extracted_numbers(response)
-        return super()._check_response_and_get_extracted_result(response)
+        return super()._check_response_and_get_extracted_text(response)
 
 
 correct_response = 'Correct extractions: 0.12, 0.23, 0.24, 24%, 0.00046, 9,876,000, 4{,}300'
@@ -82,7 +82,7 @@ def test_correct_extraction():
     with OPENAI_SERVER_CALLER.mock([
         correct_response,
     ], record_more_if_needed=False):
-        requester.run_dialog_and_get_valid_result()
+        requester.run_and_get_valid_result()
 
 
 def test_wrong_extraction():
@@ -91,6 +91,6 @@ def test_wrong_extraction():
         correct_response.replace('0.24', '0.25'),
         correct_response,
     ], record_more_if_needed=False):
-        requester.run_dialog_and_get_valid_result()
+        requester.run_and_get_valid_result()
     assert '0.25' in requester.conversation[-2].content
     assert '0.12' not in requester.conversation[-2].content

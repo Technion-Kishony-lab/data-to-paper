@@ -15,7 +15,7 @@ class MultiChoiceBackgroundProductsConverser(BackgroundProductsConverser):
 
     LLM_PARAMETERS = {'temperature': 0.0, 'max_tokens': 30}
 
-    user_initiation_prompt: str = dedent_triple_quote_str("""
+    mission_prompt: str = dedent_triple_quote_str("""
         Please choose one of the following options:
         1. Looks good. Choice 1.
         2. Something is wrong. Choice 2.
@@ -38,6 +38,6 @@ class MultiChoiceBackgroundProductsConverser(BackgroundProductsConverser):
             return choices_in_response[0]
         self._raise_self_response_error(self.choice_instructions)
 
-    def _check_extracted_result_and_get_valid_result(self, extracted_result: str):
-        chosen_choice = self._get_chosen_choice_from_response(extracted_result)
-        self.valid_result = chosen_choice
+    def _check_extracted_text_and_update_valid_result(self, extracted_text: str):
+        chosen_choice = self._get_chosen_choice_from_response(extracted_text)
+        self._update_valid_result(chosen_choice)

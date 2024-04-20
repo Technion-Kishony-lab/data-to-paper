@@ -21,7 +21,7 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT):
         default_factory=lambda: get_additional_contexts(allow_dataframes_to_change_existing_series=False,
                                                         enforce_saving_altered_dataframes=True))
 
-    user_initiation_prompt: str = dedent_triple_quote_str("""
+    mission_prompt: str = dedent_triple_quote_str("""
         As part of a data-preprocessing phase, please write a complete short Python code for getting a \t
         cleaned, normalized, same-unit, balanced version of the data, ready for use in following analysis \t
         steps that will include statistical tests and/or machine learning models on the processed data.

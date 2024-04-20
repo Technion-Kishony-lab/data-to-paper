@@ -1,8 +1,9 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Tuple, Dict, Type, Any, Iterable
+from typing import Optional, Tuple, Dict, Type, Any, Iterable, NamedTuple, Collection
 
-from data_to_paper.env import SUPPORTED_PACKAGES
+from data_to_paper.env import SUPPORTED_PACKAGES, HUMAN_EDIT_CODE_REVIEW
+from data_to_paper.interactive import PanelNames
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.run_gpt_code.run_issues import CodeProblem
 from data_to_paper.code_and_output_files.output_file_requirements import TextContentOutputFileRequirement, \
@@ -10,13 +11,31 @@ from data_to_paper.code_and_output_files.output_file_requirements import TextCon
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.utils.replacer import Replacer
+from data_to_paper.code_and_output_files.file_view_params import ContentViewPurpose
 
 from .debugger import DebuggerConverser
 from .base_products_conversers import BackgroundProductsConverser
 from .exceptions import FailedCreatingProductException
 from .request_python_value import PythonDictReviewBackgroundProductsConverser
 from .result_converser import Rewind
-from ..code_and_output_files.file_view_params import ContentViewPurpose
+
+
+class CodeReviewPrompt(NamedTuple):
+    wildcard_filename: Optional[str]
+    # if None, the code review is done on the code itself without looking at the content of the created files
+    # if not None, the code review is done on the content of the file(s) that match the wildcard_filename
+
+    individually: bool
+    # if True, the code review is done separately for each file that matches the wildcard_filename
+
+    prompt: str
+    # use {filename} to include the name of the created file
+    # use {file_contents_str} to include the content of the created file(s)
+
+    human_edit: Optional[bool] = None
+    # if True, the human can edit the response
+    # if False, the response is AI only
+    # if None, the human can edit the response only if this is the final review
 
 
 @dataclass
@@ -58,10 +77,10 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
 
     goal_noun: str = '{code_name} code'
     goal_verb: str = 'write'
-    user_initiation_prompt: str = 'Please write a code to analyze the data.'
+    mission_prompt: str = 'Please write a code to analyze the data.'
 
     output_file_requirements: OutputFileRequirements = \
-        OutputFileRequirements((TextContentOutputFileRequirement('results.txt'), ))
+        OutputFileRequirements((TextContentOutputFileRequirement('results.txt'),))
     # The name of the file that gpt code is instructed to save the results to.
 
     code_name: str = ''  # e.g. "data analysis"
@@ -86,13 +105,9 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         ```
         """)
 
-    # (wildcard_filename, individually, prompt)
     # set to () to skip option for revision
-    # use {filename} to include the name of the created file
-    # use {file_contents_str} to include the content of the created file(s)
-    code_review_prompts: Iterable[Tuple[str, bool, str]] = (
-        ('*', False,
-         dedent_triple_quote_str("""
+    code_review_prompts: Collection[CodeReviewPrompt] = (
+        CodeReviewPrompt('*', False, dedent_triple_quote_str("""
             I ran your code. 
 
             Here is the content of the output file(s) that the code created:
@@ -104,7 +119,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
 
             {code_review_formatting_instructions}
             """)
-         ),
+                         ),
     )
 
     file_review_prompts: Iterable[Tuple[str, str]] = ()  # (wildcard_filename, prompt)
@@ -167,6 +182,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
             self.revision_round += 1
         code_and_output.name = self.code_name
         code_and_output.provided_code = self.provided_code
+        self._app_request_continue()
         return code_and_output
 
     def _run_debugger(self, previous_code: Optional[str] = None
@@ -218,8 +234,10 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         If true, set the conversation to the state where the user ask the LLM to revise the code.
         """
         specific_attrs_for_code_and_output = self._get_specific_attrs_for_code_and_output(code_and_output)
-        prompt_to_append_at_end_of_response = Replacer(debugger, debugger.prompt_to_append_at_end_of_response)
-        for wildcard_filename, individually, code_review_prompt in self.code_review_prompts:
+        prompt_to_append_at_end_of_response = (
+            Replacer(debugger, debugger.prompt_to_append_at_end_of_response).format_text())
+        for index, (wildcard_filename, individually, code_review_prompt, human_edit) \
+                in enumerate(self.code_review_prompts):
             if wildcard_filename is None:
                 content_files_to_contents = {None: None}
             else:
@@ -243,25 +261,45 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                         ))
                 if not formatted_code_review_prompt:
                     continue
+                self._app_send_prompt(PanelNames.FEEDBACK)
+                self._app_set_status(PanelNames.FEEDBACK, 'LLM Code Reviewer ...')
                 issues_to_solutions = RequestIssuesToSolutions.from_(
                     self,
                     model_engine=self.model_engine,
                     background_product_fields_to_hide=self.background_product_fields_to_hide_during_code_revision,
-                    user_initiation_prompt=formatted_code_review_prompt,
-                ).run_and_get_valid_result()
-
+                    mission_prompt=formatted_code_review_prompt,
+                    app=None,
+                ).run_and_get_valid_result(with_review=False)
+                self._app_set_status(PanelNames.FEEDBACK)
+                termination_phrase = 'Looks good - no changes needed.'
                 if issues_to_solutions:
-                    self.apply_append_user_message(dedent_triple_quote_str("""
+                    ai_issues = '\n\n'.join(f'- {issue}:\n{solution}'
+                                            for issue, solution in issues_to_solutions.items())
+                    ai_issues += '\n\n- And please fix any other issues that you may find.'
+                else:
+                    ai_issues = termination_phrase
+                if HUMAN_EDIT_CODE_REVIEW and self.app and \
+                        (human_edit or (human_edit is None and index == len(self.code_review_prompts) - 1)):
+                    # Allow human edit of the response if human_edit is True,
+                    # or if it is None and this is the final review
+                    human_response = self._app_receive_text(
+                        PanelNames.FEEDBACK, '',
+                        title='Your feedback on code and output.',
+                        optional_suggestions={'AI': ai_issues,
+                                              'Default': termination_phrase})
+                else:
+                    human_response = None
+                issues = ai_issues if human_response is None else human_response
+                if issues and issues != termination_phrase:
+                    response = dedent_triple_quote_str("""
                         The code has some issues that need to be fixed:
 
                         {issues_to_solutions}
 
-                        - And please fix any other issues that you may find.
-
                         {prompt_to_append_at_end_of_response}
-                        """).format(issues_to_solutions='\n\n'.join(f'- {issue}:\n{solution}'
-                                                                    for issue, solution in issues_to_solutions.items()),
-                                    prompt_to_append_at_end_of_response=prompt_to_append_at_end_of_response))
+                        """).format(issues_to_solutions=issues,
+                                    prompt_to_append_at_end_of_response=prompt_to_append_at_end_of_response)
+                    self.apply_append_user_message(response)
                     return True
 
         return False

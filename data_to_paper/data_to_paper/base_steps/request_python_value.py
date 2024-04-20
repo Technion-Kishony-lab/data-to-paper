@@ -12,6 +12,7 @@ from data_to_paper.utils.nice_list import NiceDict
 from data_to_paper.utils.tag_pairs import TagPairs
 from data_to_paper.utils.check_type import validate_value_type, WrongTypeException
 from data_to_paper.utils.text_extractors import extract_text_between_most_flanking_tags
+from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
 
 TYPES_TO_TAG_PAIRS: Dict[type, TagPairs] = {
     dict: TagPairs('{', '}'),
@@ -40,23 +41,10 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
     def parent_type(self) -> type:
         return get_origin(self.value_type)
 
-    def _get_fresh_looking_response(self, response: str, extracted_results: Optional[str]) -> str:
-        """
-        Return a response that contains just the python value.
-        """
-        if self.json_mode:
-            return response
-        if extracted_results is None:
-            return response
-        return f"```python\n{extracted_results}\n```"
+    def get_valid_result_as_markdown(self) -> str:
+        return wrap_text_with_triple_quotes(self.valid_result, 'python')
 
-    def _check_extracted_result_and_get_valid_result(self, extracted_result: str):
-        response_value = self._evaluate_python_value_from_str(extracted_result)
-        response_value = self._validate_value_type(response_value)
-        response_value = self._check_response_value(response_value)
-        self.valid_result = response_value
-
-    def _check_response_and_get_extracted_result(self, response: str) -> str:
+    def _check_response_and_get_extracted_text(self, response: str) -> str:
         """
         Extracts the string of the python value from LLM response.
         If there is an error extracting the value, _raise_self_response_error is called.
@@ -83,6 +71,20 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
                 f'Your response should be formatted as a single Python {self.parent_type.__name__}, '
                 f'flanked by `{tags[0]}` and `{tags[1]}`.',
                 missing_end=tags[0] in response and tags[1] not in response)
+
+    def _check_extracted_text_and_update_valid_result(self, extracted_text: str):
+        response_value = self._evaluate_python_value_from_str(extracted_text)
+        response_value = self._validate_value_type(response_value)
+        response_value = self._check_response_value(response_value)
+        self._update_valid_result(response_value)
+
+    def _convert_extracted_text_to_fresh_looking_response(self, extracted_text: str) -> str:
+        """
+        Return a response that contains just the python value.
+        """
+        if self.json_mode:
+            return extracted_text
+        return wrap_text_with_triple_quotes(extracted_text, 'python')
 
     def _evaluate_python_value_from_str(self, response: str) -> Any:
         if self.json_mode:

@@ -70,13 +70,6 @@ def test_conversation_get_last_response(conversation):
     assert conversation.get_last_response() == 'Hello!'
 
 
-def test_conversation_delete_last_response(conversation):
-    conversation.append(Message(Role.ASSISTANT, 'Hello!'))
-    original_len = len(conversation)
-    conversation.delete_last_response()
-    assert len(conversation) == original_len - 1
-
-
 def test_conversation_ignores_ignored_messages():
     conversation = Conversation()
     conversation.append(Message(Role.USER,

@@ -130,7 +130,7 @@ class BackgroundProductsConverser(ProductsConverser):
         return thank_you_message, tag
 
     def get_product_description_and_tag(self, product_field: str) -> Tuple[str, str]:
-        product_description = self.products.get_description(product_field)
+        product_description = self.products.get_description_for_llm(product_field)
         tag, _ = self._get_product_tags(product_field)
         return product_description, tag
 
@@ -203,9 +203,9 @@ class ReviewBackgroundProductsConverser(BackgroundProductsConverser, ReviewDialo
     """
     COPY_ATTRIBUTES = BackgroundProductsConverser.COPY_ATTRIBUTES | ReviewDialogDualConverserGPT.COPY_ATTRIBUTES
     suppress_printing_other_conversation: bool = False
-    max_reviewing_rounds: int = 1
+    max_reviewing_rounds: int = 0
     termination_phrase: str = "The {goal_noun} does not require any changes"
-    other_initiation_prompt: Optional[str] = None  # None: use the user_initiation_prompt
+    other_mission_prompt: Optional[str] = None  # None: use the mission_prompt
     sentence_to_add_at_the_end_of_performer_response: str = \
         'Please provide constructive feedback, or, if you are satisfied, respond with "{termination_phrase}".'
 
@@ -225,8 +225,8 @@ class ReviewBackgroundProductsConverser(BackgroundProductsConverser, ReviewDialo
 
     def _add_other_acknowledgement(self, product_field: str, is_last: bool = False):
         acknowledgement, tag = self._get_acknowledgement_and_tag(product_field)
-        other_initiation_prompt = self.other_initiation_prompt or self.user_initiation_prompt
-        acknowledgement += f'\n{other_initiation_prompt}' if is_last else ''
+        other_mission_prompt = self.other_mission_prompt or self.mission_prompt
+        acknowledgement += f'\n{other_mission_prompt}' if is_last else ''
         self.apply_to_other_append_surrogate_message(acknowledgement, tag=tag, is_background=True)
 
     def _add_other_product_description(self, product_field: str):
@@ -359,24 +359,36 @@ class CheckReferencedNumericReviewBackgroundProductsConverser(CheckExtractionRev
         {}
 
         Numeric values must be included with \\hyperlink matching the \\hypertarget in the provided sources above.
+        The hyperlinks must include only the numeric values.
+        For example: 
+        - Correct syntax: 'P $<$ \\hyperlink{Z3c}{1e-6}'
+        - Incorrect syntax: 'P \\hyperlink{Z3c}{$<$ 1e-6}'
+
         See the examples I provided in my previous message. 
 
         Remember, you can also include such hyperlinked numeric values within the <formula> of \t
         \\num{<formula>, "explanation"}.
-        This allows you to derive new numeric values from the provided source data. \t 
+        This allows you to derive new numeric values from the provided source data.
+        Changing units, calculating differences, converting regression coefficients to odds ratios, etc. 
+        For example:
+        'The treatment odds ratio was \\num{exp(\\hyperlink{Z3a}{0.17}), \t
+        "Translating the treatment regression coefficient to odds ratio"}'
 
-        In any case, either provided outside or within \\num{}, all numeric values must have \\hyperlink.
+        In summary: 
+        Either provided as a stand alone or within the <formula> of \\num{<formula>, "explanation"}, \t
+        all numeric values must have \\hyperlink references \t
+        that match the \\hypertarget references in the provided sources above.
 
         IMPORTANT NOTE:
         If we need to include a numeric value that is not explicitly provided in the Tables and other results above, \t
         and cannot be derived from them, then indicate `[unknown]` instead of the numeric value. 
 
         For example:
-        "The p-value of the regression coefficient of the treatment was [unknown]."
+        'The p-value of the regression coefficient of the treatment was [unknown].'
         """)
 
     def _get_text_from_which_response_should_be_extracted(self) -> str:
-        return '\n'.join(self.products.get_description(product_field)
+        return '\n'.join(self.products.get_description_for_llm(product_field)
                          for product_field in self.product_fields_from_which_response_is_extracted
                          if self.products.is_product_available(product_field))
 
@@ -394,15 +406,15 @@ class CheckReferencedNumericReviewBackgroundProductsConverser(CheckExtractionRev
         product_field = self._replace_product_field_from_self_to_other(product_field)
         super()._add_other_acknowledgement(product_field, is_last=is_last)
 
-    def _alter_self_response(self, response: str, expected_result: Optional[str] = None) -> str:
+    def _alter_self_response(self, response: str) -> str:
         """
         We modify the self response so that the reviewer does not need to deal with hyperlinks or
         wit the "explanation" in \num{}.
         """
-        response = super()._alter_self_response(response, expected_result)
         if not self.should_apply_numeric_referencing_to_other:
             response = replace_hyperlinks_with_values(response, is_targets=False)
             response = evaluate_latex_num_command(response, just_strip_explanation=True)[0]
+        response = super()._alter_self_response(response)
         return response
 
     def _check_extracted_numbers(self, text: str,

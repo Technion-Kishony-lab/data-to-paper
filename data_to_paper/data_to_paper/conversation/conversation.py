@@ -102,10 +102,6 @@ class Conversation(List[Message]):
                 return i
         raise ValueError(f'Tag {tag} not found.')
 
-    def delete_last_response(self):
-        assert self[-1].role.is_assistant_or_surrogate()
-        self.pop()
-
     def save(self, filename: str):
         with open(filename, 'w') as f:
             for message in self:

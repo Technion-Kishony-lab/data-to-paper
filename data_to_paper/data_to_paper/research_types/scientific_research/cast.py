@@ -8,9 +8,6 @@ from .env import THEME_NAME
 # load theme:
 theme = importlib.import_module(f'data_to_paper.research_types.scientific_research.themes.{THEME_NAME}')
 
-# User-name will be replaced by the name of the user signing in to the app
-USER_NAME = 'User'
-
 
 class ScientificAgent(Agent):
     Performer = 'Performer'
@@ -29,18 +26,16 @@ class ScientificAgent(Agent):
     def get_primary_agent(cls) -> Agent:
         return cls.Performer
 
+    @classmethod
+    def get_human_agent(cls) -> Agent:
+        return cls.Director
+
     def get_conversation_name(self) -> str:
         return AGENTS_TO_CONVERSATION_NAMES[self]
 
     @property
     def profile(self) -> Profile:
         return getattr(theme, self.name)
-
-    @property
-    def skin_name(self) -> str:
-        if self is ScientificAgent.Director:
-            return USER_NAME
-        return self.profile.name
 
 
 assert all(agent.profile.agent_name == agent.name for agent in Agent), \

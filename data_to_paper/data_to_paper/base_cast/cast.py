@@ -4,9 +4,12 @@ from abc import abstractmethod
 from enum import Enum
 from typing import Dict, Optional
 
+from data_to_paper.env import HUMAN_NAME
+
 from .types import Profile, Algorithm
 
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from data_to_paper.conversation.conversation_actions import Action
 
@@ -16,6 +19,11 @@ class Agent(Enum):
     @classmethod
     @abstractmethod
     def get_primary_agent(cls) -> Agent:
+        pass
+
+    @classmethod
+    @abstractmethod
+    def get_human_agent(cls) -> Agent:
         pass
 
     @abstractmethod
@@ -29,6 +37,8 @@ class Agent(Enum):
 
     @property
     def skin_name(self) -> str:
+        if self is self.get_human_agent():
+            return HUMAN_NAME
         return self.profile.name
 
     @property

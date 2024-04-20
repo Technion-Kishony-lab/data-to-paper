@@ -37,7 +37,7 @@ def goal_reviewer(data_file_descriptions, actions_and_conversations):
 
 @OPENAI_SERVER_CALLER.record_or_replay()
 def test_goal_reviewer(goal_reviewer):
-    research_goal = goal_reviewer.run_dialog_and_get_valid_result()
+    research_goal = goal_reviewer.run_and_get_valid_result()
 
     # depending on openai response, these conditions may not be necessarily be met:
-    assert 'gender' in research_goal
+    assert 'birth' in research_goal

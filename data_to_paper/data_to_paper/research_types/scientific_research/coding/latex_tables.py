@@ -1,17 +1,21 @@
 from dataclasses import dataclass, field
-from typing import Iterable, Any, Type, Tuple, Optional, Dict
+from typing import Iterable, Any, Type, Tuple, Optional, Dict, Collection
 
 from data_to_paper.base_steps import DebuggerConverser
+from data_to_paper.base_steps.request_code import CodeReviewPrompt
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.code_and_output_files.file_view_params import ContentView, ContentViewPurpose, ContentViewParams
 from data_to_paper.code_and_output_files.output_file_requirements import TextContentOutputFileRequirement, \
     OutputFileRequirements
 from data_to_paper.code_and_output_files.ref_numeric_values import HypertargetFormat, HypertargetPosition
-from data_to_paper.code_and_output_files.referencable_text import BaseReferenceableText, convert_str_to_latex_label
+from data_to_paper.code_and_output_files.referencable_text import BaseReferenceableText, convert_str_to_latex_label, \
+    NumericReferenceableText
 from data_to_paper.latex.latex_doc import LatexDocument
 from data_to_paper.latex.tables import get_table_caption
 from data_to_paper.research_types.scientific_research.cast import ScientificAgent
 from data_to_paper.research_types.scientific_research.coding.base_code_conversers import BaseCreateTablesCodeProductsGPT
+from data_to_paper.research_types.scientific_research.coding.original_utils.to_latex_with_note import \
+    get_html_from_latex_table, get_latex_table_without_html_comment
 from data_to_paper.research_types.scientific_research.coding.utils import get_additional_contexts
 from data_to_paper.research_types.scientific_research.coding.utils_modified_for_gpt_use.to_latex_with_note import \
     TABLE_COMMENT_HEADER
@@ -47,13 +51,29 @@ class DataframePreventAssignmentToAttrs(PreventAssignmentToAttrs):
         )
 
 
+@dataclass
+class TableNumericReferenceableText(NumericReferenceableText):
+    def _wrap_as_block(self, content: str):
+        return f'"{self.filename}":\n```html\n{content}\n```\n'
+
+
 @dataclass(frozen=True)
 class TexTableContentOutputFileRequirement(TextContentOutputFileRequirement):
     filename: str = '*.tex'
 
     def get_referencable_text(self, content: Any, filename: str = None, num_file: int = 0,
                               content_view: ContentView = None) -> BaseReferenceableText:
-        result = super().get_referencable_text(content, filename, num_file, content_view)
+        if content_view == ContentViewPurpose.APP_HTML:
+            content = get_html_from_latex_table(content)
+            result = TableNumericReferenceableText(
+                    text=content,
+                    filename=filename,
+                    hypertarget_prefix=self.hypertarget_prefixes[num_file] if self.hypertarget_prefixes else None,
+                    content_view_purpose_converter=self.content_view_purpose_converter,
+                )
+        else:
+            content = get_latex_table_without_html_comment(content)
+            result = super().get_referencable_text(content, filename, num_file, content_view)
         if content_view == ContentViewPurpose.FINAL_INLINE:
             text = result.text
             first_line = text.split('\n')[0]
@@ -152,7 +172,7 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
             return abbrs_to_names, names_to_definitions
         ''')
 
-    user_initiation_prompt: str = dedent_triple_quote_str('''
+    mission_prompt: str = dedent_triple_quote_str('''
         Please write a Python code to convert and re-style the "table_?.pkl" dataframes created \t
         by our "{codes:data_analysis}" into latex tables suitable for our scientific paper.
 
@@ -241,7 +261,7 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         Do not send any presumed output examples.
         ''')
 
-    code_review_prompts: Iterable[Tuple[str, bool, str]] = ()
+    code_review_prompts: Collection[CodeReviewPrompt] = ()
 
     @property
     def first_table_number(self):

@@ -1,3 +1,8 @@
+import sys
+from functools import partial
+
+from data_to_paper.env import CHOSEN_APP
+from data_to_paper.interactive.get_app import get_or_create_app
 from data_to_paper_examples.examples.run_project import get_paper
 
 goal = "GOAL:\n" \
@@ -19,10 +24,15 @@ RUN_PARAMETERS = dict(
     data_filenames=["brfss_2019_florida.csv"],
     research_goal=goal,
     should_do_data_exploration=True,
+    output_folder='possible_paper_1',
+    should_mock_servers=True,
+    save_on_repo=True,
 )
 
 if __name__ == '__main__':
-    get_paper(**RUN_PARAMETERS,
-              output_folder='possible_paper_1',
-              should_mock_servers=True,
-              save_on_repo=True)
+    if CHOSEN_APP != 'pyside':
+        get_paper(**RUN_PARAMETERS)
+    else:
+        app = get_or_create_app()
+        app.start_worker(partial(get_paper, **RUN_PARAMETERS))
+        sys.exit(app.q_application.exec())

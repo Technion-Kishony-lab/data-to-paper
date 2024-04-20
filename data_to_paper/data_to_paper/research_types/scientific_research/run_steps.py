@@ -4,7 +4,6 @@ from typing import Optional, Tuple, Type, List, Union
 from data_to_paper.base_steps import BaseStepsRunner, DirectorProductGPT, CheckLatexCompilation
 
 from .cast import ScientificAgent
-from .add_citations import AddCitationReviewGPT
 from .coding.after_coding import RequestCodeExplanation, RequestCodeProducts
 from .coding.latex_tables import CreateLatexTablesCodeProductsGPT
 from .coding.preprocessing import DataPreprocessingCodeProductsGPT
@@ -14,7 +13,7 @@ from .literature_search import WritingLiteratureSearchReviewGPT, GoalLiteratureS
 from .produce_pdf_step import ProduceScientificPaperPDFWithAppendix
 from .scientific_products import ScientificProducts
 from .scientific_stage import ScientificStages, SECTION_NAMES_TO_WRITING_STAGES
-from .reviewing_steps import GoalReviewGPT, HypothesesTestingPlanReviewGPT, IsGoalOK, ReGoalReviewGPT, \
+from .reviewing_steps import GoalReviewGPT, HypothesesTestingPlanReviewGPT, NoveltyAssessmentReview, ReGoalReviewGPT, \
     GetMostSimilarCitations
 from .writing_steps import SectionWriterReviewBackgroundProductsConverser, \
     FirstTitleAbstractSectionWriterReviewGPT, SecondTitleAbstractSectionWriterReviewGPT, \
@@ -47,7 +46,6 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
     should_do_data_preprocessing: bool = False
     should_prepare_hypothesis_testing_plan: bool = True
     should_do_literature_search: bool = True
-    should_add_citations: bool = False
 
     excluded_citation_titles: List[str] = None,  # Title of papers that we don't allow to be cited
 
@@ -84,7 +82,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
                                                       )
         self.advance_stage_and_set_active_conversation(ScientificStages.DATA, ScientificAgent.Director)
         products.data_file_descriptions = director_converser.get_product_or_no_product_from_director(
-            product_field='data_file_descriptions', returned_product=self.data_file_descriptions)
+            product_name='Data description', returned_product=self.data_file_descriptions)
         self.send_product_to_client('data_file_descriptions')
 
         # Data exploration
@@ -101,7 +99,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
         # Goal
         self.advance_stage_and_set_active_conversation(ScientificStages.GOAL, ScientificAgent.Director)
         products.research_goal = director_converser.get_product_or_no_product_from_director(
-            product_field='research_goal', returned_product=self.research_goal,
+            product_name='Research Goal', returned_product=self.research_goal,
             acknowledge_no_product_message="OK. no problem. I will devise the goal myself.")
         is_auto_goal = products.research_goal is None
         if is_auto_goal:
@@ -110,37 +108,42 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
             products.research_goal = GoalReviewGPT.from_(
                 self,
                 project_specific_goal_guidelines=self.project_specific_goal_guidelines
-            ).run_dialog_and_get_valid_result()
-        # self.send_product_to_client('research_goal')
+            ).run_and_get_valid_result()
+        self.send_product_to_client('research_goal')
 
         goal_refinement_iteration = 0
         while True:
             # Literature search
             if self.should_do_literature_search:
                 # TODO: need a dedicated client Stage for literature search
-                self.set_active_conversation(ScientificAgent.CitationExpert)
-                products.literature_search['goal'] = GoalLiteratureSearchReviewGPT.from_(
-                    self, excluded_citation_titles=self.excluded_citation_titles).get_literature_search()
-                # self.send_product_to_client('citations')
+                self.advance_stage_and_set_active_conversation(ScientificStages.LITERATURE_REVIEW_GOAL,
+                                                               ScientificAgent.CitationExpert)
+                GoalLiteratureSearchReviewGPT.from_(
+                    self, excluded_citation_titles=self.excluded_citation_titles,
+                    literature_search=products.literature_search['goal']
+                ).get_literature_search()
+                self.send_product_to_client('literature_search:goal')
 
             if not is_auto_goal or goal_refinement_iteration == self.max_goal_refinement_iterations:
                 break
 
             # Check if the goal is OK
-            products.literature_search['goal'].scopes_to_queries_to_citations['goal and hypothesis'] = \
-                {'cherry picked': GetMostSimilarCitations.from_(self).get_overlapping_citations()}
-            if IsGoalOK.from_(self).is_goal_ok():
+            self.advance_stage_and_set_active_conversation(ScientificStages.ASSESS_NOVELTY, ScientificAgent.Writer)
+            products.most_similar_papers = GetMostSimilarCitations.from_(self).run_and_get_valid_result()
+            products.novelty_assessment = NoveltyAssessmentReview.from_(self).run_and_get_valid_result()
+            self.send_product_to_client('novelty_assessment')
+            if products.novelty_assessment['choice'] == 'OK':
                 break
 
             # Goal is not OK, so we need to devise the goal according to the literature search:
             goal_refinement_iteration += 1
+            self.advance_stage_and_set_active_conversation(ScientificStages.GOAL, ScientificAgent.Director)
             products.research_goal = ReGoalReviewGPT.from_(
                 self,
                 project_specific_goal_guidelines=self.project_specific_goal_guidelines
-            ).run_dialog_and_get_valid_result()
-        # TODO: need to decide what and how to send to the client, we need to somehow split between
-        #  stages and produces
-        self.send_product_to_client('research_goal', save_to_file=True)
+            ).run_and_get_valid_result()
+            self.send_product_to_client('research_goal')
+        self.send_product_to_client('research_goal', save_to_file=True, should_send=False)
 
         # Plan
         self.advance_stage_and_set_active_conversation(ScientificStages.PLAN, ScientificAgent.PlanReviewer)
@@ -148,7 +151,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
         # Hypotheses testing plan
         if self.should_prepare_hypothesis_testing_plan:
             products.hypothesis_testing_plan = \
-                HypothesesTestingPlanReviewGPT.from_(self).run_dialog_and_get_valid_result()
+                HypothesesTestingPlanReviewGPT.from_(self).run_and_get_valid_result()
             # self.send_product_to_client('hypothesis_testing_plan')
 
         self.send_product_to_client('hypothesis_testing_plan', save_to_file=True)
@@ -175,8 +178,8 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
                                   explain_created_files_class=None,
                                   ).get_code_and_output_and_descriptions()
         self.send_product_to_client('codes_and_outputs_with_explanations:data_analysis')
-        self.advance_stage_and_set_active_conversation(ScientificStages.INTERPRETATION,
-                                                       ScientificAgent.InterpretationReviewer)
+        self.advance_stage_and_set_active_conversation(ScientificStages.TABLES,
+                                                       ScientificAgent.Debugger)
         RequestCodeProducts.from_(self,
                                   code_step='data_to_latex',
                                   latex_document=self.latex_document,
@@ -187,15 +190,19 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
         self.send_product_to_client('codes_and_outputs_with_explanations:data_to_latex')
 
         # literature review and scope
-        self.advance_stage_and_set_active_conversation(ScientificStages.LITERATURE_REVIEW_AND_SCOPE,
-                                                       ScientificAgent.Writer)
+        self.advance_stage_and_set_active_conversation(ScientificStages.INTERPRETATION, ScientificAgent.Writer)
         products.paper_sections_and_optional_citations['title'], \
             products.paper_sections_and_optional_citations['abstract'] = \
             FirstTitleAbstractSectionWriterReviewGPT.from_(self, section_names=['title', 'abstract']
                                                            ).write_sections_with_citations()
-        products.literature_search['writing'] = WritingLiteratureSearchReviewGPT.from_(
-            self, excluded_citation_titles=self.excluded_citation_titles).get_literature_search()
-        self.send_product_to_client('scope_and_literature_search')
+        self.send_product_to_client('title_and_abstract_first')
+        self.advance_stage_and_set_active_conversation(ScientificStages.LITERATURE_REVIEW_WRITING,
+                                                       ScientificAgent.CitationExpert)
+        WritingLiteratureSearchReviewGPT.from_(
+            self,
+            literature_search=products.literature_search['writing'],
+            excluded_citation_titles=self.excluded_citation_titles).get_literature_search()
+        self.send_product_to_client('literature_search:writing')
 
         # Paper sections
         for section_names, writing_class in sections_and_writing_class:
@@ -213,16 +220,6 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
                 self.send_product_to_client('title_and_abstract')
             else:
                 self.send_product_to_client(f'paper_sections:{section_names[0]}')
-
-        # Add citations to relevant paper sections
-        if self.should_add_citations:
-            self.advance_stage_and_set_active_conversation(ScientificStages.CITATIONS, ScientificAgent.CitationExpert)
-            for section_name in SECTIONS_WITH_CITATIONS:
-                products.paper_sections_and_optional_citations[section_name] = \
-                    AddCitationReviewGPT.from_(self, section_name=section_name,
-                                               conversation_name=f'add_citations_to_{section_name}') \
-                        .rewrite_section_with_citations()
-            self.send_product_to_client('most_updated_paper')
 
         # Compile paper
         paper_producer.assemble_compile_paper()

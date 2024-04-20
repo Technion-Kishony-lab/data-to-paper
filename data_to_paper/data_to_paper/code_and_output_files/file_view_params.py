@@ -13,6 +13,7 @@ class ContentViewPurpose(Enum):
     PRODUCT = 2
     HYPERTARGET_PRODUCT = 3
     CODE_REVIEW = 4
+    APP_HTML = 5
 
 
 @dataclass(frozen=True)
@@ -24,6 +25,7 @@ class ContentViewParams:
     with_hyper_header: bool = False
     is_block: bool = False
     pvalue_on_str: Optional[OnStr] = None
+    is_html: bool = False
 
 
 ContentView = Union[Optional[ContentViewPurpose], ContentViewParams]
@@ -69,6 +71,13 @@ DEFAULT_VIEW_PURPOSE_TO_PARAMS: Dict[Optional[ContentViewPurpose], ContentViewPa
         with_hyper_header=False,
         is_block=True,
         pvalue_on_str=OnStr.SMALLER_THAN),
+
+    ContentViewPurpose.APP_HTML: ContentViewParams(
+        hypertarget_format=HypertargetFormat(position=HypertargetPosition.NONE),
+        with_hyper_header=False,
+        is_block=True,
+        pvalue_on_str=OnStr.SMALLER_THAN,
+        is_html=True),
 }
 
 

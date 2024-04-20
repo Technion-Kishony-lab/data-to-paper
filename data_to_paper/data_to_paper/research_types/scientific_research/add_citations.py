@@ -1,3 +1,6 @@
+# Citation module for adding citations to a section of a paper.
+# We are currently not using this citation module.
+
 from dataclasses import dataclass, field
 from typing import Dict, Set, Tuple, List, Any, Optional
 
@@ -36,7 +39,7 @@ class RewriteSentenceWithCitations(PythonValueReviewBackgroundProductsConverser)
     fake_reviewer_agree_to_help: str = None
     fake_performer_message_to_add_after_max_rounds: str = None
     max_valid_response_iterations: int = 2
-    user_initiation_prompt: str = dedent_triple_quote_str("""
+    mission_prompt: str = dedent_triple_quote_str("""
         Choose the most appropriate citations to add for the sentence: 
 
         "{sentence}"
@@ -73,7 +76,8 @@ class RewriteSentenceWithCitations(PythonValueReviewBackgroundProductsConverser)
         return [citation.bibtex_id for citation in self.citations]
 
     def _check_response_value(self, response_value: Any) -> Any:
-        self.valid_result = None  # we declare the result as "valid" even if we can't find any citations.
+        # we declare the result as "valid" even if we can't find any citations:
+        self._update_valid_result(None)
         ids_not_in_options = self._add_citations_in_options_and_return_citations_not_in_options(response_value)
         if len(ids_not_in_options) > 0:
             self._raise_self_response_error(
@@ -101,7 +105,7 @@ class RewriteSentenceWithCitations(PythonValueReviewBackgroundProductsConverser)
         return self.sentence.rstrip('.') + ' ' + '\\cite{' + ', '.join(self.chosen_citation_ids) + '}.'
 
     def get_rewritten_sentence_and_chosen_citations(self) -> Tuple[str, Set[CrossrefCitation]]:
-        self.initialize_and_run_dialog()
+        self.run_and_get_valid_result()
         return (self.get_rewritten_sentence(),
                 {citation for citation in self.citations if citation.bibtex_id in self.chosen_citation_ids})
 
@@ -134,7 +138,7 @@ class AddCitationReviewGPT(PythonValueReviewBackgroundProductsConverser):
         You are a scientific citation expert. 
     """)
 
-    user_initiation_prompt: str = dedent_triple_quote_str("""
+    mission_prompt: str = dedent_triple_quote_str("""
         Extract from the above section of a scientific paper all the factual sentences to which we need to \t
         add citations.
 
@@ -223,7 +227,8 @@ class AddCitationReviewGPT(PythonValueReviewBackgroundProductsConverser):
         Collect the sentences that are in the section.
         raise an error if there are sentences that are not in the section.
         """
-        self.valid_result = None  # we declare the result as "valid" even if we can't find any sentences.
+        # we declare the result as "valid" even if we can't find any sentences:
+        self._update_valid_result(None)
         sentences_not_in_section = self._add_sentences_in_section_and_return_sentences_not_in_section(response_value)
         if sentences_not_in_section:
             if len(sentences_not_in_section) == len(response_value):
@@ -238,7 +243,7 @@ class AddCitationReviewGPT(PythonValueReviewBackgroundProductsConverser):
         """
         Rewrite the section with the citations.
         """
-        self.initialize_and_run_dialog()
+        self.run_and_get_valid_result()
         # this runs the dialog and updates self.sentences_to_queries
         # we don't check if initialize_and_run_dialog() returns None, because even if it failed,
         # we might have accumulated some sentences through the process.

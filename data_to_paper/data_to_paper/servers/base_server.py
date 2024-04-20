@@ -1,12 +1,17 @@
 import functools
 import os
 import pickle
+import time
+
 from abc import ABC
 
 from pathlib import Path
-from typing import Union
+from typing import Union, Optional
 
-from .custom_json import save_list_to_json, load_list_from_json
+from .json_dump import dump_to_json, load_from_json
+
+from data_to_paper.env import CHOSEN_APP, DELAY_APP_INTERACTION
+from .serialize_exceptions import serialize_exception, is_exception, de_serialize_exception
 
 
 class NoMoreResponsesToMockError(Exception):
@@ -64,15 +69,13 @@ class ServerCaller(ABC):
         """
         return response
 
-    @staticmethod
-    def _save_records(records, filepath):
+    def _save_records(self, records, filepath):
         """
         saves the records to a file.
         """
         raise NotImplementedError()
 
-    @staticmethod
-    def _load_records(filepath):
+    def _load_records(self, filepath):
         """
         loads the records from a file.
         """
@@ -100,13 +103,16 @@ class ServerCaller(ABC):
         if not self.is_playing_or_recording:
             return self._get_server_response_without_raising(*args, **kwargs)
         response = self._get_response_from_records(args, kwargs)
+        if response is not None and CHOSEN_APP is not None:
+            if DELAY_APP_INTERACTION:
+                time.sleep(DELAY_APP_INTERACTION.val)
         if response is None:
             if not self.record_more_if_needed:
                 raise NoMoreResponsesToMockError()
             response = self._get_server_response_without_raising(*args, **kwargs)
             self._add_response_to_new_records(args, kwargs, response)
             if self.should_save:
-                self.save_records(self.file_path)
+                self.save_records()
         self.args_kwargs_response_history.append((args, kwargs, response))  # for debugging and testing
         return response
 
@@ -118,7 +124,7 @@ class ServerCaller(ABC):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.is_playing_or_recording = False
         if self.should_save:
-            self.save_records(self.file_path)
+            self.save_records()
         return False  # do not suppress exceptions
 
     def mock(self, old_records=None, record_more_if_needed=True, fail_if_not_all_responses_used=True,
@@ -134,10 +140,11 @@ class ServerCaller(ABC):
         self.file_path = file_path
         return self
 
-    def save_records(self, file_path):
+    def save_records(self, file_path: Optional[str] = None):
         """
         Save the recorded responses to a file.
         """
+        file_path = file_path or self.file_path
         # create the directory if not exist
         Path(os.path.dirname(file_path)).mkdir(parents=True, exist_ok=True)
         self._save_records(self.all_records, file_path)
@@ -190,6 +197,10 @@ class ServerCaller(ABC):
 
 
 class ListServerCaller(ServerCaller, ABC):
+    """
+    A base class for calling a remote server, while allowing recording and replaying server responses.
+    Records are saved as a sequence of responses and can be replayed in the same order (regardless of the arguments).
+    """
     def __init__(self):
         super().__init__()
         self.index_in_old_records = 0
@@ -213,12 +224,24 @@ class ListServerCaller(ServerCaller, ABC):
         self.new_records.append(response)
 
     @staticmethod
-    def _save_records(records, filepath):
-        save_list_to_json(records, filepath)
+    def _serialize_record(record):
+        if isinstance(record, Exception):
+            return serialize_exception(record)
+        return record
 
     @staticmethod
-    def _load_records(filepath):
-        return load_list_from_json(filepath)
+    def _deserialize_record(serialized_record):
+        if is_exception(serialized_record):
+            return de_serialize_exception(serialized_record)
+        return serialized_record
+
+    def _save_records(self, records, filepath):
+        dump_to_json([self._serialize_record(record)
+                      for record in records], filepath)
+
+    def _load_records(self, filepath):
+        return [self._deserialize_record(serialized_record)
+                for serialized_record in load_from_json(filepath)]
 
     def __enter__(self):
         self.index_in_old_records = 0
@@ -232,6 +255,10 @@ class ListServerCaller(ServerCaller, ABC):
 
 
 class DictServerCaller(ServerCaller, ABC):
+    """
+    A base class for calling a remote server, while allowing recording and replaying server responses.
+    Records are saved as a dictionary of responses and can be replayed by the arguments and keyword arguments.
+    """
 
     @property
     def empty_records(self) -> dict:
@@ -249,12 +276,10 @@ class DictServerCaller(ServerCaller, ABC):
         tuple_args_and_kwargs = convert_args_kwargs_to_tuple(args, kwargs)
         self.new_records[tuple_args_and_kwargs] = response
 
-    @staticmethod
-    def _save_records(records, filepath):
+    def _save_records(self, records, filepath):
         with open(filepath, 'wb') as file:
             pickle.dump(records, file)
 
-    @staticmethod
-    def _load_records(filepath):
+    def _load_records(self, filepath):
         with open(filepath, 'rb') as filepath:
             return pickle.load(filepath)

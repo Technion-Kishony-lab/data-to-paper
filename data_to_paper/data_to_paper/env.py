@@ -63,10 +63,17 @@ MAX_SENSIBLE_OUTPUT_SIZE_TOKENS = Mutable(2500)
 # Coalesce conversations with the same participants into one web-conversation:
 COALESCE_WEB_CONVERSATIONS = Flag(True)
 
-DELAY_AUTOMATIC_RESPONSES = Mutable(0.1)  # seconds
+DELAY_SEND_TO_WEB = Mutable(0.1)  # seconds
 
 # Products to send to client for the user to download:
 PRODUCTS_TO_SEND_TO_CLIENT = ['paper.pdf', 'paper.tex']
+
+# Human interactions:
+RECORD_INTERACTIONS = Flag(True)
+HUMAN_EDIT_CODE_REVIEW = True
+HUMAN_NAME = 'Human'
+CHOSEN_APP = Mutable('pyside')  # 'console', 'pyside', None
+DELAY_APP_INTERACTION = Mutable(1)  # seconds
 
 NUM_DIGITS_FOR_FLOATS = 4
 

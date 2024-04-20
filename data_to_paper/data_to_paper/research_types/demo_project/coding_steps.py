@@ -38,7 +38,7 @@ class DemoCodeProductsGPT(BaseCodeProductsGPT):
 
     supported_packages: Tuple[str, ...] = ('numpy', )
 
-    user_initiation_prompt: str = dedent_triple_quote_str("""
+    mission_prompt: str = dedent_triple_quote_str("""
         Please write a short Python code for finding the largest number below our chosen max number.
 
         Your code should create an output text file named "{output_filename}", which should \t

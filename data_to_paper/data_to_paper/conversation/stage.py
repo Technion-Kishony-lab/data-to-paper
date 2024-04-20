@@ -4,7 +4,7 @@ import time
 from dataclasses import dataclass
 
 from data_to_paper.base_cast import Agent
-from data_to_paper.env import DELAY_AUTOMATIC_RESPONSES
+from data_to_paper.env import DELAY_SEND_TO_WEB
 from data_to_paper.utils import format_text_with_code_blocks
 
 from .actions_and_conversations import Action
@@ -77,5 +77,5 @@ class SetActiveConversation(MessengerAction):
         return f'{self.conversation_name}'
 
     def apply_to_web(self) -> bool:
-        time.sleep(DELAY_AUTOMATIC_RESPONSES.val)
+        time.sleep(DELAY_SEND_TO_WEB.val)
         return super().apply_to_web()

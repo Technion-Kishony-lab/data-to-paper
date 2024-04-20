@@ -97,7 +97,7 @@ def test_request_latex_alter_response_for_reviewer():
             'I suggest making it short',
             f'Here is the corrected shorter abstract:\n{correct_abstract}\n'],
             record_more_if_needed=False):
-        assert requester.run_dialog_and_get_valid_result() == [correct_abstract]
+        assert requester.run_and_get_valid_result() == [correct_abstract]
     assert len(requester.conversation) == 3
 
     message_to_reviewer = requester.other_conversation[-2].content
@@ -122,7 +122,7 @@ def test_remove_citations_from_section():
     with OPENAI_SERVER_CALLER.mock([
             f'Here is the abstract:\n{abstract}\n'],
             record_more_if_needed=False):
-        assert requester.run_dialog_and_get_valid_result() == [abstract.replace(r' \cite{some_citation}', '')]
+        assert requester.run_and_get_valid_result() == [abstract.replace(r' \cite{some_citation}', '')]
 
 
 def test_rename_close_citations():
@@ -136,7 +136,7 @@ def test_rename_close_citations():
             f'Here is the introduction:\n{introduction}'],
             record_more_if_needed=False):
 
-        assert requester.run_dialog_and_get_valid_result() == \
+        assert requester.run_and_get_valid_result() == \
                [introduction.replace(r'JONES2019', 'JONES2019AB').replace(r'smith2020', 'SMITH2020')]
 
 
@@ -149,7 +149,7 @@ def test_check_no_additional_sections():
             f'Now only the introduction:\n{introduction}'],
             record_more_if_needed=False):
 
-        assert requester.run_dialog_and_get_valid_result() == [introduction]
+        assert requester.run_and_get_valid_result() == [introduction]
 
 
 def test_check_for_floating_citations():
@@ -165,7 +165,7 @@ def test_check_for_floating_citations():
             f'Now the correct introduction:\n{correct_introduction}'],
             record_more_if_needed=False):
 
-        assert requester.run_dialog_and_get_valid_result() == [correct_introduction]
+        assert requester.run_and_get_valid_result() == [correct_introduction]
 
 
 def test_usage_of_un_allowed_commands():
@@ -179,4 +179,4 @@ def test_usage_of_un_allowed_commands():
             f'Now the correct introduction:\n{correct_introduction}'],
             record_more_if_needed=False):
 
-        assert requester.run_dialog_and_get_valid_result() == [correct_introduction]
+        assert requester.run_and_get_valid_result() == [correct_introduction]

@@ -122,7 +122,7 @@ class SemanticScholarPaperServerCaller(DictServerCaller):
     """
     Search for citations with abstracts in Semantic Scholar.
     """
-
+    name = "Semantic Scholar"
     file_extension = "_semanticscholar_paper.bin"
 
     @staticmethod
@@ -245,13 +245,6 @@ class SemanticScholarEmbeddingServerCaller(DictServerCaller):
         paper_embedding = response.json()["preds"][0]["embedding"]
 
         return np.array(paper_embedding)
-
-    @staticmethod
-    def _post_process_response(response, args, kwargs):
-        """
-        Post process the response from the server.
-        """
-        return response
 
 
 SEMANTIC_SCHOLAR_SERVER_CALLER = SemanticScholarPaperServerCaller()
