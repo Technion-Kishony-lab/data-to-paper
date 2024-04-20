@@ -2,6 +2,8 @@ import os
 import re
 import subprocess
 
+from data_to_paper.utils.file_utils import run_in_temp_directory
+
 
 def convert_latex_to_html(latex: str) -> str:
     """
@@ -40,12 +42,13 @@ def convert_latex_to_html(latex: str) -> str:
         command += ['--metadata', 'title=Titleless LaTeX Document']
 
     try:
-        # Write the LaTeX into a temporary file
-        with open(tex_file, 'w') as f:
-            f.write(latex)
-        # Convert using Pandoc
-        html_output = subprocess.check_output(command, universal_newlines=True)
-        return html_output
+        with run_in_temp_directory():
+            # Write the LaTeX into a temporary file
+            with open(tex_file, 'w') as f:
+                f.write(latex)
+            # Convert using Pandoc
+            html_output = subprocess.check_output(command, universal_newlines=True)
+            return html_output
     except subprocess.CalledProcessError as e:
         # Handle errors in conversion
         return f'<html><body><h1>Error converting LaTeX to HTML</h1><p>{e}</p></body></html>'

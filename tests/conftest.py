@@ -1,7 +1,14 @@
+import pytest
 from _pytest.fixtures import fixture
 
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations, Conversations, Actions
-from data_to_paper.env import SAVE_INTERMEDIATE_LATEX
+from data_to_paper.env import SAVE_INTERMEDIATE_LATEX, CHOSEN_APP
+
+
+@pytest.fixture(scope="session", autouse=True)
+def my_context_fixture():
+    with CHOSEN_APP.temporary_set(None):
+        yield
 
 
 @fixture()

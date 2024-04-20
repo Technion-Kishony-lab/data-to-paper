@@ -11,6 +11,7 @@ from typing import Union, Optional
 from .json_dump import dump_to_json, load_from_json
 
 from data_to_paper.env import CHOSEN_APP, DELAY_APP_INTERACTION
+from .serialize_exceptions import serialize_exception, is_exception, de_serialize_exception
 
 
 class NoMoreResponsesToMockError(Exception):
@@ -224,10 +225,14 @@ class ListServerCaller(ServerCaller, ABC):
 
     @staticmethod
     def _serialize_record(record):
+        if isinstance(record, Exception):
+            return serialize_exception(record)
         return record
 
     @staticmethod
     def _deserialize_record(serialized_record):
+        if is_exception(serialized_record):
+            return de_serialize_exception(serialized_record)
         return serialized_record
 
     def _save_records(self, records, filepath):

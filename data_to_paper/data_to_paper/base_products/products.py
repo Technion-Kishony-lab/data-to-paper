@@ -103,6 +103,10 @@ class Products:
             product, kwargs = unified_product_generator
             if not isinstance(product, Product):
                 product = product(*args)
+            if not isinstance(product, Product):
+                raise ValueError(f'Unknown product field: {field}')
+            if not product.is_valid():
+                raise ValueError(f'Product {product} is not valid')
             if not isinstance(kwargs, dict):
                 kwargs = kwargs(*args)
             return product, kwargs
@@ -144,6 +148,14 @@ class Products:
         description = self.get_description(field)
         return ('<h1>' + self.get_name(field) + '</h1>\n' +
                 format_text_with_code_blocks(description, is_html=True, width=None))
+
+    def get_description_for_llm(self, field: str) -> str:
+        """
+        Return the product in a format to be used in conversation context for the LLM.
+        """
+        name = self.get_name(field)
+        description = self.get_description(field)
+        return f'# {name}\n{description}'
 
     def _get_unified_product_generator_and_args(self, field: str
                                                 ) -> Tuple[UnifiedProductGenerator, List[str]]:

@@ -130,8 +130,7 @@ class BackgroundProductsConverser(ProductsConverser):
         return thank_you_message, tag
 
     def get_product_description_and_tag(self, product_field: str) -> Tuple[str, str]:
-        product = self.products[product_field]
-        product_description = f'# {product.name}\n{product.description}'
+        product_description = self.products.get_description_for_llm(product_field)
         tag, _ = self._get_product_tags(product_field)
         return product_description, tag
 
@@ -389,7 +388,7 @@ class CheckReferencedNumericReviewBackgroundProductsConverser(CheckExtractionRev
         """)
 
     def _get_text_from_which_response_should_be_extracted(self) -> str:
-        return '\n'.join(self.products.get_description(product_field)
+        return '\n'.join(self.products.get_description_for_llm(product_field)
                          for product_field in self.product_fields_from_which_response_is_extracted
                          if self.products.is_product_available(product_field))
 

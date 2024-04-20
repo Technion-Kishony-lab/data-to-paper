@@ -18,7 +18,7 @@ from .utils import TestProductsReviewGPT
 def products():
     products = Mock()
     products.get_name = Mock(return_value='field 1')
-    products.get_description = Mock(
+    products.get_description_for_llm = Mock(
         return_value='Some numbers: \\hypertarget{A0}{0.123}, \\hypertarget{A1}{0.236}, \\hypertarget{A2}{4.56e-04}, '
                      '\\hypertarget{A3}{9876321}, \\hypertarget{A4}{4321}')
     products.is_product_available = Mock(return_value=True)

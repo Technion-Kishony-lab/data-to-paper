@@ -40,4 +40,4 @@ def test_goal_reviewer(goal_reviewer):
     research_goal = goal_reviewer.run_and_get_valid_result()
 
     # depending on openai response, these conditions may not be necessarily be met:
-    assert 'gender' in research_goal
+    assert 'birth' in research_goal
