@@ -1,9 +1,12 @@
+# simple example of running the pyside app
+
 import sys
 import time
 
-from data_to_paper.interactive import q_application, the_app
+from data_to_paper.interactive.get_app import get_or_create_app
 from data_to_paper.interactive.types import PanelNames
 
+the_app = get_or_create_app()
 
 def my_func():
     # Request text input from the user with an initial text
@@ -16,4 +19,4 @@ def my_func():
 
 # Running the application
 the_app.start_worker(my_func)
-sys.exit(q_application.exec())
+sys.exit(the_app.q_application.exec())

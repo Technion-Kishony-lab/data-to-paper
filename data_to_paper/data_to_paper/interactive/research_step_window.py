@@ -359,6 +359,7 @@ def create_tabs(names_to_panels: Dict[str, Panel]):
 class ResearchStepApp(QMainWindow, BaseApp):
     send_text_signal = Signal(str, PanelNames)
     send_continue_signal = Signal()
+    a_application = None
 
     def __init__(self, mutex, condition):
         super().__init__()

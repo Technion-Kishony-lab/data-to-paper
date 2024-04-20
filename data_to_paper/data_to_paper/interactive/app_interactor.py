@@ -1,22 +1,22 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional, Dict, Union, Iterable
 
 from data_to_paper.utils import format_text_with_code_blocks
 from data_to_paper.utils.replacer import format_value
+from data_to_paper.conversation.stage import Stage
 
 from data_to_paper.servers.llm_call import get_human_response
 
-from . import the_app
 from .base_app import BaseApp
+from .get_app import get_or_create_app
 from .types import PanelNames
 from .human_actions import HumanAction, ButtonClickedHumanAction, TextSentHumanAction
-from ..conversation.stage import Stage
 
 
 @dataclass
 class AppInteractor:
 
-    app: Optional[BaseApp] = the_app
+    app: Optional[BaseApp] = field(default_factory=get_or_create_app)
 
     def _app_clear_panels(self, panel_name: Union[PanelNames, Iterable[PanelNames]] = PanelNames):
         if self.app is None:
