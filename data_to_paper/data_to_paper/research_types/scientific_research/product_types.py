@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from typing import List, Dict, Any
 
 from data_to_paper.base_products.product import ValueProduct, Product
-from data_to_paper.conversation.stage import Stage
 from data_to_paper.research_types.scientific_research.scientific_stage import ScientificStages
 from data_to_paper.servers.custom_types import Citation
 

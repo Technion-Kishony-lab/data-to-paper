@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from typing import Any
 
-from data_to_paper.code_and_output_files.file_view_params import ContentViewPurpose
 from data_to_paper.conversation.stage import Stage
 from data_to_paper.utils import format_text_with_code_blocks
 from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes

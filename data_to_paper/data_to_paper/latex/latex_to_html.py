@@ -1,14 +1,6 @@
-import logging
 import os
 import re
 import subprocess
-import sys
-from contextlib import contextmanager
-
-from plasTeX.TeX import TeX
-from plasTeX.Renderers.HTML5 import HTML5
-
-from data_to_paper.utils.file_utils import run_in_temp_directory
 
 
 def convert_latex_to_html(latex: str) -> str:

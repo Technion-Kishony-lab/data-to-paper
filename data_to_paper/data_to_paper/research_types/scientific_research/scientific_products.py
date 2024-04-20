@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional, Dict, Tuple, Set, List, Union, NamedTuple
+from typing import Optional, Dict, Tuple, Set, List, Union
 
 from data_to_paper.base_steps import LiteratureSearch
 from data_to_paper.base_steps.literature_search import LiteratureSearchParams
@@ -18,11 +18,10 @@ from data_to_paper.research_types.scientific_research.product_types import Hypot
 from data_to_paper.research_types.scientific_research.scientific_stage import ScientificStages, \
     SECTION_NAMES_TO_WRITING_STAGES
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
-from data_to_paper.utils.mutable import Mutable
+
 from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.base_products import DataFileDescriptions, DataFileDescription, Products, \
     NameDescriptionStageGenerator, ProductGenerator
-from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
 from data_to_paper.utils.types import ListBasedSet, MemoryDict
 from data_to_paper.servers.custom_types import Citation
 

@@ -8,7 +8,7 @@ from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLE
     SEMANTIC_SCHOLAR_EMBEDDING_SERVER_CALLER
 
 from .request_python_value import PythonDictWithDefinedKeysReviewBackgroundProductsConverser
-from .literature_search import LiteratureSearch, CitationCollectionProduct, QueryCitationCollectionProduct, \
+from .literature_search import LiteratureSearch, QueryCitationCollectionProduct, \
     LiteratureSearchQueriesProduct
 from ..interactive import PanelNames
 

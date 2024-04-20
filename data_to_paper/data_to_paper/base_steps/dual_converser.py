@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional, Tuple, Any
+from typing import Optional
 
 from data_to_paper.conversation import ConversationManager, GeneralMessageDesignation, Message
 from data_to_paper.utils import dedent_triple_quote_str
@@ -13,7 +13,7 @@ from data_to_paper.run_gpt_code.code_utils import extract_content_of_triple_quot
     IncompleteBlockFailedExtractingBlock
 
 from .converser import Converser
-from .result_converser import ResultConverser, Rewind, ExtractedText
+from .result_converser import ResultConverser, Rewind
 
 
 class CycleStatus(Enum):
@@ -301,7 +301,7 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
             return CycleStatus.FAILED_CHECK_SELF_RESPONSE
 
         # We have a valid response from self. Now we can proceed with the dialog:
-        if is_last_round and not (self.human_review and CHOSEN_APP != None):
+        if is_last_round and not (self.human_review and CHOSEN_APP != None):  # noqa
             if self.fake_performer_message_to_add_after_max_rounds is not None:
                 self.apply_append_surrogate_message(self.fake_performer_message_to_add_after_max_rounds, ignore=True)
             return CycleStatus.MAX_ROUNDS_EXCEEDED

@@ -15,7 +15,7 @@ from data_to_paper.latex.tables import get_table_caption
 from data_to_paper.research_types.scientific_research.cast import ScientificAgent
 from data_to_paper.research_types.scientific_research.coding.base_code_conversers import BaseCreateTablesCodeProductsGPT
 from data_to_paper.research_types.scientific_research.coding.original_utils.to_latex_with_note import \
-    get_html_from_latex_table, get_latex_table_without_html_comment, HTML_COMMENT_HEADER
+    get_html_from_latex_table, get_latex_table_without_html_comment
 from data_to_paper.research_types.scientific_research.coding.utils import get_additional_contexts
 from data_to_paper.research_types.scientific_research.coding.utils_modified_for_gpt_use.to_latex_with_note import \
     TABLE_COMMENT_HEADER

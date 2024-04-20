@@ -183,8 +183,8 @@ def format_text_with_code_blocks(text: str, text_color: str = '', from_md: Optio
     for formatted_section in formatted_sections:
         label, section, _, = formatted_section.to_tuple()
         formatter = TAGS_TO_FORMATTERS.get(label, BLOCK_FORMATTER)[is_html]
-        is_section_md = \
-            label == 'markdown' or label in POSSIBLE_MARKDOWN_LABELS and (from_md or from_md is None and is_text_md(section))
+        is_section_md = (label == 'markdown' or label in POSSIBLE_MARKDOWN_LABELS
+                         and (from_md or from_md is None and is_text_md(section)))
         if not is_html and label not in ['python', 'header', 'comment', 'system']:
             section = FormattedSections([formatted_section]).to_text()
         if is_html:

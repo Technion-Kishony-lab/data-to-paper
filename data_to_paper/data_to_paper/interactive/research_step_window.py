@@ -10,8 +10,7 @@ from pygments.formatters.html import HtmlFormatter
 
 from data_to_paper.interactive.base_app import BaseApp
 from data_to_paper.interactive.types import PanelNames
-from data_to_paper.research_types.scientific_research.scientific_stage import SCIENTIFIC_STAGES_TO_NICE_NAMES, \
-    ScientificStages
+from data_to_paper.research_types.scientific_research.scientific_stage import SCIENTIFIC_STAGES_TO_NICE_NAMES
 
 # orange color: #FFA500
 # slightly darker orange: #FF8C00
@@ -92,7 +91,7 @@ class Worker(QThread):
         self.set_status_signal.emit(panel_name, status)
 
     def worker_request_text(self, panel_name: PanelNames, initial_text: str = '',
-                           title: Optional[str] = None, optional_suggestions: Dict[str, str] = None) -> str:
+                            title: Optional[str] = None, optional_suggestions: Dict[str, str] = None) -> str:
         self.mutex.lock()
         self.request_text_signal.emit(panel_name, initial_text, title, optional_suggestions)
         self.condition.wait(self.mutex)

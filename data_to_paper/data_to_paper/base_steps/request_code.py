@@ -1,4 +1,3 @@
-import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, Tuple, Dict, Type, Any, Iterable, NamedTuple, Collection
@@ -13,14 +12,12 @@ from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.utils.replacer import Replacer
 from data_to_paper.code_and_output_files.file_view_params import ContentViewPurpose
-from data_to_paper.servers.llm_call import get_human_response
 
 from .debugger import DebuggerConverser
 from .base_products_conversers import BackgroundProductsConverser
 from .exceptions import FailedCreatingProductException
 from .request_python_value import PythonDictReviewBackgroundProductsConverser
 from .result_converser import Rewind
-
 
 
 class CodeReviewPrompt(NamedTuple):
@@ -298,7 +295,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                         The code has some issues that need to be fixed:
 
                         {issues_to_solutions}
-                        
+
                         {prompt_to_append_at_end_of_response}
                         """).format(issues_to_solutions=issues,
                                     prompt_to_append_at_end_of_response=prompt_to_append_at_end_of_response)

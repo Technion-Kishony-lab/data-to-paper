@@ -152,7 +152,7 @@ class ResultConverser(Converser):
 
     # Output:
     stage: Stage = None
-    product_type: Type[ValueProduct] = None  # the type of the product that will be generated. If None, non-product result.
+    product_type: Type[ValueProduct] = None  # the type of the product to be generated. If None, non-product result.
     valid_result: Union[Product, Any] = field(default_factory=NoResponse)
     _valid_result_update_count: int = 0
 
@@ -476,4 +476,3 @@ class ResultConverser(Converser):
         if not self._has_valid_result:
             self.run_and_get_valid_result_and_termination_reason(*args, **kwargs)
         return self._get_valid_result()
-

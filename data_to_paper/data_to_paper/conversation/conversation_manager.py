@@ -9,7 +9,7 @@ from data_to_paper.run_gpt_code.code_utils import add_label_to_first_triple_quot
 
 from .actions_and_conversations import ActionsAndConversations, Conversations, Actions
 from .conversation import Conversation
-from .message import Message, Role, create_message, CodeMessage, create_message_from_other_message
+from .message import Message, Role, create_message, create_message_from_other_message
 from .message_designation import GeneralMessageDesignation, convert_general_message_designation_to_list
 from .conversation_actions import ConversationAction, AppendMessage, DeleteMessages, ResetToTag, \
     AppendLLMResponse, FailedLLMResponse, ReplaceLastMessage, \

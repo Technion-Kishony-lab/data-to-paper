@@ -17,7 +17,7 @@ from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.code_and_output_files.ref_numeric_values import find_hyperlinks, find_numeric_values, \
     find_matching_reference, replace_hyperlinks_with_values, TARGET, LINK
 
-from .result_converser import ResultConverser, Rewind, BumpModel, ExtractedText
+from .result_converser import ResultConverser, Rewind, BumpModel
 from .dual_converser import ReviewDialogDualConverserGPT
 
 
@@ -364,7 +364,7 @@ class CheckReferencedNumericReviewBackgroundProductsConverser(CheckExtractionRev
         For example: 
         - Correct syntax: 'P $<$ \\hyperlink{Z3c}{1e-6}'
         - Incorrect syntax: 'P \\hyperlink{Z3c}{$<$ 1e-6}'
-        
+
         See the examples I provided in my previous message. 
 
         Remember, you can also include such hyperlinked numeric values within the <formula> of \t
@@ -372,10 +372,12 @@ class CheckReferencedNumericReviewBackgroundProductsConverser(CheckExtractionRev
         This allows you to derive new numeric values from the provided source data.
         Changing units, calculating differences, converting regression coefficients to odds ratios, etc. 
         For example:
-        'The treatment odds ratio was \\num{exp(\\hyperlink{Z3a}{0.17}), "Translating the treatment regression coefficient to odds ratio"}'
+        'The treatment odds ratio was \\num{exp(\\hyperlink{Z3a}{0.17}), \t
+        "Translating the treatment regression coefficient to odds ratio"}'
 
         In summary: 
-        Either provided as a stand alone or within the <formula> of \\num{<formula>, "explanation"}, all numeric values must have \\hyperlink references \t
+        Either provided as a stand alone or within the <formula> of \\num{<formula>, "explanation"}, \t
+        all numeric values must have \\hyperlink references \t
         that match the \\hypertarget references in the provided sources above.
 
         IMPORTANT NOTE:

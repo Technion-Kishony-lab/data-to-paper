@@ -5,9 +5,6 @@ from data_to_paper.conversation.conversation_actions import AppendMessage, Appen
     FailedLLMResponse, CreateConversation, \
     NullConversationAction, ResetToTag, DeleteMessages, ReplaceLastMessage
 
-from data_to_paper.conversation.conversation_manager import ConversationManager
-from data_to_paper.conversation.message_designation import RangeMessageDesignation
-
 
 @fixture()
 def user_message():

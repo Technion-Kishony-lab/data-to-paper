@@ -5,7 +5,7 @@ import numpy as np
 from dataclasses import dataclass, field
 from typing import Optional, Dict, List, Iterable, NamedTuple
 
-from data_to_paper.base_products.product import ValueProduct, Product
+from data_to_paper.base_products.product import ValueProduct
 from data_to_paper.utils.iterators import interleave
 from data_to_paper.utils.mutable import Flag
 from data_to_paper.utils.nice_list import NiceList
@@ -73,7 +73,7 @@ class CitationCollectionProduct(ValueProduct):
         ) for citation in self.value)
 
     def _get_content_as_markdown(self, level: int, style: str = None,
-                             embedding_target: Optional[np.ndarray] = None):
+                                 embedding_target: Optional[np.ndarray] = None):
         return self._get_citations_as_str(is_html=False, style=style, embedding_target=embedding_target)
 
     def _get_content_as_html(self, level: int, style: str = None,
@@ -190,7 +190,8 @@ class LiteratureSearch(ValueProduct):
             citations = citations[:total]
         return SortedCitationCollectionProduct(value=citations, scope=scope, query=query,
                                                total=total, distribution_factor=distribution_factor,
-                                               sort_by_similarity=sort_by_similarity, minimal_influence=minimal_influence)
+                                               sort_by_similarity=sort_by_similarity,
+                                               minimal_influence=minimal_influence)
 
     def pretty_repr(self, with_scope_and_queries: bool = False,
                     total: int = None, distribution_factor: Optional[float] = None,

@@ -5,7 +5,7 @@ from data_to_paper.base_steps.base_products_conversers import ReviewBackgroundPr
 
 from typing import Any, Dict, Optional, get_origin, Collection, Iterable
 
-from data_to_paper.base_steps.result_converser import Rewind, ExtractedText
+from data_to_paper.base_steps.result_converser import Rewind
 from data_to_paper.run_gpt_code.code_utils import extract_content_of_triple_quote_block, FailedExtractingBlock, \
     NoBlocksFailedExtractingBlock, IncompleteBlockFailedExtractingBlock
 from data_to_paper.utils.nice_list import NiceDict

@@ -1,10 +1,9 @@
 from dataclasses import dataclass, field
 from typing import Optional, Tuple, Type, List, Union
 
-from data_to_paper.base_steps import BaseStepsRunner, DirectorProductGPT, CheckLatexCompilation, LiteratureSearch
+from data_to_paper.base_steps import BaseStepsRunner, DirectorProductGPT, CheckLatexCompilation
 
 from .cast import ScientificAgent
-from .add_citations import AddCitationReviewGPT
 from .coding.after_coding import RequestCodeExplanation, RequestCodeProducts
 from .coding.latex_tables import CreateLatexTablesCodeProductsGPT
 from .coding.preprocessing import DataPreprocessingCodeProductsGPT

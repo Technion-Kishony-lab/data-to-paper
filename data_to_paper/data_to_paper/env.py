@@ -73,7 +73,7 @@ RECORD_INTERACTIONS = Flag(True)
 HUMAN_EDIT_CODE_REVIEW = True
 HUMAN_NAME = 'Human'
 CHOSEN_APP = Mutable('pyside')  # 'console', 'pyside', None
-DELAY_APP_INTERACTION = Mutable(3)  # seconds
+DELAY_APP_INTERACTION = Mutable(1)  # seconds
 
 NUM_DIGITS_FOR_FLOATS = 4
 

@@ -13,7 +13,7 @@ if CHOSEN_APP == 'pyside':
     from .research_step_window import ResearchStepApp as App
 elif CHOSEN_APP == 'console':
     from .base_app import ConsoleApp as App
-elif CHOSEN_APP == None:
+elif CHOSEN_APP == None:  # noqa  (Mutable)
     pass
 else:
     raise ValueError(f"Unknown app type: {CHOSEN_APP}")

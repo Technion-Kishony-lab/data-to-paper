@@ -11,9 +11,8 @@ from typing import List, Union, Optional, Callable
 
 import tiktoken
 
-from data_to_paper.env import OPENAI_MODELS_TO_ORGANIZATIONS_API_KEYS_AND_API_BASE_URL, RECORD_INTERACTIONS, CHOSEN_APP
+from data_to_paper.env import OPENAI_MODELS_TO_ORGANIZATIONS_API_KEYS_AND_API_BASE_URL, RECORD_INTERACTIONS
 from data_to_paper.utils.print_to_file import print_and_log_red, print_and_log
-from data_to_paper.run_gpt_code.timeout_context import timeout_context
 from data_to_paper.exceptions import TerminateException
 from data_to_paper.utils.serialize import SerializableValue, deserialize_serializable_value
 

@@ -111,7 +111,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
             self._app_send_product_of_stage(
                 stage=self.products.get_stage(product_field),
                 product_text=product,
-                )
+            )
 
     @property
     def absolute_data_folder(self):
@@ -206,7 +206,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
                 The manuscript is ready. 
                 The paper.pdf file is in:
                 {output_directory}
-                
+
                 Please download the created manuscript and check it rigorously and carefully.
                 \n
                 *Remember that the process is not error-free and the responsibility for the final manuscript \t

@@ -100,8 +100,8 @@ def to_latex_with_note(df: pd.DataFrame, filename: Optional[str], caption: str =
         .replace('{note_and_legend}', '\n'.join(note_and_legend_html))
 
     if float_num_digits is not None:
-        latex = round_floats(latex, float_num_digits, source_precision=float_num_digits+1, pad_with_spaces=False)
-        html = round_floats(html, float_num_digits, source_precision=float_num_digits+1, pad_with_spaces=False)
+        latex = round_floats(latex, float_num_digits, source_precision=float_num_digits + 1, pad_with_spaces=False)
+        html = round_floats(html, float_num_digits, source_precision=float_num_digits + 1, pad_with_spaces=False)
 
     if comment:
         latex = comment + '\n' + latex

@@ -1,12 +1,11 @@
 import re
 from dataclasses import dataclass, field
-from typing import Tuple, Dict, Any, Iterable, List, Collection, Type, Union
+from typing import Tuple, Dict, Any, Iterable, List, Collection, Type
 
 from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
-from data_to_paper.base_steps.result_converser import Rewind, ExtractedText
+from data_to_paper.base_steps.result_converser import Rewind
 from data_to_paper.base_steps import BaseProductsQuotedReviewGPT, PythonDictReviewBackgroundProductsConverser, \
-    PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser, \
     PythonDictWithDefinedKeysReviewBackgroundProductsConverser
 from data_to_paper.base_products.product import ValueProduct
 
@@ -198,7 +197,7 @@ class NoveltyAssessmentReview(ShowCitationProducts, PythonDictWithDefinedKeysRev
 
         * 'similarities': Provide a List[str] of potential similarities between our goal and hypothesis, \t
         and the related papers listed above.
-        
+
         * 'differences': Provide a List[str] of potential differences, if any, between our stated {research_goal} \t
         and the related papers listed above.
 
@@ -209,9 +208,9 @@ class NoveltyAssessmentReview(ShowCitationProducts, PythonDictWithDefinedKeysRev
 
         b. Our goal and hypothesis have overlap with existing literature, and I can suggest ways to \t
         revise them to make them more novel {'choice': 'REVISE'}.
-        
+
         * 'explanation': Provide a brief explanation of your choice.
-        
+
         Your response should be formatted as a Python dictionary, like this:
         ```python
         {
