@@ -77,6 +77,9 @@ class NoveltySummaryProduct(Product):
     most_similar_papers: MostSimilarPapersProduct = None
     novelty_assessment: NoveltyAssessmentProduct = None
 
+    def is_valid(self):
+        return self.most_similar_papers and self.novelty_assessment
+
     def _get_content_as_html(self, level: int, **kwargs):
         s = ''
         s += self.most_similar_papers.as_html(level + 1)
