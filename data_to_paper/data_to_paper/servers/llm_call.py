@@ -102,7 +102,6 @@ class OpenaiSeverCaller(ListServerCaller):
         print_and_log_red(f'Total: {tokens_in} prompt tokens, {tokens_out} returned tokens, '
                           f'cost: ${(tokens_in * pricing_in + tokens_out * pricing_out) / 1000:.2f}.',
                           should_log=False)
-        # time.sleep(6)
 
     def get_server_response(self, *args, **kwargs) -> Union[LLMResponse, HumanAction, Exception]:
         """

@@ -4,7 +4,7 @@ import time
 from dataclasses import dataclass
 from typing import Optional, List, Set
 
-from data_to_paper.env import DELAY_AUTOMATIC_RESPONSES
+from data_to_paper.env import DELAY_SEND_TO_WEB
 from data_to_paper.utils.highlighted_text import red_text
 from data_to_paper.base_cast import Agent
 
@@ -226,7 +226,7 @@ class AppendMessage(ChangeMessagesConversationAction):
         if self.message.is_background is None and any(self.get_message_for_web() == m for m in self.web_conversation) \
                 or self.message.is_background is True:
             return False
-        delay = DELAY_AUTOMATIC_RESPONSES.val if self.delay is None else self.delay
+        delay = DELAY_SEND_TO_WEB.val if self.delay is None else self.delay
         if delay > 0:
             time.sleep(delay)
         self.web_conversation.append(self.get_message_for_web())
