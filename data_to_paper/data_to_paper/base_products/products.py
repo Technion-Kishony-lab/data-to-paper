@@ -147,7 +147,7 @@ class Products:
             return unified_product.as_html(level=1, **variables)
         description = self.get_description(field)
         return ('<h1>' + self.get_name(field) + '</h1>\n' +
-                format_text_with_code_blocks(description, is_html=True, width=None))
+                format_text_with_code_blocks(description, is_html=True, width=None, from_md=True))
 
     def get_description_for_llm(self, field: str) -> str:
         """

@@ -23,6 +23,11 @@ CSS = '''
     font-family: Consolas, 'Courier New', monospace; font-weight: bold;
     color: #FF8C00;
 }
+.markdown {
+    font-family: Consolas, 'Courier New', monospace;
+    color: white;
+    white-space: pre;
+}
 h1 {
     color: #0066cc;
     font-size: 18px;
@@ -49,6 +54,7 @@ li {
 # #0077cc, #0099cc, #00bbcc
 
 BACKGROUND_COLOR = "#151515"
+APP_BACKGROUND_COLOR = "#202020"
 
 formatter = HtmlFormatter(style="monokai")
 css = formatter.get_style_defs('.highlight')
@@ -252,11 +258,13 @@ class EditableTextPanel(Panel):
         self.layout.addLayout(self.buttons_tray)
 
         self.submit_button = QPushButton("Submit")
+        self.submit_button.setStyleSheet('QPushButton {background-color: #E3E0DA; color:' + BACKGROUND_COLOR + ';}')
         self.submit_button.clicked.connect(self.on_submit)
         self.buttons_tray.addWidget(self.submit_button)
 
         for i, button_text in enumerate(suggestion_button_names):
             button = QPushButton(button_text)
+            button.setStyleSheet('QPushButton {background-color: #E3E0DA; color:' + BACKGROUND_COLOR + ';}')
             button.clicked.connect(self.on_suggestion_button_click)
             self.buttons_tray.addWidget(button)
             self.suggestion_buttons.append(button)
@@ -286,12 +294,12 @@ class EditableTextPanel(Panel):
 
     def _set_plain_text(self, text: str):
         self.text_edit.setPlainText(text)
-        self.text_edit.setStyleSheet("color: orange;")
+        self.text_edit.setStyleSheet("color: orange; background-color: " + BACKGROUND_COLOR + ";")
 
     def _set_html_text(self, text: str):
         # add the CSS to the HTML
         self.text_edit.setHtml(f'<style>{CSS}</style>{text}')
-        self.text_edit.setStyleSheet("color: white;")
+        self.text_edit.setStyleSheet("color: white; background-color: " + BACKGROUND_COLOR + ";")
 
     def set_text(self, text: str, is_html: bool = False):
         self.text_edit.setReadOnly(True)
@@ -342,10 +350,12 @@ class HtmlPopup(QDialog):
 
         # QPushButton to close the dialog
         close_button = QPushButton("Close")
+        close_button.setStyleSheet('QPushButton {background-color: #E3E0DA; color:' + BACKGROUND_COLOR + ';}')
         close_button.clicked.connect(self.close)
         layout.addWidget(close_button)
 
         self.setLayout(layout)
+        self.setStyleSheet("background-color: " + BACKGROUND_COLOR + ";")
         self.resize(800, 600)
 
 
@@ -375,6 +385,8 @@ class PysideApp(QMainWindow, BaseApp):
         }
         central_widget = QWidget()
         self.layout = QHBoxLayout(central_widget)
+
+        self.setStyleSheet("background-color: " + APP_BACKGROUND_COLOR + ";")
 
         # Left side is a VBox with "Continue" button above and the steps panel below
         left_side = QVBoxLayout()
@@ -406,6 +418,7 @@ class PysideApp(QMainWindow, BaseApp):
         # Add the panels to the splitters (the top-right panel is a tab widget)
         self.tabs = create_tabs({'Response': self.panels[PanelNames.RESPONSE],
                                  'Product': self.panels[PanelNames.PRODUCT]})
+        self.tabs.setStyleSheet("QTabBar::tab { color: white; }")
         left_splitter.addWidget(self.panels[PanelNames.SYSTEM_PROMPT])
         left_splitter.addWidget(self.panels[PanelNames.MISSION_PROMPT])
         right_splitter.addWidget(self.tabs)
@@ -490,7 +503,7 @@ class PysideApp(QMainWindow, BaseApp):
         Open a popup window to show the product of a stage.
         """
         print(f"Showing product for stage: {stage}")
-        product_text = self.products.get(stage, 'Not created yet.')
+        product_text = self.products.get(stage, '<span style="color: white;">Not created yet.</span>')
         popup = HtmlPopup(self._get_product_name(stage), product_text)
         popup.show()
         self.popups.add(popup)
