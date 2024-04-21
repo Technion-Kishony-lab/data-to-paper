@@ -2,6 +2,7 @@ import os
 import re
 import subprocess
 
+from data_to_paper.latex.clean_latex import process_latex_text_and_math
 from data_to_paper.utils.file_utils import run_in_temp_directory
 
 
@@ -43,6 +44,8 @@ def convert_latex_to_html(latex: str) -> str:
 
     try:
         with run_in_temp_directory():
+            # process latex and escape special characters
+            latex = process_latex_text_and_math(latex)
             # Write the LaTeX into a temporary file
             with open(tex_file, 'w') as f:
                 f.write(latex)
