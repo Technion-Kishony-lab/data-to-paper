@@ -386,7 +386,7 @@ class PysideApp(QMainWindow, BaseApp):
         central_widget = QWidget()
         self.layout = QHBoxLayout(central_widget)
 
-        self.setStyleSheet("background-color: " + APP_BACKGROUND_COLOR + ";")
+        self.setStyleSheet("background-color: " + APP_BACKGROUND_COLOR + "; color: white;")
 
         # Left side is a VBox with "Continue" button above and the steps panel below
         left_side = QVBoxLayout()
