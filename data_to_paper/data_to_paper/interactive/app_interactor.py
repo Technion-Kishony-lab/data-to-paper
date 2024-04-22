@@ -24,6 +24,7 @@ class AppInteractor:
         panel_names = panel_name if isinstance(panel_name, Iterable) else [panel_name]
         for panel_name in panel_names:
             self.app.show_text(panel_name, '')
+            self._app_set_header(panel_name, panel_name.value)
 
     def _app_send_prompt(self, panel_name: PanelNames, prompt: str = '', provided_as_html: bool = False,
                          from_md: bool = False):
