@@ -80,7 +80,7 @@ class Worker(QThread):
     set_focus_on_panel_signal = Signal(PanelNames)
     advance_stage_signal = Signal(Stage)
     send_product_of_stage_signal = Signal(Stage, str)
-    set_status_signal = Signal(PanelNames, str)
+    set_status_signal = Signal(PanelNames, int, str)
     request_continue_signal = Signal()
 
     def __init__(self, mutex, condition, func_to_run=None):
@@ -95,8 +95,8 @@ class Worker(QThread):
         if self.func_to_run is not None:
             self.func_to_run()
 
-    def worker_set_status(self, panel_name: PanelNames, status: str = ''):
-        self.set_status_signal.emit(panel_name, status)
+    def worker_set_status(self, panel_name: PanelNames, position: int, status: str = ''):
+        self.set_status_signal.emit(panel_name, position, status)
 
     def worker_request_text(self, panel_name: PanelNames, initial_text: str = '',
                             title: Optional[str] = None, optional_suggestions: Dict[str, str] = None) -> str:
@@ -218,6 +218,10 @@ class Panel(QWidget):
             header_tray.addWidget(right_label, alignment=Qt.AlignRight)
         else:
             self.header_right_label = None
+
+    def set_header(self, text: str):
+        self.header = text
+        self.header_label.setText(text)
 
     def set_header_right(self, text: str):
         if self.header_right_label is None:
@@ -480,13 +484,16 @@ class PysideApp(QMainWindow, BaseApp):
     def initialize(self):
         self.show()
 
-    def upon_set_status(self, panel_name: PanelNames, status: str = ''):
+    def upon_set_status(self, panel_name: PanelNames, position:int, status: str = ''):
         if panel_name == PanelNames.PRODUCT or panel_name == PanelNames.RESPONSE:
             panel_name = [PanelNames.PRODUCT, PanelNames.RESPONSE]
         else:
             panel_name = [panel_name]
         for name in panel_name:
-            self.panels[name].set_header_right(status)
+            if position == 1:
+                self.panels[name].set_header_right('')
+            else:
+                self.panels[name].set_header(status)
             self.panels[name].update()
 
     @Slot()

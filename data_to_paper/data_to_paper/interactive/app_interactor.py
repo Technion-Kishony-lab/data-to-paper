@@ -79,4 +79,9 @@ class AppInteractor:
     def _app_set_status(self, panel_name: PanelNames, status: str = ''):
         if self.app is None:
             return
-        self.app.set_status(panel_name, status)
+        self.app.set_status(panel_name, 1, status)
+
+    def _app_set_header(self, panel_name: PanelNames, header: str):
+        if self.app is None:
+            return
+        self.app.set_status(panel_name, 0, header)
