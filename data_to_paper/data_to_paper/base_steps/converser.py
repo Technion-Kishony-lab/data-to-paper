@@ -52,9 +52,9 @@ class Converser(Copier, AppInteractor):
     def __post_init__(self):
         conversation_exists = self.conversation_name in self.actions_and_conversations.conversations
         if self.is_new_conversation is False:
-            assert conversation_exists, f'Conversation {self.conversation_name} does not exist.'
+            assert conversation_exists, f'Conversation "{self.conversation_name}" does not exist.'
         elif self.is_new_conversation is True:
-            assert not conversation_exists, f'Conversation {self.conversation_name} already exists.'
+            assert not conversation_exists, f'Conversation "{self.conversation_name}" already exists.'
         else:
             if conversation_exists:
                 self.conversation_name = self.actions_and_conversations.conversations.get_new_conversation_name(

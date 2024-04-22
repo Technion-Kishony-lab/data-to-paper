@@ -11,7 +11,7 @@ class GoalLiteratureSearchReviewGPT(BaseLiteratureSearchReviewGPT):
     products: ScientificProducts = None
     requested_keys: Collection[str] = ('dataset', 'questions', )
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions_no_headers', 'research_goal')
-    conversation_name: str = 'literature_search_goal'
+    conversation_name: str = 'Literature Search for Goal'
     is_new_conversation: bool = None
     goal_noun: str = 'literature search queries'
     goal_verb: str = 'write'
@@ -24,7 +24,7 @@ class WritingLiteratureSearchReviewGPT(GoalLiteratureSearchReviewGPT):
     requested_keys: Collection[str] = ('background', 'dataset', 'methods', 'results')
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions_no_headers', 'research_goal',
                                                   'hypothesis_testing_plan', 'title_and_abstract')
-    conversation_name: str = 'literature_search_writing'
+    conversation_name: str = 'Literature Search for Writing'
 
     def get_abstract(self) -> Optional[str]:
         return self.products.get_abstract()

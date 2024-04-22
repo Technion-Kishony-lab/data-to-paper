@@ -41,7 +41,7 @@ class DualConverserGPT(Converser):
     def __post_init__(self):
         super().__post_init__()
         if self.other_conversation_name is None:
-            self.other_conversation_name = f'{self.conversation_name}_other'
+            self.other_conversation_name = f'{self.conversation_name} (other)'
 
         # For now, we do not allow the other conversation to continue a pre-existing conversation.
         assert self.other_conversation_name not in self.actions_and_conversations.conversations, \
