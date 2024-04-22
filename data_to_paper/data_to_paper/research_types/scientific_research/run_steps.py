@@ -11,6 +11,7 @@ from .coding.data_analysis import DataAnalysisCodeProductsGPT
 from .coding.data_exploration import DataExplorationCodeProductsGPT
 from .literature_search import WritingLiteratureSearchReviewGPT, GoalLiteratureSearchReviewGPT
 from .produce_pdf_step import ProduceScientificPaperPDFWithAppendix
+from .product_types import GoalAndHypothesisProduct
 from .scientific_products import ScientificProducts
 from .scientific_stage import ScientificStage, SECTION_NAMES_TO_WRITING_STAGES
 from .reviewing_steps import GoalReviewGPT, HypothesesTestingPlanReviewGPT, NoveltyAssessmentReview, ReGoalReviewGPT, \
@@ -98,9 +99,10 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
 
         # Goal
         self.advance_stage_and_set_active_conversation(ScientificStage.GOAL, ScientificAgent.Director)
-        products.research_goal = director_converser.get_product_or_no_product_from_director(
-            product_name='Research Goal', returned_product=self.research_goal,
-            acknowledge_no_product_message="OK. no problem. I will devise the goal myself.")
+        products.research_goal = GoalAndHypothesisProduct(
+            value=director_converser.get_product_or_no_product_from_director(
+                product_name='Research Goal', returned_product=self.research_goal,
+                acknowledge_no_product_message="OK. no problem. I will devise the goal myself."))
         is_auto_goal = products.research_goal is None
         if is_auto_goal:
             # we did not get a goal from the director, so we need to devise it ourselves:
