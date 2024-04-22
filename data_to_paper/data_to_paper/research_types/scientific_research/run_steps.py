@@ -99,53 +99,52 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
 
         # Goal
         self.advance_stage_and_set_active_conversation(ScientificStage.GOAL, ScientificAgent.Director)
-        products.research_goal = GoalAndHypothesisProduct(
-            value=director_converser.get_product_or_no_product_from_director(
+        research_goal = director_converser.get_product_or_no_product_from_director(
                 product_name='Research Goal', returned_product=self.research_goal,
-                acknowledge_no_product_message="OK. no problem. I will devise the goal myself."))
-        is_auto_goal = products.research_goal is None
-        if is_auto_goal:
+                acknowledge_no_product_message="OK. no problem. I will devise the goal myself.")
+        if research_goal is None:
             # we did not get a goal from the director, so we need to devise it ourselves:
             self.set_active_conversation(ScientificAgent.GoalReviewer)
             products.research_goal = GoalReviewGPT.from_(
                 self,
                 project_specific_goal_guidelines=self.project_specific_goal_guidelines
             ).run_and_get_valid_result()
-        self.send_product_to_client('research_goal')
-
-        goal_refinement_iteration = 0
-        while True:
-            # Literature search
-            if self.should_do_literature_search:
-                # TODO: need a dedicated client Stage for literature search
-                self.advance_stage_and_set_active_conversation(ScientificStage.LITERATURE_REVIEW_GOAL,
-                                                               ScientificAgent.CitationExpert)
-                GoalLiteratureSearchReviewGPT.from_(
-                    self, excluded_citation_titles=self.excluded_citation_titles,
-                    literature_search=products.literature_search['goal']
-                ).get_literature_search()
-                self.send_product_to_client('literature_search:goal')
-
-            if not is_auto_goal or goal_refinement_iteration == self.max_goal_refinement_iterations:
-                break
-
-            # Check if the goal is OK
-            self.advance_stage_and_set_active_conversation(ScientificStage.ASSESS_NOVELTY, ScientificAgent.Writer)
-            products.most_similar_papers = GetMostSimilarCitations.from_(self).run_and_get_valid_result()
-            products.novelty_assessment = NoveltyAssessmentReview.from_(self).run_and_get_valid_result()
-            self.send_product_to_client('novelty_assessment')
-            if products.novelty_assessment['choice'] == 'OK':
-                break
-
-            # Goal is not OK, so we need to devise the goal according to the literature search:
-            goal_refinement_iteration += 1
-            self.advance_stage_and_set_active_conversation(ScientificStage.GOAL, ScientificAgent.Director)
-            products.research_goal = ReGoalReviewGPT.from_(
-                self,
-                project_specific_goal_guidelines=self.project_specific_goal_guidelines
-            ).run_and_get_valid_result()
             self.send_product_to_client('research_goal')
-        self.send_product_to_client('research_goal', save_to_file=True, should_send=False)
+
+            goal_refinement_iteration = 0
+            while True:
+                # Literature search
+                if self.should_do_literature_search:
+                    self.advance_stage_and_set_active_conversation(ScientificStage.LITERATURE_REVIEW_GOAL,
+                                                                   ScientificAgent.CitationExpert)
+                    GoalLiteratureSearchReviewGPT.from_(
+                        self, excluded_citation_titles=self.excluded_citation_titles,
+                        literature_search=products.literature_search['goal']
+                    ).get_literature_search()
+                    self.send_product_to_client('literature_search:goal')
+
+                if goal_refinement_iteration == self.max_goal_refinement_iterations:
+                    break
+
+                # Check if the goal is OK
+                self.advance_stage_and_set_active_conversation(ScientificStage.ASSESS_NOVELTY, ScientificAgent.Writer)
+                products.most_similar_papers = GetMostSimilarCitations.from_(self).run_and_get_valid_result()
+                products.novelty_assessment = NoveltyAssessmentReview.from_(self).run_and_get_valid_result()
+                self.send_product_to_client('novelty_assessment')
+                if products.novelty_assessment['choice'] == 'OK':
+                    break
+
+                # Goal is not OK, so we need to devise the goal according to the literature search:
+                goal_refinement_iteration += 1
+                self.advance_stage_and_set_active_conversation(ScientificStage.GOAL, ScientificAgent.Director)
+                products.research_goal = ReGoalReviewGPT.from_(
+                    self,
+                    project_specific_goal_guidelines=self.project_specific_goal_guidelines
+                ).run_and_get_valid_result()
+                self.send_product_to_client('research_goal', save_to_file=True)
+        else:
+            products.research_goal = GoalAndHypothesisProduct(value=research_goal)
+            self.send_product_to_client('research_goal', save_to_file=True)
 
         # Plan
         self.advance_stage_and_set_active_conversation(ScientificStage.PLAN, ScientificAgent.PlanReviewer)

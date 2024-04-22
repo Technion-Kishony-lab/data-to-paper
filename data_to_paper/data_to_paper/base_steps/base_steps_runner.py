@@ -117,8 +117,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         if agent is not None:
             self.set_active_conversation(agent=agent)
 
-    def send_product_to_client(self, product_field: str, save_to_file: bool = False,
-                               should_send: bool = True):
+    def send_product_to_client(self, product_field: str, save_to_file: bool = False):
         """
         Get the base GPT script file.
         """
@@ -126,8 +125,6 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
             filename = product_field + '.txt'
             with open(self.output_directory / filename, 'w') as file:
                 file.write(self.products.get_description(product_field))
-        if not should_send:
-            return
         self.actions_and_conversations.actions.apply_action(
             SetProduct(
                 stage=self.products.get_stage(product_field),
