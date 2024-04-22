@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass
+from enum import Enum
 
 from data_to_paper.base_cast import Agent
 from data_to_paper.env import DELAY_SEND_TO_WEB
@@ -12,19 +13,11 @@ from .actions_and_conversations import Action
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from data_to_paper.base_steps import Products
+    from data_to_paper.base_products import Products
 
 
-class Stage(str):
+class Stage(Enum):
     pass
-
-
-class Stages:
-    """
-    Store class attributes that designates each stage in the process.
-    """
-    FINISHED = Stage("finished")
-    FAILURE = Stage("failure")
 
 
 @dataclass(frozen=True)

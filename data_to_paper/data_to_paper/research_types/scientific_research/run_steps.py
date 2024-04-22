@@ -12,7 +12,7 @@ from .coding.data_exploration import DataExplorationCodeProductsGPT
 from .literature_search import WritingLiteratureSearchReviewGPT, GoalLiteratureSearchReviewGPT
 from .produce_pdf_step import ProduceScientificPaperPDFWithAppendix
 from .scientific_products import ScientificProducts
-from .scientific_stage import ScientificStages, SECTION_NAMES_TO_WRITING_STAGES
+from .scientific_stage import ScientificStage, SECTION_NAMES_TO_WRITING_STAGES
 from .reviewing_steps import GoalReviewGPT, HypothesesTestingPlanReviewGPT, NoveltyAssessmentReview, ReGoalReviewGPT, \
     GetMostSimilarCitations
 from .writing_steps import SectionWriterReviewBackgroundProductsConverser, \
@@ -80,14 +80,14 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
                                                       user_agent=ScientificAgent.Performer,
                                                       conversation_name='with_director',
                                                       )
-        self.advance_stage_and_set_active_conversation(ScientificStages.DATA, ScientificAgent.Director)
+        self.advance_stage_and_set_active_conversation(ScientificStage.DATA, ScientificAgent.Director)
         products.data_file_descriptions = director_converser.get_product_or_no_product_from_director(
             product_name='Data description', returned_product=self.data_file_descriptions)
         self.send_product_to_client('data_file_descriptions')
 
         # Data exploration
         if self.should_do_data_exploration:
-            self.advance_stage_and_set_active_conversation(ScientificStages.EXPLORATION, ScientificAgent.DataExplorer)
+            self.advance_stage_and_set_active_conversation(ScientificStage.EXPLORATION, ScientificAgent.DataExplorer)
             RequestCodeProducts.from_(self,
                                       code_step='data_exploration',
                                       code_writing_class=DataExplorationCodeProductsGPT,
@@ -97,7 +97,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
             self.send_product_to_client('codes_and_outputs_with_explanations:data_exploration')
 
         # Goal
-        self.advance_stage_and_set_active_conversation(ScientificStages.GOAL, ScientificAgent.Director)
+        self.advance_stage_and_set_active_conversation(ScientificStage.GOAL, ScientificAgent.Director)
         products.research_goal = director_converser.get_product_or_no_product_from_director(
             product_name='Research Goal', returned_product=self.research_goal,
             acknowledge_no_product_message="OK. no problem. I will devise the goal myself.")
@@ -116,7 +116,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
             # Literature search
             if self.should_do_literature_search:
                 # TODO: need a dedicated client Stage for literature search
-                self.advance_stage_and_set_active_conversation(ScientificStages.LITERATURE_REVIEW_GOAL,
+                self.advance_stage_and_set_active_conversation(ScientificStage.LITERATURE_REVIEW_GOAL,
                                                                ScientificAgent.CitationExpert)
                 GoalLiteratureSearchReviewGPT.from_(
                     self, excluded_citation_titles=self.excluded_citation_titles,
@@ -128,7 +128,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
                 break
 
             # Check if the goal is OK
-            self.advance_stage_and_set_active_conversation(ScientificStages.ASSESS_NOVELTY, ScientificAgent.Writer)
+            self.advance_stage_and_set_active_conversation(ScientificStage.ASSESS_NOVELTY, ScientificAgent.Writer)
             products.most_similar_papers = GetMostSimilarCitations.from_(self).run_and_get_valid_result()
             products.novelty_assessment = NoveltyAssessmentReview.from_(self).run_and_get_valid_result()
             self.send_product_to_client('novelty_assessment')
@@ -137,7 +137,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
 
             # Goal is not OK, so we need to devise the goal according to the literature search:
             goal_refinement_iteration += 1
-            self.advance_stage_and_set_active_conversation(ScientificStages.GOAL, ScientificAgent.Director)
+            self.advance_stage_and_set_active_conversation(ScientificStage.GOAL, ScientificAgent.Director)
             products.research_goal = ReGoalReviewGPT.from_(
                 self,
                 project_specific_goal_guidelines=self.project_specific_goal_guidelines
@@ -146,7 +146,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
         self.send_product_to_client('research_goal', save_to_file=True, should_send=False)
 
         # Plan
-        self.advance_stage_and_set_active_conversation(ScientificStages.PLAN, ScientificAgent.PlanReviewer)
+        self.advance_stage_and_set_active_conversation(ScientificStage.PLAN, ScientificAgent.PlanReviewer)
 
         # Hypotheses testing plan
         if self.should_prepare_hypothesis_testing_plan:
@@ -159,7 +159,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
         # Data Preprocessing
         if self.should_do_data_preprocessing:
             # self.advance_stage_and_set_active_conversation(
-            # ScientificStages.PREPROCESSING, ScientificAgent.DataPreprocessor)
+            # ScientificStage.PREPROCESSING, ScientificAgent.DataPreprocessor)
             RequestCodeProducts.from_(self,
                                       code_step='data_preprocessing',
                                       code_writing_class=DataPreprocessingCodeProductsGPT,
@@ -169,7 +169,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
             self.send_product_to_client('codes_and_outputs_with_explanations:data_preprocessing')
 
         # Analysis code and output
-        self.advance_stage_and_set_active_conversation(ScientificStages.CODE, ScientificAgent.Debugger)
+        self.advance_stage_and_set_active_conversation(ScientificStage.CODE, ScientificAgent.Debugger)
         RequestCodeProducts.from_(self,
                                   code_step='data_analysis',
                                   latex_document=self.latex_document,
@@ -178,7 +178,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
                                   explain_created_files_class=None,
                                   ).get_code_and_output_and_descriptions()
         self.send_product_to_client('codes_and_outputs_with_explanations:data_analysis')
-        self.advance_stage_and_set_active_conversation(ScientificStages.TABLES,
+        self.advance_stage_and_set_active_conversation(ScientificStage.TABLES,
                                                        ScientificAgent.Debugger)
         RequestCodeProducts.from_(self,
                                   code_step='data_to_latex',
@@ -190,13 +190,13 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
         self.send_product_to_client('codes_and_outputs_with_explanations:data_to_latex')
 
         # literature review and scope
-        self.advance_stage_and_set_active_conversation(ScientificStages.INTERPRETATION, ScientificAgent.Writer)
+        self.advance_stage_and_set_active_conversation(ScientificStage.INTERPRETATION, ScientificAgent.Writer)
         products.paper_sections_and_optional_citations['title'], \
             products.paper_sections_and_optional_citations['abstract'] = \
             FirstTitleAbstractSectionWriterReviewGPT.from_(self, section_names=['title', 'abstract']
                                                            ).write_sections_with_citations()
         self.send_product_to_client('title_and_abstract_first')
-        self.advance_stage_and_set_active_conversation(ScientificStages.LITERATURE_REVIEW_WRITING,
+        self.advance_stage_and_set_active_conversation(ScientificStage.LITERATURE_REVIEW_WRITING,
                                                        ScientificAgent.CitationExpert)
         WritingLiteratureSearchReviewGPT.from_(
             self,
@@ -208,7 +208,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
         for section_names, writing_class in sections_and_writing_class:
             # writing section
             if len(section_names) == 2:
-                stage = ScientificStages.WRITING_TITLE_AND_ABSTRACT
+                stage = ScientificStage.WRITING_TITLE_AND_ABSTRACT
             else:
                 stage = SECTION_NAMES_TO_WRITING_STAGES[section_names[0]]
             self.advance_stage_and_set_active_conversation(stage, ScientificAgent.Writer)
@@ -222,6 +222,12 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
                 self.send_product_to_client(f'paper_sections:{section_names[0]}')
 
         # Compile paper
+        self.advance_stage(ScientificStage.COMPILE)
         paper_producer.assemble_compile_paper()
+        self._app_clear_panels()
+        self._app_send_product_of_stage(
+            ScientificStage.COMPILE,
+            f'<a href="file://{self.output_directory}/paper.pdf">Download the manuscript</a>')
+        self.advance_stage(ScientificStage.FINISHED)
 
         return products

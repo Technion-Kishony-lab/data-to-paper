@@ -12,7 +12,7 @@ from data_to_paper.servers.llm_call import OPENAI_SERVER_CALLER
 from data_to_paper.servers.crossref import CROSSREF_SERVER_CALLER
 from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER
 from data_to_paper.conversation.conversation_actions import CreateConversation
-from data_to_paper.conversation.stage import Stages, AdvanceStage, SetActiveConversation, SetProduct, Stage, \
+from data_to_paper.conversation.stage import AdvanceStage, SetActiveConversation, SetProduct, Stage, \
     SendFinalProduct
 from data_to_paper.conversation.conversation import WEB_CONVERSATION_NAME_PREFIX
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
@@ -20,11 +20,12 @@ from data_to_paper.base_cast import Agent
 from data_to_paper.exceptions import TerminateException
 from data_to_paper.base_products import DataFileDescriptions
 from data_to_paper.run_gpt_code.code_runner import RUN_CACHE_FILEPATH
+from data_to_paper.utils import dedent_triple_quote_str
+from data_to_paper.utils.replacer import Replacer
 
 from .base_products_conversers import ProductsHandler
 from data_to_paper.interactive.app_interactor import AppInteractor
-from ..interactive import PanelNames
-from ..utils import format_text_with_code_blocks, dedent_triple_quote_str
+from data_to_paper.interactive import PanelNames
 
 
 @dataclass
@@ -45,6 +46,32 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
     mock_servers: Union[bool, str] = False
 
     current_stage: Stage = None
+
+    failure_message = dedent_triple_quote_str("""
+        ## Run Terminated
+        Run terminated prematurely during stage `{current_stage}`.
+
+        {exception}
+        """)
+    success_message = dedent_triple_quote_str("""
+        ## Completed
+        This *data-to-paper* research cycle is now completed.
+        The manuscript is ready. 
+
+        The created manuscript and all other output files are saved in:
+        {output_directory}
+
+        You can click "Compile Paper" stage button to open the manuscript.
+
+        Please check the created manuscript rigorously and carefully.
+
+
+        *Remember that the process is not error-free and the responsibility for the final manuscript \t
+        remains with you.*
+
+
+        You can close the app now.
+        """)
 
     def create_web_conversations(self):
         if not COALESCE_WEB_CONVERSATIONS:
@@ -188,33 +215,16 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         try:
             run()
         except TerminateException as e:
-            self.advance_stage(Stages.FAILURE)
-            print_and_log(f'----- TERMINATING RUN ------\n'
-                          f'Run terminated during stage `{self.current_stage}`.\n'
-                          f'{e}\n'
-                          f'----------------------------\n')
+            # self.advance_stage(Stage.FAILURE)  # used for the old whatsapp app
+            msg = Replacer(self, self.failure_message, kwargs={'exception': str(e)}).format_text()
+            self._app_send_prompt(PanelNames.MISSION_PROMPT, msg)
+            print_and_log(f'----- TERMINATING RUN ------\n{msg}\n----------------------------\n')
         except Exception:
             raise
         else:
             for product in PRODUCTS_TO_SEND_TO_CLIENT:
                 self.send_final_products_to_client(product_name=product)
-            self.advance_stage(Stages.FINISHED)
-
-            msg = dedent_triple_quote_str("""
-                ## Completed
-                This *data-to-paper* research cycle is now completed.
-                The manuscript is ready. 
-                The paper.pdf file is in:
-                {output_directory}
-
-                Please download the created manuscript and check it rigorously and carefully.
-                \n
-                *Remember that the process is not error-free and the responsibility for the final manuscript \t
-                remains with you.*
-                \n
-                You can close the app now.
-                """).format(output_directory=self.output_directory)
-            msg = format_text_with_code_blocks(msg, from_md=True, is_html=True)
-            self._app_clear_panels()
-            self._app_send_prompt(PanelNames.MISSION_PROMPT, msg)
-            self._app_send_product_of_stage(Stages.FINISHED, msg)
+            # self.advance_stage(Stage.FINISHED)  # used for the old whatsapp app
+            msg = Replacer(self, self.success_message).format_text()
+            self._app_send_prompt(PanelNames.MISSION_PROMPT, msg, from_md=True)
+            print_and_log(f'----- COMPLETED RUN ------\n{msg}\n----------------------------\n')
