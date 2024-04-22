@@ -46,5 +46,5 @@ SCIENTIFIC_STAGES_TO_NICE_NAMES = {
     ScientificStages.WRITING_METHODS: "Methods",
     ScientificStages.WRITING_INTRODUCTION: "Introduction",
     ScientificStages.WRITING_DISCUSSION: "Discussion",
-    ScientificStages.FINISHED: "Finish",
+    ScientificStages.FINISHED: "Compile Paper",
 }

@@ -67,13 +67,14 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
             return WEB_CONVERSATION_NAME_PREFIX + agent.get_conversation_name()
         return None
 
-    def advance_stage(self, stage: Stage):
+    def advance_stage(self, stage: Stage, send_to_app: bool = True):
         """
         Advance the stage.
         """
         self.current_stage = stage
         self.actions_and_conversations.actions.apply_action(AdvanceStage(stage=stage))
-        self._app_advance_stage(stage)
+        if send_to_app and self.app:
+            self._app_advance_stage(stage)
 
     def set_active_conversation(self, agent: Agent):
         """
@@ -188,7 +189,10 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         try:
             run()
         except TerminateException as e:
-            self.advance_stage(Stages.FAILURE)
+            self.advance_stage(Stages.FAILURE, send_to_app=False)
+            self._app_send_prompt(PanelNames.FEEDBACK,
+                                  f'<h2>Process failed</h2><br>'
+                                  f'<font color="red">The run was terminated due to an error.</font><br>{e}')
             print_and_log(f'----- TERMINATING RUN ------\n'
                           f'Run terminated during stage `{self.current_stage}`.\n'
                           f'{e}\n'
@@ -204,10 +208,13 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
                 ## Completed
                 This *data-to-paper* research cycle is now completed.
                 The manuscript is ready. 
-                The paper.pdf file is in:
+                
+                The created manuscript and all other output files are saved in:
                 {output_directory}
-
-                Please download the created manuscript and check it rigorously and carefully.
+                
+                You can click "Compile Paper" stage button to open the manuscript.
+                
+                Please check the created manuscript rigorously and carefully.
                 \n
                 *Remember that the process is not error-free and the responsibility for the final manuscript \t
                 remains with you.*
@@ -217,4 +224,6 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
             msg = format_text_with_code_blocks(msg, from_md=True, is_html=True)
             self._app_clear_panels()
             self._app_send_prompt(PanelNames.MISSION_PROMPT, msg)
-            self._app_send_product_of_stage(Stages.FINISHED, msg)
+            self._app_send_product_of_stage(
+                Stages.FINISHED,
+                f'<a href="file://{self.output_directory}/paper.pdf">Download the manuscript</a>')

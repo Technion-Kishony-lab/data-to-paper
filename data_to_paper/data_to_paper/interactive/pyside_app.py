@@ -10,6 +10,7 @@ from pygments.formatters.html import HtmlFormatter
 
 from data_to_paper.interactive.base_app import BaseApp
 from data_to_paper.interactive.types import PanelNames
+from data_to_paper.interactive.utils import open_file_on_os
 from data_to_paper.research_types.scientific_research.scientific_stage import SCIENTIFIC_STAGES_TO_NICE_NAMES
 
 # orange color: #FFA500
@@ -502,8 +503,12 @@ class PysideApp(QMainWindow, BaseApp):
         """
         Open a popup window to show the product of a stage.
         """
-        print(f"Showing product for stage: {stage}")
         product_text = self.products.get(stage, '<span style="color: white;">Not created yet.</span>')
+        if product_text.startswith('<a href="file://'):
+            # open the file in the normal OS application
+            file_path = product_text.split('"')[1]
+            open_file_on_os(file_path)
+            return
         popup = HtmlPopup(self._get_product_name(stage), product_text)
         popup.show()
         self.popups.add(popup)
