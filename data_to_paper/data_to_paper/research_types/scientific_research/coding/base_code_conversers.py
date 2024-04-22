@@ -28,10 +28,10 @@ class BaseScientificCodeProductsHandler:
     conversation_name: str = None
 
     def __post_init__(self):
-        if self.conversation_name is None:
-            self.conversation_name = f'{self.code_step} Code'
         if self.code_name is None:
             self.code_name = get_code_name(self.code_step)
+        if self.conversation_name is None:
+            self.conversation_name = f'{self.code_name} Code'
         if self.user_agent is None:
             self.user_agent = get_code_agent(self.code_step)
 
