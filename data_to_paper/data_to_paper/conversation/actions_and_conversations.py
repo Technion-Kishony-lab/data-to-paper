@@ -22,7 +22,7 @@ from .conversation import Conversation, WebConversation
 @dataclass(frozen=True)
 class Action:
     """
-    Base class for actions performed on a Conversation, Stages, or Cast.
+    Base class for actions performed on a Conversation, Stage, or Cast.
     """
     should_print: bool = True
 

@@ -15,7 +15,7 @@ from data_to_paper.latex.tables import add_tables_to_paper_section, get_table_ca
 from data_to_paper.research_types.scientific_research.cast import ScientificAgent
 from data_to_paper.research_types.scientific_research.product_types import HypothesisTestingPlanProduct, \
     NoveltyAssessmentProduct, GoalAndHypothesisProduct, MostSimilarPapersProduct, NoveltySummaryProduct
-from data_to_paper.research_types.scientific_research.scientific_stage import ScientificStages, \
+from data_to_paper.research_types.scientific_research.scientific_stage import ScientificStage, \
     SECTION_NAMES_TO_WRITING_STAGES
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 
@@ -26,10 +26,10 @@ from data_to_paper.utils.types import ListBasedSet, MemoryDict
 from data_to_paper.servers.custom_types import Citation
 
 CODE_STEPS_TO_STAGES_NAMES_AGENTS: Dict[str, Tuple[Stage, str, ScientificAgent]] = {
-    'data_exploration': (ScientificStages.EXPLORATION, 'Data Exploration', ScientificAgent.DataExplorer),
-    # 'data_preprocessing': (ScientificStages.PREPROCESSING, 'Data Preprocessing', ScientificAgent.DataPreprocessor),
-    'data_analysis': (ScientificStages.CODE, 'Data Analysis', ScientificAgent.Debugger),
-    'data_to_latex': (ScientificStages.TABLES, 'LaTeX Table Design', ScientificAgent.InterpretationReviewer),
+    'data_exploration': (ScientificStage.EXPLORATION, 'Data Exploration', ScientificAgent.DataExplorer),
+    # 'data_preprocessing': (ScientificStage.PREPROCESSING, 'Data Preprocessing', ScientificAgent.DataPreprocessor),
+    'data_analysis': (ScientificStage.CODE, 'Data Analysis', ScientificAgent.Debugger),
+    'data_to_latex': (ScientificStage.TABLES, 'LaTeX Table Design', ScientificAgent.InterpretationReviewer),
 }
 
 
@@ -80,13 +80,13 @@ STAGE_AND_SCOPE_TO_LITERATURE_SEARCH_PARAMS = {
     'goal': ({
         'dataset': LiteratureSearchParams(12, 2, 2.0, False),
         'questions': LiteratureSearchParams(12, 2, 2.0, False),
-    }, "Literature Search for Goal", ScientificStages.LITERATURE_REVIEW_GOAL),
+    }, "Literature Search for Goal", ScientificStage.LITERATURE_REVIEW_GOAL),
     'writing': ({
         'background': LiteratureSearchParams(12, 5, 2.0, True),
         'dataset': LiteratureSearchParams(12, 2, 2.0, False),
         'methods': LiteratureSearchParams(6, 10, 1.5, False),
         'results': LiteratureSearchParams(12, 1, 2.0, True),
-    }, "Literature Search for Writing", ScientificStages.LITERATURE_REVIEW_WRITING),
+    }, "Literature Search for Writing", ScientificStage.LITERATURE_REVIEW_WRITING),
 }
 
 
@@ -241,7 +241,7 @@ class ScientificProducts(Products):
             'general_dataset_description': NameDescriptionStageGenerator(
                 'Overall Description of the Dataset',
                 'OVERALL DESCRIPTION OF THE DATASET\n\n{}',
-                ScientificStages.DATA,
+                ScientificStage.DATA,
                 lambda: hypertarget_if_referencable_text(self.data_file_descriptions.general_description,
                                                          ContentViewPurpose.PRODUCT),
             ),
@@ -249,21 +249,21 @@ class ScientificProducts(Products):
             'data_file_descriptions': NameDescriptionStageGenerator(
                 'Description of the Original Dataset',
                 '{}',
-                ScientificStages.DATA,
+                ScientificStage.DATA,
                 lambda: self.data_file_descriptions,
             ),
 
             'data_file_descriptions_no_headers': NameDescriptionStageGenerator(
                 'Description of the Original Dataset',
                 '{}',
-                ScientificStages.DATA,
+                ScientificStage.DATA,
                 lambda: self.data_file_descriptions.pretty_repr(num_lines=0),
             ),
 
             'data_file_descriptions_no_headers_linked': NameDescriptionStageGenerator(
                 'Description of the Original Dataset (with hypertargets)',
                 '{}',
-                ScientificStages.DATA,
+                ScientificStage.DATA,
                 lambda: self.data_file_descriptions.pretty_repr(
                     num_lines=0, content_view=ContentViewPurpose.HYPERTARGET_PRODUCT),
             ),
@@ -271,7 +271,7 @@ class ScientificProducts(Products):
             'all_file_descriptions': NameDescriptionStageGenerator(
                 'Description of the Dataset',
                 'Description of the Dataset:\n\n{}',
-                ScientificStages.DATA,
+                ScientificStage.DATA,
                 lambda: self.all_file_descriptions,
             ),
 
@@ -411,7 +411,7 @@ class ScientificProducts(Products):
             'title_and_abstract_first': NameDescriptionStageGenerator(
                 'Title and Abstract (initial draft)',
                 "```latex\n{}\n\n{}```",
-                ScientificStages.INTERPRETATION,
+                ScientificStage.INTERPRETATION,
                 lambda: (self.get_paper_sections_without_citations()['title'],
                          self.get_paper_sections_without_citations()['abstract']),
             ),
@@ -419,7 +419,7 @@ class ScientificProducts(Products):
             'title_and_abstract': NameDescriptionStageGenerator(
                 'Title and Abstract',
                 "```latex\n{}\n\n{}```",
-                ScientificStages.WRITING_TITLE_AND_ABSTRACT,
+                ScientificStage.WRITING_TITLE_AND_ABSTRACT,
                 lambda: (self.get_paper_sections_without_citations()['title'],
                          self.get_paper_sections_without_citations()['abstract']),
             ),
@@ -438,7 +438,7 @@ class ScientificProducts(Products):
                 'Tables of the Paper',
                 'Here are the tables created by our data analysis code '
                 '(a latex representation of the table_?.pkl dataframes):\n\n{}',
-                ScientificStages.TABLES,
+                ScientificStage.TABLES,
                 lambda: None if not self.get_all_latex_tables(ContentViewPurpose.PRODUCT) else
                 '\n\n'.join([f'- "{get_table_caption(table)}":\n\n'
                              f'```latex\n{table}\n```'
@@ -449,7 +449,7 @@ class ScientificProducts(Products):
                 'Tables of the Paper with hypertargets',
                 'Here are the tables created by our data analysis code '
                 '(a latex representation of the table_?.pkl dataframes, with hypertargets):\n\n{}',
-                ScientificStages.TABLES,
+                ScientificStage.TABLES,
                 lambda: None if not self.get_all_latex_tables(ContentViewPurpose.HYPERTARGET_PRODUCT) else
                 '\n\n'.join([f'- "{get_table_caption(table)}":\n\n'
                              f'```latex\n{table}\n```'
@@ -460,7 +460,7 @@ class ScientificProducts(Products):
                 'Additional Results (additional_results.pkl)',
                 'Here are some additional numeric values that may be helpful in writing the paper '
                 '(as saved to "additional_results.pkl"):\n\n{}',
-                ScientificStages.INTERPRETATION,
+                ScientificStage.INTERPRETATION,
                 lambda: self.codes_and_outputs[
                     'data_analysis'].created_files.get_created_content_files_to_pretty_contents(
                     content_view=ContentViewPurpose.PRODUCT)['additional_results.pkl'],
@@ -470,7 +470,7 @@ class ScientificProducts(Products):
                 'Additional Results (additional_results.pkl) with hypertargets',
                 'Here are some additional numeric values that may be helpful in writing the paper '
                 '(as saved to "additional_results.pkl"):\n\n{}',
-                ScientificStages.INTERPRETATION,
+                ScientificStage.INTERPRETATION,
                 lambda: self.codes_and_outputs[
                     'data_analysis'].created_files.get_created_content_files_to_pretty_contents(
                     content_view=ContentViewPurpose.HYPERTARGET_PRODUCT)['additional_results.pkl'],
