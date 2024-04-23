@@ -101,7 +101,6 @@ class Converser(Copier, AppInteractor):
     def _upon_conversation_initiation(self):
         self._print_conversation_header()
         self._app_clear_panels()
-        self._app_set_panel_header(PanelNames.SYSTEM_PROMPT, self.conversation_name)
 
     def initialize_conversation_if_needed(self):
         if self.conversation is None:

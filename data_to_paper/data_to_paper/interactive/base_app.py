@@ -68,6 +68,9 @@ class BaseApp:
     def set_status(self, panel_name: PanelNames, position: int, status: str = ''):
         pass
 
+    def set_header(self, header: str):
+        pass
+
     def request_continue(self):
         pass
 

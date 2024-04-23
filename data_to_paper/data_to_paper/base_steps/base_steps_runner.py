@@ -215,6 +215,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
             # self.advance_stage(Stage.FAILURE)  # used for the old whatsapp app
             msg = Replacer(self, self.failure_message, kwargs={'exception': str(e)}).format_text()
             self._app_send_prompt(PanelNames.MISSION_PROMPT, msg)
+            self._app_set_header('Terminate upon failure')
             print_and_log(f'----- TERMINATING RUN ------\n{msg}\n----------------------------\n')
         except Exception:
             raise
@@ -224,4 +225,5 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
             # self.advance_stage(Stage.FINISHED)  # used for the old whatsapp app
             msg = Replacer(self, self.success_message).format_text()
             self._app_send_prompt(PanelNames.MISSION_PROMPT, msg, from_md=True)
+            self._app_set_header('Completed')
             print_and_log(f'----- COMPLETED RUN ------\n{msg}\n----------------------------\n')

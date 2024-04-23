@@ -227,6 +227,7 @@ class RequestCodeProducts(BaseScientificCodeProductsHandler, ProductsConverser):
         return self.explain_created_files_class.from_(
             self,
             is_new_conversation=None,
+            conversation_name=self.conversation_name + ' - Created Files',
             code_step=self.code_step,
         ).ask_for_created_files_descriptions()
 
@@ -234,6 +235,7 @@ class RequestCodeProducts(BaseScientificCodeProductsHandler, ProductsConverser):
         return self.explain_code_class.from_(
             self,
             is_new_conversation=None,
+            conversation_name=self.conversation_name + ' - Explanation',
             code_step=self.code_step,
         ).run_and_get_valid_result()
 

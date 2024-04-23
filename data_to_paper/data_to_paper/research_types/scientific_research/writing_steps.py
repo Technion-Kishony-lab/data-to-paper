@@ -173,7 +173,8 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
     allow_subsections: bool = False
 
     def __post_init__(self):
-        self.conversation_name = self.conversation_name or nicely_join(self.section_names, separator=' ')
+        self.conversation_name = self.conversation_name or 'Writing: ' + \
+            nicely_join([name.title() for name in self.section_names], separator=', ', last_separator=' and ')
         super().__post_init__()
 
     def _check_allowed_subsections(self, section: str):
@@ -232,7 +233,7 @@ class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProd
     background_product_fields: Tuple[str] = ('general_dataset_description',
                                              'codes:data_analysis', 'latex_tables', 'additional_results')
     max_reviewing_rounds: int = 1
-    conversation_name: str = 'Title and Abstract (first draft)'
+    conversation_name: str = 'Writing: Title and Abstract (first draft)'
 
     request_triple_quote_block: Optional[str] = dedent_triple_quote_str("""
         The {goal_noun} should be enclosed within triple-backtick "latex" code block, like this:
@@ -281,7 +282,7 @@ class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProd
 @dataclass
 class SecondTitleAbstractSectionWriterReviewGPT(FirstTitleAbstractSectionWriterReviewGPT):
     max_reviewing_rounds: int = 0
-    conversation_name: str = 'title_abstract_section_second'
+    conversation_name: str = None
     background_product_fields: Tuple[str] = ('general_dataset_description',
                                              'paper_sections:results',
                                              'literature_search:writing:background',

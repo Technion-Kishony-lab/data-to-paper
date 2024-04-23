@@ -168,6 +168,11 @@ class ResultConverser(Converser):
             return valid_result.as_markdown(2)
         return str(valid_result)
 
+    def _upon_conversation_initiation(self):
+        super()._upon_conversation_initiation()
+        if self.goal_noun:
+            self._app_set_header(self.conversation_name)
+
     def initialize_conversation_if_needed(self):
         super().initialize_conversation_if_needed()
         self._pre_populate_background()
