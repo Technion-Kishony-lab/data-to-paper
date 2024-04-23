@@ -2,14 +2,14 @@ from dataclasses import dataclass
 from typing import List, Dict, Any
 
 from data_to_paper.base_products.product import ValueProduct, Product
-from data_to_paper.research_types.scientific_research.scientific_stage import ScientificStages
+from data_to_paper.research_types.scientific_research.scientific_stage import ScientificStage
 from data_to_paper.servers.custom_types import Citation
 
 
 @dataclass
 class GoalAndHypothesisProduct(ValueProduct):
     name: str = "Goal and Hypothesis"
-    stage: ScientificStages = ScientificStages.GOAL
+    stage: ScientificStage = ScientificStage.GOAL
     value: str = None
 
     def _get_content_as_markdown(self, level: int, **kwargs):
@@ -19,7 +19,7 @@ class GoalAndHypothesisProduct(ValueProduct):
 @dataclass
 class MostSimilarPapersProduct(ValueProduct):
     name: str = "Papers Most Similar to our Research Goal"
-    stage: ScientificStages = ScientificStages.ASSESS_NOVELTY
+    stage: ScientificStage = ScientificStage.ASSESS_NOVELTY
     value: List[Citation] = None
 
     def _get_citations(self, is_html=False):
@@ -38,7 +38,7 @@ class MostSimilarPapersProduct(ValueProduct):
 @dataclass
 class NoveltyAssessmentProduct(ValueProduct):
     name: str = "Novelty Assessment"
-    stage: ScientificStages = ScientificStages.ASSESS_NOVELTY
+    stage: ScientificStage = ScientificStage.ASSESS_NOVELTY
     value: Dict[str, Any] = None
 
     def _get_content_as_markdown(self, level: int, **kwargs):
@@ -59,7 +59,7 @@ class NoveltyAssessmentProduct(ValueProduct):
 @dataclass
 class HypothesisTestingPlanProduct(ValueProduct):
     name: str = 'Hypothesis Testing Plan'
-    stage: ScientificStages = ScientificStages.PLAN
+    stage: ScientificStage = ScientificStage.PLAN
     value: Dict[str, str] = None
 
     def _get_content_as_markdown(self, level: int, **kwargs):
@@ -73,7 +73,7 @@ class HypothesisTestingPlanProduct(ValueProduct):
 @dataclass
 class NoveltySummaryProduct(Product):
     name: str = 'Assessment of Research Goal Novelty'
-    stage: ScientificStages = ScientificStages.ASSESS_NOVELTY
+    stage: ScientificStage = ScientificStage.ASSESS_NOVELTY
     most_similar_papers: MostSimilarPapersProduct = None
     novelty_assessment: NoveltyAssessmentProduct = None
 

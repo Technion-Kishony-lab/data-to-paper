@@ -24,6 +24,7 @@ class AppInteractor:
         panel_names = panel_name if isinstance(panel_name, Iterable) else [panel_name]
         for panel_name in panel_names:
             self.app.show_text(panel_name, '')
+            self._app_set_panel_header(panel_name, panel_name.value)
 
     def _app_send_prompt(self, panel_name: PanelNames, prompt: str = '', provided_as_html: bool = False,
                          from_md: bool = False):
@@ -76,7 +77,17 @@ class AppInteractor:
             return
         self.app.send_product_of_stage(stage, product_text)
 
-    def _app_set_status(self, panel_name: PanelNames, status: str = ''):
+    def _app_set_panel_status(self, panel_name: PanelNames, status: str = ''):
         if self.app is None:
             return
-        self.app.set_status(panel_name, status)
+        self.app.set_status(panel_name, 1, status)
+
+    def _app_set_panel_header(self, panel_name: PanelNames, header: str):
+        if self.app is None:
+            return
+        self.app.set_status(panel_name, 0, header)
+
+    def _app_set_header(self, header: str, prefix: str = ''):
+        if self.app is None:
+            return
+        self.app.set_header(prefix + header)

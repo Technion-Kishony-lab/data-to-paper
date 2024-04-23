@@ -22,7 +22,7 @@ from .conversation import Conversation, WebConversation
 @dataclass(frozen=True)
 class Action:
     """
-    Base class for actions performed on a Conversation, Stages, or Cast.
+    Base class for actions performed on a Conversation, Stage, or Cast.
     """
     should_print: bool = True
 
@@ -73,7 +73,7 @@ class Conversations(Dict[str, Conversation]):
         """
         i = 0
         while True:
-            conversation_name = f'{prefix}_{i}'
+            conversation_name = f'{prefix} ({i})'
             if conversation_name not in self:
                 return conversation_name
             i += 1

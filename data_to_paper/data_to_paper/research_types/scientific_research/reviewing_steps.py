@@ -39,7 +39,7 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
     max_reviewing_rounds: int = 1
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions_no_headers',
                                                   'codes_and_outputs:data_exploration')
-    conversation_name: str = 'research_goal'
+    conversation_name: str = 'Research Goal'
     other_conversation_name: str = 'research_goal_reviewer'
     goal_noun: str = 'research goal and hypothesis'
     goal_verb: str = 'suggest'
@@ -123,7 +123,7 @@ class GetMostSimilarCitations(ShowCitationProducts, PythonDictReviewBackgroundPr
     goal_verb: str = 'find'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.GoalReviewer
-    conversation_name: str = 'similar_citations'
+    conversation_name: str = 'Identify Similar Publications'
     is_new_conversation: bool = None  # this will create "similar_citations_0", etc.
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions_no_headers', 'research_goal',
                                                   'literature_search:goal:dataset', 'literature_search:goal:questions')
@@ -178,7 +178,7 @@ class NoveltyAssessmentReview(ShowCitationProducts, PythonDictWithDefinedKeysRev
     goal_verb: str = 'check'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.GoalReviewer
-    conversation_name: str = 'is_goal_ok'
+    conversation_name: str = 'Assess Goal Novelty'
     requested_keys: Collection[str] = ('similarities', 'differences', 'choice', 'explanation')
     is_new_conversation: bool = None  # this will create "research_goal_0", etc.
     background_product_fields: Tuple[str, ...] = ('general_dataset_description', 'research_goal',
@@ -278,7 +278,7 @@ class HypothesesTestingPlanReviewGPT(PythonDictReviewBackgroundProductsConverser
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions_no_headers',
                                                   'codes_and_outputs:data_exploration',
                                                   'research_goal')
-    conversation_name: str = 'hypothesis_testing_plan'
+    conversation_name: str = 'Hypothesis Testing Plan'
     is_new_conversation: bool = None  # this will create "hyp_testing_plan_0", etc.
     goal_noun: str = 'hypothesis testing plan'
     goal_verb: str = 'write'

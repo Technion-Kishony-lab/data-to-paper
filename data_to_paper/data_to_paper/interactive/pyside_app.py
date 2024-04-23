@@ -1,5 +1,5 @@
 from functools import partial
-from typing import Optional, List, Collection, Dict, Callable, Tuple
+from typing import Optional, List, Collection, Dict, Callable, Any
 
 from PySide6.QtGui import QTextOption
 from PySide6.QtWidgets import QMainWindow, QVBoxLayout, QLabel, QPushButton, QWidget, \
@@ -8,9 +8,11 @@ from PySide6.QtCore import Qt, QEventLoop, QMutex, QWaitCondition, QThread, Sign
 
 from pygments.formatters.html import HtmlFormatter
 
+from data_to_paper.conversation.stage import Stage
 from data_to_paper.interactive.base_app import BaseApp
 from data_to_paper.interactive.types import PanelNames
-from data_to_paper.research_types.scientific_research.scientific_stage import SCIENTIFIC_STAGES_TO_NICE_NAMES
+from data_to_paper.interactive.utils import open_file_on_os
+from data_to_paper.research_types.scientific_research.scientific_stage import ScientificStage
 
 # orange color: #FFA500
 # slightly darker orange: #FF8C00
@@ -76,9 +78,10 @@ class Worker(QThread):
     request_text_signal = Signal(PanelNames, str, str, dict)
     show_text_signal = Signal(PanelNames, str, bool)
     set_focus_on_panel_signal = Signal(PanelNames)
-    advance_stage_signal = Signal(str)
-    send_product_of_stage_signal = Signal(str, str)
-    set_status_signal = Signal(PanelNames, str)
+    advance_stage_signal = Signal(Stage)
+    send_product_of_stage_signal = Signal(Stage, str)
+    set_status_signal = Signal(PanelNames, int, str)
+    set_header_signal = Signal(str)
     request_continue_signal = Signal()
 
     def __init__(self, mutex, condition, func_to_run=None):
@@ -93,8 +96,11 @@ class Worker(QThread):
         if self.func_to_run is not None:
             self.func_to_run()
 
-    def worker_set_status(self, panel_name: PanelNames, status: str = ''):
-        self.set_status_signal.emit(panel_name, status)
+    def worker_set_status(self, panel_name: PanelNames, position: int, status: str = ''):
+        self.set_status_signal.emit(panel_name, position, status)
+
+    def worker_set_header(self, header: str):
+        self.set_header_signal.emit(header)
 
     def worker_request_text(self, panel_name: PanelNames, initial_text: str = '',
                             title: Optional[str] = None, optional_suggestions: Dict[str, str] = None) -> str:
@@ -117,11 +123,10 @@ class Worker(QThread):
     def worker_set_focus_on_panel(self, panel_name: PanelNames):
         self.set_focus_on_panel_signal.emit(panel_name)
 
-    def worker_advance_stage(self, stage):
-        print(f"Emitted advance stage signal: {stage}")
+    def worker_advance_stage(self, stage: Stage):
         self.advance_stage_signal.emit(stage)
 
-    def worker_send_product_of_stage(self, stage, product_text):
+    def worker_send_product_of_stage(self, stage: Stage, product_text: str):
         self.send_product_of_stage_signal.emit(stage, product_text)
 
     @Slot(PanelNames, str)
@@ -139,27 +144,7 @@ class Worker(QThread):
         self.mutex.unlock()
 
 
-class StepsPanel(QWidget):
-    def __init__(self, names_labels_to_callbacks: List[Tuple[str, str, Callable]]):
-        super().__init__()
-        self.names_labels_to_callbacks = names_labels_to_callbacks
-        self.current_step = 0
-        self.layout = QVBoxLayout(self)
-        self.step_widgets = []
-        self.init_ui()
-        self.refresh()
-
-    def init_ui(self):
-        for name, label, func in self.names_labels_to_callbacks:
-            step_button = QPushButton(label)
-            step_button.setFixedWidth(150)
-            step_button.clicked.connect(func)
-            self.layout.addWidget(step_button)
-            self.step_widgets.append(step_button)
-        self.layout.setSpacing(5)
-
-    def refresh(self):
-        template = """
+STEP_PANEL_BUTTON_STYLE = """
 QPushButton {{
     background-color: {background_color};
     border-radius: 5px;
@@ -168,16 +153,38 @@ QPushButton:pressed {{
     background-color: {pressed_color};
 }}
 """
+
+
+class StepsPanel(QWidget):
+    def __init__(self, labels_to_callbacks: Dict[str, Callable]):
+        super().__init__()
+        self.labels_to_callbacks = labels_to_callbacks
+        self.current_step = 0
+        self.layout = QVBoxLayout(self)
+        self.step_widgets = []
+        self.init_ui()
+        self.refresh()
+
+    def init_ui(self):
+        for label, func in self.labels_to_callbacks.items():
+            step_button = QPushButton(label)
+            step_button.setFixedWidth(150)
+            step_button.clicked.connect(func)
+            self.layout.addWidget(step_button)
+            self.step_widgets.append(step_button)
+        self.layout.setSpacing(5)
+
+    def refresh(self):
         for i, step in enumerate(self.step_widgets):
             if i == self.current_step:
-                step.setStyleSheet(template.format(background_color="#FFA500", pressed_color="#FF8C00"))
+                step.setStyleSheet(STEP_PANEL_BUTTON_STYLE.format(background_color="#FFA500", pressed_color="#FF8C00"))
             elif i < self.current_step:
-                step.setStyleSheet(template.format(background_color="#008000", pressed_color="#006400"))
+                step.setStyleSheet(STEP_PANEL_BUTTON_STYLE.format(background_color="#008000", pressed_color="#006400"))
             else:
-                step.setStyleSheet(template.format(background_color="#909090", pressed_color="#707070"))
+                step.setStyleSheet(STEP_PANEL_BUTTON_STYLE.format(background_color="#909090", pressed_color="#707070"))
 
-    def set_step(self, step_name):
-        self.current_step = list(name for name, _, __ in self.names_labels_to_callbacks).index(step_name)
+    def set_step(self, step_name: str):
+        self.current_step = list(self.labels_to_callbacks.keys()).index(step_name)
         self.refresh()
 
     def advance_progress(self):
@@ -215,6 +222,10 @@ class Panel(QWidget):
             header_tray.addWidget(right_label, alignment=Qt.AlignRight)
         else:
             self.header_right_label = None
+
+    def set_header(self, text: str):
+        self.header = text
+        self.header_label.setText(text)
 
     def set_header_right(self, text: str):
         if self.header_right_label is None:
@@ -373,7 +384,7 @@ class PysideApp(QMainWindow, BaseApp):
 
     def __init__(self, mutex, condition):
         super().__init__()
-        self.products = {}
+        self.products: Dict[Stage, Any] = {}
         self.popups = set()
 
         self.panels = {
@@ -394,20 +405,32 @@ class PysideApp(QMainWindow, BaseApp):
 
         # Continue button
         continue_button = QPushButton("Continue")
-        # continue_button.setStyleSheet("font-size: 16px; background-color: #505050; color: white; border-radius: 5px;")
         continue_button.setEnabled(False)
-        continue_button.setVisible(False)  # TODO: the button is currently not used
+        continue_button.setVisible(False)  # TODO: the Continue button is currently not used. Can be removed.
 
         continue_button.clicked.connect(self.upon_continue)
         left_side.addWidget(continue_button)
         self.continue_button = continue_button
 
         # Steps panel
-        self.step_panel = StepsPanel([(stage, label, partial(self.show_product_for_stage, stage))
-                                      for stage, label in SCIENTIFIC_STAGES_TO_NICE_NAMES.items()])
+        # TODO: ScientificStage should be transferred as a variable to the app
+        self.step_panel = StepsPanel({stage.value: partial(self.show_product_for_stage, stage)
+                                      for stage in ScientificStage})
         left_side.addWidget(self.step_panel)
 
-        # Right side is a splitter with the text panels
+        # Right side is a QHBoxLayout with a header on top and a splitter with the text panels below
+        right_side = QVBoxLayout()
+        self.layout.addLayout(right_side)
+
+        # Header (html)
+        self.header = QLabel()
+        # set as HTML to allow for text highlighting
+        self.header.setTextFormat(Qt.RichText)
+
+        self.header.setStyleSheet("color: #005599; font-size: 24px; font-weight: bold;")
+        right_side.addWidget(self.header)
+
+        # Splitter with the text panels
         main_splitter = QSplitter(Qt.Horizontal)
         left_splitter = QSplitter(Qt.Vertical)
         left_splitter.setHandleWidth(5)
@@ -425,7 +448,9 @@ class PysideApp(QMainWindow, BaseApp):
         right_splitter.addWidget(self.panels[PanelNames.FEEDBACK])
         left_splitter.setSizes([100, 500])
 
-        self.layout.addWidget(main_splitter)
+        right_side.addWidget(main_splitter)
+
+        self.layout.addLayout(right_side)
         self.setCentralWidget(central_widget)
 
         self.resize(1000, 600)
@@ -440,6 +465,7 @@ class PysideApp(QMainWindow, BaseApp):
         self.worker.advance_stage_signal.connect(self.upon_advance_stage)
         self.worker.send_product_of_stage_signal.connect(self.upon_send_product_of_stage)
         self.worker.set_status_signal.connect(self.upon_set_status)
+        self.worker.set_header_signal.connect(self.upon_set_header)
         self.worker.request_continue_signal.connect(self.upon_request_continue)
 
         # Define the request_text and show_text methods
@@ -449,6 +475,7 @@ class PysideApp(QMainWindow, BaseApp):
         self.advance_stage = self.worker.worker_advance_stage
         self.send_product_of_stage = self.worker.worker_send_product_of_stage
         self.set_status = self.worker.worker_set_status
+        self.set_header = self.worker.worker_set_header
         self.request_continue = self.worker.worker_request_continue
 
         # Connect UI elements
@@ -477,14 +504,22 @@ class PysideApp(QMainWindow, BaseApp):
     def initialize(self):
         self.show()
 
-    def upon_set_status(self, panel_name: PanelNames, status: str = ''):
+    @Slot(PanelNames, int, str)
+    def upon_set_status(self, panel_name: PanelNames, position: int, status: str = ''):
         if panel_name == PanelNames.PRODUCT or panel_name == PanelNames.RESPONSE:
             panel_name = [PanelNames.PRODUCT, PanelNames.RESPONSE]
         else:
             panel_name = [panel_name]
         for name in panel_name:
-            self.panels[name].set_header_right(status)
+            if position == 1:
+                self.panels[name].set_header_right(status)
+            else:
+                self.panels[name].set_header(status)
             self.panels[name].update()
+
+    @Slot(str)
+    def upon_set_header(self, header: str):
+        self.header.setText(header)
 
     @Slot()
     def upon_request_continue(self):
@@ -495,16 +530,17 @@ class PysideApp(QMainWindow, BaseApp):
         self.continue_button.setEnabled(False)
         self.send_continue_signal.emit()
 
-    def _get_product_name(self, stage):
-        return SCIENTIFIC_STAGES_TO_NICE_NAMES[stage]
-
-    def show_product_for_stage(self, stage):
+    def show_product_for_stage(self, stage: Stage):
         """
         Open a popup window to show the product of a stage.
         """
-        print(f"Showing product for stage: {stage}")
         product_text = self.products.get(stage, '<span style="color: white;">Not created yet.</span>')
-        popup = HtmlPopup(self._get_product_name(stage), product_text)
+        if product_text.startswith('<a href="file://'):
+            # open the file in the normal OS application
+            file_path = product_text.split('"')[1]
+            open_file_on_os(file_path)
+            return
+        popup = HtmlPopup(stage.value, product_text)
         popup.show()
         self.popups.add(popup)
         popup.finished.connect(self.popup_closed)
@@ -542,10 +578,10 @@ class PysideApp(QMainWindow, BaseApp):
                 self.tabs.setCurrentIndex(i)
                 break
 
-    @Slot(str)
-    def upon_advance_stage(self, stage):
-        self.step_panel.set_step(stage)
+    @Slot(Stage)
+    def upon_advance_stage(self, stage: Stage):
+        self.step_panel.set_step(stage.value)
 
-    @Slot(str, str)
-    def upon_send_product_of_stage(self, stage, product_text):
+    @Slot(Stage, str)
+    def upon_send_product_of_stage(self, stage: Stage, product_text: str):
         self.products[stage] = product_text

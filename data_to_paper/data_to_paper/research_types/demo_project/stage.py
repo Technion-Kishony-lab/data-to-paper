@@ -1,8 +1,8 @@
-from data_to_paper.conversation.stage import Stages, Stage
+from data_to_paper.conversation.stage import Stage
 
 
-class DemoStages(Stages):
-    DATA = Stage("data")
-    GOAL = Stage("goal")
-    CODE = Stage("code")
-    WRITING = Stage("writing")
+class DemoStages(Stage):
+    DATA = "data"
+    GOAL = "goal"
+    CODE = "code"
+    WRITING = "writing"

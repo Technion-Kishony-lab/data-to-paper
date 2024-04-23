@@ -55,7 +55,7 @@ class Products:
     def _get_generators(self) -> Dict[str, UnifiedProductGenerator]:
         """
         Return a dictionary mapping product fields to a tuple of
-        (name: str, description: str, stage: Stages, func: Callable).
+        (name: str, description: str, stage: Stage, func: Callable).
         func is a function that creates args for the name and description to be formatted with.
         """
         return {}

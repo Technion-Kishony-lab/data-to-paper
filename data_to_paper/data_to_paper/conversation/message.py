@@ -103,9 +103,9 @@ class Message:
 
         role_text = role.name + (f'{self.openai_call_parameters}' if self.openai_call_parameters else '')
         if role == Role.SYSTEM:
-            role_model_agent_conversation_tag = f'{role_text} casting {agent_text} -> {conversation_name} '
+            role_model_agent_conversation_tag = f'{role_text} casting {agent_text} -> "{conversation_name}" '
         else:
-            role_model_agent_conversation_tag = f'{role_text}{agent_text} -> {conversation_name}{tag_text} '
+            role_model_agent_conversation_tag = f'{role_text}{agent_text} -> "{conversation_name}" {tag_text} '
 
         if role == Role.COMMENTER:
             return colored_text(num_text + role_model_agent_conversation_tag + ': ' + content, text_color)
