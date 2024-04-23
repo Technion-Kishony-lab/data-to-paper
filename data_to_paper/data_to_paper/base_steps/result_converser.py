@@ -168,6 +168,11 @@ class ResultConverser(Converser):
             return valid_result.as_markdown(2)
         return str(valid_result)
 
+    def _upon_conversation_initiation(self):
+        super()._upon_conversation_initiation()
+        if self.goal_noun:
+            self._app_set_header(self.conversation_name)
+
     def initialize_conversation_if_needed(self):
         super().initialize_conversation_if_needed()
         self._pre_populate_background()
@@ -365,7 +370,7 @@ class ResultConverser(Converser):
                 self_response = self_message.content
 
             # check if the response is valid:
-            self._app_set_status(PanelNames.FEEDBACK, 'Rule-based check ...')
+            self._app_set_panel_status(PanelNames.FEEDBACK, 'Rule-based check ...')
             self._app_send_prompt(PanelNames.FEEDBACK)
             response_error = None
             extracted_text = None
@@ -380,7 +385,7 @@ class ResultConverser(Converser):
                 except SelfResponseError as e:
                     response_error = e
             is_new_valid_result = self._valid_result_update_count > initial_valid_result_update_count
-            self._app_set_status(PanelNames.FEEDBACK)
+            self._app_set_panel_status(PanelNames.FEEDBACK)
             if not is_preexisting_self_response:
                 self.apply_append_surrogate_message(
                     content=(self_response if extracted_text is None or not alter_web_response

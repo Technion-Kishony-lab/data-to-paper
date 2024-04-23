@@ -125,7 +125,7 @@ class AddCitationReviewGPT(PythonValueReviewBackgroundProductsConverser):
     # see self.actual_background_product_fields
 
     background_product_fields: Tuple[str, ...] = ()
-    conversation_name: str = 'add_citations_{section_name}'
+    conversation_name: str = 'Add Citations to {section_name}'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.CitationExpert
     max_reviewing_rounds: int = 0  # 0 no review

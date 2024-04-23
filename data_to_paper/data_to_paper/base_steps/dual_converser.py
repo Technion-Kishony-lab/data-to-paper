@@ -41,7 +41,7 @@ class DualConverserGPT(Converser):
     def __post_init__(self):
         super().__post_init__()
         if self.other_conversation_name is None:
-            self.other_conversation_name = f'{self.conversation_name}_other'
+            self.other_conversation_name = f'{self.conversation_name} (other)'
 
         # For now, we do not allow the other conversation to continue a pre-existing conversation.
         assert self.other_conversation_name not in self.actions_and_conversations.conversations, \
@@ -82,7 +82,7 @@ class DualConverserGPT(Converser):
                                                         hidden_messages: GeneralMessageDesignation = None,
                                                         expected_tokens_in_response: int = None,
                                                         **kwargs) -> Message:
-        self._app_set_status(PanelNames.FEEDBACK, 'Reviewer LLM is thinking...')
+        self._app_set_panel_status(PanelNames.FEEDBACK, 'Reviewer LLM is thinking...')
         self._app_send_prompt(PanelNames.FEEDBACK)
         message = self.other_conversation_manager.get_and_append_assistant_message(
             tag=tag,
@@ -91,7 +91,7 @@ class DualConverserGPT(Converser):
             model_engine=model_engine or self.model_engine,
             expected_tokens_in_response=expected_tokens_in_response,
             hidden_messages=hidden_messages, **kwargs)
-        self._app_set_status(PanelNames.FEEDBACK)
+        self._app_set_panel_status(PanelNames.FEEDBACK)
         return message
 
     def apply_to_other_append_user_message(self, content: StrOrReplacer, tag: Optional[StrOrReplacer] = None,

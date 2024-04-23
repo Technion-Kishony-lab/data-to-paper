@@ -14,7 +14,7 @@ class WriteTitleAndAbstract(LatexReviewBackgroundProductsConverser):
     """
     Base class for the writer of a paper section in latex format.
     """
-    conversation_name: str = 'title_and_abstract'
+    conversation_name: str = 'Title and Abstract'
     products: DemoProducts = None
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal', 'code_and_output')
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = None

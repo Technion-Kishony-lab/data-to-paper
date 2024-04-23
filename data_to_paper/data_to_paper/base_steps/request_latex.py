@@ -68,7 +68,8 @@ class CheckLatexCompilation:
             if section_name is None:
                 file_stem = f'{conversation_name}'
             else:
-                file_stem = f'{section_name.replace(" ", "")}_{conversation_name}'
+                file_stem = f'{section_name}_{conversation_name}'
+            file_stem = file_stem.replace(" ", "")
             file_path = get_non_existing_file_name(output_directory / f'{file_stem}.pdf')
             file_stem, output_directory = file_path.stem, file_path.parent
         else:

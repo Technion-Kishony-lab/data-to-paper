@@ -80,7 +80,8 @@ class Worker(QThread):
     set_focus_on_panel_signal = Signal(PanelNames)
     advance_stage_signal = Signal(Stage)
     send_product_of_stage_signal = Signal(Stage, str)
-    set_status_signal = Signal(PanelNames, str)
+    set_status_signal = Signal(PanelNames, int, str)
+    set_header_signal = Signal(str)
     request_continue_signal = Signal()
 
     def __init__(self, mutex, condition, func_to_run=None):
@@ -95,8 +96,11 @@ class Worker(QThread):
         if self.func_to_run is not None:
             self.func_to_run()
 
-    def worker_set_status(self, panel_name: PanelNames, status: str = ''):
-        self.set_status_signal.emit(panel_name, status)
+    def worker_set_status(self, panel_name: PanelNames, position: int, status: str = ''):
+        self.set_status_signal.emit(panel_name, position, status)
+
+    def worker_set_header(self, header: str):
+        self.set_header_signal.emit(header)
 
     def worker_request_text(self, panel_name: PanelNames, initial_text: str = '',
                             title: Optional[str] = None, optional_suggestions: Dict[str, str] = None) -> str:
@@ -218,6 +222,10 @@ class Panel(QWidget):
             header_tray.addWidget(right_label, alignment=Qt.AlignRight)
         else:
             self.header_right_label = None
+
+    def set_header(self, text: str):
+        self.header = text
+        self.header_label.setText(text)
 
     def set_header_right(self, text: str):
         if self.header_right_label is None:
@@ -410,7 +418,19 @@ class PysideApp(QMainWindow, BaseApp):
                                       for stage in ScientificStage})
         left_side.addWidget(self.step_panel)
 
-        # Right side is a splitter with the text panels
+        # Right side is a QHBoxLayout with a header on top and a splitter with the text panels below
+        right_side = QVBoxLayout()
+        self.layout.addLayout(right_side)
+
+        # Header (html)
+        self.header = QLabel()
+        # set as HTML to allow for text highlighting
+        self.header.setTextFormat(Qt.RichText)
+
+        self.header.setStyleSheet("color: #005599; font-size: 24px; font-weight: bold;")
+        right_side.addWidget(self.header)
+
+        # Splitter with the text panels
         main_splitter = QSplitter(Qt.Horizontal)
         left_splitter = QSplitter(Qt.Vertical)
         left_splitter.setHandleWidth(5)
@@ -428,7 +448,9 @@ class PysideApp(QMainWindow, BaseApp):
         right_splitter.addWidget(self.panels[PanelNames.FEEDBACK])
         left_splitter.setSizes([100, 500])
 
-        self.layout.addWidget(main_splitter)
+        right_side.addWidget(main_splitter)
+
+        self.layout.addLayout(right_side)
         self.setCentralWidget(central_widget)
 
         self.resize(1000, 600)
@@ -443,6 +465,7 @@ class PysideApp(QMainWindow, BaseApp):
         self.worker.advance_stage_signal.connect(self.upon_advance_stage)
         self.worker.send_product_of_stage_signal.connect(self.upon_send_product_of_stage)
         self.worker.set_status_signal.connect(self.upon_set_status)
+        self.worker.set_header_signal.connect(self.upon_set_header)
         self.worker.request_continue_signal.connect(self.upon_request_continue)
 
         # Define the request_text and show_text methods
@@ -452,6 +475,7 @@ class PysideApp(QMainWindow, BaseApp):
         self.advance_stage = self.worker.worker_advance_stage
         self.send_product_of_stage = self.worker.worker_send_product_of_stage
         self.set_status = self.worker.worker_set_status
+        self.set_header = self.worker.worker_set_header
         self.request_continue = self.worker.worker_request_continue
 
         # Connect UI elements
@@ -480,14 +504,22 @@ class PysideApp(QMainWindow, BaseApp):
     def initialize(self):
         self.show()
 
-    def upon_set_status(self, panel_name: PanelNames, status: str = ''):
+    @Slot(PanelNames, int, str)
+    def upon_set_status(self, panel_name: PanelNames, position: int, status: str = ''):
         if panel_name == PanelNames.PRODUCT or panel_name == PanelNames.RESPONSE:
             panel_name = [PanelNames.PRODUCT, PanelNames.RESPONSE]
         else:
             panel_name = [panel_name]
         for name in panel_name:
-            self.panels[name].set_header_right(status)
+            if position == 1:
+                self.panels[name].set_header_right(status)
+            else:
+                self.panels[name].set_header(status)
             self.panels[name].update()
+
+    @Slot(str)
+    def upon_set_header(self, header: str):
+        self.header.setText(header)
 
     @Slot()
     def upon_request_continue(self):
