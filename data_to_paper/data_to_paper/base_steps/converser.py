@@ -101,7 +101,7 @@ class Converser(Copier, AppInteractor):
     def _upon_conversation_initiation(self):
         self._print_conversation_header()
         self._app_clear_panels()
-        self._app_set_header(PanelNames.SYSTEM_PROMPT, self.conversation_name)
+        self._app_set_panel_header(PanelNames.SYSTEM_PROMPT, self.conversation_name)
 
     def initialize_conversation_if_needed(self):
         if self.conversation is None:
@@ -133,7 +133,7 @@ class Converser(Copier, AppInteractor):
                                                send_to_app: bool = True,
                                                **kwargs) -> Message:
         if send_to_app and self.app:
-            self._app_set_status(PanelNames.RESPONSE, 'LLM is thinking...')
+            self._app_set_panel_status(PanelNames.RESPONSE, 'LLM is thinking...')
         message = self.conversation_manager.get_and_append_assistant_message(
             tag=tag,
             comment=comment,
@@ -145,7 +145,7 @@ class Converser(Copier, AppInteractor):
         if send_to_app and self.app:
             self._app_send_prompt(PanelNames.RESPONSE, message.pretty_content(with_header=False, is_html=True),
                                   provided_as_html=True)
-            self._app_set_status(PanelNames.RESPONSE)
+            self._app_set_panel_status(PanelNames.RESPONSE)
         return message
 
     def apply_append_user_message(self, content: StrOrReplacer, tag: Optional[StrOrReplacer] = None,

@@ -611,10 +611,10 @@ class DebuggerConverser(BackgroundProductsConverser):
         for self.debug_iteration in range(1, self.max_debug_iterations + 1):
             response = self.apply_get_and_append_assistant_message(is_code=True,
                                                                    previous_code=self.previous_code).content
-            self._app_set_status(PanelNames.FEEDBACK, 'Running and checking code')
+            self._app_set_panel_status(PanelNames.FEEDBACK, 'Running and checking code')
             self._app_send_prompt(PanelNames.FEEDBACK)
             code_and_output = self._get_code_and_respond_to_issues(response)
-            self._app_set_status(PanelNames.FEEDBACK)
+            self._app_set_panel_status(PanelNames.FEEDBACK)
             if code_and_output is not None:
                 return code_and_output
         self.apply_append_user_message(

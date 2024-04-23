@@ -262,7 +262,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                 if not formatted_code_review_prompt:
                     continue
                 self._app_send_prompt(PanelNames.FEEDBACK)
-                self._app_set_status(PanelNames.FEEDBACK, 'LLM Code Reviewer ...')
+                self._app_set_panel_status(PanelNames.FEEDBACK, 'LLM Code Reviewer ...')
                 issues_to_solutions = RequestIssuesToSolutions.from_(
                     self,
                     model_engine=self.model_engine,
@@ -270,7 +270,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                     mission_prompt=formatted_code_review_prompt,
                     app=None,
                 ).run_and_get_valid_result(with_review=False)
-                self._app_set_status(PanelNames.FEEDBACK)
+                self._app_set_panel_status(PanelNames.FEEDBACK)
                 termination_phrase = 'Looks good - no changes needed.'
                 if issues_to_solutions:
                     ai_issues = '\n\n'.join(f'- {issue}:\n{solution}'
