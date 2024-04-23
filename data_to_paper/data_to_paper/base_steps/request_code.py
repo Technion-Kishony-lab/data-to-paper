@@ -121,6 +121,8 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
             """)
                          ),
     )
+    _index_of_next_code_review_prompts: int = 0  # the index of code review that is next and did not pass yet
+    _did_human_edit_code_review: bool = False
 
     file_review_prompts: Iterable[Tuple[str, str]] = ()  # (wildcard_filename, prompt)
 
@@ -173,7 +175,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
             code_and_output, debugger = self._run_debugger(code_and_output.code)
             if code_and_output is None:
                 raise FailedCreatingProductException("Code debugging failed.")
-            if self.revision_round == self.max_code_revisions:
+            if self.revision_round == self.max_code_revisions and not self._did_human_edit_code_review:
                 break
             if not self._are_further_code_revisions_needed(code_and_output, debugger):
                 break
@@ -238,6 +240,14 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
             Replacer(debugger, debugger.prompt_to_append_at_end_of_response).format_text())
         for index, (wildcard_filename, individually, code_review_prompt, human_edit) \
                 in enumerate(self.code_review_prompts):
+            if index < self._index_of_next_code_review_prompts:
+                continue
+            # Allow human edit of the response if human_edit is True,
+            # or if it is None and this is the final review
+            is_requesting_human_review = HUMAN_EDIT_CODE_REVIEW and self.app and \
+                (human_edit or (human_edit is None and index == len(self.code_review_prompts) - 1))
+            if self._did_human_edit_code_review and not is_requesting_human_review:
+                continue
             if wildcard_filename is None:
                 content_files_to_contents = {None: None}
             else:
@@ -278,15 +288,14 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                     ai_issues += '\n\n- And please fix any other issues that you may find.'
                 else:
                     ai_issues = termination_phrase
-                if HUMAN_EDIT_CODE_REVIEW and self.app and \
-                        (human_edit or (human_edit is None and index == len(self.code_review_prompts) - 1)):
-                    # Allow human edit of the response if human_edit is True,
-                    # or if it is None and this is the final review
+                if is_requesting_human_review:
                     human_response = self._app_receive_text(
                         PanelNames.FEEDBACK, '',
                         title='Your feedback on code and output.',
                         optional_suggestions={'AI': ai_issues,
                                               'Default': termination_phrase})
+                    self._did_human_edit_code_review = human_response != termination_phrase \
+                        and human_response != ai_issues
                 else:
                     human_response = None
                 issues = ai_issues if human_response is None else human_response
@@ -301,5 +310,6 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                                     prompt_to_append_at_end_of_response=prompt_to_append_at_end_of_response)
                     self.apply_append_user_message(response)
                     return True
+                self._index_of_next_code_review_prompts = index + 1
 
         return False
