@@ -3832,7 +3832,7 @@ to_latex_with_note(
 )
 ======================================================================================================================================================
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 DeleteMessages(<11> - <-1> [2 MESSAGES]) -> LaTeX Table Design Code
 
 AppendMessage, Adding the debugged code as if it was the original response.

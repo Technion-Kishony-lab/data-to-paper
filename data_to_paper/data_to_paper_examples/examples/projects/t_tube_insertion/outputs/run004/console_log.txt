@@ -3762,7 +3762,7 @@ Sure, here's your revised code. Note the additional abbreviation 'ML ElasticNet'
 [38;5;15m)[39m
 [36m======================================================================================================================================================[0m
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 [31mDeleteMessages(<11> - <-1> [2 MESSAGES]) -> LaTeX Table Design Code[0m
 
 [31mAppendMessage, Adding the debugged code as if it was the original response.[0m
