@@ -197,7 +197,7 @@ Here is the Python code, using pandas:
 The output file "data_exploration.txt" will contain the required information.[0m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<5> - <-1> [2 MESSAGES]) -> Data Exploration Code[0m
 
 [31mAppendMessage, Adding the debugged code as if it was the original response.[0m
@@ -383,7 +383,7 @@ CONTEXT TOTAL (1446 tokens):
 [38;5;197m+[39m[38;5;15m        [39m[38;5;81mreturn[39m[38;5;15m [39m[38;5;186m"[39m[38;5;186m# Missing Values[39m[38;5;141m\n[39m[38;5;186m"[39m[38;5;15m [39m[38;5;197m+[39m[38;5;15m [39m[38;5;15mnonzero_missing[39m[38;5;197m.[39m[38;5;15mto_string[39m[38;5;15m([39m[38;5;15m)[39m[38;5;15m [39m[38;5;197m+[39m[38;5;15m [39m[38;5;186m"[39m[38;5;141m\n[39m[38;5;186m"[39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<5> - <-1> [4 MESSAGES]) -> Data Exploration Code[0m
 
 [31mAppendMessage, Adding the debugged code as if it was the original response.[0m
@@ -1303,7 +1303,7 @@ testing dataset. The results are saved in a dataframe, which is pickled for furt
 The code also computes some additional results, in particular the accuracy of the ML models, and saves them in a pickled dictionary.[0m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<12> - <-1> [1 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -1430,7 +1430,7 @@ Here is the corrected code:
 [38;5;197m+[39m[38;5;15m                     [39m[38;5;15m([39m[38;5;186m"[39m[38;5;186mID Formula[39m[38;5;186m"[39m[38;5;15m,[39m[38;5;15m [39m[38;5;15mmean_squared_error[39m[38;5;15m([39m[38;5;15my_test[39m[38;5;15m,[39m[38;5;15m [39m[38;5;15m[[39m[38;5;141m3[39m[38;5;197m*[39m[38;5;15mid[39m[38;5;15m [39m[38;5;81mfor[39m[38;5;15m [39m[38;5;15mid[39m[38;5;15m [39m[38;5;197min[39m[38;5;15m [39m[38;5;15mdf[39m[38;5;197m.[39m[38;5;15mloc[39m[38;5;15m[[39m[38;5;15mX_test[39m[38;5;197m.[39m[38;5;15mindex[39m[38;5;15m,[39m[38;5;15m [39m[38;5;186m"[39m[38;5;186mtube[39m[38;5;186m"[39m[38;5;15m][39m[38;5;15m][39m[38;5;15m)[39m[38;5;15m)[39m[38;5;15m][39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<12> - <-1> [3 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -1667,7 +1667,7 @@ Here is the corrected code:
 [38;5;197m+[39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the SECOND response.[0m
@@ -1836,7 +1836,7 @@ Here's the corrected code:
 [38;5;197m-[39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<12> - <-1> [5 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -2004,7 +2004,7 @@ comparing the residuals of each ML model against each formula-based model with a
 My apologies for incorrect provided code previously. I hope this fulfills the request in a more satisfactory manner.[0m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<12> - <-1> [3 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -2227,7 +2227,7 @@ Sure, I understand. Here is the revised version of the full code with recommende
 [38;5;15m    [39m[38;5;15mpickle[39m[38;5;197m.[39m[38;5;15mdump[39m[38;5;15m([39m[38;5;15madditional_results[39m[38;5;15m,[39m[38;5;15m [39m[38;5;15mf[39m[38;5;15m)[39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mAppendMessage, Debug iteration 7/20: Runtime exception in code[0m
 [32m[16] ---- USER {Debugger} -> "Data Analysis Code"  ---------------------------------------------------------------------------------------------------
 [0m[32mI ran the code and got the following error message:
@@ -2363,7 +2363,7 @@ In this revised version, I have handled the error you mentioned and fixed the us
 Benjamini/Hochberg correction procedure. I'm confident this version will work correctly for your requirements.[0m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the SECOND response.[0m
@@ -2574,7 +2574,7 @@ Here is the revised code, with the issue corrected:
 [38;5;15m    [39m[38;5;15mpickle[39m[38;5;197m.[39m[38;5;15mdump[39m[38;5;15m([39m[38;5;15madditional_results[39m[38;5;15m,[39m[38;5;15m [39m[38;5;15mf[39m[38;5;15m)[39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the SECOND response.[0m
@@ -2711,7 +2711,7 @@ of the complete code:
 [38;5;197m+[39m[38;5;15mp_values_corrected[39m[38;5;15m [39m[38;5;197m=[39m[38;5;15m [39m[38;5;15mmultipletests[39m[38;5;15m([39m[38;5;15m[[39m[38;5;15mp[39m[38;5;15m[[39m[38;5;141m2[39m[38;5;15m][39m[38;5;15m [39m[38;5;81mfor[39m[38;5;15m [39m[38;5;15mp[39m[38;5;15m [39m[38;5;197min[39m[38;5;15m [39m[38;5;15mp_values[39m[38;5;15m][39m[38;5;15m,[39m[38;5;15m [39m[38;5;15mmethod[39m[38;5;197m=[39m[38;5;186m'[39m[38;5;186mfdr_bh[39m[38;5;186m'[39m[38;5;15m)[39m[38;5;15m[[39m[38;5;141m1[39m[38;5;15m][39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the SECOND response.[0m
@@ -2913,7 +2913,7 @@ I apologize for the error. It seems that there was a mistake in the multipletest
 [38;5;15m    [39m[38;5;15mpickle[39m[38;5;197m.[39m[38;5;15mdump[39m[38;5;15m([39m[38;5;15madditional_results[39m[38;5;15m,[39m[38;5;15m [39m[38;5;15mf[39m[38;5;15m)[39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the SECOND response.[0m
@@ -3082,7 +3082,7 @@ Here is a corrected version of the full code which should not present this error
 [38;5;197m+[39m[38;5;15m                            [39m[38;5;15madjusted_p_values[39m[38;5;15m)[39m[38;5;15m)[39m[38;5;15m,[39m[38;5;15m [39m[38;5;15mcolumns[39m[38;5;197m=[39m[38;5;15m[[39m[38;5;186m"[39m[38;5;186mML Model[39m[38;5;186m"[39m[38;5;15m,[39m[38;5;15m [39m[38;5;186m"[39m[38;5;186mFormula Model[39m[38;5;186m"[39m[38;5;15m,[39m[38;5;15m [39m[38;5;186m"[39m[38;5;186mAdjusted P-value[39m[38;5;186m"[39m[38;5;15m][39m[38;5;15m)[39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the SECOND response.[0m
@@ -3243,7 +3243,7 @@ This code is corrected to ensure that the `p_value_results` list contains tuples
 correctly applied to the list of p-values from the `p_value_results`.[0m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the SECOND response.[0m
@@ -3393,7 +3393,7 @@ This correction assumes that the error occurred due to a formatting or data entr
 any additional issues.[0m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the SECOND response.[0m
@@ -3554,7 +3554,7 @@ Here is the revised code:
 This should resolve the issue by ensuring all p-value results are in float datatype.[0m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the SECOND response.[0m
@@ -3712,7 +3712,7 @@ Apologies for the error in the previous code. Here is the revised code with corr
 [38;5;197m+[39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the SECOND response.[0m
@@ -3840,7 +3840,7 @@ Here is the corrected Python code:
 [38;5;197m+[39m[38;5;15madjusted_p_values[39m[38;5;15m [39m[38;5;197m=[39m[38;5;15m [39m[38;5;15mmultipletests[39m[38;5;15m([39m[38;5;15m[[39m[38;5;15mp[39m[38;5;15m [39m[38;5;81mfor[39m[38;5;15m [39m[38;5;15m_[39m[38;5;15m,[39m[38;5;15m [39m[38;5;15m_[39m[38;5;15m,[39m[38;5;15m [39m[38;5;15mp[39m[38;5;15m [39m[38;5;197min[39m[38;5;15m [39m[38;5;15mp_value_results[39m[38;5;15m][39m[38;5;15m,[39m[38;5;15m [39m[38;5;15mmethod[39m[38;5;197m=[39m[38;5;186m'[39m[38;5;186mbonferroni[39m[38;5;186m'[39m[38;5;15m)[39m[38;5;15m[[39m[38;5;141m1[39m[38;5;15m][39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the SECOND response.[0m
@@ -4058,7 +4058,7 @@ Python code is included below:
 [38;5;15m    [39m[38;5;15mpickle[39m[38;5;197m.[39m[38;5;15mdump[39m[38;5;15m([39m[38;5;15madditional_results[39m[38;5;15m,[39m[38;5;15m [39m[38;5;15mf[39m[38;5;15m)[39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the SECOND response.[0m
@@ -4211,7 +4211,7 @@ Please find your corrected code below:
 I apologise for any previous misunderstanding and I appreciate your patience.[0m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the SECOND response.[0m
@@ -4358,7 +4358,7 @@ float describing the p-value for the statistical test, but instead it was gettin
 populated incorrectly; I've corrected this.[0m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the SECOND response.[0m
@@ -4588,7 +4588,7 @@ Also, please note the Neural Network (NN) model used in above code is simple fee
 requirements and check how data is structured.[0m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<14> - <-1> [1 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -4752,7 +4752,7 @@ This version includes p-value calculation in the analysis section of the machine
 include relevant statistics (mean, standard deviation, and count).[0m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -4901,7 +4901,7 @@ Sure, here is the complete revised code:
 [38;5;197m+[39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<11> - <-1> [6 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Adding the debugged code as if it was the original response.[0m
@@ -5226,7 +5226,7 @@ CONTEXT TOTAL (2730 tokens):
 [38;5;197m+[39m[38;5;15m    [39m[38;5;186m'[39m[38;5;186mBest Hyperparameters[39m[38;5;186m'[39m[38;5;15m:[39m[38;5;15m [39m[38;5;15mbest_hyperparameters[39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<11> - <-1> [4 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Adding the debugged code as if it was the original response.[0m
@@ -5711,7 +5711,7 @@ Here is the revised code that addresses your comments.
 [38;5;197m+[39m[38;5;15m    [39m[38;5;15mttest_results[39m[38;5;15m [39m[38;5;197m=[39m[38;5;15m [39m[38;5;15mstats[39m[38;5;197m.[39m[38;5;15mttest_ind[39m[38;5;15m([39m[38;5;15my_test[39m[38;5;15m,[39m[38;5;15m [39m[38;5;15my_pred[39m[38;5;15m)[39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<14> - <-1> [1 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -5863,7 +5863,7 @@ Here's your corrected code:
 [38;5;197m+[39m[38;5;15mdf0[39m[38;5;15m [39m[38;5;197m=[39m[38;5;15m [39m[38;5;15mdf[39m[38;5;197m.[39m[38;5;15mdrop[39m[38;5;15m([39m[38;5;186m'[39m[38;5;186mtube[39m[38;5;186m'[39m[38;5;15m,[39m[38;5;15m [39m[38;5;15maxis[39m[38;5;197m=[39m[38;5;141m1[39m[38;5;15m)[39m[38;5;197m.[39m[38;5;15mdescribe[39m[38;5;15m([39m[38;5;15m)[39m[38;5;197m.[39m[38;5;15mloc[39m[38;5;15m[[39m[38;5;15m[[39m[38;5;186m'[39m[38;5;186mmean[39m[38;5;186m'[39m[38;5;15m,[39m[38;5;186m'[39m[38;5;186mstd[39m[38;5;186m'[39m[38;5;15m,[39m[38;5;186m'[39m[38;5;186mcount[39m[38;5;186m'[39m[38;5;15m,[39m[38;5;186m'[39m[38;5;186m50[39m[38;5;186m%[39m[38;5;186m'[39m[38;5;15m][39m[38;5;15m][39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<11> - <-1> [6 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Adding the debugged code as if it was the original response.[0m
@@ -6167,7 +6167,7 @@ In this revision, I added the formula-based predictions to the dataframe and use
 error for each model in a descriptive dataframe for easy usage and referencing.[0m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<14> - <-1> [1 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -6376,7 +6376,7 @@ Here's your fixed code:
 The formula provided for optimal tube depth is a place holder. In a real study, this should be substituted by a validated formula.[0m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -6522,7 +6522,7 @@ I apologize for the oversight. Here is the revised code to include the p-values:
 [38;5;15m    [39m[38;5;15mpickle[39m[38;5;197m.[39m[38;5;15mdump[39m[38;5;15m([39m[38;5;15madditional_results[39m[38;5;15m,[39m[38;5;15m [39m[38;5;15mf[39m[38;5;15m)[39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mAppendMessage, Debug iteration 4/20: Runtime exception in code[0m
 [32m[18] ---- USER {Debugger} -> "Data Analysis Code"  ---------------------------------------------------------------------------------------------------
 [0m[32mI ran the code and got the following error message:
@@ -6618,7 +6618,7 @@ I apologize for the oversight. Here is the corrected complete code:
 [38;5;15m    [39m[38;5;15mpickle[39m[38;5;197m.[39m[38;5;15mdump[39m[38;5;15m([39m[38;5;15madditional_results[39m[38;5;15m,[39m[38;5;15m [39m[38;5;15mf[39m[38;5;15m)[39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<14> - <-1> [5 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -6764,7 +6764,7 @@ Here's the revised complete Python code:
 [38;5;15m    [39m[38;5;15mpickle[39m[38;5;197m.[39m[38;5;15mdump[39m[38;5;15m([39m[38;5;15madditional_results[39m[38;5;15m,[39m[38;5;15m [39m[38;5;15mf[39m[38;5;15m)[39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -6936,7 +6936,7 @@ Here is the corrected code:
 [38;5;15m    [39m[38;5;15mpickle[39m[38;5;197m.[39m[38;5;15mdump[39m[38;5;15m([39m[38;5;15madditional_results[39m[38;5;15m,[39m[38;5;15m [39m[38;5;15mf[39m[38;5;15m)[39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -7066,7 +7066,7 @@ Here is the modified code:
 I have made the modifications to create Table 1 dataframe using a dictionary and transpose it which provides meaningful index in the dataframe.[0m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<11> - <-1> [6 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Adding the debugged code as if it was the original response.[0m
@@ -7337,7 +7337,7 @@ Net (EN) models in the analysis, and use the correctly mentioned formulas.
 Please adjust the parameters of the machine learning models and preprocessing steps as per your requirements.[0m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<14> - <-1> [1 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -7483,7 +7483,7 @@ I revised the dataframe column names to be of type string rather than tuple. I a
 t-test. The corrected results are included in table 1.[0m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -7605,7 +7605,7 @@ Here is the revised version of the code:
 [38;5;197m+[39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<11> - <-1> [6 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Adding the debugged code as if it was the original response.[0m
@@ -7886,7 +7886,7 @@ This code corrects your points about the height and age formulae, adds hyperpara
 squared residuals of the ML models and the formula-based models.[0m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<14> - <-1> [1 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -8025,7 +8025,7 @@ been computed only on the test set. Let me fix this for you.
 [38;5;197m-[39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -8171,7 +8171,7 @@ Here is the complete corrected code:
 [38;5;197m+[39m[38;5;15m        [39m[38;5;15mmse_formula[39m[38;5;15m [39m[38;5;197m=[39m[38;5;15m [39m[38;5;15mmean_squared_error[39m[38;5;15m([39m[38;5;15mY_test[39m[38;5;15m,[39m[38;5;15m [39m[38;5;15mformula_predictions[39m[38;5;15m)[39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -8328,7 +8328,7 @@ MLPRegressor, and ElasticNet) are not optimized. If you want these models to be 
 each of them and then use GridSearchCV similarly as for RandomForestRegressor.[0m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<11> - <-1> [6 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Adding the debugged code as if it was the original response.[0m
@@ -8592,7 +8592,7 @@ Sure, I will modify the code to return p-values for each formula method individu
 This new code will perform the task as required.[0m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<14> - <-1> [1 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -8738,7 +8738,7 @@ will modify the code accordingly.
 [38;5;197m+[39m[38;5;15m        [39m[38;5;15mdf1[39m[38;5;15m [39m[38;5;197m=[39m[38;5;15m [39m[38;5;15mdf1[39m[38;5;197m.[39m[38;5;15mappend[39m[38;5;15m([39m[38;5;15m{[39m[38;5;186m'[39m[38;5;186mModelName[39m[38;5;186m'[39m[38;5;15m:[39m[38;5;15m [39m[38;5;15mmodel_names[39m[38;5;15m[[39m[38;5;15midx[39m[38;5;15m][39m[38;5;15m,[39m[38;5;15m [39m[38;5;186m'[39m[38;5;186mFormula[39m[38;5;186m'[39m[38;5;15m:[39m[38;5;15m [39m[38;5;15mformula[39m[38;5;15m,[39m[38;5;15m [39m[38;5;186m'[39m[38;5;186mMSE[39m[38;5;186m'[39m[38;5;15m:[39m[38;5;15m [39m[38;5;15mmse_ml[39m[38;5;15m,[39m[38;5;15m [39m[38;5;186m'[39m[38;5;186mp-value[39m[38;5;186m'[39m[38;5;15m:[39m[38;5;15m [39m[38;5;15mp_value[39m[38;5;15m}[39m[38;5;15m,[39m[38;5;15m [39m[38;5;15mignore_index[39m[38;5;197m=[39m[38;5;81mTrue[39m[38;5;15m)[39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mAppendMessage, Debug iteration 2/20: Runtime exception in code[0m
 [32m[18] ---- USER {Debugger} -> "Data Analysis Code"  ---------------------------------------------------------------------------------------------------
 [0m[32mI ran the code and got the following error message:
@@ -8801,7 +8801,7 @@ I have corrected the code for the same.
 [38;5;197m+[39m[38;5;15m        [39m[38;5;15mdf1[39m[38;5;15m [39m[38;5;197m=[39m[38;5;15m [39m[38;5;15mdf1[39m[38;5;197m.[39m[38;5;15mappend[39m[38;5;15m([39m[38;5;15m{[39m[38;5;186m'[39m[38;5;186mModelName[39m[38;5;186m'[39m[38;5;15m:[39m[38;5;15m [39m[38;5;15mmodel_names[39m[38;5;15m[[39m[38;5;15midx[39m[38;5;15m][39m[38;5;15m,[39m[38;5;15m [39m[38;5;186m'[39m[38;5;186mFormula[39m[38;5;186m'[39m[38;5;15m:[39m[38;5;15m [39m[38;5;15mformula[39m[38;5;15m,[39m[38;5;15m [39m[38;5;186m'[39m[38;5;186mMSE[39m[38;5;186m'[39m[38;5;15m:[39m[38;5;15m [39m[38;5;15mmse_ml[39m[38;5;15m,[39m[38;5;15m [39m[38;5;186m'[39m[38;5;186mp-value[39m[38;5;186m'[39m[38;5;15m:[39m[38;5;15m [39m[38;5;15mp_value[39m[38;5;15m}[39m[38;5;15m,[39m[38;5;15m [39m[38;5;15mignore_index[39m[38;5;197m=[39m[38;5;81mTrue[39m[38;5;15m)[39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<16> - <-1> [3 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the SECOND response.[0m
@@ -8932,7 +8932,7 @@ Here is the revised code implementing the requested analysis:
 [38;5;197m+[39m[38;5;15m        [39m[38;5;15mdf1[39m[38;5;15m [39m[38;5;197m=[39m[38;5;15m [39m[38;5;15mpd[39m[38;5;197m.[39m[38;5;15mconcat[39m[38;5;15m([39m[38;5;15m[[39m[38;5;15mdf1[39m[38;5;15m,[39m[38;5;15m [39m[38;5;15mdf_to_append[39m[38;5;15m][39m[38;5;15m,[39m[38;5;15m [39m[38;5;15mignore_index[39m[38;5;197m=[39m[38;5;81mTrue[39m[38;5;15m)[39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<14> - <-1> [5 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -9082,7 +9082,7 @@ Here is the updated python code:
 [38;5;197m+[39m[38;5;15m        [39m[38;5;15mdf1[39m[38;5;197m.[39m[38;5;15mloc[39m[38;5;15m[[39m[38;5;15mrow_index[39m[38;5;15m][39m[38;5;15m [39m[38;5;197m=[39m[38;5;15m [39m[38;5;15m{[39m[38;5;186m'[39m[38;5;186mMSE[39m[38;5;186m'[39m[38;5;15m:[39m[38;5;15m [39m[38;5;15mmse_ml[39m[38;5;15m,[39m[38;5;15m [39m[38;5;186m'[39m[38;5;186mp-value[39m[38;5;186m'[39m[38;5;15m:[39m[38;5;15m [39m[38;5;15mp_value[39m[38;5;15m}[39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mAppendMessage, Debug iteration 5/20: Runtime exception in code[0m
 [32m[18] ---- USER {Debugger} -> "Data Analysis Code"  ---------------------------------------------------------------------------------------------------
 [0m[32mI ran the code and got the following error message:
@@ -9158,7 +9158,7 @@ code:
 [38;5;197m+[39m[38;5;15mdf1[39m[38;5;15m [39m[38;5;197m=[39m[38;5;15m [39m[38;5;15mdf1[39m[38;5;197m.[39m[38;5;15mrename_axis[39m[38;5;15m([39m[38;5;186m'[39m[38;5;186mML Model vs Formula[39m[38;5;186m'[39m[38;5;15m)[39m[38;5;15m  [39m[38;5;242m# Set the appropriate axis name[39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<11> - <-1> [8 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Adding the debugged code as if it was the original response.[0m
@@ -9425,7 +9425,7 @@ Of course! Here is the revised code:
 [38;5;197m+[39m[38;5;15m        [39m[38;5;15mdf1[39m[38;5;197m.[39m[38;5;15mloc[39m[38;5;15m[[39m[38;5;15mrow_index[39m[38;5;15m][39m[38;5;15m [39m[38;5;197m=[39m[38;5;15m [39m[38;5;15m[[39m[38;5;15mmse_ml[39m[38;5;15m,[39m[38;5;15m [39m[38;5;15mmse_formula[39m[38;5;15m,[39m[38;5;15m [39m[38;5;15mp_value[39m[38;5;15m][39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<11> - <-1> [4 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Adding the debugged code as if it was the original response.[0m
@@ -9726,7 +9726,7 @@ Here is the corrected code according to your instructions:
 [38;5;197m+[39m[38;5;15mdf1[39m[38;5;15m [39m[38;5;197m=[39m[38;5;15m [39m[38;5;15mdf1[39m[38;5;197m.[39m[38;5;15mrename_axis[39m[38;5;15m([39m[38;5;186m'[39m[38;5;186mML Model vs Formula[39m[38;5;186m'[39m[38;5;15m)[39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<11> - <-1> [4 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Adding the debugged code as if it was the original response.[0m
@@ -10008,7 +10008,7 @@ Here you are:
 [38;5;197m+[39m[38;5;15m        [39m[38;5;15mp_value[39m[38;5;15m [39m[38;5;197m=[39m[38;5;15m [39m[38;5;15mttest_rel[39m[38;5;15m([39m[38;5;15mnp[39m[38;5;197m.[39m[38;5;15mrepeat[39m[38;5;15m([39m[38;5;15mmse_formula[39m[38;5;15m,[39m[38;5;15m [39m[38;5;15mlen[39m[38;5;15m([39m[38;5;15mY_test[39m[38;5;15m)[39m[38;5;15m)[39m[38;5;15m,[39m[38;5;15m [39m[38;5;15mnp[39m[38;5;197m.[39m[38;5;15mrepeat[39m[38;5;15m([39m[38;5;15mmse_ml[39m[38;5;15m,[39m[38;5;15m [39m[38;5;15mlen[39m[38;5;15m([39m[38;5;15mY_test[39m[38;5;15m)[39m[38;5;15m)[39m[38;5;15m)[39m[38;5;197m.[39m[38;5;15mpvalue[39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<11> - <-1> [4 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Adding the debugged code as if it was the original response.[0m
@@ -10209,7 +10209,7 @@ Sure, here is the revised code after correcting the issues:
 [38;5;197m+[39m[38;5;15m        [39m[38;5;15mp_value[39m[38;5;15m [39m[38;5;197m=[39m[38;5;15m [39m[38;5;15mttest_rel[39m[38;5;15m([39m[38;5;15m([39m[38;5;15mY_test[39m[38;5;15m [39m[38;5;197m-[39m[38;5;15m [39m[38;5;15mpredictions[39m[38;5;15m)[39m[38;5;15m [39m[38;5;197m*[39m[38;5;197m*[39m[38;5;15m [39m[38;5;141m2[39m[38;5;15m,[39m[38;5;15m [39m[38;5;15m([39m[38;5;15mY_test[39m[38;5;15m [39m[38;5;197m-[39m[38;5;15m [39m[38;5;15mformula_predictions[39m[38;5;15m)[39m[38;5;15m [39m[38;5;197m*[39m[38;5;197m*[39m[38;5;15m [39m[38;5;141m2[39m[38;5;15m)[39m[38;5;197m.[39m[38;5;15mpvalue[39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<11> - <-1> [4 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Adding the debugged code as if it was the original response.[0m
@@ -10847,7 +10847,7 @@ This code reads pandas DataFrame from files 'table_0.pkl' and 'table_1.pkl', ren
 DataFrame as a Latex table in files 'table_0.tex' and 'table_1.tex', respectively, using the provided utility function `to_latex_with_note`.[0m
 [36m======================================================================================================================================================[0m
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 [31mDeleteMessages(<12> - <-1> [1 MESSAGES]) -> LaTeX Table Design Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -10967,7 +10967,7 @@ Here's the revised code:
 [38;5;197m+[39m[38;5;15mdf1[39m[38;5;15m [39m[38;5;197m=[39m[38;5;15m [39m[38;5;15mdf1[39m[38;5;197m.[39m[38;5;15mrename[39m[38;5;15m([39m[38;5;15mindex[39m[38;5;197m=[39m[38;5;15mabbrs_to_names1[39m[38;5;15m,[39m[38;5;15m [39m[38;5;15mcolumns[39m[38;5;197m=[39m[38;5;15mabbrs_to_names1[39m[38;5;15m)[39m
 [36m======================================================================================================================================================[0m
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 [31mDeleteMessages(<12> - <-1> [3 MESSAGES]) -> LaTeX Table Design Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -11086,7 +11086,7 @@ Here is the corrected Python code:
 [38;5;197m+[39m[38;5;15m    [39m[38;5;15mcaption[39m[38;5;197m=[39m[38;5;186m"[39m[38;5;186mMean Squared Error and p-value for each Machine Learning Model compared with each formula-based method.[39m[38;5;186m"[39m[38;5;15m,[39m[38;5;15m [39m
 [36m======================================================================================================================================================[0m
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 [31mDeleteMessages(<12> - <-1> [3 MESSAGES]) -> LaTeX Table Design Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -11202,7 +11202,7 @@ This code will import the necessary modules, process the data, take care of rena
 notes, legends, and captions.[0m
 [36m======================================================================================================================================================[0m
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 [31mDeleteMessages(<12> - <-1> [3 MESSAGES]) -> LaTeX Table Design Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -11316,7 +11316,7 @@ Sure, here is the complete code with corrections. This code follows the general 
 [38;5;197m+[39m[38;5;15mdf1[39m[38;5;197m.[39m[38;5;15mrename[39m[38;5;15m([39m[38;5;15mindex[39m[38;5;197m=[39m[38;5;81mlambda[39m[38;5;15m [39m[38;5;15ms[39m[38;5;15m:[39m[38;5;15m [39m[38;5;15ms[39m[38;5;197m.[39m[38;5;15mreplace[39m[38;5;15m([39m[38;5;186m'[39m[38;5;186m_[39m[38;5;186m'[39m[38;5;15m,[39m[38;5;15m [39m[38;5;186m'[39m[38;5;186m [39m[38;5;186m'[39m[38;5;15m)[39m[38;5;15m,[39m[38;5;15m [39m[38;5;15mcolumns[39m[38;5;197m=[39m[38;5;15mabbrs_to_names1[39m[38;5;15m,[39m[38;5;15m [39m[38;5;15minplace[39m[38;5;197m=[39m[38;5;81mTrue[39m[38;5;15m)[39m
 [36m======================================================================================================================================================[0m
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 [31mDeleteMessages(<12> - <-1> [3 MESSAGES]) -> LaTeX Table Design Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -11471,7 +11471,7 @@ Here is the complete code again with corrected table formatting:
 [38;5;197m+[39m[38;5;15mdf1[39m[38;5;197m.[39m[38;5;15mindex[39m[38;5;15m [39m[38;5;197m=[39m[38;5;15m [39m[38;5;15m[[39m[38;5;15mi[39m[38;5;197m.[39m[38;5;15mreplace[39m[38;5;15m([39m[38;5;186m'[39m[38;5;186m vs[39m[38;5;186m'[39m[38;5;15m,[39m[38;5;15m [39m[38;5;186m'[39m[38;5;186m'[39m[38;5;15m)[39m[38;5;15m [39m[38;5;81mfor[39m[38;5;15m [39m[38;5;15mi[39m[38;5;15m [39m[38;5;197min[39m[38;5;15m [39m[38;5;15mdf1[39m[38;5;197m.[39m[38;5;15mindex[39m[38;5;15m][39m
 [36m======================================================================================================================================================[0m
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 [31mDeleteMessages(<12> - <-1> [3 MESSAGES]) -> LaTeX Table Design Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -11585,7 +11585,7 @@ You're right, I apologize for the oversight. Here is the corrected Python code.
 [38;5;197m+[39m[38;5;15mdf1[39m[38;5;197m.[39m[38;5;15mrename[39m[38;5;15m([39m[38;5;15mindex[39m[38;5;197m=[39m[38;5;15mdict[39m[38;5;15m([39m[38;5;15mzip[39m[38;5;15m([39m[38;5;15mdf1[39m[38;5;197m.[39m[38;5;15mindex[39m[38;5;15m,[39m[38;5;15m [39m[38;5;15mnew_index[39m[38;5;15m)[39m[38;5;15m)[39m[38;5;15m,[39m[38;5;15m [39m[38;5;15mcolumns[39m[38;5;197m=[39m[38;5;15mabbrs_to_names1[39m[38;5;15m,[39m[38;5;15m [39m[38;5;15minplace[39m[38;5;197m=[39m[38;5;81mTrue[39m[38;5;15m)[39m
 [36m======================================================================================================================================================[0m
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 [31mDeleteMessages(<12> - <-1> [3 MESSAGES]) -> LaTeX Table Design Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -11706,7 +11706,7 @@ Here is the updated code:
 [38;5;197m+[39m[38;5;15mnew_index[39m[38;5;15m [39m[38;5;197m=[39m[38;5;15m [39m[38;5;15m[[39m[38;5;15mi[39m[38;5;197m.[39m[38;5;15mreplace[39m[38;5;15m([39m[38;5;186m'[39m[38;5;186m [39m[38;5;186m'[39m[38;5;15m,[39m[38;5;15m [39m[38;5;186m'[39m[38;5;186m [39m[38;5;186m'[39m[38;5;15m)[39m[38;5;197m.[39m[38;5;15mreplace[39m[38;5;15m([39m[38;5;186m'[39m[38;5;186m_[39m[38;5;186m'[39m[38;5;15m,[39m[38;5;15m [39m[38;5;186m'[39m[38;5;186m [39m[38;5;186m'[39m[38;5;15m)[39m[38;5;15m [39m[38;5;81mfor[39m[38;5;15m [39m[38;5;15mi[39m[38;5;15m [39m[38;5;197min[39m[38;5;15m [39m[38;5;15mdf1[39m[38;5;197m.[39m[38;5;15mindex[39m[38;5;15m][39m
 [36m======================================================================================================================================================[0m
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 [31mDeleteMessages(<12> - <-1> [3 MESSAGES]) -> LaTeX Table Design Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -11831,7 +11831,7 @@ Here's the code with the changes you requested:
 For table_1.tex legend explanations have been included for the abbreviations MSE (Formula) and MSE (ML Model).[0m
 [36m======================================================================================================================================================[0m
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 [31mDeleteMessages(<12> - <-1> [3 MESSAGES]) -> LaTeX Table Design Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -12001,7 +12001,7 @@ Sure, let's make the modifications to shorten column labels and modify index lab
 [38;5;197m+[39m[38;5;15m    [39m[38;5;15mcaption[39m[38;5;197m=[39m[38;5;186m"[39m[38;5;186mComparison of Mean Squared Error (MSE) and p-value for ML models and formulas.[39m[38;5;186m"[39m[38;5;15m,[39m[38;5;15m [39m
 [36m======================================================================================================================================================[0m
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 [31mDeleteMessages(<12> - <-1> [3 MESSAGES]) -> LaTeX Table Design Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -12116,7 +12116,7 @@ Here is the revised code with the modified index labels that no longer contain t
 [38;5;197m+[39m[38;5;15mnew_index[39m[38;5;15m [39m[38;5;197m=[39m[38;5;15m [39m[38;5;15m[[39m[38;5;15mi[39m[38;5;197m.[39m[38;5;15mreplace[39m[38;5;15m([39m[38;5;186m'[39m[38;5;186mvs[39m[38;5;186m'[39m[38;5;15m,[39m[38;5;15m [39m[38;5;186m'[39m[38;5;186mVs F[39m[38;5;186m'[39m[38;5;15m)[39m[38;5;197m.[39m[38;5;15mreplace[39m[38;5;15m([39m[38;5;186m'[39m[38;5;186m_[39m[38;5;186m'[39m[38;5;15m,[39m[38;5;15m [39m[38;5;186m'[39m[38;5;186m [39m[38;5;186m'[39m[38;5;15m)[39m[38;5;15m [39m[38;5;81mfor[39m[38;5;15m [39m[38;5;15mi[39m[38;5;15m [39m[38;5;197min[39m[38;5;15m [39m[38;5;15mdf1[39m[38;5;197m.[39m[38;5;15mindex[39m[38;5;15m][39m[38;5;15m [39m[38;5;242m# Shorten comparison labels and replace "_" with " "[39m
 [36m======================================================================================================================================================[0m
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 [31mDeleteMessages(<12> - <-1> [3 MESSAGES]) -> LaTeX Table Design Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -12233,7 +12233,7 @@ Sure, here is the corrected code according to your instructions:
 [38;5;197m+[39m[38;5;15m    [39m[38;5;186m'[39m[38;5;186mp-value[39m[38;5;186m'[39m[38;5;15m:[39m[38;5;15m [39m[38;5;15m([39m[38;5;186m'[39m[38;5;186mp-val.[39m[38;5;186m'[39m[38;5;15m,[39m[38;5;15m [39m[38;5;186m'[39m[38;5;186mp-value for hypothesis testing[39m[38;5;186m'[39m[38;5;15m)[39m[38;5;15m,[39m
 [36m======================================================================================================================================================[0m
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 [31mDeleteMessages(<11> - <-1> [4 MESSAGES]) -> LaTeX Table Design Code[0m
 
 [31mAppendMessage, Adding the debugged code as if it was the original response.[0m

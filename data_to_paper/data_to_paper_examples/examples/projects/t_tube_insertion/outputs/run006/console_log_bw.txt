@@ -197,7 +197,7 @@ with open('data_exploration.txt', 'w') as f:
 The output file "data_exploration.txt" will contain the required information.
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<5> - <-1> [2 MESSAGES]) -> Data Exploration Code
 
 AppendMessage, Adding the debugged code as if it was the original response.
@@ -390,7 +390,7 @@ CONTEXT TOTAL (1446 tokens):
 +        return "# Missing Values\n" + nonzero_missing.to_string() + "\n"
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<5> - <-1> [4 MESSAGES]) -> Data Exploration Code
 
 AppendMessage, Adding the debugged code as if it was the original response.
@@ -1330,7 +1330,7 @@ testing dataset. The results are saved in a dataframe, which is pickled for furt
 The code also computes some additional results, in particular the accuracy of the ML models, and saves them in a pickled dictionary.
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<12> - <-1> [1 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -1461,7 +1461,7 @@ Here is the corrected code:
 +                     ("ID Formula", mean_squared_error(y_test, [3*id for id in df.loc[X_test.index, "tube"]]))]
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<12> - <-1> [3 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -1703,7 +1703,7 @@ Here is the corrected code:
 +
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the SECOND response.
@@ -1877,7 +1877,7 @@ Here's the corrected code:
 -
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<12> - <-1> [5 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -2051,7 +2051,7 @@ comparing the residuals of each ML model against each formula-based model with a
 My apologies for incorrect provided code previously. I hope this fulfills the request in a more satisfactory manner.
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<12> - <-1> [3 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -2279,7 +2279,7 @@ with open('additional_results.pkl', 'wb') as f:
 
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 AppendMessage, Debug iteration 7/20: Runtime exception in code
 [16] ---- USER {Debugger} -> "Data Analysis Code"  ---------------------------------------------------------------------------------------------------
 I ran the code and got the following error message:
@@ -2416,7 +2416,7 @@ In this revised version, I have handled the error you mentioned and fixed the us
 Benjamini/Hochberg correction procedure. I'm confident this version will work correctly for your requirements.
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the SECOND response.
@@ -2631,7 +2631,7 @@ with open('additional_results.pkl', 'wb') as f:
     pickle.dump(additional_results, f)
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the SECOND response.
@@ -2772,7 +2772,7 @@ of the complete code:
 +p_values_corrected = multipletests([p[2] for p in p_values], method='fdr_bh')[1]
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the SECOND response.
@@ -2978,7 +2978,7 @@ with open('additional_results.pkl', 'wb') as f:
     pickle.dump(additional_results, f)
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the SECOND response.
@@ -3151,7 +3151,7 @@ Here is a corrected version of the full code which should not present this error
 +                            adjusted_p_values)), columns=["ML Model", "Formula Model", "Adjusted P-value"])
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the SECOND response.
@@ -3315,7 +3315,7 @@ This code is corrected to ensure that the `p_value_results` list contains tuples
 correctly applied to the list of p-values from the `p_value_results`.
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the SECOND response.
@@ -3468,7 +3468,7 @@ This correction assumes that the error occurred due to a formatting or data entr
 any additional issues.
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the SECOND response.
@@ -3634,7 +3634,7 @@ Here is the revised code:
 This should resolve the issue by ensuring all p-value results are in float datatype.
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the SECOND response.
@@ -3796,7 +3796,7 @@ Apologies for the error in the previous code. Here is the revised code with corr
 +
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the SECOND response.
@@ -3928,7 +3928,7 @@ Here is the corrected Python code:
 +adjusted_p_values = multipletests([p for _, _, p in p_value_results], method='bonferroni')[1]
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the SECOND response.
@@ -4151,7 +4151,7 @@ with open('additional_results.pkl', 'wb') as f:
     pickle.dump(additional_results, f)
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the SECOND response.
@@ -4307,7 +4307,7 @@ Please find your corrected code below:
 I apologise for any previous misunderstanding and I appreciate your patience.
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the SECOND response.
@@ -4457,7 +4457,7 @@ float describing the p-value for the statistical test, but instead it was gettin
 populated incorrectly; I've corrected this.
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the SECOND response.
@@ -4692,7 +4692,7 @@ Also, please note the Neural Network (NN) model used in above code is simple fee
 requirements and check how data is structured.
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<14> - <-1> [1 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -4860,7 +4860,7 @@ This version includes p-value calculation in the analysis section of the machine
 include relevant statistics (mean, standard deviation, and count).
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -5013,7 +5013,7 @@ Sure, here is the complete revised code:
 +
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<11> - <-1> [6 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Adding the debugged code as if it was the original response.
@@ -5346,7 +5346,7 @@ CONTEXT TOTAL (2730 tokens):
 +    'Best Hyperparameters': best_hyperparameters
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<11> - <-1> [4 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Adding the debugged code as if it was the original response.
@@ -5843,7 +5843,7 @@ Here is the revised code that addresses your comments.
 +    ttest_results = stats.ttest_ind(y_test, y_pred)
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<14> - <-1> [1 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -6002,7 +6002,7 @@ Here's your corrected code:
 +df0 = df.drop('tube', axis=1).describe().loc[['mean','std','count','50%']]
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<11> - <-1> [6 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Adding the debugged code as if it was the original response.
@@ -6312,7 +6312,7 @@ In this revision, I added the formula-based predictions to the dataframe and use
 error for each model in a descriptive dataframe for easy usage and referencing.
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<14> - <-1> [1 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -6525,7 +6525,7 @@ Here's your fixed code:
 The formula provided for optimal tube depth is a place holder. In a real study, this should be substituted by a validated formula.
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -6675,7 +6675,7 @@ with open('additional_results.pkl', 'wb') as f:
     pickle.dump(additional_results, f)
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 AppendMessage, Debug iteration 4/20: Runtime exception in code
 [18] ---- USER {Debugger} -> "Data Analysis Code"  ---------------------------------------------------------------------------------------------------
 I ran the code and got the following error message:
@@ -6772,7 +6772,7 @@ with open('additional_results.pkl', 'wb') as f:
     pickle.dump(additional_results, f)
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<14> - <-1> [5 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -6922,7 +6922,7 @@ with open('additional_results.pkl', 'wb') as f:
     pickle.dump(additional_results, f)
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -7098,7 +7098,7 @@ with open('additional_results.pkl', 'wb') as f:
     pickle.dump(additional_results, f)
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -7231,7 +7231,7 @@ Here is the modified code:
 I have made the modifications to create Table 1 dataframe using a dictionary and transpose it which provides meaningful index in the dataframe.
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<11> - <-1> [6 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Adding the debugged code as if it was the original response.
@@ -7508,7 +7508,7 @@ with open('additional_results.pkl', 'wb') as f:
 Please adjust the parameters of the machine learning models and preprocessing steps as per your requirements.
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<14> - <-1> [1 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -7657,7 +7657,7 @@ I revised the dataframe column names to be of type string rather than tuple. I a
 t-test. The corrected results are included in table 1.
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -7783,7 +7783,7 @@ Here is the revised version of the code:
 +
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<11> - <-1> [6 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Adding the debugged code as if it was the original response.
@@ -8069,7 +8069,7 @@ This code corrects your points about the height and age formulae, adds hyperpara
 squared residuals of the ML models and the formula-based models.
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<14> - <-1> [1 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -8212,7 +8212,7 @@ been computed only on the test set. Let me fix this for you.
 -
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -8362,7 +8362,7 @@ Here is the complete corrected code:
 +        mse_formula = mean_squared_error(Y_test, formula_predictions)
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -8522,7 +8522,7 @@ MLPRegressor, and ElasticNet) are not optimized. If you want these models to be 
 each of them and then use GridSearchCV similarly as for RandomForestRegressor.
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<11> - <-1> [6 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Adding the debugged code as if it was the original response.
@@ -8791,7 +8791,7 @@ Sure, I will modify the code to return p-values for each formula method individu
 This new code will perform the task as required.
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<14> - <-1> [1 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -8942,7 +8942,7 @@ will modify the code accordingly.
 +        df1 = df1.append({'ModelName': model_names[idx], 'Formula': formula, 'MSE': mse_ml, 'p-value': p_value}, ignore_index=True)
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 AppendMessage, Debug iteration 2/20: Runtime exception in code
 [18] ---- USER {Debugger} -> "Data Analysis Code"  ---------------------------------------------------------------------------------------------------
 I ran the code and got the following error message:
@@ -9006,7 +9006,7 @@ I have corrected the code for the same.
 +        df1 = df1.append({'ModelName': model_names[idx], 'Formula': formula, 'MSE': mse_ml, 'p-value': p_value}, ignore_index=True)
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<16> - <-1> [3 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the SECOND response.
@@ -9141,7 +9141,7 @@ Here is the revised code implementing the requested analysis:
 +        df1 = pd.concat([df1, df_to_append], ignore_index=True)
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<14> - <-1> [5 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -9295,7 +9295,7 @@ Here is the updated python code:
 +        df1.loc[row_index] = {'MSE': mse_ml, 'p-value': p_value}
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 AppendMessage, Debug iteration 5/20: Runtime exception in code
 [18] ---- USER {Debugger} -> "Data Analysis Code"  ---------------------------------------------------------------------------------------------------
 I ran the code and got the following error message:
@@ -9372,7 +9372,7 @@ code:
 +df1 = df1.rename_axis('ML Model vs Formula')  # Set the appropriate axis name
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<11> - <-1> [8 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Adding the debugged code as if it was the original response.
@@ -9646,7 +9646,7 @@ Of course! Here is the revised code:
 +        df1.loc[row_index] = [mse_ml, mse_formula, p_value]
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<11> - <-1> [4 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Adding the debugged code as if it was the original response.
@@ -9955,7 +9955,7 @@ Here is the corrected code according to your instructions:
 +df1 = df1.rename_axis('ML Model vs Formula')
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<11> - <-1> [4 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Adding the debugged code as if it was the original response.
@@ -10244,7 +10244,7 @@ Here you are:
 +        p_value = ttest_rel(np.repeat(mse_formula, len(Y_test)), np.repeat(mse_ml, len(Y_test))).pvalue
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<11> - <-1> [4 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Adding the debugged code as if it was the original response.
@@ -10450,7 +10450,7 @@ Sure, here is the revised code after correcting the issues:
 +        p_value = ttest_rel((Y_test - predictions) ** 2, (Y_test - formula_predictions) ** 2).pvalue
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<11> - <-1> [4 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Adding the debugged code as if it was the original response.
@@ -11102,7 +11102,7 @@ This code reads pandas DataFrame from files 'table_0.pkl' and 'table_1.pkl', ren
 DataFrame as a Latex table in files 'table_0.tex' and 'table_1.tex', respectively, using the provided utility function `to_latex_with_note`.
 ======================================================================================================================================================
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 DeleteMessages(<12> - <-1> [1 MESSAGES]) -> LaTeX Table Design Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -11226,7 +11226,7 @@ Here's the revised code:
 +df1 = df1.rename(index=abbrs_to_names1, columns=abbrs_to_names1)
 ======================================================================================================================================================
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 DeleteMessages(<12> - <-1> [3 MESSAGES]) -> LaTeX Table Design Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -11350,7 +11350,7 @@ Here is the corrected Python code:
 +    caption="Mean Squared Error and p-value for each Machine Learning Model compared with each formula-based method.", 
 ======================================================================================================================================================
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 DeleteMessages(<12> - <-1> [3 MESSAGES]) -> LaTeX Table Design Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -11469,7 +11469,7 @@ This code will import the necessary modules, process the data, take care of rena
 notes, legends, and captions.
 ======================================================================================================================================================
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 DeleteMessages(<12> - <-1> [3 MESSAGES]) -> LaTeX Table Design Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -11587,7 +11587,7 @@ Sure, here is the complete code with corrections. This code follows the general 
 +df1.rename(index=lambda s: s.replace('_', ' '), columns=abbrs_to_names1, inplace=True)
 ======================================================================================================================================================
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 DeleteMessages(<12> - <-1> [3 MESSAGES]) -> LaTeX Table Design Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -11746,7 +11746,7 @@ Here is the complete code again with corrected table formatting:
 +df1.index = [i.replace(' vs', '') for i in df1.index]
 ======================================================================================================================================================
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 DeleteMessages(<12> - <-1> [3 MESSAGES]) -> LaTeX Table Design Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -11865,7 +11865,7 @@ You're right, I apologize for the oversight. Here is the corrected Python code.
 +df1.rename(index=dict(zip(df1.index, new_index)), columns=abbrs_to_names1, inplace=True)
 ======================================================================================================================================================
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 DeleteMessages(<12> - <-1> [3 MESSAGES]) -> LaTeX Table Design Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -11990,7 +11990,7 @@ Here is the updated code:
 +new_index = [i.replace(' ', ' ').replace('_', ' ') for i in df1.index]
 ======================================================================================================================================================
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 DeleteMessages(<12> - <-1> [3 MESSAGES]) -> LaTeX Table Design Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -12118,7 +12118,7 @@ Here's the code with the changes you requested:
 For table_1.tex legend explanations have been included for the abbreviations MSE (Formula) and MSE (ML Model).
 ======================================================================================================================================================
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 DeleteMessages(<12> - <-1> [3 MESSAGES]) -> LaTeX Table Design Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -12293,7 +12293,7 @@ Sure, let's make the modifications to shorten column labels and modify index lab
 +    caption="Comparison of Mean Squared Error (MSE) and p-value for ML models and formulas.", 
 ======================================================================================================================================================
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 DeleteMessages(<12> - <-1> [3 MESSAGES]) -> LaTeX Table Design Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -12412,7 +12412,7 @@ Here is the revised code with the modified index labels that no longer contain t
 +new_index = [i.replace('vs', 'Vs F').replace('_', ' ') for i in df1.index] # Shorten comparison labels and replace "_" with " "
 ======================================================================================================================================================
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 DeleteMessages(<12> - <-1> [3 MESSAGES]) -> LaTeX Table Design Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -12533,7 +12533,7 @@ Sure, here is the corrected code according to your instructions:
 +    'p-value': ('p-val.', 'p-value for hypothesis testing'),
 ======================================================================================================================================================
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 DeleteMessages(<11> - <-1> [4 MESSAGES]) -> LaTeX Table Design Code
 
 AppendMessage, Adding the debugged code as if it was the original response.
