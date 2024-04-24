@@ -1,8 +1,0 @@
-```markdown
-## Hypothesis:
-Each of the machine learning models will have significantly better predictive power than each of the formula-based models
-## Test:
-Perform paired t-tests comparing the squared residuals (prediction - target)**2 of each machine learning model to each formula-based model. Adjust for multiple comparisons using Bonferroni correction. Account for confounding variables by including them as covariates in the t-tests. Address dependencies between data points by performing bootstrapping to estimate the distribution of the test statistic. For missing data points, use listwise deletion or imputation techniques as appropriate.
-
-
-```

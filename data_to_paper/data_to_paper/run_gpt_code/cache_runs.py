@@ -13,7 +13,7 @@ from data_to_paper.utils.file_utils import run_in_directory
 from data_to_paper.utils.print_to_file import print_and_log
 
 
-def directory_hash(directory):
+def old_directory_hash(directory):
     """Create a hash based on all files in the directory."""
     hasher = hashlib.sha256()
     for path, dirs, filenames in os.walk(directory):
@@ -24,6 +24,32 @@ def directory_hash(directory):
             with open(file_path, 'rb') as file:
                 while chunk := file.read(8192):
                     hasher.update(chunk)
+    return hasher.hexdigest()
+
+
+def directory_hash(directory):
+    """Create a hash based on all files in the directory, hashing only the relative path of each file from the specified directory."""
+    hasher = hashlib.sha256()
+    root_dir = os.path.abspath(directory)
+    all_files = []
+
+    # Walk the directory tree and capture all file paths
+    for path, dirs, files in os.walk(root_dir):
+        for file in files:
+            full_path = os.path.join(path, file)
+            relative_path = os.path.relpath(full_path, start=directory)  # Compute the relative path
+            all_files.append((relative_path, full_path))  # Store both relative and full path
+
+    # Sort all file paths by relative path
+    all_files.sort(key=lambda x: x[0])
+
+    # Hash each file's relative path and contents
+    for relative_path, full_path in all_files:
+        hasher.update(relative_path.encode('utf-8'))
+        with open(full_path, 'rb') as file:
+            while chunk := file.read(8192):
+                hasher.update(chunk)
+
     return hasher.hexdigest()
 
 
@@ -83,6 +109,9 @@ class CacheRunToFile:
     def _get_run_directory_key(self) -> tuple:
         return (directory_hash(self._get_run_directory()), )
 
+    def _get_run_directory_old_key(self) -> tuple:
+        return (old_directory_hash(self._get_run_directory()), )
+
     def _get_run_directory(self):
         raise NotImplementedError
 
@@ -111,6 +140,15 @@ class CacheRunToFile:
         cache = self._load_cache()
         key = self._get_instance_key() + self._get_run_directory_key() \
             + tuple(args) + tuple(kwargs.items())
+
+        old_key = self._get_instance_key() + self._get_run_directory_old_key() \
+            + tuple(args) + tuple(kwargs.items())
+
+        if old_key in cache:
+            # replace old key with new key
+            print(f"{self.__class__.__name__}: Replacing old key with new key.")
+            cache[key] = cache.pop(old_key)
+            self._dump_cache(cache)
 
         if key in cache:
             print_and_log(f"{self.__class__.__name__}: Using cached output.")
