@@ -59,7 +59,7 @@ RUN_PARAMETERS = dict(
     data_filenames=["tracheal_tube_insertion.csv"],
     research_goal=goal,
     excluded_citation_titles=[NAME_OF_REPRODUCED_PAPER],
-    output_folder='run006'
+    output_folder='run004'
 )
 
 if __name__ == '__main__':

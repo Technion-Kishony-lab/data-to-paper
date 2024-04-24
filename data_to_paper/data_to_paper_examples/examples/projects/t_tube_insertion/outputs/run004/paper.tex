@@ -96,8 +96,9 @@ We developed, optimized, and compared the performance of various machine learnin
 
 First, to establish a benchmark for machine learning (ML) model performance in predicting optimal tracheal tube depth (OTTD) for pediatric patients, we compared the mean squared errors (MSE) and standard errors (SE) of four hyperparameter-optimized ML algorithms. The Random Forest model demonstrated an MSE of \hyperlink{A0a}{1.41} and an SE of \hyperlink{A0b}{0.46}. Elastic Net, considered to have the best predictive accuracy among the examined models, reported an MSE of \hyperlink{A1a}{1.24} and an SE of \hyperlink{A1b}{0.55}. The SVM model showed an MSE of \hyperlink{A2a}{1.31} and an SE of \hyperlink{A2b}{0.513}, while the Neural Network recorded an MSE of \hyperlink{A3a}{1.26} and an SE of \hyperlink{A3b}{0.526}. These findings are elaborated in Table \ref{table:ML_Model_Performance}, outlining the superior performance of the Elastic Net model among the ML contenders.
 
+% This latex table was generated from: `table_1.pkl`
 \begin{table}[h]
-\caption{Machine learning models performance comparison.}
+\caption{\protect\hyperlink{file-table-1-pkl}{Machine learning models performance comparison.}}
 \label{table:ML_Model_Performance}
 \begin{threeparttable}
 \renewcommand{\TPTminimum}{\linewidth}
@@ -123,8 +124,9 @@ First, to establish a benchmark for machine learning (ML) model performance in p
 
 Moving to evaluate the traditional formula-based approaches, we quantified their performance in terms of MSE and root mean squared errors (RMSE). The Height-Model yielded an MSE of \hyperlink{B0a}{3.42} and RMSE of \hyperlink{B0b}{1.85}, materially larger than the Elastic Net's MSE, indicate a substantial decrease in accuracy. The Age-Model had an MSE of \hyperlink{B1a}{1.79} and an RMSE of \hyperlink{B1b}{1.34}, reflecting a smaller but still significant reduction in precision compared to the advanced ML methods. Meanwhile, the ID-Model resulted in an MSE of \hyperlink{B2a}{2.52} and an RMSE of \hyperlink{B2b}{1.59}, reinforcing the advantage of ML models. These comparative metrics are compiled in Table \ref{table:Formula_Model_Performance}.
 
+% This latex table was generated from: `table_2.pkl`
 \begin{table}[h]
-\caption{Formula based models performance comparison.}
+\caption{\protect\hyperlink{file-table-2-pkl}{Formula based models performance comparison.}}
 \label{table:Formula_Model_Performance}
 \begin{threeparttable}
 \renewcommand{\TPTminimum}{\linewidth}
@@ -149,8 +151,9 @@ Moving to evaluate the traditional formula-based approaches, we quantified their
 
 We subsequently conducted paired t-tests to assess the statistical significance of the performance disparity between ML models and formula-based estimators. While some ML models did not demonstrate a statistically significant advantage over the Age-Model, the trend indicated a general superiority of ML approaches. For instance, the Elastic Net model's difference from the Age-Model was not statistically significant, yielding a t-statistic of \hyperlink{C4b}{0.224} and a p-value of \hyperlink{C4c}{0.823}. This similarity was observed in the comparison of the Random Forest model to the Age-Model, which produced a t-statistic of \hyperlink{C1b}{0.321} and a p-value of \hyperlink{C1c}{0.749}. Nonetheless, every ML model showed significant improvement over the Height-Model, as evidenced by strongly negative t-statistics and p-values less than \hyperlink{C0c}{$10^{-6}$}. Comprehensive statistical test outcomes, including each comparative analysis, are available in Table \ref{table:ML_vs_Formula_Models}.
 
+% This latex table was generated from: `table_3.pkl`
 \begin{table}[h]
-\caption{Hypotheses testing comparison.}
+\caption{\protect\hyperlink{file-table-3-pkl}{Hypotheses testing comparison.}}
 \label{table:ML_vs_Formula_Models}
 \begin{threeparttable}
 \renewcommand{\TPTminimum}{\linewidth}
@@ -702,6 +705,7 @@ def split_mapping(abbrs_to_names_and_definitions: AbbrToNameDef):
 \subsubsection*{\hyperlink{code-LaTeX Table Design-table-1-tex}{table\_1.tex}}
 
 \begin{codeoutput}
+\% This latex table was generated from: `table\_1.pkl`
 \begin{table}[h]
 \caption{Machine learning models performance comparison.}
 \label{table:ML\_Model\_Performance}
@@ -731,6 +735,7 @@ def split_mapping(abbrs_to_names_and_definitions: AbbrToNameDef):
 \subsubsection*{\hyperlink{code-LaTeX Table Design-table-2-tex}{table\_2.tex}}
 
 \begin{codeoutput}
+\% This latex table was generated from: `table\_2.pkl`
 \begin{table}[h]
 \caption{Formula based models performance comparison.}
 \label{table:Formula\_Model\_Performance}
@@ -759,6 +764,7 @@ def split_mapping(abbrs_to_names_and_definitions: AbbrToNameDef):
 \subsubsection*{\hyperlink{code-LaTeX Table Design-table-3-tex}{table\_3.tex}}
 
 \begin{codeoutput}
+\% This latex table was generated from: `table\_3.pkl`
 \begin{table}[h]
 \caption{Hypotheses testing comparison.}
 \label{table:ML\_vs\_Formula\_Models}
