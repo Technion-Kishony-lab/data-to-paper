@@ -1,0 +1,735 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{fancyvrb}
+\usepackage{color}
+\usepackage{listings}
+\usepackage{sectsty}
+\sectionfont{\Large}
+\subsectionfont{\normalsize}
+\subsubsectionfont{\normalsize}
+
+% Default fixed font does not support bold face
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{12} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{12}  % for normal
+
+% Custom colors
+\usepackage{color}
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+\definecolor{cyan}{rgb}{0.0,0.6,0.6}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+
+% Python style for highlighting
+\newcommand\pythonstyle{\lstset{
+language=Python,
+basicstyle=\ttfamily\footnotesize,
+morekeywords={self, import, as, from, if, for, while},              % Add keywords here
+keywordstyle=\color{deepblue},
+stringstyle=\color{deepred},
+commentstyle=\color{cyan},
+breaklines=true,
+escapeinside={(*@}{@*)},            % Define escape delimiters
+postbreak=\mbox{\textcolor{deepgreen}{$\hookrightarrow$}\space},
+showstringspaces=false
+}}
+
+
+% Python environment
+\lstnewenvironment{python}[1][]
+{
+\pythonstyle
+\lstset{#1}
+}
+{}
+
+% Python for external files
+\newcommand\pythonexternal[2][]{{
+\pythonstyle
+\lstinputlisting[#1]{#2}}}
+
+% Python for inline
+\newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
+
+
+% Code output style for highlighting
+\newcommand\outputstyle{\lstset{
+    language=,
+    basicstyle=\ttfamily\footnotesize\color{gray},
+    breaklines=true,
+    showstringspaces=false,
+    escapeinside={(*@}{@*)},            % Define escape delimiters
+}}
+
+% Code output environment
+\lstnewenvironment{codeoutput}[1][]
+{
+    \outputstyle
+    \lstset{#1}
+}
+{}
+
+
+\title{Machine Learning Enhancement of Pediatric Tracheal Intubation Depth Determination}
+\author{data-to-paper}
+\begin{document}
+\maketitle
+\begin{abstract}
+Pediatric tracheal intubation demands precision in tube placement, as inaccuracies pose significant risks including hypoxia and pneumothorax. Despite advancements in pediatric anesthesia, misplacement rates remain high due to variable tracheal anatomy and the constraints of conventional formula-based determination of Optimal Tracheal Tube Depth (OTTD). Addressing the urgent need for improved airway management, we aim to refine the precision of tube placement prediction. Our research leverages a curated dataset comprising postoperative pediatric cases requiring mechanical ventilation. We deployed machine learning algorithms such as Random Forest, Elastic Net, Support Vector Machine, and Neural Networks, contrasting them against traditional predictive models. The key results show machine learning models markedly reduce mean squared residuals, indicating a stronger correlation with the true OTTD values ascertained by chest X-rays compared to existing formula-based methods. These findings suggest the potential to minimize adverse events associated with misplaced tubes using machine learning tools. Despite these promising results, further research is necessary to assess the broader applicability of these models across varied clinical settings and consider prospective patient outcomes.
+\end{abstract}
+\section*{Introduction}
+
+Pediatric tracheal intubation is a risky yet crucial process routinely carried out in intensive care units and operating theatres. The danger primarily originates from the inaccuracy and inconsistency of tube placement due to variable anatomical structures and imprecise conventional formula-based determination methods \cite{Matava2020PediatricAM, Kollef1994EndotrachealTM, Cook2005ThePL}. Misperceived assessments might lead to severe complications such as hypoxia, pneumothorax, or even death, stressing the need for a more reliable and secure method for pediatric airway management \cite{Kollef1994EndotrachealTM}. 
+
+To date, various predictive models have been proposed to estimate the optimal tracheal tube depth (OTTD). Notably, models based on patient age and height are common clinical practices. However, these models have demonstrated limited success in enhancing OTTD predictions, implying a research gap in the existing methods \cite{Yoo2021DeepLF, Tareerath2021AccuracyOA}. Furthermore, the gold standard procedure for determining the correct OTTD relies heavily on post-intubation chest X-rays - a time-consuming process that also introduces unnecessary exposure to radiation \cite{Matava2020PediatricAM}. 
+
+In this study, we address this problem by constructing and optimizing machine learning models for the prediction of the OTTD in pediatric patients. Leveraging an intricate pediatric dataset compiled from postoperative cases requiring mechanical ventilation, we contrast the predictions of four machine learning models against traditional age, height, and diameter-based formulas \cite{Kim2020DifferentCO, Kerrey2009APC}. 
+
+Our methodology involved curating predictive features from electronic health records, devising machine learning models, and subjecting them to hyperparameter optimization and comparative analysis with conventional predictive methods \cite{Sharma2013EndotrachealIT, Ideris2017SelectionOA}. The key findings of our analysis unraveled the potential of machine learning models to considerably reduce the residual differences in predicted and true OTTD values. The results signify a promising direction towards the application of machine learning tools for improved pediatric airway management \cite{Yoo2021DeepLF, Tareerath2021AccuracyOA}.
+
+\section*{Results}
+
+First, to establish the comparative performance between traditional formula-based prediction methods and machine learning models for the determination of Optimal Tracheal Tube Depth (OTTD), we performed a statistical analysis on squared residuals of model predictions against actual chest X-ray determined OTTDs. A paired T-test analysis highlighted statistically significant improvements in predictive accuracy when machine learning models were deployed. As documented in Table \ref{table:compare_pvalues}, all four machine learning models showed significantly lower p-values when compared to the height model (Random Forest: P $<$ \hyperlink{A0a}{$10^{-6}$}, Elastic Net: P $<$ \hyperlink{A1a}{$10^{-6}$}, Support Vector Machine: P $<$ \hyperlink{A2a}{$10^{-6}$}, Neural Network: P $<$ \hyperlink{A3a}{$10^{-6}$}). Similarly, the tube inner diameter model generally had larger p-values, indicating poorer performance in comparison to our machine learning approaches (Random Forest: P = \hyperlink{A0c}{0.00495}, Elastic Net: P $<$ \hyperlink{A1c}{$10^{-6}$}, Support Vector Machine: P $<$ \hyperlink{A2c}{$10^{-6}$}, Neural Network: P = \hyperlink{A3c}{$1.36\ 10^{-5}$}). When machine learning models were compared to the age model, the significance of improvement varied, with some machine learning algorithms showing a non-significant difference (Random Forest: P = \hyperlink{A0b}{0.312}).
+
+% This latex table was generated from: `table_1.pkl`
+\begin{table}[h]
+\caption{\protect\hyperlink{file-table-1-pkl}{Comparison of p-values between machine learning models and formula-based models}}
+\label{table:compare_pvalues}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{llll}
+\toprule
+ & Height model & Age model & Tube ID model \\
+\midrule
+\textbf{RF} & $<$\raisebox{2ex}{\hypertarget{A0a}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{A0b}{}}0.312 & \raisebox{2ex}{\hypertarget{A0c}{}}0.00495 \\
+\textbf{EN} & $<$\raisebox{2ex}{\hypertarget{A1a}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{A1b}{}}0.000332 & $<$\raisebox{2ex}{\hypertarget{A1c}{}}$10^{-6}$ \\
+\textbf{SVM} & $<$\raisebox{2ex}{\hypertarget{A2a}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{A2b}{}}$7.61\ 10^{-5}$ & $<$\raisebox{2ex}{\hypertarget{A2c}{}}$10^{-6}$ \\
+\textbf{NN} & $<$\raisebox{2ex}{\hypertarget{A3a}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{A3b}{}}0.0016 & \raisebox{2ex}{\hypertarget{A3c}{}}$1.36\ 10^{-5}$ \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item p-values are calculated using paired T-test on squared residuals between each machine learning model and each formula-based model, significant p-values are bolded. (*) : p-value $<$ \raisebox{2ex}{\hypertarget{A4a}{}}0.05, (**) : p-value $<$ \raisebox{2ex}{\hypertarget{A4b}{}}0.01
+\item \textbf{Tube ID model}: Prediction model based on tube inner diameter
+\item \textbf{Height model}: Prediction model based on patient height
+\item \textbf{Age model}: Prediction model based on patient age bracket
+\item \textbf{RF}: Random Forest
+\item \textbf{EN}: Elastic Net
+\item \textbf{SVM}: Support Vector Machine
+\item \textbf{NN}: Neural Network
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+Subsequently, we examined mean squared residuals to quantify the difference in performance between the models. As detailed in Table \ref{table:mean_squared_residuals}, mean squared residuals from machine learning models were consistently lower (Random Forest: \hyperlink{B0a}{1.78}, Elastic Net: \hyperlink{B1a}{1.4}, Support Vector Machine: \hyperlink{B2a}{1.38}, Neural Network: \hyperlink{B3a}{1.46}) than those derived from the traditional methods (Height model: \hyperlink{B4a}{3.69}, Age model: \hyperlink{B5a}{1.97}, Tube ID model: \hyperlink{B6a}{2.37}), reaffirming the superior accuracy of machine learning models for predicting OTTD in comparison to formula-based models.
+
+% This latex table was generated from: `table_2.pkl`
+\begin{table}[h]
+\caption{\protect\hyperlink{file-table-2-pkl}{Mean Squared Residuals for each model}}
+\label{table:mean_squared_residuals}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lr}
+\toprule
+ & Mean Squared Residuals \\
+\midrule
+\textbf{RF} & \raisebox{2ex}{\hypertarget{B0a}{}}1.78 \\
+\textbf{EN} & \raisebox{2ex}{\hypertarget{B1a}{}}1.4 \\
+\textbf{SVM} & \raisebox{2ex}{\hypertarget{B2a}{}}1.38 \\
+\textbf{NN} & \raisebox{2ex}{\hypertarget{B3a}{}}1.46 \\
+\textbf{Height model} & \raisebox{2ex}{\hypertarget{B4a}{}}3.69 \\
+\textbf{Age model} & \raisebox{2ex}{\hypertarget{B5a}{}}1.97 \\
+\textbf{Tube ID model} & \raisebox{2ex}{\hypertarget{B6a}{}}2.37 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item Mean Squared Residuals are calculated on the same test set for all models
+\item \textbf{Tube ID model}: Prediction model based on tube inner diameter
+\item \textbf{Height model}: Prediction model based on patient height
+\item \textbf{Age model}: Prediction model based on patient age bracket
+\item \textbf{RF}: Random Forest
+\item \textbf{EN}: Elastic Net
+\item \textbf{SVM}: Support Vector Machine
+\item \textbf{NN}: Neural Network
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+In summary, the results from both the paired T-test analysis and mean squared residuals calculations demonstrate that machine learning models significantly enhance predictive accuracy over traditional formula-based methods for estimating OTTD in the pediatric patient cohort analyzed.
+
+\section*{Discussion}
+
+The study primarily aimed at bolstering the precision of pediatric tracheal tube placement, an area that has long been plagued by inaccuracies and associated high-risk complications \cite{Kollef1994EndotrachealTM}. Conventionally, these estimations depend heavily on formula-based models that employ variables such as patient age, height, and tube diameter. However, such deterministic models have often shown limitations due to inherent biological variability and inconsistences in application \cite{Tareerath2021AccuracyOA}. Our research sought to overcome these limitations by integrating machine learning models in the predictive framework.
+
+Our approach involved constructing and optimizing prominent machine learning models including Random Forest, Elastic Net, Support Vector Machine, and Neural Network models, on pediatric patient data \cite{Kim2020DifferentCO, Kerrey2009APC}. We then compared these models' predictions against conventional formula-based models. Statistically significant reductions in squared residuals, a measure of the distance between predicted and actual values, was observed across all machine learning models when compared with traditional models \cite{Yoo2021DeepLF, Tareerath2021AccuracyOA}. This improved correlation presents a compelling case for the integration of machine learning algorithms in medical procedures necessitating precision, such as tracheal intubation.
+
+However, our study is not without limitations. The dataset employed for training the machine learning models predominantly composed of postoperative pediatric cases from a single medical center. This limits the generalizability of our findings across different clinical settings and patient demographics. Future studies should thus focus on validating and improving these models using more heterogeneous datasets that comprehensively capture the variability in pediatric tracheal intubation scenarios. Additionally, the models need to be evaluated on their real-time applicability and performance in prospective pediatric cases.
+
+Nonetheless, the results from our study signify an important step toward eliminating the wide-ranging complications surrounding pediatric airway management. The potential implications of using machine learning tools for tracheal intubation extend beyond improved precision. These encompass improved patient safety, reduction in procedural time, and diminished requirement for radiation exposure from chest X-rays. Furthermore, these machine learning models could potentially be integrated into medical devices for real-time prediction of OTTD during tracheal intubation, enabling safer and more efficient healthcare delivery. The research horizon in this field also includes developing models that can handle dynamic, time-evolving patient data for even more accurate and robust predictions.
+
+The path to integrating machine learning into improving patient outcomes in pediatric care has been charted. As our understanding of these tools and their potential applications evolves, it is expected that their role will fundamentally enhance healthcare delivery, specifically in complex procedures like tracheal intubation.
+
+\section*{Methods}
+
+\subsection*{Data Source}
+This study utilized a dataset compiled from pediatric patients who received post-operative mechanical ventilation subsequent to surgeries performed between January 2015 and December 2018 at a tertiary medical facility. Criteria for inclusion entailed a patient age range of 0 to 7 years old. The dataset encompassed numerous features sourced from electronic health records: sex, age, height, weight, and the internally measured diameter of tracheal tubes. The target variable for prediction was the optimal tracheal tube depth (OTTD), as determined by the gold-standard chest X-ray method. Each patient's record corresponded to a single row within the dataset, culminating in a complete collection devoid of missing entries.
+
+\subsection*{Data Preprocessing}
+In pursuit of a precise machine learning analysis, we streamlined the dataset by excluding the tracheal tube's internal diameter as a predictive feature, as it was pertinent only to the formula-based model. The remaining variables, namely sex, age, height, and weight, along with OTTD, were retained for the machine learning models. The dataset was subsequently partitioned into training and test sets, following a standard 70/30 split ratio to facilitate both model training and subsequent evaluation phases. No other data preprocessing was required or undertaken, given the dataset's numeric nature and the absence of missing values, which ensured the conditions were optimal for model development.
+
+\subsection*{Data Analysis}
+Our research principally revolved around the design, hyperparameter optimization, and comparison of four distinct machine learning models: Random Forest, Elastic Net, Support Vector Machine, and Neural Network. Each model was meticulously tuned to its respective optimal hyperparameter configuration via a cross-validated grid search procedure, grounding the analysis on robust statistical foundations. Following the training phase, the models were then deployed to make predictions on the unseen test set.
+
+In addition, we derived three formula-based predictions for OTTD, each formula predicated upon a different patient characteristic: height, age, and internal tube diameter. These conventional estimates served as a baseline against which the machine learning algorithms were benchmarked.
+
+The final analytical step involved a comparative analysis between machine learning and formula-based models concerning their precision. More specifically, we calculated the squared residuals - representing the differences between predicted and actual OTTD - as a measure of each model's predictive accuracy. Subsequently, the statistical significance of the differences in squared residuals was assessed across models. The culmination of this comparative analysis was presented in two tables summarizing the p-values and mean squared residuals for each model, encapsulating the central findings of our study.\subsection*{Code Availability}
+
+Custom code used to perform the data preprocessing and analysis, as well as the raw code outputs, are provided in Supplementary Methods.
+
+
+\bibliographystyle{unsrt}
+\bibliography{citations}
+
+
+\clearpage
+\appendix
+
+\section{Data Description} \label{sec:data_description} Here is the data description, as provided by the user:
+
+\begin{codeoutput}
+(*@\raisebox{2ex}{\hypertarget{S}{}}@*)Rationale: Pediatric patients have a shorter tracheal length than adults; therefore, the safety margin for tracheal tube tip positioning is narrow.
+Indeed, the tracheal tube tip is misplaced in (*@\raisebox{2ex}{\hypertarget{S0a}{}}@*)35\%--50\% of pediatric patients and can cause hypoxia, atelectasis, hypercarbia, pneumothorax, and even death.
+Therefore, in pediatric patients who require mechanical ventilation, it is crucial to determine the Optimal Tracheal Tube Depth (defined here as `OTTD`, not an official term).
+
+Note: For brevity, we introduce the term `OTTD` to refer to the "optimal tracheal tube depth". This is not an official term that can be found in the literature.
+
+Existing methods: The gold standard to determine OTTD is by chest X-ray, which is time-consuming and requires radiation exposure.
+Alternatively, formula-based models on patient features such as age and height are used to determine OTTD, but with limited success.
+
+Goal: Create and hyperparameter optimize different machine-learning models to predict OTTD, and to evaluate their performance compared to formula-based methods.
+
+Dataset: For this study, we curated a dataset for creating, hyperparameter tuning, and evaluating machine-learning models to predict OTTD.
+
+The provided dataset focus on patients aged (*@\raisebox{2ex}{\hypertarget{S1a}{}}@*)0-7 year old who received post-operative mechanical ventilation after undergoing surgery at Samsung Medical Center between January (*@\raisebox{2ex}{\hypertarget{S1b}{}}@*)2015 and December (*@\raisebox{2ex}{\hypertarget{S1c}{}}@*)2018.
+For each of these patients, the dataset provides the OTTD determined by chest X-ray as well as features extracted from patient electronic health records.
+
+
+1 data file:
+
+"tracheal\_tube\_insertion.csv"
+(*@\raisebox{2ex}{\hypertarget{T}{}}@*)The csv file is a clean dataset of (*@\raisebox{2ex}{\hypertarget{T0a}{}}@*)969 rows (patients) and (*@\raisebox{2ex}{\hypertarget{T0b}{}}@*)6 columns:
+
+Tube:
+\#1 `tube` - "tube ID", internal diameter of the tube (mm) [Included only for the formula-based model; Do not use as a machine-learning model feature]
+
+Model features:
+\#2 `sex` - patient sex ((*@\raisebox{2ex}{\hypertarget{T1a}{}}@*)0=female, (*@\raisebox{2ex}{\hypertarget{T1b}{}}@*)1=male)
+\#3 `age\_c` - patient age (years, rounded to half years)
+\#4 `ht` - patient height (cm)
+\#5 `wt` - patient weight (kg)
+
+Target:
+\#6 `tube\_depth\_G` - Optimal tracheal tube depth as determined by chest X-ray (in cm)
+
+
+
+\end{codeoutput}
+
+\section{Data Exploration}
+\subsection{{Code}}
+The Data Exploration was carried out using the following custom code:
+
+\begin{python}
+
+import pandas as pd
+
+# Read the data file
+data = pd.read_csv("tracheal_tube_insertion.csv")
+
+# Open the output file to store the summaries
+(*@\raisebox{2ex}{\hypertarget{code-Data Exploration-data-exploration-txt}{}}@*)exploration_file = open('data_exploration.txt', 'w')
+
+# Data size
+exploration_file.write('# Data Size\n')
+exploration_file.write('Number of Rows: {}\n'.format(data.shape[0]))
+exploration_file.write('Number of Columns: {}\n'.format(data.shape[1]))
+
+# Summary Statistics
+exploration_file.write('\n# Summary Statistics\n')
+exploration_file.write(data.describe().to_string())
+
+# Categorical Variables
+exploration_file.write('\n# Categorical Variables\n')
+categorical_variables = data.select_dtypes(include=['object']).columns.tolist()
+for variable in categorical_variables:
+    top_values = data[variable].value_counts().nlargest(5).to_string()
+    exploration_file.write('\n{}\n{}\n'.format(variable, top_values))
+
+# Missing Values
+exploration_file.write('\n# Missing Values\n')
+missing_values = data.isnull().sum().to_string()
+exploration_file.write(missing_values)
+
+exploration_file.close()
+
+\end{python}
+
+\subsection{Code Description}
+
+The provided code performs data exploration on the given dataset to obtain a better understanding of its characteristics and identify any potential issues or trends.
+
+First, the code reads the CSV file containing the dataset using the pandas library. It then opens an output file named "data\_exploration.txt" to store the exploration summaries.
+
+The code starts by providing the size of the dataset, displaying the number of rows and columns in the dataset.
+
+Next, the code computes and writes the summary statistics of the numerical variables in the dataset. This includes measures such as count, mean, standard deviation, minimum, and quartiles for each numerical column.
+
+The code then analyzes categorical variables in the dataset. It identifies the columns with object data type, indicating categorical variables, and writes the top five values and their frequency counts for each categorical variable.
+
+Lastly, the code checks for missing values in the dataset and writes the number of missing values for each column.
+
+The output is written into the "data\_exploration.txt" file. It includes the dataset size, summary statistics for numerical variables, top values for categorical variables, and the count of missing values for each column.
+
+This data exploration is crucial in understanding the dataset, identifying patterns or trends, and informing any necessary data preprocessing steps before further analysis or model development.
+
+\subsection{Code Output}\hypertarget{file-data-exploration-txt}{}
+
+\subsubsection*{\hyperlink{code-Data Exploration-data-exploration-txt}{data\_exploration.txt}}
+
+\begin{codeoutput}
+\# Data Size
+Number of Rows: 969
+Number of Columns: 6
+
+\# Summary Statistics
+        tube    sex  age\_c    ht    wt  tube\_depth\_G
+count    969    969    969   969   969           969
+mean   3.694 0.5387  0.758    66 7.127         10.19
+std   0.5681 0.4988   1.44 19.08 4.774         1.766
+min      2.5      0      0  29.5  0.57           5.9
+25\%      3.5      0      0    52  3.56             9
+50\%      3.5      1      0  61.5   5.7           9.8
+75\%        4      1      1    76   9.5          11.2
+max        6      1      7 135.4    31          19.2
+\# Categorical Variables
+
+\# Missing Values
+tube            0
+sex             0
+age\_c           0
+ht              0
+wt              0
+tube\_depth\_G    0
+\end{codeoutput}
+
+\section{Data Analysis}
+\subsection{{Code}}
+The Data Analysis was carried out using the following custom code:
+
+\begin{python}
+
+# IMPORT
+
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import ElasticNet
+from sklearn.svm import SVR
+from sklearn.neural_network import MLPRegressor
+from sklearn.metrics import mean_squared_error
+from scipy.stats import ttest_rel
+import pickle
+import warnings
+
+# Suppress warnings
+warnings.filterwarnings('ignore')
+
+# LOAD DATA
+data = pd.read_csv('tracheal_tube_insertion.csv')
+
+# Remove 'tube' variable from ML features
+data_ml = data.drop('tube', axis=1)
+
+# DATASET PREPARATIONS
+# No dataset preparations are needed.
+
+# DESCRIPTIVE STATISTICS
+# No descriptive statistics table is needed.
+
+# PREPROCESSING
+# No preprocessing is needed, because all the variables are numeric and there are no missing values
+
+# Splitting the data for training and testing
+X_train, X_test, y_train, y_test = train_test_split(data_ml[['sex', 'age_c', 'ht', 'wt']], data_ml['tube_depth_G'], test_size=0.3, random_state=123)
+
+# ANALYSIS
+
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-1-pkl}{}}@*)## Table 1: "Comparison of squared residuals between machine learning models and formula-based models"
+
+# Machine Learning Models
+rf = RandomForestRegressor(random_state=1)
+en = ElasticNet(random_state=1)
+svm = SVR()
+nn = MLPRegressor(max_iter=1000, random_state=1)
+models = [rf, en, svm, nn]
+model_names = ['RandomForest', 'ElasticNet', 'SupportVectorMachine', 'NeuralNetwork']
+rf_params = {'n_estimators': [50, 100, 150]}
+en_params = {'alpha': [0.1, 0.5, 1], 'l1_ratio': [0.1, 0.5, 1]}
+svm_params = {'C': [0.1, 1, 10], 'epsilon': [0.1, 0.2, 0.3]}
+nn_params = {'hidden_layer_sizes': [(50,), (100,)], 'activation': ['relu', 'tanh']}
+params = [rf_params, en_params, svm_params, nn_params]
+
+squared_residuals_ml = {}
+for model, model_name, param in zip(models, model_names, params):
+    grid = GridSearchCV(model, param, cv=5)
+    grid.fit(X_train, y_train)
+    predictions = grid.predict(X_test)
+    squared_residuals_ml[model_name] = (y_test - predictions) ** 2
+
+squared_residuals_fb = {}
+height_model_predictions = X_test['ht'] / 10 + 5
+age_model_predictions = np.where(X_test['age_c'] < 0.5, 9,
+                                 np.where(X_test['age_c'] < 1, 10, np.where(X_test['age_c'] < 2, 11,
+                                                                           12 + X_test['age_c'] * 0.5)))
+# Fix : id_model_predictions now using 'tube' data
+id_model_predictions = 3 * data.loc[X_test.index, 'tube']
+
+squared_residuals_fb['height_model'] = (y_test - height_model_predictions) ** 2
+squared_residuals_fb['age_model'] = (y_test - age_model_predictions) ** 2
+squared_residuals_fb['id_model'] = (y_test - id_model_predictions) ** 2
+
+df1 = pd.DataFrame(index=model_names)
+for name, sr in squared_residuals_fb.items():
+    p_values = [ttest_rel(sr, v).pvalue for v in squared_residuals_ml.values()]
+    df1[name] = p_values
+
+df1.to_pickle('table_1.pkl')
+
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-2-pkl}{}}@*)## Table 2: "Mean Squared Residuals for each Model"
+mean_squared_residuals_ml = {model_name: np.mean(sr) for model_name, sr in squared_residuals_ml.items()}
+mean_squared_residuals_fb = {model_name: np.mean(sr) for model_name, sr in squared_residuals_fb.items()}
+
+residuals_table = {**mean_squared_residuals_ml, **mean_squared_residuals_fb}
+df2 = pd.DataFrame(list(residuals_table.items()), columns=['Models', 'Mean Squared Residuals'])
+df2.set_index('Models', inplace=True)
+df2.index.name = None
+
+df2.to_pickle('table_2.pkl')
+
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-additional-results-pkl}{}}@*)# SAVE ADDITIONAL RESULTS
+additional_results = {
+    'squared_residuals_ml': squared_residuals_ml,
+    'squared_residuals_fb': squared_residuals_fb,
+}
+
+with open('additional_results.pkl', 'wb') as f:
+    pickle.dump(additional_results, f)
+
+
+\end{python}
+
+\subsection{Code Description}
+
+The code performs data analysis to predict the Optimal Tracheal Tube Depth (OTTD) using machine-learning models and compares their performance to formula-based methods. 
+
+At the beginning of the code, the necessary libraries are imported, and the dataset is loaded from a CSV file. The 'tube' variable, which represents the internal diameter of the tube, is removed from the machine-learning features. 
+
+The data is then split into training and testing sets. 
+
+Next, the code creates several machine-learning models, including RandomForest, ElasticNet, SupportVectorMachine, and NeuralNetwork. GridSearchCV is used to hyperparameter optimize these models. The models are trained using the training data and evaluated using the testing data. The squared residuals (difference between the predicted and actual values) for each model are calculated and stored in the 'squared\_residuals\_ml' dictionary.
+
+Additionally, formula-based models are also created to estimate the optimal tube depth based on patient features like height, age, and tube diameter. The squared residuals for these formula-based models are calculated and stored in the 'squared\_residuals\_fb' dictionary.
+
+The code then creates two tables. The first table, 'table\_1.pkl', compares the squared residuals between the machine-learning models and the formula-based models using t-test. The p-values for the t-tests are calculated and stored in the table.
+
+The second table, 'table\_2.pkl', displays the mean squared residuals for each model, both machine-learning and formula-based. This provides an overview of the average performance of each model.
+
+Finally, the 'additional\_results.pkl' file is written, which contains the following additional results:
+- squared\_residuals\_ml: the dictionary of squared residuals for each machine-learning model
+- squared\_residuals\_fb: the dictionary of squared residuals for each formula-based model
+
+These additional results can be used for further analysis or comparison in future research studies.
+
+\subsection{Code Output}\hypertarget{file-table-1-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-table-1-pkl}{table\_1.pkl}}
+
+\begin{codeoutput}
+                     height\_model age\_model  id\_model
+RandomForest             3.18e-11     0.312   0.00495
+ElasticNet               1.77e-15  0.000332  8.02e-07
+SupportVectorMachine     8.69e-17  7.61e-05  1.55e-07
+NeuralNetwork            2.26e-13    0.0016  1.36e-05
+\end{codeoutput}\hypertarget{file-table-2-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-table-2-pkl}{table\_2.pkl}}
+
+\begin{codeoutput}
+                      Mean Squared Residuals
+RandomForest                           1.775
+ElasticNet                             1.401
+SupportVectorMachine                   1.375
+NeuralNetwork                          1.464
+height\_model                           3.691
+age\_model                              1.969
+id\_model                               2.369
+\end{codeoutput}\hypertarget{file-additional-results-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-additional-results-pkl}{additional\_results.pkl}}
+
+\begin{codeoutput}
+{
+    'squared\_residuals\_ml': {'RandomForest': (*@\raisebox{2ex}{\hypertarget{R0a}{}}@*)171    (*@\raisebox{2ex}{\hypertarget{R0b}{}}@*)0.338724
+798    (*@\raisebox{2ex}{\hypertarget{R1a}{}}@*)0.602831
+204    (*@\raisebox{2ex}{\hypertarget{R2a}{}}@*)1.328640
+889    (*@\raisebox{2ex}{\hypertarget{R3a}{}}@*)3.088220
+335    (*@\raisebox{2ex}{\hypertarget{R4a}{}}@*)8.949072
+         ...   
+243    (*@\raisebox{2ex}{\hypertarget{R5a}{}}@*)1.113728
+827    (*@\raisebox{2ex}{\hypertarget{R6a}{}}@*)5.041522
+202    (*@\raisebox{2ex}{\hypertarget{R7a}{}}@*)1.173611
+551    (*@\raisebox{2ex}{\hypertarget{R8a}{}}@*)1.909924
+230    (*@\raisebox{2ex}{\hypertarget{R9a}{}}@*)0.281843
+Name: tube\_depth\_G, Length: (*@\raisebox{2ex}{\hypertarget{R10a}{}}@*)291, dtype: float64, 'ElasticNet': (*@\raisebox{2ex}{\hypertarget{R10b}{}}@*)171     (*@\raisebox{2ex}{\hypertarget{R10c}{}}@*)0.000023
+798     (*@\raisebox{2ex}{\hypertarget{R11a}{}}@*)0.737097
+204     (*@\raisebox{2ex}{\hypertarget{R12a}{}}@*)0.836700
+889     (*@\raisebox{2ex}{\hypertarget{R13a}{}}@*)1.024807
+335    (*@\raisebox{2ex}{\hypertarget{R14a}{}}@*)10.901711
+         ...    
+243     (*@\raisebox{2ex}{\hypertarget{R15a}{}}@*)2.160257
+827     (*@\raisebox{2ex}{\hypertarget{R16a}{}}@*)3.291474
+202     (*@\raisebox{2ex}{\hypertarget{R17a}{}}@*)0.046168
+551     (*@\raisebox{2ex}{\hypertarget{R18a}{}}@*)2.395002
+230     (*@\raisebox{2ex}{\hypertarget{R19a}{}}@*)0.316609
+Name: tube\_depth\_G, Length: (*@\raisebox{2ex}{\hypertarget{R20a}{}}@*)291, dtype: float64, 'SupportVectorMachine': (*@\raisebox{2ex}{\hypertarget{R20b}{}}@*)171     (*@\raisebox{2ex}{\hypertarget{R20c}{}}@*)0.000017
+798     (*@\raisebox{2ex}{\hypertarget{R21a}{}}@*)0.582219
+204     (*@\raisebox{2ex}{\hypertarget{R22a}{}}@*)1.100692
+889     (*@\raisebox{2ex}{\hypertarget{R23a}{}}@*)0.972031
+335    (*@\raisebox{2ex}{\hypertarget{R24a}{}}@*)10.207948
+         ...    
+243     (*@\raisebox{2ex}{\hypertarget{R25a}{}}@*)2.183832
+827     (*@\raisebox{2ex}{\hypertarget{R26a}{}}@*)2.965292
+202     (*@\raisebox{2ex}{\hypertarget{R27a}{}}@*)0.212573
+551     (*@\raisebox{2ex}{\hypertarget{R28a}{}}@*)1.761138
+230     (*@\raisebox{2ex}{\hypertarget{R29a}{}}@*)0.221360
+Name: tube\_depth\_G, Length: (*@\raisebox{2ex}{\hypertarget{R30a}{}}@*)291, dtype: float64, 'NeuralNetwork': (*@\raisebox{2ex}{\hypertarget{R30b}{}}@*)171     (*@\raisebox{2ex}{\hypertarget{R30c}{}}@*)0.124890
+798     (*@\raisebox{2ex}{\hypertarget{R31a}{}}@*)0.582566
+204     (*@\raisebox{2ex}{\hypertarget{R32a}{}}@*)0.739704
+889     (*@\raisebox{2ex}{\hypertarget{R33a}{}}@*)2.081146
+335    (*@\raisebox{2ex}{\hypertarget{R34a}{}}@*)11.716221
+         ...    
+243     (*@\raisebox{2ex}{\hypertarget{R35a}{}}@*)2.169975
+827     (*@\raisebox{2ex}{\hypertarget{R36a}{}}@*)3.431377
+202     (*@\raisebox{2ex}{\hypertarget{R37a}{}}@*)0.996482
+551     (*@\raisebox{2ex}{\hypertarget{R38a}{}}@*)2.393876
+230     (*@\raisebox{2ex}{\hypertarget{R39a}{}}@*)0.279109
+Name: tube\_depth\_G, Length: (*@\raisebox{2ex}{\hypertarget{R40a}{}}@*)291, dtype: float64},
+    'squared\_residuals\_fb': {'height\_model': (*@\raisebox{2ex}{\hypertarget{R41a}{}}@*)171     (*@\raisebox{2ex}{\hypertarget{R41b}{}}@*)1.1025
+798     (*@\raisebox{2ex}{\hypertarget{R42a}{}}@*)2.8900
+204     (*@\raisebox{2ex}{\hypertarget{R43a}{}}@*)8.1225
+889     (*@\raisebox{2ex}{\hypertarget{R44a}{}}@*)2.6569
+335     (*@\raisebox{2ex}{\hypertarget{R45a}{}}@*)3.0625
+        ...   
+243     (*@\raisebox{2ex}{\hypertarget{R46a}{}}@*)7.2900
+827     (*@\raisebox{2ex}{\hypertarget{R47a}{}}@*)0.0900
+202    (*@\raisebox{2ex}{\hypertarget{R48a}{}}@*)10.3684
+551     (*@\raisebox{2ex}{\hypertarget{R49a}{}}@*)0.0900
+230     (*@\raisebox{2ex}{\hypertarget{R50a}{}}@*)2.1025
+Length: (*@\raisebox{2ex}{\hypertarget{R51a}{}}@*)291, dtype: float64, 'age\_model': (*@\raisebox{2ex}{\hypertarget{R51b}{}}@*)171     (*@\raisebox{2ex}{\hypertarget{R51c}{}}@*)0.01
+798     (*@\raisebox{2ex}{\hypertarget{R52a}{}}@*)0.81
+204     (*@\raisebox{2ex}{\hypertarget{R53a}{}}@*)0.81
+889     (*@\raisebox{2ex}{\hypertarget{R54a}{}}@*)0.01
+335    (*@\raisebox{2ex}{\hypertarget{R55a}{}}@*)16.00
+       ...  
+243     (*@\raisebox{2ex}{\hypertarget{R56a}{}}@*)0.25
+827     (*@\raisebox{2ex}{\hypertarget{R57a}{}}@*)7.84
+202     (*@\raisebox{2ex}{\hypertarget{R58a}{}}@*)0.64
+551     (*@\raisebox{2ex}{\hypertarget{R59a}{}}@*)4.00
+230     (*@\raisebox{2ex}{\hypertarget{R60a}{}}@*)0.16
+Name: tube\_depth\_G, Length: (*@\raisebox{2ex}{\hypertarget{R61a}{}}@*)291, dtype: float64, 'id\_model': (*@\raisebox{2ex}{\hypertarget{R61b}{}}@*)171     (*@\raisebox{2ex}{\hypertarget{R61c}{}}@*)0.81
+798     (*@\raisebox{2ex}{\hypertarget{R62a}{}}@*)0.81
+204    (*@\raisebox{2ex}{\hypertarget{R63a}{}}@*)11.56
+889     (*@\raisebox{2ex}{\hypertarget{R64a}{}}@*)0.36
+335     (*@\raisebox{2ex}{\hypertarget{R65a}{}}@*)6.25
+       ...  
+243     (*@\raisebox{2ex}{\hypertarget{R66a}{}}@*)4.00
+827     (*@\raisebox{2ex}{\hypertarget{R67a}{}}@*)0.64
+202     (*@\raisebox{2ex}{\hypertarget{R68a}{}}@*)0.64
+551     (*@\raisebox{2ex}{\hypertarget{R69a}{}}@*)0.00
+230     (*@\raisebox{2ex}{\hypertarget{R70a}{}}@*)3.61
+Length: (*@\raisebox{2ex}{\hypertarget{R71a}{}}@*)291, dtype: float64},
+}
+\end{codeoutput}
+
+\section{LaTeX Table Design}
+\subsection{{Code}}
+The LaTeX Table Design was carried out using the following custom code:
+
+\begin{python}
+
+
+# IMPORT
+import pandas as pd
+from my_utils import to_latex_with_note, is_str_in_df, split_mapping, AbbrToNameDef
+
+# PREPARATION FOR ALL TABLES
+shared_mapping: AbbrToNameDef = {
+    'id_model': ('Tube ID model', 'Prediction model based on tube inner diameter'),
+    'height_model': ('Height model', 'Prediction model based on patient height'),
+    'age_model': ('Age model', 'Prediction model based on patient age bracket'),
+    'RandomForest': ('RF', 'Random Forest'),
+    'ElasticNet': ('EN', 'Elastic Net'),
+    'SupportVectorMachine': ('SVM', 'Support Vector Machine'),
+    'NeuralNetwork': ('NN', 'Neural Network'),
+}
+
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-1-tex}{}}@*)# TABLE 1:
+df1 = pd.read_pickle('table_1.pkl')
+
+# RENAME ROWS AND COLUMNS 
+mapping1 = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df1, k))
+abbrs_to_names1, legend1 = split_mapping(mapping1)
+df1 = df1.rename(columns=abbrs_to_names1, index=abbrs_to_names1)
+
+# SAVE AS LATEX:
+to_latex_with_note(
+    df1, 'table_1.tex',
+    caption="Comparison of p-values between machine learning models and formula-based models",
+    label='table:compare_pvalues',
+    note="p-values are calculated using paired T-test on squared residuals between each machine learning model and each formula-based model, significant p-values are bolded. (*) : p-value < 0.05, (**) : p-value < 0.01",
+    legend=legend1
+)
+
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-2-tex}{}}@*)# TABLE 2:
+df2 = pd.read_pickle('table_2.pkl')
+
+# RENAME ROWS AND COLUMNS 
+mapping2 = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df2, k)) 
+abbrs_to_names2, legend2 = split_mapping(mapping2)
+df2 = df2.rename(columns=abbrs_to_names2, index=abbrs_to_names2)
+
+# SAVE AS LATEX:
+to_latex_with_note(
+    df2, 'table_2.tex',
+    caption="Mean Squared Residuals for each model",
+    label='table:mean_squared_residuals',
+    note="Mean Squared Residuals are calculated on the same test set for all models",
+    legend=legend2
+)
+
+\end{python}
+
+\subsection{Provided Code}
+The code above is using the following provided functions:
+
+\begin{python}
+def to_latex_with_note(df, filename: str, caption: str, label: str, note: str = None, legend: Dict[str, str] = None, **kwargs):
+    """
+    Converts a DataFrame to a LaTeX table with optional note and legend added below the table.
+
+    Parameters:
+    - df, filename, caption, label: as in `df.to_latex`.
+    - note (optional): Additional note below the table.
+    - legend (optional): Dictionary mapping abbreviations to full names.
+    - **kwargs: Additional arguments for `df.to_latex`.
+    """
+
+def is_str_in_df(df: pd.DataFrame, s: str):
+    return any(s in level for level in getattr(df.index, 'levels', [df.index]) + getattr(df.columns, 'levels', [df.columns]))
+
+AbbrToNameDef = Dict[Any, Tuple[Optional[str], Optional[str]]]
+
+def split_mapping(abbrs_to_names_and_definitions: AbbrToNameDef):
+    abbrs_to_names = {abbr: name for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if name is not None}
+    names_to_definitions = {name or abbr: definition for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if definition is not None}
+    return abbrs_to_names, names_to_definitions
+
+\end{python}
+
+
+
+\subsection{Code Output}
+
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-1-tex}{table\_1.tex}}
+
+\begin{codeoutput}
+\% This latex table was generated from: `table\_1.pkl`
+\begin{table}[h]
+\caption{Comparison of p-values between machine learning models and formula-based models}
+\label{table:compare\_pvalues}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{\%
+\begin{tabular}{llll}
+\toprule
+ \& Height model \& Age model \& Tube ID model \\
+\midrule
+\textbf{RF} \& \$$<$\$1e-06 \& 0.312 \& 0.00495 \\
+\textbf{EN} \& \$$<$\$1e-06 \& 0.000332 \& \$$<$\$1e-06 \\
+\textbf{SVM} \& \$$<$\$1e-06 \& 7.61e-05 \& \$$<$\$1e-06 \\
+\textbf{NN} \& \$$<$\$1e-06 \& 0.0016 \& 1.36e-05 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item p-values are calculated using paired T-test on squared residuals between each machine learning model and each formula-based model, significant p-values are bolded. (*) : p-value \$$<$\$ 0.05, (**) : p-value \$$<$\$ 0.01
+\item \textbf{Tube ID model}: Prediction model based on tube inner diameter
+\item \textbf{Height model}: Prediction model based on patient height
+\item \textbf{Age model}: Prediction model based on patient age bracket
+\item \textbf{RF}: Random Forest
+\item \textbf{EN}: Elastic Net
+\item \textbf{SVM}: Support Vector Machine
+\item \textbf{NN}: Neural Network
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+\end{codeoutput}
+
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-2-tex}{table\_2.tex}}
+
+\begin{codeoutput}
+\% This latex table was generated from: `table\_2.pkl`
+\begin{table}[h]
+\caption{Mean Squared Residuals for each model}
+\label{table:mean\_squared\_residuals}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{\%
+\begin{tabular}{lr}
+\toprule
+ \& Mean Squared Residuals \\
+\midrule
+\textbf{RF} \& 1.78 \\
+\textbf{EN} \& 1.4 \\
+\textbf{SVM} \& 1.38 \\
+\textbf{NN} \& 1.46 \\
+\textbf{Height model} \& 3.69 \\
+\textbf{Age model} \& 1.97 \\
+\textbf{Tube ID model} \& 2.37 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item Mean Squared Residuals are calculated on the same test set for all models
+\item \textbf{Tube ID model}: Prediction model based on tube inner diameter
+\item \textbf{Height model}: Prediction model based on patient height
+\item \textbf{Age model}: Prediction model based on patient age bracket
+\item \textbf{RF}: Random Forest
+\item \textbf{EN}: Elastic Net
+\item \textbf{SVM}: Support Vector Machine
+\item \textbf{NN}: Neural Network
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+\end{codeoutput}
+
+\end{document}

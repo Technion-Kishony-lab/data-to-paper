@@ -1,0 +1,8 @@
+```markdown
+## Hypothesis:
+Each of the 4 machine learning models will have significantly better predictive power than each of the formula-based models
+## Test:
+Paired t-test comparing the squared residuals of each machine learning model with the squared residuals of the corresponding formula-based model, with adjustment for multiple comparisons using a Bonferroni correction.
+
+
+```
