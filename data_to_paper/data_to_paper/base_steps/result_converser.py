@@ -370,22 +370,21 @@ class ResultConverser(Converser):
                 self_response = self_message.content
 
             # check if the response is valid:
-            self._app_set_panel_status(PanelNames.FEEDBACK, 'Rule-based check ...')
-            self._app_send_prompt(PanelNames.FEEDBACK)
-            response_error = None
-            extracted_text = None
-            try:
-                with self._is_extracting.temporary_set(True):
-                    extracted_text = self._check_response_and_get_extracted_text(self_response)
-            except SelfResponseError as e:
-                response_error = e
-            if not response_error:
+            with self._app_with_set_panel_status(PanelNames.FEEDBACK, 'Rule-based check ...'):
+                self._app_send_prompt(PanelNames.FEEDBACK)
+                response_error = None
+                extracted_text = None
                 try:
-                    self._check_extracted_text_and_update_valid_result(extracted_text)
+                    with self._is_extracting.temporary_set(True):
+                        extracted_text = self._check_response_and_get_extracted_text(self_response)
                 except SelfResponseError as e:
                     response_error = e
-            is_new_valid_result = self._valid_result_update_count > initial_valid_result_update_count
-            self._app_set_panel_status(PanelNames.FEEDBACK)
+                if not response_error:
+                    try:
+                        self._check_extracted_text_and_update_valid_result(extracted_text)
+                    except SelfResponseError as e:
+                        response_error = e
+                is_new_valid_result = self._valid_result_update_count > initial_valid_result_update_count
             if not is_preexisting_self_response:
                 self.apply_append_surrogate_message(
                     content=(self_response if extracted_text is None or not alter_web_response

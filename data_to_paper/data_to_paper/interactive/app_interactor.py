@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from typing import Optional, Dict, Union, Iterable
 
@@ -81,6 +82,16 @@ class AppInteractor:
         if self.app is None:
             return
         self.app.set_status(panel_name, 1, status)
+
+    @contextmanager
+    def _app_with_set_panel_status(self, panel_name: PanelNames, status: str = ''):
+        if self.app is None:
+            yield
+            return
+        current_status = self.app.get_status(panel_name, 1)
+        self._app_set_panel_status(panel_name, status)
+        yield
+        self._app_set_panel_status(panel_name, current_status)
 
     def _app_set_panel_header(self, panel_name: PanelNames, header: str):
         if self.app is None:

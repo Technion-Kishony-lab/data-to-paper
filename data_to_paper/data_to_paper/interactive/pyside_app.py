@@ -223,9 +223,9 @@ class Panel(QWidget):
         else:
             self.header_right_label = None
 
-    def set_header(self, text: str):
-        self.header = text
-        self.header_label.setText(text)
+    def set_header(self, header: str):
+        self.header = header
+        self.header_label.setText(header)
 
     def set_header_right(self, text: str):
         if self.header_right_label is None:
@@ -474,7 +474,7 @@ class PysideApp(QMainWindow, BaseApp):
         self.set_focus_on_panel = self.worker.worker_set_focus_on_panel
         self.advance_stage = self.worker.worker_advance_stage
         self.send_product_of_stage = self.worker.worker_send_product_of_stage
-        self.set_status = self.worker.worker_set_status
+        self._set_status = self.worker.worker_set_status
         self.set_header = self.worker.worker_set_header
         self.request_continue = self.worker.worker_request_continue
 

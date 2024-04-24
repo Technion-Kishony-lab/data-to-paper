@@ -262,15 +262,14 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                 if not formatted_code_review_prompt:
                     continue
                 self._app_send_prompt(PanelNames.FEEDBACK)
-                self._app_set_panel_status(PanelNames.FEEDBACK, 'LLM Code Reviewer ...')
-                issues_to_solutions = RequestIssuesToSolutions.from_(
-                    self,
-                    model_engine=self.model_engine,
-                    background_product_fields_to_hide=self.background_product_fields_to_hide_during_code_revision,
-                    mission_prompt=formatted_code_review_prompt,
-                    app=None,
-                ).run_and_get_valid_result(with_review=False)
-                self._app_set_panel_status(PanelNames.FEEDBACK)
+                with self._app_with_set_panel_status(PanelNames.FEEDBACK, 'Waiting for LLM Code Review ...'):
+                    issues_to_solutions = RequestIssuesToSolutions.from_(
+                        self,
+                        model_engine=self.model_engine,
+                        background_product_fields_to_hide=self.background_product_fields_to_hide_during_code_revision,
+                        mission_prompt=formatted_code_review_prompt,
+                        app=None,
+                    ).run_and_get_valid_result(with_review=False)
                 termination_phrase = 'Looks good - no changes needed.'
                 if issues_to_solutions:
                     ai_issues = '\n\n'.join(f'- {issue}:\n{solution}'
@@ -284,7 +283,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                     # or if it is None and this is the final review
                     human_response = self._app_receive_text(
                         PanelNames.FEEDBACK, '',
-                        title='Your feedback on code and output.',
+                        title='Your feedback on code and output. Blank if no issues.',
                         optional_suggestions={'AI': ai_issues,
                                               'Default': termination_phrase})
                 else:

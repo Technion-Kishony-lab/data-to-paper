@@ -129,35 +129,35 @@ class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
         html = f'<h2>Querying Citations</h2>'
         html += f'<p>Searching "{server_name}" ' \
                 f'for papers related to our study in the following areas:</p>'
-        self._app_set_panel_status(PanelNames.FEEDBACK, 'Querying citations...')
-        for scope, queries in scopes_to_list_of_queries.items():
-            queries_to_citations = {}
-            html += f'<h3>{scope.title()}-related queries:</h3>'
-            for query in queries:
-                citations = SEMANTIC_SCHOLAR_SERVER_CALLER.get_server_response(query,
-                                                                               rows=self.number_of_papers_per_query)
-                num_citations = len(citations)
-                html += (f'<p><b style="color: #1E90FF;">Query:</b> "{query}". '
-                         f'Found: <b style="color: #1E90FF;">{num_citations} citations.</b></p>')
-                self._app_send_prompt(PanelNames.FEEDBACK, html, provided_as_html=True)
-                self.comment(f'\nQuerying Semantic Scholar. '
-                             f'Found {num_citations} / {self.number_of_papers_per_query} citations. '
-                             f'Query: "{query}".')
-                if self.excluded_citation_titles is not None:
-                    excluded_citations = [citation for citation in citations
-                                          if citation['title'] in self.excluded_citation_titles]
-                    if excluded_citations:
-                        print_and_log_red(
-                            f'The following citations specified in the excluded citation list were excluded:\n')
-                        for citation in excluded_citations:
-                            print_and_log_red(f'{citation}\n\n')
-                        citations = QueryCitationCollectionProduct(
-                            query=query,
-                            value=[citation for citation in citations if citation not in excluded_citations])
+        with self._app_with_set_panel_status(PanelNames.FEEDBACK, 'Querying citations...'):
+            for scope, queries in scopes_to_list_of_queries.items():
+                queries_to_citations = {}
+                html += f'<h3>{scope.title()}-related queries:</h3>'
+                for query in queries:
+                    citations = SEMANTIC_SCHOLAR_SERVER_CALLER.get_server_response(query,
+                                                                                   rows=self.number_of_papers_per_query)
+                    num_citations = len(citations)
+                    html += (f'<p><b style="color: #1E90FF;">Query:</b> "{query}". '
+                             f'Found: <b style="color: #1E90FF;">{num_citations} citations.</b></p>')
+                    self._app_send_prompt(PanelNames.FEEDBACK, html, provided_as_html=True)
+                    self.comment(f'\nQuerying Semantic Scholar. '
+                                 f'Found {num_citations} / {self.number_of_papers_per_query} citations. '
+                                 f'Query: "{query}".')
+                    if self.excluded_citation_titles is not None:
+                        excluded_citations = [citation for citation in citations
+                                              if citation['title'] in self.excluded_citation_titles]
+                        if excluded_citations:
+                            print_and_log_red(
+                                f'The following citations specified in the excluded citation list were excluded:\n')
+                            for citation in excluded_citations:
+                                print_and_log_red(f'{citation}\n\n')
+                            citations = QueryCitationCollectionProduct(
+                                query=query,
+                                value=[citation for citation in citations if citation not in excluded_citations])
 
-                queries_to_citations[query] = citations
+                    queries_to_citations[query] = citations
 
-            literature_search[scope] = queries_to_citations
+                literature_search[scope] = queries_to_citations
 
         # Calculate embedding vector
         if self.get_title() is not None and self.get_abstract() is not None:
