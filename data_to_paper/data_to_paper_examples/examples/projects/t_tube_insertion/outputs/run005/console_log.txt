@@ -207,7 +207,7 @@ Also, the cript checks for unexisting (empty) categorical variables. If found, t
 Applicable'.[0m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<6> - <-1> [1 MESSAGES]) -> Data Exploration Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -305,7 +305,7 @@ Now you should be able to run this python script and it will generate a file nam
 information.[0m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<5> - <-1> [4 MESSAGES]) -> Data Exploration Code[0m
 
 [31mAppendMessage, Adding the debugged code as if it was the original response.[0m
@@ -1258,7 +1258,7 @@ models, calculates the residuals of each model's predictions comparing to the tr
 additional results such as the total number of observations and each machine learning model's mean squared error on test data.[0m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<12> - <-1> [1 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -1438,7 +1438,7 @@ Here is the modified code to address the issues:
 [38;5;197m+[39m[38;5;15mdf1[39m[38;5;15m[[39m[38;5;186m'[39m[38;5;186mp_value[39m[38;5;186m'[39m[38;5;15m][39m[38;5;15m [39m[38;5;197m=[39m[38;5;15m [39m[38;5;15mp_values[39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mAppendMessage, Debug iteration 2/20: Runtime exception in code[0m
 [32m[16] ---- USER {Debugger} -> "Data Analysis Code"  ---------------------------------------------------------------------------------------------------
 [0m[32mI ran the code and got the following error message:
@@ -1545,7 +1545,7 @@ Here is the corrected code:
 [38;5;197m+[39m[38;5;15mdf1[39m[38;5;15m[[39m[38;5;186m'[39m[38;5;186mp_value[39m[38;5;186m'[39m[38;5;15m][39m[38;5;15m [39m[38;5;197m=[39m[38;5;15m [39m[38;5;15mp_values[39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<12> - <-1> [5 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -1715,7 +1715,7 @@ Sure, here is the corrected code with exact names for t-test result access:
 [38;5;197m+[39m[38;5;15m    [39m[38;5;15mp_values[39m[38;5;197m.[39m[38;5;15mappend[39m[38;5;15m([39m[38;5;15mt_test_result[39m[38;5;197m.[39m[38;5;15mpvalue[39m[38;5;15m)[39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mAppendMessage, Debug iteration 4/20: Runtime exception in code[0m
 [32m[16] ---- USER {Debugger} -> "Data Analysis Code"  ---------------------------------------------------------------------------------------------------
 [0m[32mI ran the code and got the following error message:
@@ -1864,7 +1864,7 @@ An important note: The above code writes only one pickle file for the residuals 
 more tables, ensuring each table gets a separate file.[0m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<11> - <-1> [6 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Adding the debugged code as if it was the original response.[0m
@@ -2212,7 +2212,7 @@ Alright, let's correct the script accordingly:
 The above script corrects the issues mentioned. All hyperparameters are tuned adequately and report is added into the additional_results.pkl file.[0m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<11> - <-1> [4 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Adding the debugged code as if it was the original response.[0m
@@ -2657,7 +2657,7 @@ Here is your corrected Python code:
 [38;5;197m+[39m[38;5;15m    [39m[38;5;15m}[39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<11> - <-1> [4 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Adding the debugged code as if it was the original response.[0m
@@ -3362,7 +3362,7 @@ CONTEXT TOTAL (3446 tokens):
 [38;5;15m    [39m[38;5;15mlegend[39m[38;5;197m=[39m[38;5;15mlegend1[39m[38;5;15m)[39m
 [36m======================================================================================================================================================[0m
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 [31mDeleteMessages(<12> - <-1> [1 MESSAGES]) -> LaTeX Table Design Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -3615,7 +3615,7 @@ Here is the updated Python code with narrower table labels:
 This revised code shortens the dataset row labels. This change allows your LaTeX table to correctly fit within the margins of your document.[0m
 [36m======================================================================================================================================================[0m
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 [31mDeleteMessages(<12> - <-1> [3 MESSAGES]) -> LaTeX Table Design Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -3738,7 +3738,7 @@ instead of assigning directly to `index`. It retains the functionality of loadin
 scientific full names, providing definitions in the legend and saving the modified DataFrame as a LaTeX file.[0m
 [36m======================================================================================================================================================[0m
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 [31mDeleteMessages(<12> - <-1> [3 MESSAGES]) -> LaTeX Table Design Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -3832,7 +3832,7 @@ I apologize for the oversight on the table label format. I have revised and corr
 [38;5;197m+[39m[38;5;15m    [39m[38;5;15mlabel[39m[38;5;197m=[39m[38;5;186m'[39m[38;5;186mtable:comparison[39m[38;5;186m'[39m[38;5;15m,[39m
 [36m======================================================================================================================================================[0m
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 [31mDeleteMessages(<12> - <-1> [3 MESSAGES]) -> LaTeX Table Design Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -3927,7 +3927,7 @@ Sure, I have revised the code by removing the character "_" from the index label
 [38;5;197m+[39m[38;5;15mdf1[39m[38;5;15m [39m[38;5;197m=[39m[38;5;15m [39m[38;5;15mdf1[39m[38;5;197m.[39m[38;5;15mrename[39m[38;5;15m([39m[38;5;15mindex[39m[38;5;197m=[39m[38;5;81mlambda[39m[38;5;15m [39m[38;5;15mx[39m[38;5;15m:[39m[38;5;15m [39m[38;5;15mx[39m[38;5;197m.[39m[38;5;15mreplace[39m[38;5;15m([39m[38;5;186m"[39m[38;5;186m_[39m[38;5;186m"[39m[38;5;15m,[39m[38;5;15m [39m[38;5;186m"[39m[38;5;186m [39m[38;5;186m"[39m[38;5;15m)[39m[38;5;197m.[39m[38;5;15mreplace[39m[38;5;15m([39m[38;5;186m"[39m[38;5;186m vs height formula[39m[38;5;186m"[39m[38;5;15m,[39m[38;5;15m [39m[38;5;186m"[39m[38;5;186m vs Height[39m[38;5;186m"[39m[38;5;15m)[39m[38;5;197m.[39m[38;5;15mreplace[39m[38;5;15m([39m[38;5;186m"[39m[38;5;186m vs age formula[39m[38;5;186m"[39m[38;5;15m,[39m[38;5;15m [39m[38;5;186m"[39m[38;5;186m vs Age[39m[38;5;186m"[39m[38;5;15m)[39m[38;5;197m.[39m[38;5;15mreplace[39m[38;5;15m([39m[38;5;186m"[39m[38;5;186m vs id formula[39m[38;5;186m"[39m[38;5;15m,[39m[38;5;15m [39m[38;5;186m"[39m[38;5;186m vs ID[39m[38;5;186m"[39m[38;5;15m)[39m[38;5;15m)[39m
 [36m======================================================================================================================================================[0m
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 [31mDeleteMessages(<11> - <-1> [4 MESSAGES]) -> LaTeX Table Design Code[0m
 
 [31mAppendMessage, Adding the debugged code as if it was the original response.[0m
