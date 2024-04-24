@@ -49,6 +49,25 @@ def _write_files(filenames):
         _write_file(fname, content)
 
 
+from traceback import FrameSummary
+
+
+# TODO: hack for python version compatibility. Remove when possible.
+class CustomFrameSummary(FrameSummary):
+    @property
+    def end_lineno(self):
+        # Return a default value or None if 'end_lineno' is not available
+        return getattr(self, '_end_lineno', None)
+
+    @end_lineno.setter
+    def end_lineno(self, value):
+        self._end_lineno = value
+
+import traceback
+
+traceback.FrameSummary = CustomFrameSummary
+
+
 @dataclass
 class CacheRunToFile:
     """
