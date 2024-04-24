@@ -150,7 +150,7 @@ class CacheRunToFile:
             cache[key] = cache.pop(old_key)
             self._dump_cache(cache)
 
-        if key in cache:
+        if key in cache and 'to_latex_with_note' not in self.response:
             print_and_log(f"{self.__class__.__name__}: Using cached output.")
             if DELAY_APP_INTERACTION:
                 time.sleep(DELAY_APP_INTERACTION.val)
