@@ -3,7 +3,7 @@ from typing import Optional, List, Collection, Dict, Callable, Any
 
 from PySide6.QtGui import QTextOption
 from PySide6.QtWidgets import QMainWindow, QVBoxLayout, QLabel, QPushButton, QWidget, \
-    QHBoxLayout, QSplitter, QTextEdit, QTabWidget, QDialog
+    QHBoxLayout, QSplitter, QTextEdit, QTabWidget, QDialog, QSizePolicy
 from PySide6.QtCore import Qt, QEventLoop, QMutex, QWaitCondition, QThread, Signal, Slot
 
 from pygments.formatters.html import HtmlFormatter
@@ -219,7 +219,7 @@ class Panel(QWidget):
             right_label.setFixedHeight(_get_label_height(right_label))
             right_label.setStyleSheet("color: #cc0000; font-size: 12px;")
             self.header_right_label = right_label
-            header_tray.addWidget(right_label, alignment=Qt.AlignRight)
+            header_tray.addWidget(right_label, alignment=Qt.AlignmentFlag.AlignRight)
         else:
             self.header_right_label = None
 
@@ -251,7 +251,7 @@ class EditableTextPanel(Panel):
         self.suggestion_texts = [''] * len(suggestion_button_names)
 
         self.text_edit = QTextEdit()
-        self.text_edit.setWordWrapMode(QTextOption.WrapAtWordBoundaryOrAnywhere)
+        self.text_edit.setWordWrapMode(QTextOption.WrapMode.WrapAtWordBoundaryOrAnywhere)
         # self.text_edit.setFontPointSize(14)
         self.text_edit.setStyleSheet("background-color: " + BACKGROUND_COLOR + ";")
 
@@ -344,7 +344,7 @@ class EditableTextPanel(Panel):
 
 class HtmlPopup(QDialog):
     def __init__(self, title: str, html_content, parent=None):
-        super(HtmlPopup, self).__init__(parent, Qt.WindowCloseButtonHint)
+        super(HtmlPopup, self).__init__(parent, Qt.WindowType.WindowCloseButtonHint)
         self.setWindowTitle(title)
 
         # Layout to organize widgets
@@ -425,17 +425,17 @@ class PysideApp(QMainWindow, BaseApp):
         # Header (html)
         self.header = QLabel()
         # set as HTML to allow for text highlighting
-        self.header.setTextFormat(Qt.RichText)
-        self.header.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+        self.header.setTextFormat(Qt.TextFormat.RichText)
+        self.header.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
 
         self.header.setStyleSheet("color: #005599; font-size: 24px; font-weight: bold;")
         right_side.addWidget(self.header)
 
         # Splitter with the text panels
-        main_splitter = QSplitter(Qt.Horizontal)
-        left_splitter = QSplitter(Qt.Vertical)
+        main_splitter = QSplitter(Qt.Orientation.Horizontal)
+        left_splitter = QSplitter(Qt.Orientation.Vertical)
         left_splitter.setHandleWidth(5)
-        right_splitter = QSplitter(Qt.Vertical)
+        right_splitter = QSplitter(Qt.Orientation.Vertical)
         main_splitter.addWidget(left_splitter)
         main_splitter.addWidget(right_splitter)
 
