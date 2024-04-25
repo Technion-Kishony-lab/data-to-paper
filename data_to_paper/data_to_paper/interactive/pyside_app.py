@@ -26,7 +26,7 @@ CSS = '''
     color: #FF8C00;
 }
 .markdown {
-    font-family: Consolas, 'Courier New', monospace;
+    font-family: Arial, sans-serif;
     color: white;
     white-space: pre;
 }
