@@ -426,6 +426,7 @@ class PysideApp(QMainWindow, BaseApp):
         self.header = QLabel()
         # set as HTML to allow for text highlighting
         self.header.setTextFormat(Qt.RichText)
+        self.header.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
 
         self.header.setStyleSheet("color: #005599; font-size: 24px; font-weight: bold;")
         right_side.addWidget(self.header)
@@ -447,6 +448,7 @@ class PysideApp(QMainWindow, BaseApp):
         right_splitter.addWidget(self.tabs)
         right_splitter.addWidget(self.panels[PanelNames.FEEDBACK])
         left_splitter.setSizes([100, 500])
+        right_side.setStretchFactor(main_splitter, 1)
 
         right_side.addWidget(main_splitter)
 
