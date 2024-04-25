@@ -23,6 +23,8 @@ class BaseApp:
         if self.instance is not None:
             raise Exception("App is a singleton!")
         self.instance = self
+        self._panels_and_positions_to_headers = {(panel_name, position): '' for panel_name in PanelNames
+                                                 for position in range(2)}
 
     @classmethod
     def get_instance(cls):
@@ -65,8 +67,15 @@ class BaseApp:
     def initialize(self):
         pass
 
-    def set_status(self, panel_name: PanelNames, position: int, status: str = ''):
+    def _set_status(self, panel_name: PanelNames, position: int, status: str = ''):
         pass
+
+    def set_status(self, panel_name: PanelNames, position: int, status: str = ''):
+        self._panels_and_positions_to_headers[(panel_name, position)] = status
+        self._set_status(panel_name, position, status)
+
+    def get_status(self, panel_name: PanelNames, position: int) -> str:
+        return self._panels_and_positions_to_headers[(panel_name, position)]
 
     def set_header(self, header: str):
         pass

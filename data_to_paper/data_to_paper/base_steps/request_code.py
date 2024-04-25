@@ -1,3 +1,4 @@
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, Tuple, Dict, Type, Any, Iterable, NamedTuple, Collection
@@ -36,6 +37,8 @@ class CodeReviewPrompt(NamedTuple):
     # if True, the human can edit the response
     # if False, the response is AI only
     # if None, the human can edit the response only if this is the final review
+
+    name: Optional[str] = None
 
 
 @dataclass
@@ -236,23 +239,24 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         specific_attrs_for_code_and_output = self._get_specific_attrs_for_code_and_output(code_and_output)
         prompt_to_append_at_end_of_response = (
             Replacer(debugger, debugger.prompt_to_append_at_end_of_response).format_text())
-        for index, (wildcard_filename, individually, code_review_prompt, human_edit) \
-                in enumerate(self.code_review_prompts):
-            if wildcard_filename is None:
+        for index, code_review_prompt in enumerate(self.code_review_prompts):
+            if code_review_prompt.wildcard_filename is None:
                 content_files_to_contents = {None: None}
             else:
                 content_files_to_contents = \
                     code_and_output.created_files.get_created_content_files_to_pretty_contents(
-                        match_filename=wildcard_filename, content_view=ContentViewPurpose.CODE_REVIEW)
+                        match_filename=code_review_prompt.wildcard_filename,
+                        content_view=ContentViewPurpose.CODE_REVIEW)
                 # TODO: check if less confusing for the LLM if we use pvalue_on_str=OnStr.EPSILON
                 if len(content_files_to_contents) == 0:
                     continue
-                if not individually:
-                    content_files_to_contents = {wildcard_filename: '\n'.join(content_files_to_contents.values())}
+                if not code_review_prompt.individually:
+                    content_files_to_contents = {code_review_prompt.wildcard_filename:
+                                                     '\n'.join(content_files_to_contents.values())}
             for filename, file_contents_str in content_files_to_contents.items():
                 formatted_code_review_prompt = \
                     Replacer(
-                        self, code_review_prompt,
+                        self, code_review_prompt.prompt,
                         kwargs=dict(
                             file_contents_str=file_contents_str,
                             filename=filename,
@@ -262,16 +266,19 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                 if not formatted_code_review_prompt:
                     continue
                 self._app_send_prompt(PanelNames.FEEDBACK)
-                self._app_set_panel_status(PanelNames.FEEDBACK, 'LLM Code Reviewer ...')
-                issues_to_solutions = RequestIssuesToSolutions.from_(
-                    self,
-                    model_engine=self.model_engine,
-                    background_product_fields_to_hide=self.background_product_fields_to_hide_during_code_revision,
-                    mission_prompt=formatted_code_review_prompt,
-                    app=None,
-                ).run_and_get_valid_result(with_review=False)
-                self._app_set_panel_status(PanelNames.FEEDBACK)
-                termination_phrase = 'Looks good - no changes needed.'
+                header = 'Code Review'
+                if code_review_prompt.name:
+                    review_name = Replacer(self, code_review_prompt.name, kwargs=dict(filename=filename)).format_text()
+                    header += f' of {review_name}'
+                with self._app_with_set_panel_status(PanelNames.FEEDBACK, f"Waiting for LLM {header}"):
+                    issues_to_solutions = RequestIssuesToSolutions.from_(
+                        self,
+                        model_engine=self.model_engine,
+                        background_product_fields_to_hide=self.background_product_fields_to_hide_during_code_revision,
+                        mission_prompt=formatted_code_review_prompt,
+                        app=None,
+                    ).run_and_get_valid_result(with_review=False)
+                termination_phrase = f'{header}: no issues found.'
                 if issues_to_solutions:
                     ai_issues = '\n\n'.join(f'- {issue}:\n{solution}'
                                             for issue, solution in issues_to_solutions.items())
@@ -279,12 +286,13 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                 else:
                     ai_issues = termination_phrase
                 if HUMAN_EDIT_CODE_REVIEW and self.app and \
-                        (human_edit or (human_edit is None and index == len(self.code_review_prompts) - 1)):
+                        (code_review_prompt.human_edit
+                         or (code_review_prompt.human_edit is None and index == len(self.code_review_prompts) - 1)):
                     # Allow human edit of the response if human_edit is True,
                     # or if it is None and this is the final review
                     human_response = self._app_receive_text(
                         PanelNames.FEEDBACK, '',
-                        title='Your feedback on code and output.',
+                        title='Your feedback on code and output. Blank if no issues.',
                         optional_suggestions={'AI': ai_issues,
                                               'Default': termination_phrase})
                 else:
@@ -301,5 +309,8 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                                     prompt_to_append_at_end_of_response=prompt_to_append_at_end_of_response)
                     self.apply_append_user_message(response)
                     return True
+                else:
+                    self._app_send_prompt(PanelNames.FEEDBACK, termination_phrase)
+                    time.sleep(1.5)
 
         return False
