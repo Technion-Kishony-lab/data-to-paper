@@ -345,12 +345,12 @@ class EditableTextPanel(Panel):
 
     def _set_plain_text(self, text: str):
         self.text_edit.setPlainText(text)
-        self.text_edit.setStyleSheet("color: orange; background-color: " + BACKGROUND_COLOR + ";")
+        self.text_edit.setStyleSheet("color: orange;")
 
     def _set_html_text(self, text: str):
         # add the CSS to the HTML
         self.text_edit.setHtml(f'<style>{CSS}</style>{text}')
-        self.text_edit.setStyleSheet("color: white; background-color: " + BACKGROUND_COLOR + ";")
+        self.text_edit.setStyleSheet("color: white;")
 
     def set_text(self, text: str, is_html: bool = False):
         self.text_edit.setReadOnly(True)
@@ -401,12 +401,10 @@ class HtmlPopup(QDialog):
 
         # QPushButton to close the dialog
         close_button = QPushButton("Close")
-        close_button.setStyleSheet('QPushButton {background-color: #E3E0DA; color:' + BACKGROUND_COLOR + ';}')
         close_button.clicked.connect(self.close)
         layout.addWidget(close_button)
 
         self.setLayout(layout)
-        self.setStyleSheet("background-color: " + BACKGROUND_COLOR + ";")
         self.resize(800, 600)
 
 
