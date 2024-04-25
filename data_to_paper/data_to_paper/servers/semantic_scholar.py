@@ -130,7 +130,7 @@ class SemanticScholarPaperServerCaller(DictServerCaller):
         """
         Get the response from the semantic scholar server as a list of dict citation objects.
         """
-        if SEMANTIC_SCHOLAR_API_KEY is None:
+        if HEADERS['x-api-key'] is None:
             raise ValueError("SEMANTIC_SCHOLAR_API_KEY is not set in the environment variables.")
 
         # TODO: THIS IS A WORKAROUND FOR A BUG IN SEMANTIC SCHOLAR. REMOVE WHEN FIXED.

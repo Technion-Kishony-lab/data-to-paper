@@ -270,7 +270,8 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                 if code_review_prompt.name:
                     review_name = Replacer(self, code_review_prompt.name, kwargs=dict(filename=filename)).format_text()
                     header += f' of {review_name}'
-                with self._app_with_set_panel_status(PanelNames.FEEDBACK, f"Waiting for LLM {header}"):
+                # header = None
+                with self._app_with_set_panel_status(PanelNames.FEEDBACK, f"Waiting for LLM"):
                     issues_to_solutions = RequestIssuesToSolutions.from_(
                         self,
                         model_engine=self.model_engine,

@@ -1,3 +1,4 @@
+import textwrap
 from dataclasses import dataclass
 from typing import List, Dict, Any
 
@@ -13,7 +14,8 @@ class GoalAndHypothesisProduct(ValueProduct):
     value: str = None
 
     def _get_content_as_markdown(self, level: int, **kwargs):
-        return self.value.replace('\n# ', '\n' + '#' * (level + 1) + ' ')
+        return "\n\n".join(textwrap.wrap(self.value.replace('\n# ', '\n' + '#' * (level + 1) + ' '), width=50,
+                             break_long_words=False))
 
 
 @dataclass

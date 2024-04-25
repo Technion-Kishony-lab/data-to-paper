@@ -217,7 +217,7 @@ class Panel(QWidget):
         if header_right is not None:
             right_label = QLabel(header_right)
             right_label.setFixedHeight(_get_label_height(right_label))
-            right_label.setStyleSheet("color: #cc0000; font-size: 12px;")
+            right_label.setStyleSheet("color: #cc0000; font-size: 16px;")
             self.header_right_label = right_label
             header_tray.addWidget(right_label, alignment=Qt.AlignmentFlag.AlignRight)
         else:
