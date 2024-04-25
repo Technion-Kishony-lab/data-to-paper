@@ -12,34 +12,22 @@ OPENAI_API_BASE = "https://api.openai.com/v1"
 DEEPINFRA_API_BASE = "https://api.deepinfra.com/v1/openai"
 
 # OpenAI API keys. model=None is the default key.
-OPENAI_MODELS_TO_ORGANIZATIONS_API_KEYS_AND_API_BASE_URL = dict[Optional[ModelEngine], str]({
-    None:
-        ("org-gvr0szNH28eeeuMCEG9JrwcR",
-         "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",
-         OPENAI_API_BASE),
+LLM_MODELS_TO_API_KEYS_AND_BASE_URL = dict[Optional[ModelEngine], str]({
+    None:  # Default key for models that are not in the dictionary
+        (os.environ.get('OPENAI_API_KEY'), OPENAI_API_BASE),
     ModelEngine.GPT4:
-        ("org-SplsVAouKqk9mWIpVgIIVwSD",
-         "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",
-         OPENAI_API_BASE),
+        (os.environ.get('OPENAI_API_KEY'), OPENAI_API_BASE),
     ModelEngine.GPT4_TURBO:
-        ("org-SplsVAouKqk9mWIpVgIIVwSD",
-         "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",
-         OPENAI_API_BASE),
+        (os.environ.get('OPENAI_API_KEY'), OPENAI_API_BASE),
     ModelEngine.LLAMA_2_7b:
-        ("",
-         "Qkt0hDL5QZXndUfWcWckWRu0EBBQWlKG",
-         DEEPINFRA_API_BASE),
+        (os.environ.get('DEEPINFRA_API_KEY'), DEEPINFRA_API_BASE),
     ModelEngine.LLAMA_2_70b:
-        ("",
-         "Qkt0hDL5QZXndUfWcWckWRu0EBBQWlKG",
-         DEEPINFRA_API_BASE),
+        (os.environ.get('DEEPINFRA_API_KEY'), DEEPINFRA_API_BASE),
     ModelEngine.CODELLAMA:
-        ("",
-         "Qkt0hDL5QZXndUfWcWckWRu0EBBQWlKG",
-         DEEPINFRA_API_BASE),
+        (os.environ.get('DEEPINFRA_API_KEY'), DEEPINFRA_API_BASE),
 })
 
-S2_API_KEY = "hqcN3JMNgl2Ue889JZ1Zd3ogYCjtdpta8V0OXv3c"
+SEMANTIC_SCHOLAR_API_KEY = os.environ.get('SEMANTIC_SCHOLAR_API_KEY', None)
 
 DEFAULT_MODEL_ENGINE = ModelEngine.GPT35_TURBO
 

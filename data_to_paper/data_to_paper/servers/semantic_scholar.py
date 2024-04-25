@@ -7,7 +7,7 @@ import re
 from dataclasses import dataclass
 from typing import List, Dict, Optional, Tuple
 
-from data_to_paper.env import S2_API_KEY
+from data_to_paper.env import SEMANTIC_SCHOLAR_API_KEY
 from data_to_paper.exceptions import data_to_paperException
 from data_to_paper.latex.clean_latex import replace_special_latex_chars
 from data_to_paper.servers.base_server import DictServerCaller
@@ -25,7 +25,7 @@ def remove_word(string, word):
 
 
 HEADERS = {
-    'x-api-key': S2_API_KEY
+    'x-api-key': SEMANTIC_SCHOLAR_API_KEY
 }
 
 PAPER_SEARCH_URL = 'https://api.semanticscholar.org/graph/v1/paper/search'
@@ -130,6 +130,8 @@ class SemanticScholarPaperServerCaller(DictServerCaller):
         """
         Get the response from the semantic scholar server as a list of dict citation objects.
         """
+        if SEMANTIC_SCHOLAR_API_KEY is None:
+            raise ValueError("SEMANTIC_SCHOLAR_API_KEY is not set in the environment variables.")
 
         # TODO: THIS IS A WORKAROUND FOR A BUG IN SEMANTIC SCHOLAR. REMOVE WHEN FIXED.
         words_to_remove_in_case_of_zero_citation_error = \

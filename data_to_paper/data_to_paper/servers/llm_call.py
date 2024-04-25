@@ -11,7 +11,7 @@ from typing import List, Union, Optional, Callable
 
 import tiktoken
 
-from data_to_paper.env import OPENAI_MODELS_TO_ORGANIZATIONS_API_KEYS_AND_API_BASE_URL, RECORD_INTERACTIONS
+from data_to_paper.env import LLM_MODELS_TO_API_KEYS_AND_BASE_URL, RECORD_INTERACTIONS
 from data_to_paper.utils.print_to_file import print_and_log_red, print_and_log
 from data_to_paper.exceptions import TerminateException
 from data_to_paper.utils.serialize import SerializableValue, deserialize_serializable_value
@@ -122,12 +122,13 @@ class OpenaiSeverCaller(ListServerCaller):
         if os.environ['CLIENT_SERVER_MODE'] == 'False':
             OpenaiSeverCaller._check_before_spending_money(messages, model_engine)
 
-        organization, api_key, api_base_url = OPENAI_MODELS_TO_ORGANIZATIONS_API_KEYS_AND_API_BASE_URL[model_engine] \
-            if model_engine in OPENAI_MODELS_TO_ORGANIZATIONS_API_KEYS_AND_API_BASE_URL \
-            else OPENAI_MODELS_TO_ORGANIZATIONS_API_KEYS_AND_API_BASE_URL[None]
+        api_key, api_base_url = LLM_MODELS_TO_API_KEYS_AND_BASE_URL[model_engine] \
+            if model_engine in LLM_MODELS_TO_API_KEYS_AND_BASE_URL \
+            else LLM_MODELS_TO_API_KEYS_AND_BASE_URL[None]
+        if api_key is None:
+            raise ValueError(f'API key for {model_engine} is not defined.')
         openai.api_key = api_key
         openai.api_base = api_base_url
-        openai.organization = organization
         for attempt in range(MAX_NUM_LLM_ATTEMPTS):
             try:
                 # TODO: Need to implement timeout. Our current timeout_context() is not working on a Worker of Qt.

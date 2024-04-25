@@ -31,8 +31,6 @@
      - During installation, select 'Yes' when asked to install missing packages on-the-fly.
      - After installation, you may need to add the TeX binaries to your PATH!
 
-Remember to check that all paths are set correctly in your system to access the LaTeX tools from the command line.
-
 ### Install using Docker
 
 Note, GUI app is not currently supported in the docker container. If you need to run the GUI app, please install the app on your local machine.
@@ -44,3 +42,13 @@ Note, GUI app is not currently supported in the docker container. If you need to
 5. Build the docker container by running `docker build --pull --rm -f "Dockerfile" -t datatopaper "."`
 
 You now have the container with the repo available for run/dev
+
+### Add environment variables for API keys
+
+You need to define the following environment variables in your system:
+- OPENAI_API_KEY
+- SEMANTIC_SCHOLAR_API_KEY
+- DEEPINFRA_API_KEY (optional)
+
+To set up the keys on your system, see 
+[openai instructions](https://help.openai.com/en/articles/5112595-best-practices-for-api-key-safety)
