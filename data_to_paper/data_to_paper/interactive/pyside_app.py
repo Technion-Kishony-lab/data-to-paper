@@ -56,7 +56,7 @@ li {
 # #0077cc, #0099cc, #00bbcc
 
 BACKGROUND_COLOR = "#151515"
-APP_BACKGROUND_COLOR = "#202020"
+APP_BACKGROUND_COLOR = "#303030"
 
 formatter = HtmlFormatter(style="monokai")
 css = formatter.get_style_defs('.highlight')
@@ -64,6 +64,46 @@ additional_css = ".highlight, .highlight pre { background: " + BACKGROUND_COLOR 
 
 # combine the CSS with the additional CSS:
 CSS += css + additional_css
+
+
+APP_STYLE = """
+QMainWindow {
+   background-color: black;
+}
+QScrollBar:vertical {
+   border: 1px solid #999999;
+   background: black;
+   width: 10px;  # Adjust width for the vertical scrollbar
+   margin: 0px 0px 0px 0px;
+}
+QScrollBar::handle:vertical {
+   min-height: 10px;
+   background-color: gray;  # Handle color
+}
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+   background: none;  # Remove the arrows at the ends
+}
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+   background: none;
+}
+QScrollBar:horizontal {
+   border: 1px solid #999999;
+   background: black;
+   height: 10px;  # Adjust height for the horizontal scrollbar
+   margin: 0px 0px 0px 0px;
+}
+QScrollBar::handle:horizontal {
+   min-width: 10px;
+   background-color: gray;  # Handle color
+}
+QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+   background: none;  # Remove the arrows at the ends
+}
+QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {
+   background: none;
+}
+""".replace('black', APP_BACKGROUND_COLOR)
+
 
 
 def _get_label_height(label: QLabel) -> int:
@@ -397,7 +437,7 @@ class PysideApp(QMainWindow, BaseApp):
         central_widget = QWidget()
         self.layout = QHBoxLayout(central_widget)
 
-        self.setStyleSheet("background-color: " + APP_BACKGROUND_COLOR + "; color: white;")
+        self.setStyleSheet(APP_STYLE)
 
         # Left side is a VBox with "Continue" button above and the steps panel below
         left_side = QVBoxLayout()
