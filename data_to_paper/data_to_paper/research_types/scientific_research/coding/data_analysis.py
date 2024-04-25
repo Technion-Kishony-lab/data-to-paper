@@ -365,7 +365,7 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         ```
 
         {code_review_formatting_instructions}
-        """)),
+        """), name='code flaws'),
         CodeReviewPrompt(None, False, dedent_triple_quote_str("""
         Please follow these two steps:
 
@@ -419,7 +419,7 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         ```
 
         {code_review_formatting_instructions}
-        """)),
+        """), name='data handling'),
         CodeReviewPrompt('table_*.pkl', True, dedent_triple_quote_str("""
         I ran your code.
 
@@ -460,7 +460,7 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         ```
 
         {code_review_formatting_instructions}
-        """)),
+        """), name='output of "{filename}"'),
         CodeReviewPrompt('*', False, dedent_triple_quote_str("""
         I ran your code.
 
@@ -503,7 +503,7 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         ```
 
         {code_review_formatting_instructions}
-        """)),
+        """), name='all tables and additional results'),
     )
 
     @staticmethod

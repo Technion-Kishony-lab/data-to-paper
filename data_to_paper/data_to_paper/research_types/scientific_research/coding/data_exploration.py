@@ -115,5 +115,5 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         * If there are no critical issues, then return an empty dict: `{}`.
         * Do not create positive issues that require no change in the code. In particular, do not write \t
         {"No issues found": "No corrections or improvements are needed."}, return an empty dict instead.
-        """)),
+        """), name='Review of output file'),
     )
