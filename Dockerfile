@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     texlive-fonts-recommended \
     vim \
     nano \
+    pandoc \
 && rm -rf /var/lib/apt/lists/*
 
 # Set the default command to open a bash shell
