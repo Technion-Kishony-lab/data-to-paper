@@ -87,7 +87,7 @@ def md_to_html(md):
     # Convert bold and italic
     md = re.sub(pattern=r'\*\*(.*)\*\*', repl=r'<b>\1</b>', string=md)
     md = re.sub(pattern=r'\*(.*)\*', repl=r'<i>\1</i>', string=md)
-    md = md.replace('\n\n', '<br>')
+    md = md.replace('\n', '<br>')
 
     # Wrap with css class
     md = f'<div class="markdown">{md}</div>'

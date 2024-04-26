@@ -28,7 +28,9 @@ CSS = '''
 .markdown {
     font-family: Arial, sans-serif;
     color: white;
-    white-space: pre;
+    overflow-wrap: break-word; /* Allows the words to break and wrap onto the next line */
+    word-wrap: break-word; /* Older syntax, similar to overflow-wrap */
+    white-space: normal; /* Overrides pre to allow wrapping */
 }
 h1 {
     color: #0066cc;
