@@ -25,7 +25,11 @@ def read_file_description(directory: Path, filename: str):
         return f.read()
 
 
-def read_general_file_description(directory: Path):
+def read_general_file_description(directory: Optional[Path], description: Optional[str] = None):
+    if not directory and not description:
+        raise ValueError("Either directory or description must be provided")
+    if description:
+        return description
     return read_file_description(directory, 'general_description.txt')
 
 
@@ -91,6 +95,9 @@ def get_input_path(project: str, load_from_repo: bool = False) -> Path:
 
 
 def get_paper(project: str, data_filenames: List[str], research_goal: Optional[str], output_folder: str,
+              data_file_paths: List[str] = None,
+              general_description: Optional[str] = None,
+              file_descriptions: List[str] = None,
               project_specific_goal_guidelines: Optional[str] = None,
               should_do_data_exploration: bool = True,
               excluded_citation_titles: List[str] = None,
@@ -100,6 +107,23 @@ def get_paper(project: str, data_filenames: List[str], research_goal: Optional[s
               should_remove_temp_folder: bool = True,
               save_on_repo: bool = True):
     input_path = get_input_path(project, load_from_repo)
+    input_path.mkdir(parents=True, exist_ok=True)
+
+    # if data_file_paths is provided, make sure that file_descriptions are provided and copy data files from given paths to input folder and create file descriptions from file_descriptions
+    if data_file_paths:
+        if not file_descriptions:
+            raise ValueError("If data_file_paths are provided, file_descriptions must be provided")
+        for file_path, description in zip(data_file_paths, file_descriptions):
+            with open(input_path / (file_path + '.description.txt'), 'w') as f:
+                f.write(description)
+            # copy file to input folder if not already there
+            if not (input_path / file_path).exists():
+                shutil.copyfile(file_path, input_path / file_path)
+    # if general_description is provided, write it to general_description.txt in input folder
+    if general_description:
+        with open(input_path / 'general_description.txt', 'w') as f:
+            f.write(general_description or '')
+
     temp_folder_to_run_in = input_path / 'temp_folder'
     copy_datafiles_to_data_folder(data_filenames, input_path, temp_folder_to_run_in)
 
