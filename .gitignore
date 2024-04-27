@@ -34,3 +34,6 @@ tests/integration/citations/.pytest_cache/v/cache/
 data_to_paper_package/data_to_paper.egg-info/
 
 data_to_paper/data_to_paper_examples/examples/local_paths.py
+
+# json config files
+data_to_paper/data_to_paper/interactive/config/run_setup.json

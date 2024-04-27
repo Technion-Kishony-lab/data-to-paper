@@ -1,3 +1,4 @@
+import json
 import sys
 from functools import partial
 
@@ -8,7 +9,6 @@ from PySide6.QtWidgets import (QApplication, QDialog, QVBoxLayout, QLabel, QLine
 from data_to_paper.interactive.get_app import get_or_create_app
 from data_to_paper_examples.examples.run_project import get_paper
 
-RUN_PARAMETERS = dict()
 
 class PlainTextPasteTextEdit(QTextEdit):
     def insertFromMimeData(self, source):
@@ -21,10 +21,6 @@ class PlainTextPasteTextEdit(QTextEdit):
 class StartDialog(QDialog):
     def __init__(self):
         super().__init__()
-        # Set window flags
-        self.setWindowFlags(
-            Qt.WindowType.Window | Qt.WindowType.WindowCloseButtonHint | Qt.WindowType.WindowMinimizeButtonHint |
-            Qt.WindowType.WindowMaximizeButtonHint)
 
         self.setWindowTitle("Set Project Details")
         self.setStyleSheet("background-color: #303030; color: white; font-family: Arial, sans-serif; font-size: 14pt;")
@@ -81,6 +77,8 @@ class StartDialog(QDialog):
         start_button.clicked.connect(self.on_start_clicked)
         self.layout.addWidget(start_button)
 
+        self.load_configuration()
+
 
     def add_file_input(self):
         file_input_widget = QWidget()
@@ -132,9 +130,6 @@ class StartDialog(QDialog):
         if file:
             file_edit.setText(file)
 
-    def remove_file_input(self, widget):
-        widget.deleteLater()
-
     def get_project_details(self):
         project_name = self.project_name_edit.text()
         general_description = self.general_description_edit.toPlainText()
@@ -160,14 +155,62 @@ class StartDialog(QDialog):
         project_name, general_description, goal, file_paths, descriptions = self.get_project_details()
         print(project_name + "\n\n" + general_description + "\n\n" + goal + "\n\n" + str(file_paths) + "\n\n" + str(descriptions))
         if project_name and general_description and file_paths and descriptions and len(file_paths) == len(descriptions):
+            self.save_configuration()
             self.accept()
         else:
             QMessageBox.warning(None, "Input Required",
                                 "Please provide a project name, general description and provide at least one file with its description.")
 
+    def save_configuration(self):
+        config = {
+            'project_name': self.project_name_edit.text(),
+            'general_description': self.general_description_edit.toPlainText(),
+            'goal': self.goal_edit.toPlainText(),
+            'files': [],
+            'descriptions': []
+        }
+        for i in range(self.files_layout.count()):
+            file_widget = self.files_layout.itemAt(i).widget()
+            if file_widget:
+                layout = file_widget.layout()
+                file_edit = layout.itemAt(1).widget()
+                description_edit = layout.itemAt(3).widget()
+                config['files'].append(file_edit.text())
+                config['descriptions'].append(description_edit.toPlainText())
+
+        with open("config/run_setup.json", "w") as json_file:
+            json.dump(config, json_file, indent=4)
+
+    def load_configuration(self):
+        try:
+            with open("config/run_setup.json", "r") as json_file:
+                config = json.load(json_file)
+            self.project_name_edit.setText(config.get('project_name', ''))
+            self.general_description_edit.setPlainText(config.get('general_description', ''))
+            self.goal_edit.setPlainText(config.get('goal', ''))
+            files = config.get('files', [])
+            descriptions = config.get('descriptions', [])
+
+            # Clear existing inputs if any
+            while self.files_layout.count():
+                widget = self.files_layout.takeAt(0).widget()
+                if widget:
+                    widget.deleteLater()
+
+            for file_path, description in zip(files, descriptions):
+                self.add_file_input()
+                file_widget = self.files_layout.itemAt(self.files_layout.count() - 1).widget()
+                layout = file_widget.layout()
+                file_edit = layout.itemAt(1).widget()
+                description_edit = layout.itemAt(3).widget()
+                file_edit.setText(file_path)
+                description_edit.setPlainText(description)
+        except FileNotFoundError:
+            pass
+
 
 def run_app():
-    app = get_or_create_app()
+    app = QApplication(sys.argv)  # Create QApplication once
     while True:
         start_dialog = StartDialog()
         if start_dialog.exec() == QDialog.Accepted:
@@ -175,17 +218,21 @@ def run_app():
             project_name = project_name.strip().lower().replace(' ', '_')
             file_names = [path.split('/')[-1] for path in file_paths]
             RUN_PARAMETERS = {
-                    'project': project_name,
-                    'research_goal': goal if goal else None,
-                    'general_description': general_description,
-                    'data_file_paths': file_paths,
-                    'data_filenames': file_names,
-                    'file_descriptions': descriptions,
-                    'output_folder': project_name + '_run'
-                }
+                'project': project_name,
+                'research_goal': goal if goal else None,
+                'general_description': general_description,
+                'data_file_paths': file_paths,
+                'data_filenames': file_names,
+                'file_descriptions': descriptions,
+                'output_folder': project_name + '_run'
+            }
             break
-    app.start_worker(partial(get_paper, **RUN_PARAMETERS))
-    sys.exit(app.q_application.exec())
+        else:
+            sys.exit(0)
+
+    main_app = get_or_create_app(app)  # Pass the existing QApplication instance
+    main_app.start_worker(partial(get_paper, **RUN_PARAMETERS))
+    sys.exit(app.exec())
 
 if __name__ == '__main__':
     run_app()
