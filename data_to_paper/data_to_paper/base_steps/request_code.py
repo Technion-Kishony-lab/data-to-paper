@@ -1,4 +1,3 @@
-import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, Tuple, Dict, Type, Any, Iterable, NamedTuple, Collection
@@ -13,6 +12,7 @@ from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.utils.replacer import Replacer
 from data_to_paper.code_and_output_files.file_view_params import ContentViewPurpose
+from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
 
 from .debugger import DebuggerConverser
 from .base_products_conversers import BackgroundProductsConverser
@@ -252,7 +252,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                     continue
                 if not code_review_prompt.individually:
                     content_files_to_contents = {code_review_prompt.wildcard_filename:
-                                                     '\n'.join(content_files_to_contents.values())}
+                                                 '\n'.join(content_files_to_contents.values())}
             for filename, file_contents_str in content_files_to_contents.items():
                 formatted_code_review_prompt = \
                     Replacer(
@@ -266,7 +266,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                 if not formatted_code_review_prompt:
                     continue
                 self._app_send_prompt(PanelNames.FEEDBACK)
-                header = 'Code Review'
+                header = 'Review'
                 if code_review_prompt.name:
                     review_name = Replacer(self, code_review_prompt.name, kwargs=dict(filename=filename)).format_text()
                     header += f' of {review_name}'
@@ -285,20 +285,35 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                     ai_issues += '\n\n- And please fix any other issues that you may find.'
                 else:
                     ai_issues = termination_phrase
-                if HUMAN_EDIT_CODE_REVIEW and self.app and \
-                        (code_review_prompt.human_edit
-                         or (code_review_prompt.human_edit is None and index == len(self.code_review_prompts) - 1)):
+                allow_human_edit = HUMAN_EDIT_CODE_REVIEW and self.app \
+                                   and (code_review_prompt.human_edit
+                                        or (code_review_prompt.human_edit is None
+                                            and index == len(self.code_review_prompts) - 1))
+                llm_review_message_for_app = None
+                if allow_human_edit:
+                    if issues_to_solutions:
+                        llm_review_message_for_app = \
+                            f'I have found some issues for the {header}.\nClick on the "AI" button to see them.'
+                    else:
+                        llm_review_message_for_app = wrap_text_with_triple_quotes(termination_phrase, 'ok')
+                else:
+                    if not issues_to_solutions:
+                        llm_review_message_for_app = wrap_text_with_triple_quotes(termination_phrase, 'ok')
+                if llm_review_message_for_app:
+                    self._app_send_prompt(PanelNames.FEEDBACK, llm_review_message_for_app, sleep_for=3)
+                if allow_human_edit:
                     # Allow human edit of the response if human_edit is True,
                     # or if it is None and this is the final review
                     human_response = self._app_receive_text(
                         PanelNames.FEEDBACK, '',
-                        title='Your feedback on code and output. Blank if no issues.',
+                        title='Code Review Requested',
+                        instructions='Your feedback on code and output. Blank if no issues.',
                         optional_suggestions={'AI': ai_issues,
-                                              'Default': termination_phrase})
+                                              'Default': ''})
                 else:
                     human_response = None
                 issues = ai_issues if human_response is None else human_response
-                if issues and issues != termination_phrase:
+                if issues.strip() and issues != termination_phrase:
                     response = dedent_triple_quote_str("""
                         The code has some issues that need to be fixed:
 
@@ -309,8 +324,5 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                                     prompt_to_append_at_end_of_response=prompt_to_append_at_end_of_response)
                     self.apply_append_user_message(response)
                     return True
-                else:
-                    self._app_send_prompt(PanelNames.FEEDBACK, termination_phrase)
-                    time.sleep(1.5)
 
         return False

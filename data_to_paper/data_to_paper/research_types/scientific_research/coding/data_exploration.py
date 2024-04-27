@@ -95,10 +95,11 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         For example:
         ```python
         {
-            "The result of the average of variable ... is missing": \t
-            "Add the missing calculation of ... to the code.",
-            "The average of the variable ... is `Nan`": \t
-            "Remove missing values in the calculation."
+            "The result of the average of variable ... is missing":
+                "Add the missing calculation of ... to the code.",
+
+            "The average of the variable ... is `Nan`":
+                "Remove missing values in the calculation."
         }
         ```
 
@@ -115,5 +116,5 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         * If there are no critical issues, then return an empty dict: `{}`.
         * Do not create positive issues that require no change in the code. In particular, do not write \t
         {"No issues found": "No corrections or improvements are needed."}, return an empty dict instead.
-        """), name='Review of output file'),
+        """), name='output file'),
     )

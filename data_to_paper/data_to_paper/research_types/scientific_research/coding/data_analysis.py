@@ -357,10 +357,11 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         For example:
         ```python
         {
-            "The formula for the regression model is incorrect": \t
-            "revise the code to use the following formula: ...",
-            "The statistical test for association of ... and ... is trivial": \t
-            "revise the code to perform the following more meaningful test: ...",
+            "The formula for the regression model is incorrect":
+                "revise the code to use the following formula: ...",
+
+            "The statistical test for association of ... and ... is trivial":
+                "revise the code to perform the following more meaningful test: ...",
         }
         ```
 
@@ -410,11 +411,11 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         For example:
         ```python
         {
-            "The model does not adequately account for confounding variables": \t
-            "revise the code to add the following confounding variables ...",
+            "The model does not adequately account for confounding variables":
+                "revise the code to add the following confounding variables ...",
 
-            "The descriptive statistics is performed on the wrong data": \t
-            "revise the code to perform the descriptive statistics on the preprocessed data.",
+            "The descriptive statistics is performed on the wrong data":
+                "revise the code to perform the descriptive statistics on the preprocessed data.",
         }
         ```
 
@@ -451,11 +452,11 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         For example:
         ```python
         {
-            "Table {filename} reports incomplete results": \t
-            "revise the code to add the following new column '<your suggested column name>'",
+            "Table {filename} reports incomplete results":
+                "revise the code to add the following new column '<your suggested column name>'",
 
-            "Table {filename} reports nominal values without measures of uncertainty": \t
-            "revise the code to add STD and p-value.", 
+            "Table {filename} reports nominal values without measures of uncertainty":
+                "revise the code to add STD and p-value.", 
         }
         ```
 
@@ -494,16 +495,16 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         For example:
         ```python
         {
-            "A table is missing": \t
-            "revise the code to add the following new table '<your suggested table caption>'",
+            "A table is missing":
+                "revise the code to add the following new table '<your suggested table caption>'",
 
-            "Table <n> reports nominal values without measures of uncertainty": \t
-            "revise the code to add STD and p-value.", 
+            "Table <n> reports nominal values without measures of uncertainty":
+                "revise the code to add STD and p-value.", 
         }
         ```
 
         {code_review_formatting_instructions}
-        """), name='all tables and additional results'),
+        """), name='all output files'),
     )
 
     @staticmethod

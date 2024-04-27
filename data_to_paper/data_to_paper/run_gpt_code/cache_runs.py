@@ -2,6 +2,10 @@ import pickle
 import os
 import hashlib
 import time
+import traceback
+
+from traceback import FrameSummary
+
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass
 
@@ -28,7 +32,10 @@ def old_directory_hash(directory):
 
 
 def directory_hash(directory):
-    """Create a hash based on all files in the directory, hashing only the relative path of each file from the specified directory."""
+    """
+    Create a hash based on all files in the directory, hashing only the relative path of each file
+    from the specified directory.
+    """
     hasher = hashlib.sha256()
     root_dir = os.path.abspath(directory)
     all_files = []
@@ -75,9 +82,6 @@ def _write_files(filenames):
         _write_file(fname, content)
 
 
-from traceback import FrameSummary
-
-
 # TODO: hack for python version compatibility. Remove when possible.
 class CustomFrameSummary(FrameSummary):
     @property
@@ -89,7 +93,6 @@ class CustomFrameSummary(FrameSummary):
     def end_lineno(self, value):
         self._end_lineno = value
 
-import traceback
 
 traceback.FrameSummary = CustomFrameSummary
 

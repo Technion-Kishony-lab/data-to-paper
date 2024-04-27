@@ -13,7 +13,7 @@ DEEPINFRA_API_BASE = "https://api.deepinfra.com/v1/openai"
 
 # OpenAI API keys. model=None is the default key.
 LLM_MODELS_TO_API_KEYS_AND_BASE_URL = dict[Optional[ModelEngine], str]({
-    None:  # Default key for models that are not in the dictionary
+    None:
         (os.environ.get('OPENAI_API_KEY'), OPENAI_API_BASE),
     ModelEngine.GPT4:
         (os.environ.get('OPENAI_API_KEY'), OPENAI_API_BASE),

@@ -27,10 +27,12 @@ CSS = '''
 }
 .markdown {
     font-family: Arial, sans-serif;
+    font-size: 14px;
     color: white;
     overflow-wrap: break-word; /* Allows the words to break and wrap onto the next line */
     word-wrap: break-word; /* Older syntax, similar to overflow-wrap */
     white-space: normal; /* Overrides pre to allow wrapping */
+    margin-bottom: 0.5em;
 }
 h1 {
     color: #0066cc;
@@ -47,7 +49,8 @@ h3 {
 li {
     margin-left: 20px;
     padding-left: 0;
-    color: #009999;
+    list-style-type: disc;
+    margin-bottom: 0.5em;
 }
 '''
 
@@ -107,7 +110,6 @@ QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {
 """.replace('black', APP_BACKGROUND_COLOR)
 
 
-
 def _get_label_height(label: QLabel) -> int:
     """
     Get the height of a one-row QLabel.
@@ -117,7 +119,7 @@ def _get_label_height(label: QLabel) -> int:
 
 class Worker(QThread):
     # Signal now carries a string payload for initial text
-    request_text_signal = Signal(PanelNames, str, str, dict)
+    request_text_signal = Signal(PanelNames, str, str, str, dict)
     show_text_signal = Signal(PanelNames, str, bool)
     set_focus_on_panel_signal = Signal(PanelNames)
     advance_stage_signal = Signal(Stage)
@@ -145,9 +147,11 @@ class Worker(QThread):
         self.set_header_signal.emit(header)
 
     def worker_request_text(self, panel_name: PanelNames, initial_text: str = '',
-                            title: Optional[str] = None, optional_suggestions: Dict[str, str] = None) -> str:
+                            title: Optional[str] = None,
+                            instructions: Optional[str] = None,
+                            optional_suggestions: Dict[str, str] = None) -> str:
         self.mutex.lock()
-        self.request_text_signal.emit(panel_name, initial_text, title, optional_suggestions)
+        self.request_text_signal.emit(panel_name, initial_text, title, instructions, optional_suggestions)
         self.condition.wait(self.mutex)
         input_text = self._text_input
         self.mutex.unlock()
@@ -330,10 +334,6 @@ class EditableTextPanel(Panel):
         self.instructions_label.setVisible(visible)
         for button in self.suggestion_buttons:
             button.setVisible(visible)
-        if visible:
-            self.set_header_right('Input required')
-        else:
-            self.set_header_right('')
 
     def reset_instructions(self):
         if self.instructions is not None:
@@ -347,7 +347,7 @@ class EditableTextPanel(Panel):
 
     def _set_plain_text(self, text: str):
         self.text_edit.setPlainText(text)
-        self.text_edit.setStyleSheet("color: orange;")
+        self.text_edit.setStyleSheet("color: orange; font-size: 14px; font-family: Arial;")
 
     def _set_html_text(self, text: str):
         # add the CSS to the HTML
@@ -361,21 +361,28 @@ class EditableTextPanel(Panel):
         else:
             self._set_plain_text(text)
 
-    def edit_text(self, text: Optional[str] = '', title: Optional[str] = None,
+    def set_instructions(self, instructions: str):
+        self.instructions = instructions
+        self.reset_instructions()
+
+    def edit_text(self, text: Optional[str] = '',
+                  title: Optional[str] = None,
+                  instruction: Optional[str] = None,
                   suggestion_texts: Optional[List[str]] = None):
         self.text_edit.setReadOnly(False)
         self._set_plain_text(text)
         self._set_buttons_visibility(True)
         if suggestion_texts is not None:
             self.suggestion_texts = suggestion_texts
-        title = title or ''
-        self.instructions_label.setText(title)
+        self.set_instructions(instruction or '')
+        self.set_header_right(title or '')
         self.loop = QEventLoop()
         self.loop.exec()
 
     def on_submit(self):
         self.text_edit.setReadOnly(True)
         self._set_buttons_visibility(False)
+        self.set_header_right('')
         self.reset_instructions()
         if self.loop is not None:
             self.loop.exit()
@@ -593,11 +600,13 @@ class PysideApp(QMainWindow, BaseApp):
 
     @Slot(PanelNames, str, str, dict)
     def upon_request_text(self, panel_name: PanelNames, initial_text: str = '',
-                          title: Optional[str] = None, optional_suggestions: Dict[str, str] = None):
+                          title: Optional[str] = None,
+                          instructions: Optional[str] = None,
+                          optional_suggestions: Dict[str, str] = None):
         panel = self.panels[panel_name]
         if optional_suggestions is None:
             optional_suggestions = {}
-        panel.edit_text(initial_text, title, list(optional_suggestions.values()))
+        panel.edit_text(initial_text, title, instructions, list(optional_suggestions.values()))
 
     @Slot(PanelNames)
     def submit_text(self, panel_name: PanelNames):

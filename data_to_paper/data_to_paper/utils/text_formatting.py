@@ -94,6 +94,7 @@ def wrap_text_with_triple_quotes(text: str, header: str = '') -> str:
     """
     Wrap text with triple quotes.
     """
+    text = text.strip('\n')
     return f'```{header}\n{text}\n```'
 
 

@@ -150,15 +150,16 @@ class Converser(Copier, AppInteractor):
                                   ignore: bool = False, reverse_roles_for_web: bool = False,
                                   previous_code: Optional[str] = None, is_background: bool = False,
                                   send_to_app: Optional[bool] = None, app_panel: PanelNames = PanelNames.FEEDBACK,
-                                  allow_editing: bool = False,
+                                  editing_title: str = None, editing_instructions: str = None,
                                   **kwargs):
         content = format_value(self, content)
         if send_to_app is None:
             send_to_app = not is_background and not ignore
         if send_to_app and self.app:
-            if allow_editing:
-                content = self._app_receive_text(app_panel, content)
-            self._app_send_prompt(app_panel, content)
+            if editing_title or editing_instructions:
+                content = self._app_receive_text(app_panel, content,
+                                                 title=editing_title, instructions=editing_instructions)
+            self._app_send_prompt(app_panel, content, from_md=True, demote_headers_by=1)
         return self.conversation_manager.append_user_message(
             content=content,
             tag=tag,

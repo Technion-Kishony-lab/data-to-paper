@@ -1,3 +1,4 @@
+from __future__ import annotations
 from dataclasses import dataclass
 from typing import List, Optional, Union
 
@@ -36,7 +37,7 @@ class FormattedSections(List[FormattedSection]):
     """
 
     @classmethod
-    def from_text(cls, text: str, strip_label: bool = True):
+    def from_text(cls, text: str, strip_label: bool = True) -> FormattedSections:
         """
         Create FormattedSections from text.
         strip_label: if True, then ``` python \n etc``` is converted to label='python', not ' python '

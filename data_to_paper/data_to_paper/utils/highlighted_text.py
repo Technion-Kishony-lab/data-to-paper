@@ -71,27 +71,56 @@ def python_to_highlighted_text(code_str: str, color: str = '') -> str:
         return code_str
 
 
+def demote_html_headers(html, demote_by=1):
+    """
+    Demote HTML header tags by a specified number of levels.
+    """
+    if demote_by < 1:
+        return html  # Return the original html if demote_by is less than 1
+
+    # Function to replace header tags
+    def replace_tag(match):
+        current_level = int(match.group(1))
+        new_level = min(current_level + demote_by, 6)  # HTML only supports headers up to <h6>
+        return f'<h{new_level}>{match.group(2)}</h{new_level}>'
+
+    # Regex to find headers and replace
+    return re.sub(pattern=r'<h([1-6])>(.*?)</h\1>', repl=replace_tag, string=html)
+
+
 def md_to_html(md):
     """
-    Convert markdown to html
+    Convert markdown to HTML while managing newline characters appropriately after headers.
     """
-    # Convert headers
-    md = re.sub(pattern=r'(?m)^#### (.*)', repl=r'<h4>\1</h4>', string=md)
-    md = re.sub(pattern=r'(?m)^### (.*)', repl=r'<h3>\1</h3>', string=md)
-    md = re.sub(pattern=r'(?m)^## (.*)', repl=r'<h2>\1</h2>', string=md)
-    md = re.sub(pattern=r'(?m)^# (.*)', repl=r'<h1>\1</h1>', string=md)
-
-    # Convert lists to bullets
-    md = re.sub(pattern=r'(?m)^- (.*)', repl=r'<li>- \1</li>', string=md)
+    html_lines = []
+    for line in md.split('\n'):
+        if re.match(pattern=r'^#{1,5} ', string=line):
+            header_level = len(line.split(' ')[0])
+            html_line = f'<h{header_level}>{line[header_level + 1:]}</h{header_level}>'
+        elif line.startswith('- '):
+            html_line = f'<li>- {line[2:]}</li>'
+        elif line.startswith('* '):
+            html_line = f'<li>* {line[2:]}</li>'
+        else:
+            html_line = line + '<br>'
+        html_lines.append(html_line)
+    md = '\n'.join(html_lines)
 
     # Convert bold and italic
-    md = re.sub(pattern=r'\*\*(.*)\*\*', repl=r'<b>\1</b>', string=md)
-    md = re.sub(pattern=r'\*(.*)\*', repl=r'<i>\1</i>', string=md)
-    md = md.replace('\n', '<br>')
+    md = re.sub(pattern=r'\*\*(.*?)\*\*', repl=r'<b>\1</b>', string=md)
+    md = re.sub(pattern=r'\*(.*?)\*', repl=r'<i>\1</i>', string=md)
 
     # Wrap with css class
     md = f'<div class="markdown">{md}</div>'
     return md
+
+
+def text_to_red_html(text: str) -> str:
+    return f'<span style="color: red;">{text}</span>'
+
+
+def text_to_green_html(text: str) -> str:
+    return (f'<span style="color: green; font-size: 16px;">{text}</span>')
 
 
 def text_to_html(text: str, textblock: bool = False, from_md: bool = False) -> str:
@@ -120,6 +149,10 @@ def light_text(text: str, color: str, is_color: bool = True) -> str:
 
 def red_text(text: str, is_color: bool = True) -> str:
     return colored_text(text, colorama.Fore.RED, is_color)
+
+
+def green_text(text: str, is_color: bool = True) -> str:
+    return colored_text(text, colorama.Fore.GREEN, is_color)
 
 
 def get_pre_html_format(text,
@@ -168,6 +201,8 @@ TAGS_TO_FORMATTERS: Dict[Optional[str], Tuple[Callable, Callable]] = {
                                      font_family="'Courier', sans-serif")),
     'header': (light_text, partial(get_pre_html_format, color='#FF0000', font_size=12)),
     'latex': (colored_text, convert_latex_to_html),
+    'error': (red_text, text_to_red_html),
+    'ok': (green_text, text_to_green_html),
 }
 
 NEEDS_NO_WRAPPING_FOR_NO_HTML = {'python', 'output', 'html', 'header'}
