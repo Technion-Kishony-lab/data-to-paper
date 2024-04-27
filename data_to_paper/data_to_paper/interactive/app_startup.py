@@ -18,10 +18,17 @@ class PlainTextPasteTextEdit(QTextEdit):
         else:
             super().insertFromMimeData(source)  # Default behavior for non-text data if needed
 
+
+def create_info_label(tooltip_text):
+    info_label = QLabel("ℹ️")  # Using Unicode information symbol
+    info_label.setToolTip(tooltip_text)
+    info_label.setStyleSheet("font-size: 14pt; color: white;")  # Customize as needed
+    return info_label
+
+
 class StartDialog(QDialog):
     def __init__(self):
         super().__init__()
-
         self.setWindowTitle("Set Project Details")
         self.setStyleSheet("background-color: #303030; color: white; font-family: Arial, sans-serif; font-size: 14pt;")
         self.resize(1000, 1000)
@@ -30,42 +37,48 @@ class StartDialog(QDialog):
 
         # Top bar layout for close button
         top_bar_layout = QHBoxLayout()
-        spacer = QWidget()  # Spacer to push the close button to the right
+        spacer = QWidget()
         spacer.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         top_bar_layout.addWidget(spacer)
-
         close_button = QPushButton("Exit")
         close_button.clicked.connect(self.close_app)
         top_bar_layout.addWidget(close_button)
-
         self.layout.addLayout(top_bar_layout)
 
-        # Input for project name
+        # Project name input
         self.layout.addWidget(QLabel("Enter the project name:"))
         self.project_name_edit = QLineEdit()
         self.project_name_edit.setStyleSheet("background-color: #151515; color: white;")
         self.layout.addWidget(self.project_name_edit)
 
-        # Input for general description of the dataset
-        self.layout.addWidget(QLabel("Enter the general description of the dataset:"))
+        # General description input with info label
+        general_desc_layout = QHBoxLayout()
+        general_desc_layout.addWidget(QLabel("Enter the general description of the dataset:"))
+        general_desc_info = create_info_label(
+            "Include comprehensive details about the dataset's origin, contents, and any important metadata.")
+        general_desc_layout.addWidget(general_desc_info)
+        self.layout.addLayout(general_desc_layout)
+
         self.general_description_edit = PlainTextPasteTextEdit()
         self.general_description_edit.setStyleSheet("background-color: #151515; color: white;")
-        self.general_description_edit.setPlaceholderText("The general description of the dataset should include "
-                                                         "information about the dataset, its source, and its contents.")
         self.layout.addWidget(self.general_description_edit)
 
-        # Files and descriptions
+        # File inputs and descriptions
         self.files_layout = QVBoxLayout()
         self.layout.addLayout(self.files_layout)
         self.add_file_button = QPushButton("Add Another File")
         self.add_file_button.clicked.connect(self.add_file_input)
         self.layout.addWidget(self.add_file_button)
-
-        # Initially add one file input
         self.add_file_input()
 
-        # Large text area for the research goal
-        self.layout.addWidget(QLabel("Enter your research goal:"))
+        # Research goal input with info label
+        research_goal_layout = QHBoxLayout()
+        research_goal_layout.addWidget(QLabel("Enter your research goal:"))
+        research_goal_info = create_info_label(
+            "Specify the objectives of your research clearly. Example: 'Determine the impact of A on B under conditions C and D.'")
+        research_goal_layout.addWidget(research_goal_info)
+        self.layout.addLayout(research_goal_layout)
+
         self.goal_edit = PlainTextPasteTextEdit()
         self.goal_edit.setStyleSheet("background-color: #151515; color: white;")
         self.goal_edit.setFixedHeight(100)
@@ -78,7 +91,6 @@ class StartDialog(QDialog):
         self.layout.addWidget(start_button)
 
         self.load_configuration()
-
 
     def add_file_input(self):
         file_input_widget = QWidget()
@@ -102,6 +114,9 @@ class StartDialog(QDialog):
         description_edit.setPlaceholderText("Enter file description here...")
         description_edit.setStyleSheet("background-color: #151515; color: white;")
         file_input_layout.addWidget(description_edit)
+        description_info = create_info_label(
+            "Provide a detailed description of this specific file, including the type of data and any unique attributes.")
+        file_input_layout.addWidget(description_info)
 
         remove_button = QPushButton("X")
         remove_button.clicked.connect(partial(self.remove_file_input, file_input_widget))
