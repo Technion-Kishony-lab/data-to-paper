@@ -10,7 +10,6 @@ from PySide6.QtWidgets import (QApplication, QDialog, QVBoxLayout, QLabel, QLine
 from data_to_paper.interactive.get_app import get_or_create_app
 from data_to_paper_examples.examples.run_project import get_paper
 
-
 class PlainTextPasteTextEdit(QTextEdit):
     def insertFromMimeData(self, source):
         if source.hasText():
@@ -304,11 +303,20 @@ class StartDialog(QDialog):
     def on_start_clicked(self):
         project_name, general_description, goal, file_paths, descriptions = self.get_project_details()
         if project_name and general_description and file_paths and descriptions and len(file_paths) == len(descriptions):
+            # check the files exist
+            for file_path in file_paths:
+                if not os.path.exists(file_path):
+                    QMessageBox.warning(self, "File Not Found",
+                                        f"File '{file_path}' does not exist. "
+                                        "You might have provided an incorrect file path or moved the file."
+                                        f"Please provide a valid file path.")
+                    return
             self.save_configuration()
             self.accept()
         else:
-            QMessageBox.warning(None, "Input Required",
-                                "Please provide a project name, general description and provide at least one file with its description.")
+            QMessageBox.warning(self, "Input Required",
+                                "Please provide a project name, general description and provide at least one file "
+                                "with its description.")
 
 
 def run_app():
