@@ -14,6 +14,8 @@ from data_to_paper.interactive.types import PanelNames
 from data_to_paper.interactive.utils import open_file_on_os
 from data_to_paper.research_types.scientific_research.scientific_stage import ScientificStage
 
+MAKE_IT_UGLY_IN_MAC_BUT_MORE_CONSISTENT_ACROSS_OS = True
+
 # orange color: #FFA500
 # slightly darker orange: #FF8C00
 
@@ -328,6 +330,8 @@ class EditableTextPanel(Panel):
         self._set_buttons_visibility(False)
 
         self.loop = None
+        if MAKE_IT_UGLY_IN_MAC_BUT_MORE_CONSISTENT_ACROSS_OS:
+            self.setStyleSheet("color: white;")
 
     def _set_buttons_visibility(self, visible: bool):
         self.submit_button.setVisible(visible)
@@ -347,12 +351,18 @@ class EditableTextPanel(Panel):
 
     def _set_plain_text(self, text: str):
         self.text_edit.setPlainText(text)
-        self.text_edit.setStyleSheet("color: orange; font-size: 14px; font-family: Arial;")
+        if MAKE_IT_UGLY_IN_MAC_BUT_MORE_CONSISTENT_ACROSS_OS:
+            self.text_edit.setStyleSheet("color: orange; font-size: 14px; background-color: " + BACKGROUND_COLOR + ";")
+        else:
+            self.text_edit.setStyleSheet("color: orange; font-size: 14px; font-family: Arial;")
 
     def _set_html_text(self, text: str):
         # add the CSS to the HTML
         self.text_edit.setHtml(f'<style>{CSS}</style>{text}')
-        self.text_edit.setStyleSheet("color: white;")
+        if MAKE_IT_UGLY_IN_MAC_BUT_MORE_CONSISTENT_ACROSS_OS:
+            self.text_edit.setStyleSheet("color: white; background-color: " + BACKGROUND_COLOR + ";")
+        else:
+            self.text_edit.setStyleSheet("color: white;")
 
     def set_text(self, text: str, is_html: bool = False):
         self.text_edit.setReadOnly(True)
@@ -410,10 +420,14 @@ class HtmlPopup(QDialog):
 
         # QPushButton to close the dialog
         close_button = QPushButton("Close")
+        if MAKE_IT_UGLY_IN_MAC_BUT_MORE_CONSISTENT_ACROSS_OS:
+            close_button.setStyleSheet('QPushButton {background-color: #E3E0DA; color:' + BACKGROUND_COLOR + ';}')
         close_button.clicked.connect(self.close)
         layout.addWidget(close_button)
 
         self.setLayout(layout)
+        if MAKE_IT_UGLY_IN_MAC_BUT_MORE_CONSISTENT_ACROSS_OS:
+            self.setStyleSheet("background-color: " + BACKGROUND_COLOR + ";")
         self.resize(800, 600)
 
 
@@ -489,7 +503,10 @@ class PysideApp(QMainWindow, BaseApp):
         # Add the panels to the splitters (the top-right panel is a tab widget)
         self.tabs = create_tabs({'Response': self.panels[PanelNames.RESPONSE],
                                  'Product': self.panels[PanelNames.PRODUCT]})
-        self.tabs.setStyleSheet("QTabBar::tab { color: white; }")
+        if MAKE_IT_UGLY_IN_MAC_BUT_MORE_CONSISTENT_ACROSS_OS:
+            self.tabs.setStyleSheet("background-color: " + APP_BACKGROUND_COLOR + ";" + "color: white;")
+        else:
+            self.tabs.setStyleSheet("QTabBar::tab { color: white; }")
         left_splitter.addWidget(self.panels[PanelNames.SYSTEM_PROMPT])
         left_splitter.addWidget(self.panels[PanelNames.MISSION_PROMPT])
         right_splitter.addWidget(self.tabs)
