@@ -147,8 +147,9 @@ class SemanticScholarPaperServerCaller(DictServerCaller):
             print_and_log_red(f'QUERYING SEMANTIC SCHOLAR FOR: "{query}"', should_log=False)
             response = requests.get(PAPER_SEARCH_URL, headers=HEADERS, params=params)
 
-            if response.status_code == 504:
-                print_and_log_red("ERROR: Server timed out. We wait for 5 sec and try again.", should_log=False)
+            if response.status_code in (504, 429):
+                print_and_log_red("ERROR: Server timed out or too many requests. "
+                                  "We wait for 5 sec and try again.", should_log=False)
                 time.sleep(5)
                 continue
 
