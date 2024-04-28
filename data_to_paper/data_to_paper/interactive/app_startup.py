@@ -2,7 +2,6 @@ import json
 import sys
 from functools import partial
 
-from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (QApplication, QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QFileDialog,
                                QMessageBox, QTextEdit, QWidget, QHBoxLayout, QSizePolicy)
 
@@ -168,7 +167,6 @@ class StartDialog(QDialog):
 
     def on_start_clicked(self):
         project_name, general_description, goal, file_paths, descriptions = self.get_project_details()
-        print(project_name + "\n\n" + general_description + "\n\n" + goal + "\n\n" + str(file_paths) + "\n\n" + str(descriptions))
         if project_name and general_description and file_paths and descriptions and len(file_paths) == len(descriptions):
             self.save_configuration()
             self.accept()
