@@ -14,6 +14,8 @@ from data_to_paper.interactive.types import PanelNames
 from data_to_paper.interactive.utils import open_file_on_os
 from data_to_paper.research_types.scientific_research.scientific_stage import ScientificStage
 
+MAKE_IT_UGLY_IN_MAC_BUT_MORE_CONSISTENT_ACROSS_OS = True
+
 # orange color: #FFA500
 # slightly darker orange: #FF8C00
 
@@ -26,9 +28,13 @@ CSS = '''
     color: #FF8C00;
 }
 .markdown {
-    font-family: Consolas, 'Courier New', monospace;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
     color: white;
-    white-space: pre;
+    overflow-wrap: break-word; /* Allows the words to break and wrap onto the next line */
+    word-wrap: break-word; /* Older syntax, similar to overflow-wrap */
+    white-space: normal; /* Overrides pre to allow wrapping */
+    margin-bottom: 0.5em;
 }
 h1 {
     color: #0066cc;
@@ -45,7 +51,8 @@ h3 {
 li {
     margin-left: 20px;
     padding-left: 0;
-    color: #009999;
+    list-style-type: disc;
+    margin-bottom: 0.5em;
 }
 '''
 
@@ -56,7 +63,7 @@ li {
 # #0077cc, #0099cc, #00bbcc
 
 BACKGROUND_COLOR = "#151515"
-APP_BACKGROUND_COLOR = "#202020"
+APP_BACKGROUND_COLOR = "#303030"
 
 formatter = HtmlFormatter(style="monokai")
 css = formatter.get_style_defs('.highlight')
@@ -64,6 +71,45 @@ additional_css = ".highlight, .highlight pre { background: " + BACKGROUND_COLOR 
 
 # combine the CSS with the additional CSS:
 CSS += css + additional_css
+
+
+APP_STYLE = """
+QMainWindow {
+   background-color: black;
+}
+QScrollBar:vertical {
+   border: 1px solid #999999;
+   background: black;
+   width: 10px;  # Adjust width for the vertical scrollbar
+   margin: 0px 0px 0px 0px;
+}
+QScrollBar::handle:vertical {
+   min-height: 10px;
+   background-color: gray;  # Handle color
+}
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+   background: none;  # Remove the arrows at the ends
+}
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+   background: none;
+}
+QScrollBar:horizontal {
+   border: 1px solid #999999;
+   background: black;
+   height: 10px;  # Adjust height for the horizontal scrollbar
+   margin: 0px 0px 0px 0px;
+}
+QScrollBar::handle:horizontal {
+   min-width: 10px;
+   background-color: gray;  # Handle color
+}
+QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+   background: none;  # Remove the arrows at the ends
+}
+QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {
+   background: none;
+}
+""".replace('black', APP_BACKGROUND_COLOR)
 
 
 def _get_label_height(label: QLabel) -> int:
@@ -75,7 +121,7 @@ def _get_label_height(label: QLabel) -> int:
 
 class Worker(QThread):
     # Signal now carries a string payload for initial text
-    request_text_signal = Signal(PanelNames, str, str, dict)
+    request_text_signal = Signal(PanelNames, str, str, str, dict)
     show_text_signal = Signal(PanelNames, str, bool)
     set_focus_on_panel_signal = Signal(PanelNames)
     advance_stage_signal = Signal(Stage)
@@ -103,9 +149,11 @@ class Worker(QThread):
         self.set_header_signal.emit(header)
 
     def worker_request_text(self, panel_name: PanelNames, initial_text: str = '',
-                            title: Optional[str] = None, optional_suggestions: Dict[str, str] = None) -> str:
+                            title: Optional[str] = None,
+                            instructions: Optional[str] = None,
+                            optional_suggestions: Dict[str, str] = None) -> str:
         self.mutex.lock()
-        self.request_text_signal.emit(panel_name, initial_text, title, optional_suggestions)
+        self.request_text_signal.emit(panel_name, initial_text, title, instructions, optional_suggestions)
         self.condition.wait(self.mutex)
         input_text = self._text_input
         self.mutex.unlock()
@@ -282,16 +330,14 @@ class EditableTextPanel(Panel):
         self._set_buttons_visibility(False)
 
         self.loop = None
+        if MAKE_IT_UGLY_IN_MAC_BUT_MORE_CONSISTENT_ACROSS_OS:
+            self.setStyleSheet("color: white;")
 
     def _set_buttons_visibility(self, visible: bool):
         self.submit_button.setVisible(visible)
         self.instructions_label.setVisible(visible)
         for button in self.suggestion_buttons:
             button.setVisible(visible)
-        if visible:
-            self.set_header_right('Input required')
-        else:
-            self.set_header_right('')
 
     def reset_instructions(self):
         if self.instructions is not None:
@@ -305,12 +351,18 @@ class EditableTextPanel(Panel):
 
     def _set_plain_text(self, text: str):
         self.text_edit.setPlainText(text)
-        self.text_edit.setStyleSheet("color: orange; background-color: " + BACKGROUND_COLOR + ";")
+        if MAKE_IT_UGLY_IN_MAC_BUT_MORE_CONSISTENT_ACROSS_OS:
+            self.text_edit.setStyleSheet("color: orange; font-size: 14px; background-color: " + BACKGROUND_COLOR + ";")
+        else:
+            self.text_edit.setStyleSheet("color: orange; font-size: 14px; font-family: Arial;")
 
     def _set_html_text(self, text: str):
         # add the CSS to the HTML
         self.text_edit.setHtml(f'<style>{CSS}</style>{text}')
-        self.text_edit.setStyleSheet("color: white; background-color: " + BACKGROUND_COLOR + ";")
+        if MAKE_IT_UGLY_IN_MAC_BUT_MORE_CONSISTENT_ACROSS_OS:
+            self.text_edit.setStyleSheet("color: white; background-color: " + BACKGROUND_COLOR + ";")
+        else:
+            self.text_edit.setStyleSheet("color: white;")
 
     def set_text(self, text: str, is_html: bool = False):
         self.text_edit.setReadOnly(True)
@@ -319,21 +371,28 @@ class EditableTextPanel(Panel):
         else:
             self._set_plain_text(text)
 
-    def edit_text(self, text: Optional[str] = '', title: Optional[str] = None,
+    def set_instructions(self, instructions: str):
+        self.instructions = instructions
+        self.reset_instructions()
+
+    def edit_text(self, text: Optional[str] = '',
+                  title: Optional[str] = None,
+                  instruction: Optional[str] = None,
                   suggestion_texts: Optional[List[str]] = None):
         self.text_edit.setReadOnly(False)
         self._set_plain_text(text)
         self._set_buttons_visibility(True)
         if suggestion_texts is not None:
             self.suggestion_texts = suggestion_texts
-        title = title or ''
-        self.instructions_label.setText(title)
+        self.set_instructions(instruction or '')
+        self.set_header_right(title or '')
         self.loop = QEventLoop()
         self.loop.exec()
 
     def on_submit(self):
         self.text_edit.setReadOnly(True)
         self._set_buttons_visibility(False)
+        self.set_header_right('')
         self.reset_instructions()
         if self.loop is not None:
             self.loop.exit()
@@ -361,12 +420,14 @@ class HtmlPopup(QDialog):
 
         # QPushButton to close the dialog
         close_button = QPushButton("Close")
-        close_button.setStyleSheet('QPushButton {background-color: #E3E0DA; color:' + BACKGROUND_COLOR + ';}')
+        if MAKE_IT_UGLY_IN_MAC_BUT_MORE_CONSISTENT_ACROSS_OS:
+            close_button.setStyleSheet('QPushButton {background-color: #E3E0DA; color:' + BACKGROUND_COLOR + ';}')
         close_button.clicked.connect(self.close)
         layout.addWidget(close_button)
 
         self.setLayout(layout)
-        self.setStyleSheet("background-color: " + BACKGROUND_COLOR + ";")
+        if MAKE_IT_UGLY_IN_MAC_BUT_MORE_CONSISTENT_ACROSS_OS:
+            self.setStyleSheet("background-color: " + BACKGROUND_COLOR + ";")
         self.resize(800, 600)
 
 
@@ -397,7 +458,7 @@ class PysideApp(QMainWindow, BaseApp):
         central_widget = QWidget()
         self.layout = QHBoxLayout(central_widget)
 
-        self.setStyleSheet("background-color: " + APP_BACKGROUND_COLOR + "; color: white;")
+        self.setStyleSheet(APP_STYLE)
 
         # Left side is a VBox with "Continue" button above and the steps panel below
         left_side = QVBoxLayout()
@@ -442,7 +503,10 @@ class PysideApp(QMainWindow, BaseApp):
         # Add the panels to the splitters (the top-right panel is a tab widget)
         self.tabs = create_tabs({'Response': self.panels[PanelNames.RESPONSE],
                                  'Product': self.panels[PanelNames.PRODUCT]})
-        self.tabs.setStyleSheet("QTabBar::tab { color: white; }")
+        if MAKE_IT_UGLY_IN_MAC_BUT_MORE_CONSISTENT_ACROSS_OS:
+            self.tabs.setStyleSheet("background-color: " + APP_BACKGROUND_COLOR + ";" + "color: white;")
+        else:
+            self.tabs.setStyleSheet("QTabBar::tab { color: white; }")
         left_splitter.addWidget(self.panels[PanelNames.SYSTEM_PROMPT])
         left_splitter.addWidget(self.panels[PanelNames.MISSION_PROMPT])
         right_splitter.addWidget(self.tabs)
@@ -553,11 +617,13 @@ class PysideApp(QMainWindow, BaseApp):
 
     @Slot(PanelNames, str, str, dict)
     def upon_request_text(self, panel_name: PanelNames, initial_text: str = '',
-                          title: Optional[str] = None, optional_suggestions: Dict[str, str] = None):
+                          title: Optional[str] = None,
+                          instructions: Optional[str] = None,
+                          optional_suggestions: Dict[str, str] = None):
         panel = self.panels[panel_name]
         if optional_suggestions is None:
             optional_suggestions = {}
-        panel.edit_text(initial_text, title, list(optional_suggestions.values()))
+        panel.edit_text(initial_text, title, instructions, list(optional_suggestions.values()))
 
     @Slot(PanelNames)
     def submit_text(self, panel_name: PanelNames):

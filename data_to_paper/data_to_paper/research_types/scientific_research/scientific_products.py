@@ -240,7 +240,7 @@ class ScientificProducts(Products):
 
             'general_dataset_description': NameDescriptionStageGenerator(
                 'Overall Description of the Dataset',
-                'OVERALL DESCRIPTION OF THE DATASET\n\n{}',
+                '{}',
                 ScientificStage.DATA,
                 lambda: hypertarget_if_referencable_text(self.data_file_descriptions.general_description,
                                                          ContentViewPurpose.PRODUCT),
@@ -270,7 +270,7 @@ class ScientificProducts(Products):
 
             'all_file_descriptions': NameDescriptionStageGenerator(
                 'Description of the Dataset',
-                'Description of the Dataset:\n\n{}',
+                '{}',
                 ScientificStage.DATA,
                 lambda: self.all_file_descriptions,
             ),

@@ -24,6 +24,7 @@ from data_to_paper.run_gpt_code.exceptions import FailedRunningCode, UnAllowedFi
 from data_to_paper.interactive import PanelNames
 
 from data_to_paper.base_cast import Agent
+from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
 
 from .base_products_conversers import BackgroundProductsConverser
 
@@ -50,7 +51,7 @@ def _get_description_of_run_error(error: Exception):
         str_error = str_error[:1000] + '\n[...]\n' + str_error[-800:]
     return dedent_triple_quote_str("""
         I ran the code and got the following error message:
-        ```
+        ```error
         {}
         ```
         """).format(str_error)
@@ -438,7 +439,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         self.previous_code = code
 
         self.apply_append_surrogate_message(
-            content=message + '\n```python\n{}\n```'.format(code),
+            content=message + '\n' + wrap_text_with_triple_quotes(code, 'python'),
             web_conversation_name=None,
             comment=comment,
         )
@@ -615,6 +616,10 @@ class DebuggerConverser(BackgroundProductsConverser):
                 self._app_send_prompt(PanelNames.FEEDBACK)
                 code_and_output = self._get_code_and_respond_to_issues(response)
             if code_and_output is not None:
+                self._app_send_prompt(
+                    PanelNames.FEEDBACK,
+                    wrap_text_with_triple_quotes('Code ran without issues and passed rule-based checks', 'ok'),
+                    sleep_for=2)
                 return code_and_output
         self.apply_append_user_message(
             "It seems like we are not converging. Let's try again from the start.\n"

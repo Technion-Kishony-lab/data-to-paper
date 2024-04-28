@@ -1,3 +1,4 @@
+import html
 import os
 import re
 import subprocess
@@ -52,6 +53,6 @@ def convert_latex_to_html(latex: str) -> str:
             # Convert using Pandoc
             html_output = subprocess.check_output(command, universal_newlines=True)
             return html_output
-    except subprocess.CalledProcessError as e:
-        # Handle errors in conversion
-        return f'<html><body><h1>Error converting LaTeX to HTML</h1><p>{e}</p></body></html>'
+    except subprocess.CalledProcessError:
+        # In case of an error, return the raw latex with proper escaping for HTML
+        return html.escape(latex)

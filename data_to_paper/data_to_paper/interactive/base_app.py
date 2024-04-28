@@ -33,18 +33,22 @@ class BaseApp:
         return cls.instance
 
     def request_text(self, panel_name: PanelNames, initial_text: str = '',
-                     title: Optional[str] = None, optional_suggestions: Dict[str, str] = None) -> str:
+                     title: Optional[str] = None,
+                     instructions: Optional[str] = None,
+                     optional_suggestions: Dict[str, str] = None) -> str:
         return initial_text
 
     def request_action(self, panel_name: PanelNames, initial_text: str = '',
-                       title: Optional[str] = None, optional_suggestions: Dict[str, str] = None) -> HumanAction:
+                       title: Optional[str] = None,
+                       instructions: Optional[str] = None,
+                       optional_suggestions: Dict[str, str] = None) -> HumanAction:
         """
         Requests text from the user.
         User can choose to edit the text, or select one of the optional suggestions.
         """
         optional_suggestions = optional_suggestions or {}
         optional_suggestions = {"Initial": initial_text, **optional_suggestions}
-        text = self.request_text(panel_name, initial_text, title, optional_suggestions)
+        text = self.request_text(panel_name, initial_text, title, instructions, optional_suggestions)
         if text == initial_text:
             return ButtonClickedHumanAction('Initial')
         for suggestion_name, suggestion_content in optional_suggestions.items():
@@ -101,7 +105,9 @@ class ConsoleApp(BaseApp):
         return '\n'.join(lines)
 
     def request_action(self, panel_name: PanelNames, initial_text: str = '',
-                       title: Optional[str] = None, optional_suggestions: Dict[str, str] = None) -> str:
+                       title: Optional[str] = None,
+                       instructions: Optional[str] = None,
+                       optional_suggestions: Dict[str, str] = None) -> str:
         print_and_log(title)
         print_and_log("Suggestions:")
         print_and_log(f"{0}. {'Initial content'}")

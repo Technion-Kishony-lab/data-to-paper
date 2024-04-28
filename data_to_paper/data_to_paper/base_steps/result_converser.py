@@ -15,6 +15,7 @@ from data_to_paper.utils import format_text_with_code_blocks
 from data_to_paper.utils.mutable import Flag
 from data_to_paper.utils.print_to_file import print_and_log_red
 from data_to_paper.utils.replacer import Replacer, StrOrReplacer, format_value
+from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
 
 
 class Rewind(Enum):
@@ -184,7 +185,8 @@ class ResultConverser(Converser):
         """
         if self.mission_prompt:
             self.apply_append_user_message(self.mission_prompt, app_panel=PanelNames.MISSION_PROMPT,
-                                           allow_editing=True)
+                                           editing_title='Input requested',
+                                           editing_instructions='Please revise the mission prompt as needed.')
 
     @property
     def _has_valid_result(self) -> bool:
@@ -406,6 +408,10 @@ class ResultConverser(Converser):
                         msg = f"You seem totally drunk. Let's Bump you to {self.model_engine} and try again..."
                         self.apply_append_user_message(msg, conversation_name=None)  # web only
                         print_and_log_red(msg)
+            else:
+                self._app_send_prompt(PanelNames.FEEDBACK,
+                                      wrap_text_with_triple_quotes('Rule-based check passed.', 'ok'),
+                                      sleep_for=2)
 
             rewind = response_error.rewind if response_error else self.rewind_after_getting_a_valid_response
 

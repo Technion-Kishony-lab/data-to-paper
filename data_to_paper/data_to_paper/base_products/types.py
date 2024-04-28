@@ -60,7 +60,7 @@ class DataFileDescription:
                    f'```output\n{"".join(head)}\n```\n'
 
     def pretty_repr(self, num_lines: int = 4, content_view: ContentView = None):
-        s = f'"{self.file_path}"\n'
+        s = f'### "{self.file_path}"\n'
         description = self.description
         if description is not None:
             description = hypertarget_if_referencable_text(description, content_view)
@@ -129,15 +129,17 @@ class DataFileDescriptions(List[DataFileDescription]):
     def pretty_repr(self, num_lines: int = 4, content_view: ContentView = None) -> str:
         s = ''
         if self.general_description is not None:
-            s += hypertarget_if_referencable_text(self.general_description, content_view) + '\n\n'
+            s += '## General Description\n'
+            s += hypertarget_if_referencable_text(self.general_description, content_view) + '\n'
         with run_in_directory(self.data_folder):
+            s += '## Data Files\n'
             if len(self) == 0:
-                s += 'No data files'
+                s += 'There are no data files'
             elif len(self) == 1:
-                s += "1 data file:\n\n"
+                s += f"The dataset consists of 1 data file:\n\n"
                 s += self[0].pretty_repr(num_lines, content_view=content_view)
             else:
-                s += f"{len(self)} data files:\n"
+                s += f"The dataset consists {len(self)} data files:\n\n"
                 index = Mutable(0)
                 for parent in self.get_all_raw_files():
                     s += self.get_pretty_description_for_file_and_children(parent, index, content_view=content_view)

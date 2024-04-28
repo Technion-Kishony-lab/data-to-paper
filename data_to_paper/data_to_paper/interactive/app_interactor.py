@@ -1,3 +1,4 @@
+import time
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from typing import Optional, Dict, Union, Iterable
@@ -5,6 +6,7 @@ from typing import Optional, Dict, Union, Iterable
 from data_to_paper.utils import format_text_with_code_blocks
 from data_to_paper.utils.replacer import format_value
 from data_to_paper.conversation.stage import Stage
+from data_to_paper.utils.highlighted_text import demote_html_headers
 
 from data_to_paper.servers.llm_call import get_human_response
 
@@ -26,15 +28,19 @@ class AppInteractor:
         for panel_name in panel_names:
             self.app.show_text(panel_name, '')
             self._app_set_panel_header(panel_name, panel_name.value)
+            self._app_set_panel_status(panel_name, '')
 
     def _app_send_prompt(self, panel_name: PanelNames, prompt: str = '', provided_as_html: bool = False,
-                         from_md: bool = False):
+                         from_md: bool = False, demote_headers_by: int = 0, sleep_for: Optional[float] = None):
         if self.app is None:
             return
         s = format_value(self, prompt)
         if not provided_as_html:
             s = format_text_with_code_blocks(s, is_html=True, width=None, from_md=from_md)
+        s = demote_html_headers(s, demote_headers_by)
         self.app.show_text(panel_name, s, is_html=True)
+        if sleep_for is not None:
+            time.sleep(sleep_for)
 
     def _app_request_continue(self):
         if self.app is None:
@@ -47,9 +53,10 @@ class AppInteractor:
         self.app.set_focus_on_panel(panel_name)
 
     def _app_receive_text(self, panel_name: PanelNames, initial_text: str = '',
-                          title: Optional[str] = None,
+                          title: Optional[str] = '',
+                          instructions: Optional[str] = '',
                           optional_suggestions: Dict[str, str] = None) -> str:
-        action = self._app_receive_action(panel_name, initial_text, title, optional_suggestions)
+        action = self._app_receive_action(panel_name, initial_text, title, instructions, optional_suggestions)
         if isinstance(action, TextSentHumanAction):
             return action.value
         button = action.value
@@ -58,13 +65,15 @@ class AppInteractor:
         return optional_suggestions[button]
 
     def _app_receive_action(self, panel_name: PanelNames, initial_text: str = '',
-                            title: Optional[str] = None,
+                            title: Optional[str] = '',
+                            instructions: Optional[str] = '',
                             optional_suggestions: Dict[str, str] = None) -> HumanAction:
         if self.app is None:
             return ButtonClickedHumanAction('Initial')
         return get_human_response(self.app,
                                   panel_name=panel_name,
                                   initial_text=initial_text,
+                                  instructions=instructions,
                                   title=title,
                                   optional_suggestions=optional_suggestions)
 

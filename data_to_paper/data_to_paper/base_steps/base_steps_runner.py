@@ -22,6 +22,7 @@ from data_to_paper.base_products import DataFileDescriptions
 from data_to_paper.run_gpt_code.code_runner import RUN_CACHE_FILEPATH
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.replacer import Replacer
+from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
 
 from .base_products_conversers import ProductsHandler
 from data_to_paper.interactive.app_interactor import AppInteractor
@@ -50,8 +51,9 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
     failure_message = dedent_triple_quote_str("""
         ## Run Terminated
         Run terminated prematurely during stage `{current_stage}`.
-
+        ```error
         {exception}
+        ```
         """)
     success_message = dedent_triple_quote_str("""
         ## Completed
@@ -214,10 +216,16 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         except TerminateException as e:
             # self.advance_stage(Stage.FAILURE)  # used for the old whatsapp app
             msg = Replacer(self, self.failure_message, kwargs={'exception': str(e)}).format_text()
-            self._app_send_prompt(PanelNames.MISSION_PROMPT, msg)
+            self._app_send_prompt(PanelNames.MISSION_PROMPT, msg, from_md=True)
             self._app_set_header('Terminate upon failure')
             print_and_log(f'----- TERMINATING RUN ------\n{msg}\n----------------------------\n')
-        except Exception:
+        except Exception as e:
+            self._app_clear_panels()
+            self._app_send_prompt(PanelNames.MISSION_PROMPT,
+                                  '# Run failed.\n*data-to-paper* exited unexpectedly.\n'
+                                  '### Exception:\n'
+                                  f'{wrap_text_with_triple_quotes(str(e), "error")}',
+                                  from_md=True)
             raise
         else:
             for product in PRODUCTS_TO_SEND_TO_CLIENT:

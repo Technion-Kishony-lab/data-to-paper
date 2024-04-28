@@ -13,7 +13,7 @@ class GoalAndHypothesisProduct(ValueProduct):
     value: str = None
 
     def _get_content_as_markdown(self, level: int, **kwargs):
-        return self.value.replace('\n# ', '\n' + '#' * (level + 1) + ' ')
+        return ('\n' + self.value).replace('\n# ', '\n' + '#' * (level + 1) + ' ').strip()
 
 
 @dataclass
