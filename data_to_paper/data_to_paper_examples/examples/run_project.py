@@ -109,23 +109,23 @@ def get_paper(project: str, data_filenames: List[str], research_goal: Optional[s
     input_path = get_input_path(project, load_from_repo)
     input_path.mkdir(parents=True, exist_ok=True)
 
-    # if data_file_paths is provided, make sure that file_descriptions are provided and copy data files from given paths to input folder and create file descriptions from file_descriptions
     if data_file_paths:
         if not file_descriptions:
             raise ValueError("If data_file_paths are provided, file_descriptions must be provided")
-        for file_path, description in zip(data_file_paths, file_descriptions):
-            with open(input_path / (file_path + '.description.txt'), 'w') as f:
+        for file_path, file_name, description in zip(data_file_paths, data_filenames, file_descriptions):
+            with open(input_path / (file_name.replace(".zip", "") + '.description.txt'), 'w') as f:
                 f.write(description)
             # copy file to input folder if not already there
-            if not (input_path / file_path).exists():
-                shutil.copyfile(file_path, input_path / file_path)
+            if not (input_path / file_name).exists():
+                shutil.copyfile(file_path, input_path / file_name)
     # if general_description is provided, write it to general_description.txt in input folder
     if general_description:
         with open(input_path / 'general_description.txt', 'w') as f:
             f.write(general_description or '')
 
     temp_folder_to_run_in = input_path / 'temp_folder'
-    copy_datafiles_to_data_folder(data_filenames, input_path, temp_folder_to_run_in)
+    data_filenames_without_dot_zip = [filename.replace('.zip', '') for filename in data_filenames]
+    copy_datafiles_to_data_folder(data_filenames_without_dot_zip, input_path, temp_folder_to_run_in)
 
     output_directory = get_output_path(project, output_folder, save_on_repo)
     if copy_openai_responses and not output_directory.exists():
@@ -134,7 +134,7 @@ def get_paper(project: str, data_filenames: List[str], research_goal: Optional[s
     CONSOLE_LOG_FILE.set(output_directory / 'console_log.txt')
 
     ScientificStepsRunner(
-        data_file_descriptions=get_file_descriptions(input_path, data_filenames, temp_folder_to_run_in),
+        data_file_descriptions=get_file_descriptions(input_path, data_filenames_without_dot_zip, temp_folder_to_run_in),
         research_goal=research_goal,
         project_specific_goal_guidelines=project_specific_goal_guidelines or '',
         output_directory=output_directory,
