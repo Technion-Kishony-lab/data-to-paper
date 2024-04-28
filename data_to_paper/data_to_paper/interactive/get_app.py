@@ -11,14 +11,15 @@ IS_APP_INITIALIZED = False
 THE_APP: Optional[BaseApp] = None
 
 
-def get_or_create_app(q_application: Optional[QApplication] = None, should_initialize: bool = True) -> Optional[BaseApp]:
+def get_or_create_app(q_application: Optional[QApplication] = None, should_initialize: bool = True) \
+        -> Optional[BaseApp]:
     global IS_APP_INITIALIZED, THE_APP
     if IS_APP_INITIALIZED:
         return THE_APP
 
     IS_APP_INITIALIZED = True
 
-    if CHOSEN_APP is None:  # noqa  (Mutable)
+    if CHOSEN_APP == None:  # noqa  (Mutable)
         THE_APP = None
     elif CHOSEN_APP == 'pyside':
         from .pyside_app import PysideApp

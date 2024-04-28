@@ -10,6 +10,7 @@ from PySide6.QtWidgets import (QApplication, QDialog, QVBoxLayout, QLabel, QLine
 from data_to_paper.interactive.get_app import get_or_create_app
 from data_to_paper_examples.examples.run_project import get_paper
 
+
 class PlainTextPasteTextEdit(QTextEdit):
     def insertFromMimeData(self, source):
         if source.hasText():
@@ -105,7 +106,8 @@ class StartDialog(QDialog):
         research_goal_layout = QHBoxLayout()
         research_goal_layout.addWidget(QLabel("Enter your research goal:"))
         research_goal_info = create_info_label(
-            "Specify the objectives of your research clearly. Example: 'Determine the impact of A on B under conditions C and D.'")
+            "Specify the objectives of your research clearly. Example: 'Determine the impact of A on B under conditions"
+            " C and D.'")
         research_goal_layout.addWidget(research_goal_info)
         self.layout.addLayout(research_goal_layout)
 
@@ -213,7 +215,6 @@ class StartDialog(QDialog):
         if selected_item:
             self.load_project(selected_item.text())
 
-
     def on_delete_clicked(self):
         selected_item = self.list_widget.currentItem()
         if selected_item:
@@ -249,7 +250,8 @@ class StartDialog(QDialog):
         description_edit.setStyleSheet("background-color: #151515; color: white;")
         file_input_layout.addWidget(description_edit)
         description_info = create_info_label(
-            "Provide a detailed description of this specific file, including the type of data and any unique attributes.")
+            "Provide a detailed description of this specific file, including the type of data and any unique "
+            "attributes.")
         file_input_layout.addWidget(description_info)
 
         remove_button = QPushButton("X")
@@ -302,7 +304,8 @@ class StartDialog(QDialog):
 
     def on_start_clicked(self):
         project_name, general_description, goal, file_paths, descriptions = self.get_project_details()
-        if project_name and general_description and file_paths and descriptions and len(file_paths) == len(descriptions):
+        if (project_name and general_description and file_paths and descriptions and
+                len(file_paths) == len(descriptions)):
             # check the files exist
             for file_path in file_paths:
                 if not os.path.exists(file_path):
@@ -343,6 +346,7 @@ def run_app():
     main_app = get_or_create_app(app)  # Pass the existing QApplication instance
     main_app.start_worker(partial(get_paper, **RUN_PARAMETERS))
     sys.exit(app.exec())
+
 
 if __name__ == '__main__':
     run_app()
