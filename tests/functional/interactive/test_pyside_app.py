@@ -19,7 +19,6 @@ def test_pyside_app():
         # Show the processed text in the UI
         app.show_text(PanelNames.SYSTEM_PROMPT, "Hi " + text_input)
 
-
     q_application = QApplication(sys.argv)
     app = PysideApp.get_instance()
     app.q_application = q_application
