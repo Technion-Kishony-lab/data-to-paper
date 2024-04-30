@@ -1,21 +1,42 @@
-# data-to-paper: a platform for automating scientific research
+## data-to-paper: a platform for guiding LLMs through a transparent, overseeable and verifiable scientific research
 
-*data-to-paper* is a framework for systematically navigating the power of AI to perform complete end-to-end 
+[*data-to-paper*](https://arxiv.org/abs/2404.17605) is a framework for systematically navigating the power of AI to perform complete end-to-end 
 scientific research, starting from raw data and concluding with comprehensive, transparent, and human-verifiable 
 scientific papers.
 
-Towards this goal, *data-to-paper* systematically channels information and multiple interacting 
+Towards this goal, *data-to-paper* systematically guides interacting 
 LLM and rule-based agents through the conventional scientific path, from annotated data, through creating 
-research hypotheses, writing data analysis code, and interpreting the results in light of prior literature,
-and ultimately the step-by-step writing of a complete research paper.
+research hypotheses, conducting literature search, writing and debugging data analysis code, 
+interpreting the results, and ultimately the step-by-step writing of a complete research paper.
+
+The **data-to-paper** framework is created as a research project to understand the 
+capacities and limitations of LLM-driven scientific research, and to develop ways of harnessing LLM to accelerate 
+research while maintaining, and even enhancing, key scientific values, such as transparency, traceability and verifiability, 
+and while allowing scinetist to oversee and direct the process 
+[see also: [living guidelines](https://www.nature.com/articles/d41586-023-03266-1)].
+
+### Reference
+The **data-to-paper** framework is described in the following pre-print:
+ - Tal Ifargan, Lukas Hafner, Maor Kern, Ori Alcalay and Roy Kishony, 
+"Autonomous LLM-driven research from data to human-verifiable research papers", 
+[arXiv:2404.17605](https://arxiv.org/abs/2404.17605)
 
 ### Key features
+* **Field agnostic**. We strive to make the framework as general as possible, so that it can be used across different 
+fields of research.
 * **Open-goal or fixed goal research.** *data-to-paper* can be used to autonomously raise and test 
-an hypothesis, or to test a specific pre-defined user-defined hypothesis.
+a hypothesis, or to test a specific pre-defined user-defined hypothesis.
 * **Data-chained manuscripts**. The process creates transparent and verifiable manuscripts, where results, 
-methodology and data are programmatically linked (all numeric values can be traced back to the data, simply by clicking). 
-* **Human-in-the-loop.** A dedicated GUI app allows the user to oversee the process, and to intervene 
+methodology and data are programmatically linked 
+(all numeric values can be click-traced back to the code lines that created them). 
+* **Human-in-the-loop.** A GUI app allows the user to oversee the process, and to intervene 
 at each research step.
+* **Replay**. The entire process is recorded, including all LLM responses, Human feedback, and 
+literature search retrievals, allowing for transparent replay of the process.
+
+
+https://github.com/Technion-Kishony-lab/data-to-paper/assets/65530510/73dca9b5-3117-490a-9578-345789889189
+
 
 
 ### Examples
@@ -50,32 +71,25 @@ See [INSTALL.md](INSTALL.md) for installation instructions.
 
 ### How to run
 1. Follow the installation instructions in [INSTALL.md](INSTALL.md).
-2. We suggest starting with running the 5 recorded examples in the example branch `diabetes` (on the docker you have created in stage 1):
-   1. ```docker run --rm -it  datatopaper```   # run the docker image
-   2. ```git switch -f examples/diabetes```   # checkout the diabetes branch
-   3. ```cd data_to_paper/data_to_paper_examples/examples/projects/diabetes/```   # change directory to the diabetes project
-   4. ```python diabetes.py```   # run the project
-   This will run all the 5 examples in the diabetes project one after the other, presenting the conversations for each example in the terminal, outputting the generated codes, logs, tex file and paper to the `outputs/<example_name>` folder.
-3. This can also be done for the other example branches, by changing the branch name and adapting the path to the project folder accordingly.
-4. You can similarly introduce and run with other datasets. 
-   We advise that the quality of produced papers depend on providing clear, accurate, formal 
-   descriptions of the data (see the provided examples for reference). 
+2. Run the GUI app by running the following command:
+      ```python data-to-paper/data_to_paper/data_to_paper/interactive/app_startup.py```
+3. This will open a startup dialog that will allow you to kickstart your own project, add dataset, and possibly a research goal. 
+4. After you will correctly add all the required data files and metadata the main GUI app will open, it will allow you to run the project, oversee the products created and provide feedback along the way.
+
+### GUI app demo
+
+https://github.com/Technion-Kishony-lab/data-to-paper/assets/65530510/878865a7-45b4-496c-a62f-71d0003ce44b
+
 
 ### Contributing
 We invite people to try out **data-to-paper** with their own data and are eager for feedback and suggestions.
+It is currently designed for relatively simple research goals and simple datasets, where 
+we want to raise and test a statistical hypothesis.
 
-We also invite people to help develop the **data-to-paper** framework.
+We also invite people to help develop and extend the **data-to-paper** framework in science or other fields.
 
-### Reference
-The **data-to-paper** framework is described in the following pre-print:
- - Tal Ifargan, Lukas Hafner, Maor Kern, Ori Alcalay and Roy Kishony, 
-"Autonomous LLM-driven research from data to human-verifiable research papers", arXiv:XXX
 
 ### Important notes
-
-**Purpose** The **data-to-paper** framework is created as a research project to understand the 
-capacities and limitations of LLM-driven scientific research, and to explore ways of creating AI-driven
-scientific research that is fully transparent, verifiable and overseable by humans.
 
 **Disclaimer.** By using this software, you agree to assume all risks associated with its use, including but not limited 
 to data loss, system failure, or any other issues that may arise, especially, but not limited to, the
@@ -83,13 +97,11 @@ consequences of running of LLM created code on your local machine. The developer
 do not accept any responsibility or liability for any losses, damages, or other consequences that may occur as 
 a result of using this software. 
 
-**Accountability.** You are solely responsible for the entire content, rigour, quality and ethics of 
-created manuscripts. 
-The process should be overseen by a human-in-the-loop and created manuscripts should be carefully vetted 
+**Accountability.** You are solely responsible for the entire content of 
+created manuscripts including their rigour, quality, ethics and any other aspect. 
+The process should be overseen and directed by a human-in-the-loop and created manuscripts should be carefully vetted 
 by a domain expert. 
-The process is NOT error-proof and human intervention is _necessary_ to ensure the quality of the results. 
-For further information, concerning accountability and ethical considerations regarding generative AI
-in research, please also consult with [living guidelines](https://www.nature.com/articles/d41586-023-03266-1). 
+The process is NOT error-proof and human intervention is _necessary_ to ensure accuracy and the quality of the results. 
 
 **Compliance.** It is your responsibility to ensure that any actions or decisions made based on the output of this 
 software comply with all applicable laws, regulations, and ethical standards. 
@@ -102,4 +114,14 @@ can be expensive due to its token usage. By utilizing this project, you acknowle
 responsible for monitoring and managing your own token usage and the associated costs. 
 It is highly recommended to check your API usage regularly and set up any necessary limits or alerts to 
 prevent unexpected charges.
+
+### Other related projects
+
+Here are some other cool multi-agent relted projects:
+- [LangChain](https://github.com/langchain-ai/langchain)
+- [AutoGen](https://microsoft.github.io/autogen/)
+- [AutoGPT](https://github.com/Significant-Gravitas/AutoGPT)
+- [MetaGPT](https://github.com/geekan/MetaGPT)
+
+And also this curated list of AI agents projects [awesome-agents](https://github.com/kyrolabs/awesome-agents)
 

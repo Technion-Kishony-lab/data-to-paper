@@ -9,7 +9,8 @@
 5. Enter the repo root folder, run `cd data-to-paper`.
 6. Install the required packages, run `pip install -r requirements.txt`.
 7. Install the app and further required packages, run `cd ./data_to_paper && pip install -e .`.
-8. Install all the required packages for compiling LaTeX:
+8. Install pandoc (follow instructions at [Pandoc Installation](https://pandoc.org/installing.html)).
+9. Install all the required packages for compiling LaTeX:
 
    - **On Ubuntu**:
      ```
@@ -31,7 +32,7 @@
      - During installation, select 'Yes' when asked to install missing packages on-the-fly.
      - After installation, you may need to add the TeX binaries to your PATH!
 
-### Install using Docker
+### Install using Docker (for legacy purposes only, running existing paper, not recommended for new users)
 
 Note, GUI app is not currently supported in the docker container. If you need to run the GUI app, please install the app on your local machine.
 
