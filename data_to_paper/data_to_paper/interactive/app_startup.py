@@ -2,6 +2,7 @@ import json
 import os
 import sys
 from functools import partial
+from pathlib import Path
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (QApplication, QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QFileDialog,
@@ -9,6 +10,8 @@ from PySide6.QtWidgets import (QApplication, QDialog, QVBoxLayout, QLabel, QLine
 
 from data_to_paper.interactive.get_app import get_or_create_app
 from data_to_paper_examples.examples.run_project import get_paper
+
+BASE_DIRECTORY = Path(__file__).parent
 
 
 class PlainTextPasteTextEdit(QTextEdit):
@@ -39,7 +42,7 @@ def create_horizontal_line():
 class StartDialog(QDialog):
     def __init__(self):
         super().__init__()
-        self.config_file = "config/run_setup.json"
+        self.config_file = BASE_DIRECTORY / Path("config/run_setup.json")
         self.current_config = {}
         self.setWindowTitle("Set Project Details")
         self.setStyleSheet("background-color: #303030; color: white; font-family: Arial, sans-serif; font-size: 14pt;")
@@ -151,7 +154,7 @@ class StartDialog(QDialog):
                 configs[project_name]['files'].append(file_edit.text())
                 configs[project_name]['descriptions'].append(description_edit.toPlainText())
 
-            with open(self.config_file, 'w') as file:
+            with open(self.config_file, 'w+') as file:
                 json.dump(configs, file, indent=4)
 
     def load_configurations(self):

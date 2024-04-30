@@ -111,6 +111,30 @@ QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {
 }
 """.replace('black', APP_BACKGROUND_COLOR)
 
+TABS_STYLE = """
+QTabWidget::pane { /* The tab widget frame */
+    border-top: 2px solid #202020;
+}
+
+QTabBar::tab {
+    background-color: #303030;
+    color: white;
+    border: 2px solid #505050; /* Visible borders around tabs */
+    border-bottom-color: #303030; /* Same as background to merge with the tab pane */
+    padding: 5px; /* Spacing within the tabs */
+}
+
+QTabBar::tab:selected {
+    background-color: #505050;
+    border-color: #606060; /* Slightly lighter border to highlight the selected tab */
+    border-bottom-color: #505050; /* Merge with the tab pane */
+}
+
+QTabBar::tab:hover {
+    background-color: #404040; /* Slightly lighter to indicate hover state */
+}
+"""
+
 
 def _get_label_height(label: QLabel) -> int:
     """
@@ -495,7 +519,6 @@ class PysideApp(QMainWindow, BaseApp):
         # Splitter with the text panels
         main_splitter = QSplitter(Qt.Orientation.Horizontal)
         left_splitter = QSplitter(Qt.Orientation.Vertical)
-        left_splitter.setHandleWidth(5)
         right_splitter = QSplitter(Qt.Orientation.Vertical)
         main_splitter.addWidget(left_splitter)
         main_splitter.addWidget(right_splitter)
@@ -504,7 +527,7 @@ class PysideApp(QMainWindow, BaseApp):
         self.tabs = create_tabs({'Response': self.panels[PanelNames.RESPONSE],
                                  'Product': self.panels[PanelNames.PRODUCT]})
         if MAKE_IT_UGLY_IN_MAC_BUT_MORE_CONSISTENT_ACROSS_OS:
-            self.tabs.setStyleSheet("background-color: " + APP_BACKGROUND_COLOR + ";" + "color: white;")
+            self.tabs.setStyleSheet(TABS_STYLE)
         else:
             self.tabs.setStyleSheet("QTabBar::tab { color: white; }")
         left_splitter.addWidget(self.panels[PanelNames.SYSTEM_PROMPT])
@@ -513,6 +536,14 @@ class PysideApp(QMainWindow, BaseApp):
         right_splitter.addWidget(self.panels[PanelNames.FEEDBACK])
         left_splitter.setSizes([100, 500])
         right_side.setStretchFactor(main_splitter, 1)
+
+        if MAKE_IT_UGLY_IN_MAC_BUT_MORE_CONSISTENT_ACROSS_OS:
+            main_splitter.setStyleSheet("""
+                QSplitter::handle {
+                    width: 1px;
+                    background-color: #202020;
+                }
+            """)
 
         right_side.addWidget(main_splitter)
 
