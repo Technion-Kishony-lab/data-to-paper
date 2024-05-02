@@ -1,6 +1,6 @@
 ## data-to-paper: a platform for guiding LLMs through a transparent, overseeable and verifiable scientific research
 
-![Screenshot 2024-05-02 202745](https://github.com/Technion-Kishony-lab/data-to-paper/assets/31969897/d83b5de3-b4a2-4eb7-a041-69cfce263168)
+<img width="1194" alt="Screen Shot 2024-05-02 at 22 43 57" src="https://github.com/Technion-Kishony-lab/data-to-paper/assets/31969897/81aa8c45-549b-40fe-9d4f-abdd61e3e0a1">
 
 
 [*data-to-paper*](https://arxiv.org/abs/2404.17605) is a framework for systematically navigating the power of AI to perform complete end-to-end 
