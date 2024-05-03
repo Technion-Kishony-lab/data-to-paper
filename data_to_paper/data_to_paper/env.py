@@ -57,7 +57,7 @@ DELAY_SEND_TO_WEB = Mutable(0.1)  # seconds
 PRODUCTS_TO_SEND_TO_CLIENT = ['paper.pdf', 'paper.tex']
 
 # Human interactions:
-RECORD_INTERACTIONS = Flag(True)
+RECORD_INTERACTIONS = Mutable(True)
 HUMAN_EDIT_CODE_REVIEW = True
 HUMAN_NAME = 'Human'
 CHOSEN_APP = Mutable('pyside')  # 'console', 'pyside', None
