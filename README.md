@@ -1,7 +1,6 @@
-## data-to-paper: a platform for guiding LLMs through a transparent, overseeable and verifiable scientific research
+## data-to-paper: AI-driven research from data to human-verifiable research papers
 
-<img width="1194" alt="Screen Shot 2024-05-02 at 22 43 57" src="https://github.com/Technion-Kishony-lab/data-to-paper/assets/31969897/81aa8c45-549b-40fe-9d4f-abdd61e3e0a1">
-
+<img src="https://github.com/Technion-Kishony-lab/data-to-paper/blob/main/data_to_paper_icon.gif?raw=true" width="300" align="right">
 
 [*data-to-paper*](https://arxiv.org/abs/2404.17605) is a framework for systematically navigating the power of AI to perform complete end-to-end 
 scientific research, starting from raw data and concluding with comprehensive, transparent, and human-verifiable 
@@ -17,6 +16,10 @@ capacities and limitations of LLM-driven scientific research, and to develop way
 research while maintaining, and even enhancing, key scientific values, such as transparency, traceability and verifiability, 
 and while allowing scinetist to oversee and direct the process 
 [see also: [living guidelines](https://www.nature.com/articles/d41586-023-03266-1)].
+
+
+https://github.com/Technion-Kishony-lab/data-to-paper/assets/65530510/73dca9b5-3117-490a-9578-345789889189
+
 
 ### Reference
 The **data-to-paper** framework is described in the following pre-print:
@@ -36,11 +39,6 @@ methodology and data are programmatically linked
 at each research step.
 * **Replay**. The entire process is recorded, including all LLM responses, Human feedback, and 
 literature search retrievals, allowing for transparent replay of the process.
-
-
-https://github.com/Technion-Kishony-lab/data-to-paper/assets/65530510/73dca9b5-3117-490a-9578-345789889189
-
-
 
 ### Examples
 
