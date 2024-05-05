@@ -440,7 +440,6 @@ class DebuggerConverser(BackgroundProductsConverser):
 
         self.apply_append_surrogate_message(
             content=message + '\n' + wrap_text_with_triple_quotes(code, 'python'),
-            web_conversation_name=None,
             comment=comment,
         )
 

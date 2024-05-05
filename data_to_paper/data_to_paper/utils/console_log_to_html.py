@@ -16,10 +16,6 @@ def filter_text(text):
     lines_to_filter_startswith = [
         ' [31mERROR: None embedding attr.',
         ' [31mCreateConversation(',
-        'AdvanceStage(',
-        'SetActiveConversation(',
-        'SetProduct(',
-        'SendFinalProduct('
     ]
     # Filter out lines based on the startswith conditions
     filtered_lines = [

@@ -226,7 +226,6 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                             created_file_names_explanation=self.get_created_file_names_explanation(code_and_output),
                         )),
                     comment='Adding the debugged code as if it was the original response.',
-                    web_conversation_name=None,
                 )
             return code_and_output, debugger
         return None, None

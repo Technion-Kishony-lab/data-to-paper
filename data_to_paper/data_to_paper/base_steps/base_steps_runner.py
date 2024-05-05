@@ -6,17 +6,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Union
 
-from data_to_paper.env import COALESCE_WEB_CONVERSATIONS, PRODUCTS_TO_SEND_TO_CLIENT
 from data_to_paper.utils.print_to_file import print_and_log
 from data_to_paper.servers.llm_call import OPENAI_SERVER_CALLER
 from data_to_paper.servers.crossref import CROSSREF_SERVER_CALLER
 from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER
-from data_to_paper.conversation.conversation_actions import CreateConversation
-from data_to_paper.conversation.stage import AdvanceStage, SetActiveConversation, SetProduct, Stage, \
-    SendFinalProduct
-from data_to_paper.conversation.conversation import WEB_CONVERSATION_NAME_PREFIX
+from data_to_paper.conversation.stage import Stage
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
-from data_to_paper.base_cast import Agent
 from data_to_paper.exceptions import TerminateException
 from data_to_paper.base_products import DataFileDescriptions
 from data_to_paper.run_gpt_code.code_runner import RUN_CACHE_FILEPATH
@@ -75,49 +70,12 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         You can close the app now.
         """)
 
-    def create_web_conversations(self):
-        if not COALESCE_WEB_CONVERSATIONS:
-            return
-        if self.cast is None:
-            return
-        for agent in self.cast:
-            if agent.get_conversation_name():
-                self.actions_and_conversations.actions.apply_action(CreateConversation(
-                    conversations=self.actions_and_conversations.conversations,
-                    web_conversation_name=self.get_conversation_name_for_agent(agent),
-                    participants={agent, self.cast.get_primary_agent()},
-                ))
-
-    def get_conversation_name_for_agent(self, agent):
-        """
-        Get the conversation name for the given agent.
-        """
-        if agent.get_conversation_name():
-            return WEB_CONVERSATION_NAME_PREFIX + agent.get_conversation_name()
-        return None
-
     def advance_stage(self, stage: Stage):
         """
         Advance the stage.
         """
         self.current_stage = stage
-        self.actions_and_conversations.actions.apply_action(AdvanceStage(stage=stage))
         self._app_advance_stage(stage)
-
-    def set_active_conversation(self, agent: Agent):
-        """
-        Advance the stage of the research goal.
-        """
-        self.actions_and_conversations.actions.apply_action(SetActiveConversation(agent=agent))
-
-    def advance_stage_and_set_active_conversation(self, stage: Stage = None, agent: Agent = None):
-        """
-        Advance the stage of the research goal.
-        """
-        if stage is not None:
-            self.advance_stage(stage=stage)
-        if agent is not None:
-            self.set_active_conversation(agent=agent)
 
     def send_product_to_client(self, product_field: str, save_to_file: bool = False):
         """
@@ -127,11 +85,6 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
             filename = product_field + '.txt'
             with open(self.output_directory / filename, 'w') as file:
                 file.write(self.products.get_description(product_field))
-        self.actions_and_conversations.actions.apply_action(
-            SetProduct(
-                stage=self.products.get_stage(product_field),
-                products=self.products,
-                product_field=product_field))
         if self.app:
             product = self.products.get_description_as_html(product_field)
             self._app_send_product_of_stage(
@@ -142,14 +95,6 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
     @property
     def absolute_data_folder(self):
         return self.data_file_descriptions.data_folder
-
-    def send_final_products_to_client(self, product_name: str):
-        """
-        Get the base GPT script file.
-        """
-        self.actions_and_conversations.actions.apply_action(
-            SendFinalProduct(product_name=product_name)
-        )
 
     def _run_all_steps(self):
         """
@@ -208,7 +153,6 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         @CROSSREF_SERVER_CALLER.record_or_replay(
             self.get_mock_responses_file(self.CROSSREF_RESPONSES_FILENAME), should_mock=self.should_mock)
         def run():
-            self.create_web_conversations()
             self._run_all_steps()
 
         try:
@@ -228,9 +172,6 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
                                   from_md=True)
             raise
         else:
-            for product in PRODUCTS_TO_SEND_TO_CLIENT:
-                self.send_final_products_to_client(product_name=product)
-            # self.advance_stage(Stage.FINISHED)  # used for the old whatsapp app
             msg = Replacer(self, self.success_message).format_text()
             self._app_send_prompt(PanelNames.MISSION_PROMPT, msg, from_md=True)
             self._app_set_header('Completed')

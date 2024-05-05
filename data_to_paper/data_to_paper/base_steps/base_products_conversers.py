@@ -136,11 +136,11 @@ class BackgroundProductsConverser(ProductsConverser):
 
     def _add_acknowledgement(self, product_field: str, is_last: bool = False):
         acknowledgement, tag = self._get_acknowledgement_and_tag(product_field)
-        self.apply_append_surrogate_message(acknowledgement, tag=tag, is_background=True, reverse_roles_for_web=True)
+        self.apply_append_surrogate_message(acknowledgement, tag=tag, is_background=True)
 
     def _add_product_description(self, product_field: str):
         product_description, tag = self.get_product_description_and_tag(product_field)
-        self.apply_append_user_message(product_description, tag=tag, is_background=True, reverse_roles_for_web=True)
+        self.apply_append_user_message(product_description, tag=tag, is_background=True)
 
     def _add_fake_pre_conversation_exchange(self):
         """
@@ -166,7 +166,7 @@ class BackgroundProductsConverser(ProductsConverser):
                 self._add_product_description(product_field)
                 self._add_acknowledgement(product_field, is_last=is_last)
             if self.post_background_comment:
-                self.comment(self.post_background_comment, tag='after_background', web_conversation_name=None)
+                self.comment(self.post_background_comment, tag='after_background')
         return super()._pre_populate_background()
 
     def apply_get_and_append_assistant_message(self, tag: Optional[StrOrReplacer] = None,

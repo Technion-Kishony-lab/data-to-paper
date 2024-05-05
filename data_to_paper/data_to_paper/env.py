@@ -48,13 +48,7 @@ HIDE_INCOMPLETE_CODE = Flag(True)
 # Max number of tokens allowed in code output:
 MAX_SENSIBLE_OUTPUT_SIZE_TOKENS = Mutable(2500)
 
-# Coalesce conversations with the same participants into one web-conversation:
-COALESCE_WEB_CONVERSATIONS = Flag(True)
-
-DELAY_SEND_TO_WEB = Mutable(0.1)  # seconds
-
-# Products to send to client for the user to download:
-PRODUCTS_TO_SEND_TO_CLIENT = ['paper.pdf', 'paper.tex']
+DELAY_SEND_TO_WEB = Mutable(0.01)  # seconds
 
 # Human interactions:
 RECORD_INTERACTIONS = Mutable(True)
