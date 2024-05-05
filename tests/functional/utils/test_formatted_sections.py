@@ -4,11 +4,12 @@ from data_to_paper.utils.formatted_sections import FormattedSections
 
 
 @pytest.mark.parametrize('text, labels, is_complete', [
-    ('hello', (False, ), True),
+    ("```single line block```", ('', ), True),
+    ('hello', (None, ), True),
     ("```python\na = 2\n```", ('python', ), True),
     ("```\na = 2\n```", ('', ), True),
     ("```\na = 2\n", ('', ), False),
-    ("Here is our code:\n```python\n\nimport numpy as np\n```", (False, 'python', ), True),
+    ("Here is our code:\n```python\n\nimport numpy as np\n```", (None, 'python', ), True),
 ])
 def test_formatted_sections_converts_back_perfectly(text, labels, is_complete):
     formatted_sections = FormattedSections.from_text(text, strip_label=False)

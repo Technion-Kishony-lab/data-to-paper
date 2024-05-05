@@ -1,11 +1,11 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import List, Optional, Union
+from typing import List, Optional
 
 
 @dataclass
 class FormattedSection:
-    label: Union[bool, str]
+    label: Optional[str]
     section: str
     is_complete: bool = True
 
@@ -14,7 +14,7 @@ class FormattedSection:
 
     @property
     def is_block(self):
-        return self.label is not False
+        return self.label is not None
 
 
 class FormattedSections(List[FormattedSection]):
@@ -60,7 +60,7 @@ class FormattedSections(List[FormattedSection]):
                 else:
                     label = ''
             else:
-                label = False
+                label = None
             is_last = i == len(sections) - 1
             is_incomplete = is_last and is_block
             self.append(FormattedSection(label, section, not is_incomplete))
@@ -70,7 +70,7 @@ class FormattedSections(List[FormattedSection]):
         text = ''
         for i, formatted_section in enumerate(self):
             label, section, is_complete = formatted_section.to_tuple()
-            if label is False:
+            if not formatted_section.is_block:
                 # regular text
                 text += section
             else:
