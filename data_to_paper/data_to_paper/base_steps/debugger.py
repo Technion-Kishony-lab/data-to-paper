@@ -142,12 +142,6 @@ class DebuggerConverser(BackgroundProductsConverser):
             ', '.join(f'"{r.filename}"' for r in requirements)
         )
 
-    def _get_runtime_available_objects(self) -> dict:
-        """
-        Return objects to be made available for access during gpt-code runtime
-        """
-        return {}
-
     """
     ISSUES
     """
@@ -408,7 +402,6 @@ class DebuggerConverser(BackgroundProductsConverser):
             output_file_requirements=self.output_file_requirements,
             script_file_path=None,
             run_folder=self.data_folder,
-            runtime_available_objects=self._get_runtime_available_objects(),
             additional_contexts=self.additional_contexts,
             timeout_sec=self.timeout_sec,
             code_and_output_cls=self.code_and_output_cls,

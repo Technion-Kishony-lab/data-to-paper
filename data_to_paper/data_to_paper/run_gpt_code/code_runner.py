@@ -36,7 +36,6 @@ class BaseCodeRunner(CacheRunToFile, ABC):
     output_file_requirements: OutputFileRequirements = OutputFileRequirements()
     allowed_read_files: Iterable[str] = ()
     additional_contexts: Optional[Dict[str, Any]] = None  # additional contexts to use when running code
-    runtime_available_objects: dict = field(default_factory=dict)
     run_code_cls: Type[RunCode] = RunCode
     code_and_output_cls: Type[CodeAndOutput] = CodeAndOutput
     _lines_added_in_front_of_code: int = None
@@ -79,7 +78,6 @@ class BaseCodeRunner(CacheRunToFile, ABC):
             self.output_file_requirements.get_all_allowed_created_filenames(),
             output_file_requirements=self.output_file_requirements,
             run_folder=self.run_folder,
-            runtime_available_objects=self.runtime_available_objects,
             additional_contexts=self.additional_contexts,
         )
 

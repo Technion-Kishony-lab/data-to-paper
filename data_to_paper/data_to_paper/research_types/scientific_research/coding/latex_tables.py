@@ -1,7 +1,8 @@
 from dataclasses import dataclass, field
+from functools import partial
 from typing import Iterable, Any, Type, Tuple, Optional, Dict, Collection
 
-from data_to_paper.base_steps import DebuggerConverser
+from data_to_paper.base_steps import DebuggerConverser, CheckLatexCompilation
 from data_to_paper.base_steps.request_code import CodeReviewPrompt
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.code_and_output_files.file_view_params import ContentView, ContentViewPurpose, ContentViewParams
@@ -25,6 +26,7 @@ from data_to_paper.research_types.scientific_research.scientific_products import
 from data_to_paper.research_types.scientific_research.table_debugger import TablesDebuggerConverser
 from data_to_paper.run_gpt_code.overrides.attr_replacers import PreventAssignmentToAttrs, PreventCalling, AttrReplacer
 from data_to_paper.run_gpt_code.overrides.pvalue import PValue, OnStr
+from data_to_paper.run_gpt_code.run_contexts import ProvideData
 from data_to_paper.run_gpt_code.run_issues import RunIssue, CodeProblem
 from data_to_paper.utils import dedent_triple_quote_str
 
@@ -101,47 +103,25 @@ tex_file_requirement.content_view_purpose_converter.view_purpose_to_params[
 
 
 @dataclass
-class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
+class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLatexCompilation):
     code_step: str = 'data_to_latex'
+    tolerance_for_too_wide_in_pts: Optional[float] = 25.
     debugger_cls: Type[DebuggerConverser] = TablesDebuggerConverser
     code_and_output_cls: Type[CodeAndOutput] = CreateLatexTablesCodeAndOutput
     headers_required_in_code: Tuple[str, ...] = (
         '# IMPORT',
         '# PREPARATION FOR ALL TABLES',
     )
-    latex_document: LatexDocument = field(default_factory=LatexDocument)
     phrases_required_in_code: Tuple[str, ...] = \
         ('\nfrom my_utils import to_latex_with_note, is_str_in_df, split_mapping, AbbrToNameDef', )
     attrs_to_send_to_debugger: Tuple[str, ...] = \
-        BaseCreateTablesCodeProductsGPT.attrs_to_send_to_debugger + ('latex_document', 'phrases_required_in_code',)
+        BaseCreateTablesCodeProductsGPT.attrs_to_send_to_debugger + ('phrases_required_in_code',)
     user_agent: ScientificAgent = ScientificAgent.InterpretationReviewer
     background_product_fields: Tuple[str, ...] = \
         ('data_file_descriptions', 'research_goal', 'codes:data_preprocessing', 'codes:data_analysis',
          'created_files_content:data_analysis:table_?.pkl')
     allow_data_files_from_sections: Tuple[Optional[str]] = ('data_analysis', )
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'my_utils')
-    additional_contexts: Optional[Dict[str, Any]] = field(
-        default_factory=lambda: get_additional_contexts(
-            allow_dataframes_to_change_existing_series=True,
-            enforce_saving_altered_dataframes=False) |
-        {'CustomPreventMethods': PreventCalling(
-            modules_and_functions=(
-                ('pandas.DataFrame', 'to_latex', False),
-                ('pandas.DataFrame', 'to_html', False),
-                ('pandas', 'to_numeric', False),
-            )
-        ),
-         'CustomPreventAssignmentToAtt': DataframePreventAssignmentToAttrs(
-             forbidden_set_attrs=['columns', 'index'],
-         ),
-         'ReadPickleAttrReplacer': get_read_pickle_attr_replacer(),
-         'PValueMessage': AttrReplacer(
-             obj_import_str=PValue, attr='error_message_on_forbidden_func',
-             wrapper="Calling `{func_name}` on a PValue object is forbidden.\n "
-                     "Please use `format_p_value` instead."
-         )}
-    )
-
     output_file_requirements: OutputFileRequirements = OutputFileRequirements(
         [tex_file_requirement])
 
@@ -273,3 +253,29 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         k = len('table_')
         self.headers_required_in_code += tuple(f'# TABLE {file_name[k]}'
                                                for file_name in self.products.get_created_df_tables())
+
+    def _get_additional_contexts(self) -> Optional[Dict[str, Any]]:
+        return get_additional_contexts(
+            allow_dataframes_to_change_existing_series=True,
+            enforce_saving_altered_dataframes=False) | {
+            'CustomPreventMethods': PreventCalling(
+                modules_and_functions=(
+                    ('pandas.DataFrame', 'to_latex', False),
+                    ('pandas.DataFrame', 'to_html', False),
+                    ('pandas', 'to_numeric', False),
+                )
+            ),
+            'CustomPreventAssignmentToAtt': DataframePreventAssignmentToAttrs(
+                forbidden_set_attrs=['columns', 'index'],
+            ),
+            'ReadPickleAttrReplacer': get_read_pickle_attr_replacer(),
+            'PValueMessage': AttrReplacer(
+                obj_import_str=PValue, attr='error_message_on_forbidden_func',
+                wrapper="Calling `{func_name}` on a PValue object is forbidden.\n "
+                        "Please use `format_p_value` instead."
+            ),
+            'ProvideData': ProvideData(data=
+                                       {'compile_to_pdf_func':
+                                        partial(self._get_static_latex_compilation_func(), is_table=True)}
+            ),
+        }

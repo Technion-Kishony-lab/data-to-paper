@@ -64,11 +64,9 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
     debugger_cls: Type[DebuggerConverser] = DebuggerConverser
     code_and_output_cls: Type[CodeAndOutput] = CodeAndOutput
     supported_packages: Tuple[str, ...] = SUPPORTED_PACKAGES
-    additional_contexts: Optional[Dict[str, Any]] = None
 
     attrs_to_send_to_debugger: Tuple[str, ...] = \
-        ('output_file_requirements', 'data_filenames', 'data_folder', 'supported_packages', 'model_engine',
-         'additional_contexts')
+        ('output_file_requirements', 'data_filenames', 'data_folder', 'supported_packages', 'model_engine')
 
     revision_round: int = 0
 
@@ -130,6 +128,9 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
     @property
     def output_filename(self) -> str:
         return self.output_file_requirements.get_single_content_file()
+
+    def _get_additional_contexts(self) -> Optional[Dict[str, Any]]:
+        return None
 
     def get_created_file_names_explanation(self, code_and_output: CodeAndOutput) -> str:  # noqa
         created_files = code_and_output.created_files.get_all_created_files()
@@ -207,6 +208,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                 code_and_output_cls=self.code_and_output_cls,
                 previous_code=previous_code,
                 previous_code_problem=CodeProblem.NoCode if previous_code is None else CodeProblem.AllOK,
+                additional_contexts=self._get_additional_contexts(),
                 **{k: getattr(self, k) for k in self.attrs_to_send_to_debugger},
             )
             code_and_output = debugger.run_debugging()

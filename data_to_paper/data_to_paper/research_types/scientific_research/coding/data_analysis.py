@@ -188,16 +188,6 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
                                                 hypertarget_prefixes=HypertargetPrefix.ADDITIONAL_RESULTS.value)
          ])
 
-    additional_contexts: Optional[Dict[str, Any]] = field(
-        default_factory=lambda: get_additional_contexts(
-            allow_dataframes_to_change_existing_series=False,
-            enforce_saving_altered_dataframes=False,
-            issue_if_statistics_test_not_called=True) | {
-                'ToPickleAttrReplacer': get_dataframe_to_pickle_attr_replacer(),
-                'PickleDumpAttrReplacer': get_pickle_dump_attr_replacer(),
-            }
-    )
-
     mission_prompt: str = dedent_triple_quote_str("""
         Write a complete Python code to analyze the data and create dataframes as basis for scientific Tables \t
         for our paper.
@@ -506,6 +496,15 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         {code_review_formatting_instructions}
         """), name='all output files'),
     )
+
+    def _get_additional_contexts(self) -> Optional[Dict[str, Any]]:
+        return get_additional_contexts(
+            allow_dataframes_to_change_existing_series=False,
+            enforce_saving_altered_dataframes=False,
+            issue_if_statistics_test_not_called=True) | {
+                'ToPickleAttrReplacer': get_dataframe_to_pickle_attr_replacer(),
+                'PickleDumpAttrReplacer': get_pickle_dump_attr_replacer(),
+            }
 
     @staticmethod
     def _get_table_comments_for_code_and_output(code_and_output: CodeAndOutput) -> str:

@@ -24,8 +24,6 @@ class TestDataframeChangingCodeProductsGPT(TestProductsReviewGPT, BaseCodeProduc
     conversation_name: str = None
     COPY_ATTRIBUTES = BaseCodeProductsGPT.COPY_ATTRIBUTES | {'temp_dir'}
     output_file_requirements: OutputFileRequirements = OutputFileRequirements([DataOutputFileRequirement('*.csv')])
-    additional_contexts: Optional[Dict[str, Any]] = field(
-        default_factory=lambda: {'TrackDataFrames': TrackDataFrames(allow_dataframes_to_change_existing_series=False)})
     enforce_saving_altered_dataframes: bool = True
     code_review_prompts: Collection[CodeReviewPrompt] = ()
     code_name: str = 'Testing'
@@ -41,6 +39,9 @@ class TestDataframeChangingCodeProductsGPT(TestProductsReviewGPT, BaseCodeProduc
     @property
     def data_filenames(self):
         return ['test.csv']
+
+    def _get_additional_contexts(self) -> Optional[Dict[str, Any]]:
+        return {'TrackDataFrames': TrackDataFrames(allow_dataframes_to_change_existing_series=False)}
 
 
 @dataclass

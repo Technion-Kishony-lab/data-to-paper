@@ -1,8 +1,7 @@
 from dataclasses import dataclass
-from functools import partial
-from typing import Optional, Tuple, List, Type
+from typing import Tuple, List, Type
 
-from data_to_paper.base_steps import DebuggerConverser, CheckLatexCompilation
+from data_to_paper.base_steps import DebuggerConverser
 from data_to_paper.research_types.scientific_research.scientific_products import ScientificProducts
 from data_to_paper.run_gpt_code.code_runner import CodeRunner
 
@@ -24,14 +23,9 @@ class UtilsCodeRunner(CodeRunner):
 
 
 @dataclass
-class TablesDebuggerConverser(CheckLatexCompilation, DebuggerConverser):
+class TablesDebuggerConverser(DebuggerConverser):
     products: ScientificProducts = None
     code_runner_cls: Type[CodeRunner] = UtilsCodeRunner
-
-    tolerance_for_too_wide_in_pts: Optional[float] = 25.
-
-    def _get_runtime_available_objects(self) -> dict:
-        return {'compile_to_pdf_func': partial(self._get_static_latex_compilation_func(), is_table=True)}
 
     def _get_issues_for_created_output_files(self, code_and_output: CodeAndOutput, contexts) -> List[RunIssue]:
         num_created_pkl_table_files = self.products.get_number_of_created_df_tables()
