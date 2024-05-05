@@ -23,7 +23,7 @@ class UtilsCodeRunner(CodeRunner):
 
 
 @dataclass
-class TablesDebuggerConverser(DebuggerConverser):
+class LatexTablesDebuggerConverser(DebuggerConverser):
     products: ScientificProducts = None
     code_runner_cls: Type[CodeRunner] = UtilsCodeRunner
 

@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from functools import partial
 from typing import Iterable, Any, Type, Tuple, Optional, Dict, Collection
 
@@ -11,7 +11,6 @@ from data_to_paper.code_and_output_files.output_file_requirements import TextCon
 from data_to_paper.code_and_output_files.ref_numeric_values import HypertargetFormat, HypertargetPosition
 from data_to_paper.code_and_output_files.referencable_text import BaseReferenceableText, convert_str_to_latex_label, \
     NumericReferenceableText
-from data_to_paper.latex.latex_doc import LatexDocument
 from data_to_paper.latex.tables import get_table_caption
 from data_to_paper.research_types.scientific_research.cast import ScientificAgent
 from data_to_paper.research_types.scientific_research.coding.base_code_conversers import BaseCreateTablesCodeProductsGPT
@@ -23,7 +22,7 @@ from data_to_paper.research_types.scientific_research.coding.utils_modified_for_
 from data_to_paper.research_types.scientific_research.coding.utils_modified_for_gpt_use.to_pickle import \
     get_read_pickle_attr_replacer
 from data_to_paper.research_types.scientific_research.scientific_products import HypertargetPrefix
-from data_to_paper.research_types.scientific_research.table_debugger import TablesDebuggerConverser
+from data_to_paper.research_types.scientific_research.coding.latex_table_debugger import LatexTablesDebuggerConverser
 from data_to_paper.run_gpt_code.overrides.attr_replacers import PreventAssignmentToAttrs, PreventCalling, AttrReplacer
 from data_to_paper.run_gpt_code.overrides.pvalue import PValue, OnStr
 from data_to_paper.run_gpt_code.run_contexts import ProvideData
@@ -106,7 +105,7 @@ tex_file_requirement.content_view_purpose_converter.view_purpose_to_params[
 class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLatexCompilation):
     code_step: str = 'data_to_latex'
     tolerance_for_too_wide_in_pts: Optional[float] = 25.
-    debugger_cls: Type[DebuggerConverser] = TablesDebuggerConverser
+    debugger_cls: Type[DebuggerConverser] = LatexTablesDebuggerConverser
     code_and_output_cls: Type[CodeAndOutput] = CreateLatexTablesCodeAndOutput
     headers_required_in_code: Tuple[str, ...] = (
         '# IMPORT',
