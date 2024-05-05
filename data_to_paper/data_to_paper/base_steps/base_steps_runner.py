@@ -153,26 +153,26 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         @CROSSREF_SERVER_CALLER.record_or_replay(
             self.get_mock_responses_file(self.CROSSREF_RESPONSES_FILENAME), should_mock=self.should_mock)
         def run():
-            self._run_all_steps()
+            try:
+                self._run_all_steps()
+            except TerminateException as e:
+                # self.advance_stage(Stage.FAILURE)  # used for the old whatsapp app
+                msg = Replacer(self, self.failure_message, kwargs={'exception': str(e)}).format_text()
+                self._app_send_prompt(PanelNames.MISSION_PROMPT, msg, from_md=True)
+                self._app_set_header('Terminate upon failure')
+                print_and_log(f'----- TERMINATING RUN ------\n{msg}\n----------------------------\n')
+            except Exception as e:
+                self._app_clear_panels()
+                self._app_send_prompt(PanelNames.MISSION_PROMPT,
+                                      '# Run failed.\n*data-to-paper* exited unexpectedly.\n'
+                                      '### Exception:\n'
+                                      f'{wrap_text_with_triple_quotes(str(e), "error")}',
+                                      from_md=True)
+                raise
+            else:
+                msg = Replacer(self, self.success_message).format_text()
+                self._app_send_prompt(PanelNames.MISSION_PROMPT, msg, from_md=True)
+                self._app_set_header('Completed')
+                print_and_log(f'----- COMPLETED RUN ------\n{msg}\n----------------------------\n')
 
-        try:
-            run()
-        except TerminateException as e:
-            # self.advance_stage(Stage.FAILURE)  # used for the old whatsapp app
-            msg = Replacer(self, self.failure_message, kwargs={'exception': str(e)}).format_text()
-            self._app_send_prompt(PanelNames.MISSION_PROMPT, msg, from_md=True)
-            self._app_set_header('Terminate upon failure')
-            print_and_log(f'----- TERMINATING RUN ------\n{msg}\n----------------------------\n')
-        except Exception as e:
-            self._app_clear_panels()
-            self._app_send_prompt(PanelNames.MISSION_PROMPT,
-                                  '# Run failed.\n*data-to-paper* exited unexpectedly.\n'
-                                  '### Exception:\n'
-                                  f'{wrap_text_with_triple_quotes(str(e), "error")}',
-                                  from_md=True)
-            raise
-        else:
-            msg = Replacer(self, self.success_message).format_text()
-            self._app_send_prompt(PanelNames.MISSION_PROMPT, msg, from_md=True)
-            self._app_set_header('Completed')
-            print_and_log(f'----- COMPLETED RUN ------\n{msg}\n----------------------------\n')
+        run()
