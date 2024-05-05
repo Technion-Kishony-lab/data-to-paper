@@ -192,10 +192,10 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         default_factory=lambda: get_additional_contexts(
             allow_dataframes_to_change_existing_series=False,
             enforce_saving_altered_dataframes=False,
-            issue_if_statistics_test_not_called=True) |
-        {'ToPickleAttrReplacer': get_dataframe_to_pickle_attr_replacer(),
-         'PickleDump': get_pickle_dump_attr_replacer(),
-         }
+            issue_if_statistics_test_not_called=True) | {
+                'ToPickleAttrReplacer': get_dataframe_to_pickle_attr_replacer(),
+                'PickleDumpAttrReplacer': get_pickle_dump_attr_replacer(),
+            }
     )
 
     mission_prompt: str = dedent_triple_quote_str("""
