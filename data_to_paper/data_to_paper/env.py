@@ -1,6 +1,8 @@
 import os
 from typing import Optional
 
+from pathlib import Path
+
 from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils.mutable import Mutable, Flag
 
@@ -61,6 +63,7 @@ NUM_DIGITS_FOR_FLOATS = 4
 
 os.environ['CLIENT_SERVER_MODE'] = 'False'
 
+FOLDER_FOR_RUN = Path(__file__).parent / 'temp_run'
 
 # GPT code environment:
 TRACK_P_VALUES = Flag(True)

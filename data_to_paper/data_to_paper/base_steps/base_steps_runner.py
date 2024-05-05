@@ -113,7 +113,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
                     self.CROSSREF_RESPONSES_FILENAME,
                     self.SEMANTIC_SCHOLAR_RESPONSES_FILENAME]]
 
-    def create_empty_output_folder(self):
+    def create_or_clean_output_folder(self):
         """
         Create empty output folder (delete all files if exists).
         """
@@ -143,7 +143,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         """
         Run all steps and save all created files to the output folder.
         """
-        self.create_empty_output_folder()
+        self.create_or_clean_output_folder()
 
         @RUN_CACHE_FILEPATH.temporary_set(self.output_directory / self.CODE_RUNNER_CACHE_FILENAME)
         @SEMANTIC_SCHOLAR_SERVER_CALLER.record_or_replay(

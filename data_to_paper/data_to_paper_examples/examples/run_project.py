@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from data_to_paper.base_products import DataFileDescriptions, DataFileDescription
+from data_to_paper.env import FOLDER_FOR_RUN
 from data_to_paper.latex.latex_doc import LatexDocument
 from data_to_paper.research_types.scientific_research.run_steps import ScientificStepsRunner
 from data_to_paper.research_types.scientific_research.scientific_products import HypertargetPrefix
@@ -123,7 +124,7 @@ def get_paper(project: str, data_filenames: List[str], research_goal: Optional[s
         with open(input_path / 'general_description.txt', 'w') as f:
             f.write(general_description or '')
 
-    temp_folder_to_run_in = input_path / 'temp_folder'
+    temp_folder_to_run_in = FOLDER_FOR_RUN
     data_filenames_without_dot_zip = [filename.replace('.zip', '') for filename in data_filenames]
     copy_datafiles_to_data_folder(data_filenames_without_dot_zip, input_path, temp_folder_to_run_in)
 
