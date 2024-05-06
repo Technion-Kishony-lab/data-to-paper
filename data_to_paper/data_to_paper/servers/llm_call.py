@@ -236,10 +236,10 @@ def get_human_response(app: BaseApp, **kwargs) -> HumanAction:
     Allow the user to edit a message and return the edited message.
     Return None if the user did not change the message.
     """
-    if RECORD_INTERACTIONS == True:
+    if RECORD_INTERACTIONS == True:  # noqa
         return OPENAI_SERVER_CALLER.get_server_response(
             [], model_engine=lambda messages, **k: app.request_action(**k), **kwargs)
-    elif RECORD_INTERACTIONS == False:
+    elif RECORD_INTERACTIONS == False:  # noqa
         return app.request_action(**kwargs)
     else:
         app.request_action(**kwargs)
