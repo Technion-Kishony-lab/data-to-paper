@@ -22,7 +22,7 @@ def get_app() -> Optional[BaseApp]:
     return THE_APP
 
 
-def create_app(q_application: Optional[QApplication] = None, step_runner: BaseStepsRunner = None) \
+def create_app(step_runner: BaseStepsRunner = None, q_application: Optional[QApplication] = None) \
         -> Optional[BaseApp]:
     global IS_APP_INITIALIZED, THE_APP
     if IS_APP_INITIALIZED:

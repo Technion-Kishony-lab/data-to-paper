@@ -10,6 +10,8 @@ from PySide6.QtWidgets import (QApplication, QDialog, QVBoxLayout, QLabel, QLine
                                QMessageBox, QTextEdit, QWidget, QHBoxLayout, QSizePolicy, QListWidget, QFrame)
 
 from data_to_paper.interactive.get_app import create_app
+from data_to_paper.research_types.scientific_research.steps_runner import ScientificStepsRunner
+from data_to_paper.run.run_all_steps import run_all_steps
 
 BASE_DIRECTORY = Path(__file__).parent
 
@@ -382,30 +384,44 @@ class StartDialog(QDialog):
                                 "with its description.")
 
 
+def create_project_folder(project_name, general_description, goal, file_paths, descriptions):
+    project_name = project_name.strip().lower().replace(' ', '_')
+    project_folder = BASE_DIRECTORY / Path(project_name)
+    project_folder.mkdir(parents=True, exist_ok=True)
+    with open(project_folder / 'general_description.txt', 'w') as file:
+        file.write(general_description)
+    for file_path, description in zip(file_paths, descriptions):
+        with open(project_folder / f'{description}.txt', 'w') as file:
+            file.write(file_path)
+    to_json = {
+        'data_filenames': [str(file_path) for file_path in file_paths],
+        'data_files_is_binary': [None] * len(file_paths),
+        'research_goal': goal,
+        'should_do_data_exploration': True,
+        'project_specific_goal_guidelines': '',
+    }
+    with open(project_folder / 'data-to-paper.json', 'w') as file:
+        json.dump(to_json, file, indent=4)
+
+
 def run_app():
     app = QApplication(sys.argv)  # Create QApplication once
     while True:
         start_dialog = StartDialog()
         if start_dialog.exec() == QDialog.Accepted:
             project_name, general_description, goal, file_paths, descriptions = start_dialog.get_project_details()
-            project_name = project_name.strip().lower().replace(' ', '_')
-            file_names = [path.split('/')[-1] for path in file_paths]
-            RUN_PARAMETERS = {
-                'project': project_name,
-                'research_goal': goal if goal else None,
-                'general_description': general_description,
-                'data_file_paths': file_paths,
-                'data_filenames': file_names,
-                'file_descriptions': descriptions,
-                'output_folder': project_name + '_run'
-            }
             break
         else:
             sys.exit(0)
 
-    main_app = create_app(app)  # Pass the existing QApplication instance
-    main_app.start_worker(partial(get_paper, **RUN_PARAMETERS))
-    sys.exit(app.exec())
+    project_name = project_name.strip().lower().replace(' ', '_')
+    create_project_folder(project_name, general_description, goal, file_paths, descriptions)
+    step_runner = ScientificStepsRunner(
+        project_directory=BASE_DIRECTORY / project_name,
+        output_directory=BASE_DIRECTORY / project_name / 'run_001',
+    )
+
+    run_all_steps(step_runner=step_runner, q_application=app)  # Pass the existing QApplication instance
 
 
 if __name__ == '__main__':
