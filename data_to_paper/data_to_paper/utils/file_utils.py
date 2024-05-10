@@ -7,9 +7,6 @@ from pathlib import Path
 from typing import Union, Iterable
 from fnmatch import fnmatch
 
-# Get the path of the current folder:
-THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
-
 
 def is_name_matches_list_of_wildcard_names(file_name: str, list_of_filenames: Iterable[str]):
     """

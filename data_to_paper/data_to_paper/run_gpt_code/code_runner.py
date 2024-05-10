@@ -40,7 +40,7 @@ class BaseCodeRunner(CacheRunToFile, ABC):
     code_and_output_cls: Type[CodeAndOutput] = CodeAndOutput
     _lines_added_in_front_of_code: int = None
     timeout_sec: int = MAX_EXEC_TIME.val
-    cache_filepath: Path = field(default_factory=lambda: RUN_CACHE_FILEPATH.val)
+    cache_filepath: Path = field(default_factory=lambda: RUN_CACHE_FILEPATH.val)  # None if not caching
 
     @property
     def lines_added_in_front_of_code(self) -> int:

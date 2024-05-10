@@ -7,7 +7,7 @@ from typing import List, Optional
 from data_to_paper.base_products import DataFileDescriptions, DataFileDescription
 from data_to_paper.env import FOLDER_FOR_RUN
 from data_to_paper.latex.latex_doc import LatexDocument
-from data_to_paper.research_types.scientific_research.run_steps import ScientificStepsRunner
+from data_to_paper.research_types.scientific_research.steps_runner import ScientificStepsRunner
 from data_to_paper.research_types.scientific_research.scientific_products import HypertargetPrefix
 from data_to_paper.utils.console_log_to_html import convert_console_log_to_html
 from data_to_paper.utils.print_to_file import CONSOLE_LOG_FILE

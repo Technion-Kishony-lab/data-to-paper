@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
-from typing import Optional, Tuple, Type, List, Union
+from typing import Tuple, Type, List, Union
 
-from data_to_paper.base_steps import BaseStepsRunner, DirectorProductGPT, CheckLatexCompilation
+from data_to_paper.base_steps import DirectorProductGPT, CheckLatexCompilation, DataStepRunner
 
 from .cast import ScientificAgent
 from .coding.after_coding import RequestCodeExplanation, RequestCodeProducts
@@ -35,20 +35,24 @@ SECTIONS_TO_WRITING_CLASS = [
 
 
 @dataclass
-class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
+class ScientificStepsRunner(DataStepRunner, CheckLatexCompilation):
+    DEFAULT_PROJECT_PARAMETERS = DataStepRunner.DEFAULT_PROJECT_PARAMETERS | dict(
+        research_goal=None,
+        should_do_data_exploration=True,
+        should_do_data_preprocessing=True,
+        should_prepare_hypothesis_testing_plan=True,
+        should_do_literature_search=True,
+        project_specific_goal_guidelines='',
+        excluded_citation_titles=[],
+        max_goal_refinement_iterations=3,
+    )
 
     cast = ScientificAgent
     products: ScientificProducts = field(default_factory=ScientificProducts)
-    research_goal: Optional[str] = None
-    project_specific_goal_guidelines: str = ""
-    max_goal_refinement_iterations: int = 3
+    stages: Type[ScientificStage] = ScientificStage
 
-    should_do_data_exploration: bool = True
-    should_do_data_preprocessing: bool = False
-    should_prepare_hypothesis_testing_plan: bool = True
-    should_do_literature_search: bool = True
-
-    excluded_citation_titles: List[str] = None,  # Title of papers that we don't allow to be cited
+    def _create_temp_folder_to_run_in(self):
+        return self.temp_folder_to_run_in
 
     def get_sections_to_writing_class(
             self) -> List[Tuple[Union[str, Tuple[str, ...]], Type[SectionWriterReviewBackgroundProductsConverser]]]:
@@ -61,13 +65,12 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
         assert set(flattened_paper_sections_to_write) == set(template_sections)
 
     def _run_all_steps(self) -> ScientificProducts:
-
+        self._read_data_file_descriptions()
         products = self.products  # Start with empty products
 
         # Set the paper section names:
         sections_and_writing_class = self.get_sections_to_writing_class()
-        self.assert_paper_sections_to_write_matches_template(PAPER_SECTIONS_NAMES,
-                                                             sections_and_writing_class)
+        self.assert_paper_sections_to_write_matches_template(PAPER_SECTIONS_NAMES, sections_and_writing_class)
         paper_producer = ProduceScientificPaperPDFWithAppendix.from_(
             self,
             latex_document=self.latex_document,
@@ -87,7 +90,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
         self.send_product_to_client('data_file_descriptions')
 
         # Data exploration
-        if self.should_do_data_exploration:
+        if self.project_parameters['should_do_data_exploration']:
             self.advance_stage(ScientificStage.EXPLORATION)
             RequestCodeProducts.from_(self,
                                       code_step='data_exploration',
@@ -100,28 +103,28 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
         # Goal
         self.advance_stage(ScientificStage.GOAL)
         research_goal = director_converser.get_product_or_no_product_from_director(
-                product_name='Research Goal', returned_product=self.research_goal,
+                product_name='Research Goal', returned_product=self.project_parameters['research_goal'],
                 acknowledge_no_product_message="OK. no problem. I will devise the goal myself.")
         if research_goal is None:
             # we did not get a goal from the director, so we need to devise it ourselves:
             products.research_goal = GoalReviewGPT.from_(
                 self,
-                project_specific_goal_guidelines=self.project_specific_goal_guidelines
+                project_specific_goal_guidelines=self.project_parameters['project_specific_goal_guidelines']
             ).run_and_get_valid_result()
             self.send_product_to_client('research_goal')
 
             goal_refinement_iteration = 0
             while True:
                 # Literature search
-                if self.should_do_literature_search:
+                if self.project_parameters['should_do_literature_search']:
                     self.advance_stage(ScientificStage.LITERATURE_REVIEW_GOAL)
                     GoalLiteratureSearchReviewGPT.from_(
-                        self, excluded_citation_titles=self.excluded_citation_titles,
+                        self, excluded_citation_titles=self.project_parameters['excluded_citation_titles'],
                         literature_search=products.literature_search['goal']
                     ).get_literature_search()
                     self.send_product_to_client('literature_search:goal')
 
-                if goal_refinement_iteration == self.max_goal_refinement_iterations:
+                if goal_refinement_iteration == self.project_parameters['max_goal_refinement_iterations']:
                     break
 
                 # Check if the goal is OK
@@ -137,7 +140,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
                 self.advance_stage(ScientificStage.GOAL)
                 products.research_goal = ReGoalReviewGPT.from_(
                     self,
-                    project_specific_goal_guidelines=self.project_specific_goal_guidelines
+                    project_specific_goal_guidelines=self.project_parameters['project_specific_goal_guidelines']
                 ).run_and_get_valid_result()
                 self.send_product_to_client('research_goal', save_to_file=True)
         else:
@@ -148,7 +151,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
         self.advance_stage(ScientificStage.PLAN)
 
         # Hypotheses testing plan
-        if self.should_prepare_hypothesis_testing_plan:
+        if self.project_parameters['should_prepare_hypothesis_testing_plan']:
             products.hypothesis_testing_plan = \
                 HypothesesTestingPlanReviewGPT.from_(self).run_and_get_valid_result()
             # self.send_product_to_client('hypothesis_testing_plan')
@@ -156,7 +159,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
         self.send_product_to_client('hypothesis_testing_plan', save_to_file=True)
 
         # Data Preprocessing
-        if self.should_do_data_preprocessing:
+        if self.project_parameters['should_do_data_preprocessing']:
             # self.advance_stage(ScientificStage.PREPROCESSING)
             RequestCodeProducts.from_(self,
                                       code_step='data_preprocessing',
@@ -197,7 +200,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
         WritingLiteratureSearchReviewGPT.from_(
             self,
             literature_search=products.literature_search['writing'],
-            excluded_citation_titles=self.excluded_citation_titles).get_literature_search()
+            excluded_citation_titles=self.project_parameters['excluded_citation_titles']).get_literature_search()
         self.send_product_to_client('literature_search:writing')
 
         # Paper sections

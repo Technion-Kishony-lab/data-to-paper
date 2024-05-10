@@ -1,12 +1,16 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+import os
+import shutil
+import zipfile
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional, List, Union
 
 import pandas as pd
 
 from data_to_paper.code_and_output_files.file_view_params import ContentView
+from data_to_paper.env import FOLDER_FOR_RUN
 from data_to_paper.latex.clean_latex import wrap_as_latex_code_output
 from data_to_paper.utils.file_utils import run_in_directory
 from data_to_paper.utils.mutable import Mutable
@@ -158,3 +162,100 @@ class DataFileDescriptions(List[DataFileDescription]):
         s += '\n\n' + wrap_as_latex_code_output(
             self.pretty_repr(num_lines=0, content_view=content_view))
         return s
+
+
+@dataclass
+class CreateDataFileDescriptions:
+    """
+    Given a project directory, create a temp folder to run in, and
+    the data file descriptions.
+    """
+    project_directory: Path = None
+    data_files_str_paths: List[str] = field(default_factory=list)
+    data_files_is_binary: List[bool] = field(default_factory=list)
+
+    GENERAL_DESCRIPTION_FILENAME = 'general_description.txt'
+    DESCRIPTION_FILENAME_EXT = '.description.txt'
+
+    GENERAL_FILE_DESCRIPTION_PREFIX = 'S'
+    FILE_DESCRIPTIONS_PREFIXES = ('T', 'U', 'V', 'W', 'X', 'Y', 'Z')
+
+    temp_folder_to_run_in: Path = FOLDER_FOR_RUN
+
+    def _get_description_file_path(self, data_file_path_str: str):
+        data_file_path = self._convert_data_file_path_str_to_path(data_file_path_str)
+        return self.project_directory / (data_file_path.name + self.DESCRIPTION_FILENAME_EXT)
+
+    def _read_file_description(self, data_file_path_str: str):
+        if not self._get_description_file_path(data_file_path_str).exists():
+            raise FileNotFoundError(f"Description file for {data_file_path_str} not found.")
+        return self._get_description_file_path(data_file_path_str).read_text()
+
+    def _read_general_description(self):
+        general_description_file_path = self.project_directory / self.GENERAL_DESCRIPTION_FILENAME
+        if not general_description_file_path.exists():
+            raise FileNotFoundError(f"General description file not found:\n{general_description_file_path}.")
+        return general_description_file_path.read_text()
+
+    def _get_hypertarget_prefix(self, file_num: Optional[int] = None, file_name: str = None):
+        """
+        Return the hypertarget prefix for the given file number.
+        file_num: the file number. None refers to the general description.
+        """
+        return self.GENERAL_FILE_DESCRIPTION_PREFIX if file_num is None \
+            else self.FILE_DESCRIPTIONS_PREFIXES[file_num]
+
+    def _convert_description_to_referenceable_text(self, description: str, file_num: Optional[int],
+                                                   file_name: str = None):
+        return NumericReferenceableText(text=description,
+                                        hypertarget_prefix=self._get_hypertarget_prefix(file_num, file_name))
+
+    def _convert_data_file_path_str_to_path(self, data_file_path: str):
+        """
+        convert to absolute path.
+        if relative path, it is relative to the project directory.
+        """
+        return Path(data_file_path).absolute() if Path(data_file_path).is_absolute() \
+            else self.project_directory / data_file_path
+
+    def _get_file_description_referenceable_text(self, data_file_str_path: str, file_num: Optional[int]):
+        description = self._read_file_description(data_file_str_path)
+        data_file_path = self._convert_data_file_path_str_to_path(data_file_str_path)
+        return self._convert_description_to_referenceable_text(description, file_num, data_file_path.name)
+
+    def _get_general_description_referenceable_text(self):
+        return self._convert_description_to_referenceable_text(
+            self._read_general_description(), None)
+
+    def _copy_files_and_get_list_of_data_file_descriptions(self) -> List[DataFileDescription]:
+        data_files_descriptions = []
+        shutil.rmtree(self.temp_folder_to_run_in, ignore_errors=True)  # remove data folder and all its content
+        self.temp_folder_to_run_in.mkdir(parents=True, exist_ok=True)  # create clean data folder
+        for j, data_file_str_path in enumerate(self.data_files_str_paths):
+            data_file_path = self._convert_data_file_path_str_to_path(data_file_str_path)
+            data_file_path_zip = data_file_path.with_name(data_file_path.name + '.zip')
+            if os.path.exists(data_file_path):
+                # copy file to data folder
+                shutil.copyfile(data_file_path, self.temp_folder_to_run_in / data_file_path.name)
+            elif os.path.exists(data_file_path_zip):
+                # unzip file to data folder
+                with zipfile.ZipFile(data_file_path_zip, 'r') as zip_ref:
+                    zip_ref.extractall(self.temp_folder_to_run_in)
+            else:
+                raise FileNotFoundError(f"File {data_file_path.name} or {data_file_path.name}.zip "
+                                        f"not found in {data_file_path.parent}")
+
+            data_files_descriptions.append(DataFileDescription(
+                file_path=data_file_path.name,  # relative to data dir
+                description=self._get_file_description_referenceable_text(data_file_str_path, j),
+                is_binary=self.data_files_is_binary[j]
+            ))
+        return data_files_descriptions
+
+    def create_temp_folder_and_get_file_descriptions(self) -> DataFileDescriptions:
+        file_descriptions = self._copy_files_and_get_list_of_data_file_descriptions()
+        return DataFileDescriptions(
+            file_descriptions,
+            data_folder=self.temp_folder_to_run_in,
+            general_description=self._get_general_description_referenceable_text()
+        )

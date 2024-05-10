@@ -1,25 +1,28 @@
 import glob
+import json
 import os
 import shutil
 from dataclasses import dataclass, field
 
 from pathlib import Path
-from typing import Union
+from typing import Union, Type
 
-from data_to_paper.utils.print_to_file import print_and_log
+from data_to_paper.base_products.file_descriptions import CreateDataFileDescriptions
+from data_to_paper.env import FOLDER_FOR_RUN
+from data_to_paper.utils.file_utils import run_in_directory
+from data_to_paper.utils.print_to_file import print_and_log, console_log_file_context
 from data_to_paper.servers.llm_call import OPENAI_SERVER_CALLER
 from data_to_paper.servers.crossref import CROSSREF_SERVER_CALLER
 from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER
 from data_to_paper.conversation.stage import Stage
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
 from data_to_paper.exceptions import TerminateException
-from data_to_paper.base_products import DataFileDescriptions
+from data_to_paper.base_products import DataFileDescriptions, DataFileDescription
 from data_to_paper.run_gpt_code.code_runner import RUN_CACHE_FILEPATH
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.replacer import Replacer
-from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
 
-from .base_products_conversers import ProductsHandler
+from data_to_paper.base_steps.base_products_conversers import ProductsHandler
 from data_to_paper.interactive.app_interactor import AppInteractor
 from data_to_paper.interactive import PanelNames
 
@@ -35,17 +38,30 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
     SEMANTIC_SCHOLAR_RESPONSES_FILENAME = 'semantic_scholar_responses.bin'
     CODE_RUNNER_CACHE_FILENAME = 'code_runner_cache.pkl'
 
+    PROJECT_PARAMETERS_FILENAME = 'data-to-paper.json'
+    DEFAULT_PROJECT_PARAMETERS = dict()
+    project_parameters: dict = field(default_factory=DEFAULT_PROJECT_PARAMETERS.copy)
+    project_directory: Path = None
+    temp_folder_to_run_in: Path = FOLDER_FOR_RUN
     actions_and_conversations: ActionsAndConversations = field(default_factory=ActionsAndConversations)
 
     cast = None  # Type[Agent]
-    data_file_descriptions: DataFileDescriptions = None
-    mock_servers: Union[bool, str] = False
+    should_mock: Union[bool, str] = True
 
+    stages: Type[Stage] = Stage
     current_stage: Stage = None
 
     failure_message = dedent_triple_quote_str("""
         ## Run Terminated
         Run terminated prematurely during stage `{current_stage}`.
+        ```error
+        {exception}
+        ```
+        """)
+    unexpected_error_message = dedent_triple_quote_str("""
+        # Run failed.
+        *data-to-paper* exited unexpectedly.
+        ### Exception:
         ```error
         {exception}
         ```
@@ -70,6 +86,10 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         You can close the app now.
         """)
 
+    def __post_init__(self):
+        super().__post_init__()
+        self._read_project_parameters()
+
     def advance_stage(self, stage: Stage):
         """
         Advance the stage.
@@ -92,10 +112,6 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
                 product_text=product,
             )
 
-    @property
-    def absolute_data_folder(self):
-        return self.data_file_descriptions.data_folder
-
     def _run_all_steps(self):
         """
         Run all the steps towards the high level goal.
@@ -113,7 +129,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
                     self.CROSSREF_RESPONSES_FILENAME,
                     self.SEMANTIC_SCHOLAR_RESPONSES_FILENAME]]
 
-    def create_or_clean_output_folder(self):
+    def _create_or_clean_output_folder(self):
         """
         Create empty output folder (delete all files if exists).
         """
@@ -129,29 +145,30 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         else:
             os.makedirs(self.output_directory)
 
-    def get_mock_responses_file(self, file_name: str = None):
-        if self.mock_servers is False:
-            return None
-        directory = self.output_directory if self.mock_servers is True else self.mock_servers
-        return Path(directory).absolute() / file_name
+    def _create_temp_folder_to_run_in(self):
+        """
+        Create a temporary folder to run the code in.
+        """
+        if self.temp_folder_to_run_in.exists():
+            shutil.rmtree(self.temp_folder_to_run_in)
+        self.temp_folder_to_run_in.mkdir()
 
-    @property
-    def should_mock(self):
-        return self.mock_servers is not False
+    def _get_path_in_output_directory(self, file_name: str = None):
+        return self.output_directory / file_name if self.should_mock else None
 
     def run_all_steps(self):
         """
         Run all steps and save all created files to the output folder.
         """
-        self.create_or_clean_output_folder()
 
-        @RUN_CACHE_FILEPATH.temporary_set(self.output_directory / self.CODE_RUNNER_CACHE_FILENAME)
+        @RUN_CACHE_FILEPATH.temporary_set(
+            self._get_path_in_output_directory(self.CODE_RUNNER_CACHE_FILENAME))
         @SEMANTIC_SCHOLAR_SERVER_CALLER.record_or_replay(
-            self.get_mock_responses_file(self.SEMANTIC_SCHOLAR_RESPONSES_FILENAME), should_mock=self.should_mock)
+            self._get_path_in_output_directory(self.SEMANTIC_SCHOLAR_RESPONSES_FILENAME))
         @OPENAI_SERVER_CALLER.record_or_replay(
-            self.get_mock_responses_file(self.OPENAI_RESPONSES_FILENAME), should_mock=self.should_mock)
+            self._get_path_in_output_directory(self.OPENAI_RESPONSES_FILENAME))
         @CROSSREF_SERVER_CALLER.record_or_replay(
-            self.get_mock_responses_file(self.CROSSREF_RESPONSES_FILENAME), should_mock=self.should_mock)
+            self._get_path_in_output_directory(self.CROSSREF_RESPONSES_FILENAME))
         def run():
             try:
                 self._run_all_steps()
@@ -163,11 +180,8 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
                 print_and_log(f'----- TERMINATING RUN ------\n{msg}\n----------------------------\n')
             except Exception as e:
                 self._app_clear_panels()
-                self._app_send_prompt(PanelNames.MISSION_PROMPT,
-                                      '# Run failed.\n*data-to-paper* exited unexpectedly.\n'
-                                      '### Exception:\n'
-                                      f'{wrap_text_with_triple_quotes(str(e), "error")}',
-                                      from_md=True)
+                msg = Replacer(self, self.unexpected_error_message, kwargs={'exception': str(e)}).format_text()
+                self._app_send_prompt(PanelNames.MISSION_PROMPT, msg, from_md=True)
                 raise
             else:
                 msg = Replacer(self, self.success_message).format_text()
@@ -175,4 +189,46 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
                 self._app_set_header('Completed')
                 print_and_log(f'----- COMPLETED RUN ------\n{msg}\n----------------------------\n')
 
-        run()
+        with console_log_file_context(self.output_directory / 'console_log.txt'):
+            self._create_or_clean_output_folder()
+            self._create_temp_folder_to_run_in()
+            run()
+
+    def _read_project_parameters(self):
+        """
+        Get the project parameters from the project directory.
+        """
+        self.project_parameters = self.DEFAULT_PROJECT_PARAMETERS.copy()
+        if self.PROJECT_PARAMETERS_FILENAME:
+            with open(self.project_directory / self.PROJECT_PARAMETERS_FILENAME) as file:
+                input_project_parameters = json.load(file)
+            # check that the keys of input_project_parameters are in self.project_parameters:
+            unknown_keys = set(input_project_parameters.keys()) - set(self.project_parameters.keys())
+            if unknown_keys:
+                raise ValueError(f'Unknown keys in project parameters: {unknown_keys}')
+            self.project_parameters.update(input_project_parameters)
+
+
+@dataclass
+class DataStepRunner(BaseStepsRunner):
+    """
+    A class for running a series of steps towards a high level goal.
+    With the ability to handle data files.
+    """
+    data_file_descriptions: DataFileDescriptions = field(default_factory=DataFileDescriptions)
+    DEFAULT_PROJECT_PARAMETERS = dict(
+        data_filenames=[],
+        data_files_is_binary=[],
+        description='',
+    )
+
+    def _read_data_file_descriptions(self):
+        """
+        Read the data file descriptions from the project directory
+        """
+        self.data_file_descriptions = CreateDataFileDescriptions(
+            data_files_str_paths=self.project_parameters['data_filenames'],
+            project_directory=self.project_directory,
+            data_files_is_binary=self.project_parameters['data_files_is_binary'],
+            temp_folder_to_run_in=self.temp_folder_to_run_in,
+        ).create_temp_folder_and_get_file_descriptions()
