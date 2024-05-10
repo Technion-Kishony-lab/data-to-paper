@@ -2,7 +2,7 @@ import os
 import traceback
 
 from data_to_paper.utils.mutable import Flag
-from data_to_paper.env import BASE_FOLDER_NAME
+from data_to_paper.env import BASE_FOLDER
 
 MODULE_NAME = 'script_to_run'
 module_filename = MODULE_NAME + ".py"
@@ -53,4 +53,4 @@ def is_called_from_data_to_paper(offset: int = 3) -> bool:
     with IS_CHECKING.temporary_set(True):
         tb = traceback.extract_stack()
         filename = tb[-offset].filename
-        return BASE_FOLDER_NAME in filename
+        return BASE_FOLDER.name in filename

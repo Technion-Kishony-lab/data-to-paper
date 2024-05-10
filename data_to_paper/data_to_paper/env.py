@@ -6,7 +6,7 @@ from pathlib import Path
 from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils.mutable import Mutable, Flag
 
-BASE_FOLDER_NAME = 'data-to-paper'
+BASE_FOLDER = Path(__file__).parent.parent.parent
 
 SUPPORTED_PACKAGES = ('numpy', 'pandas', 'scipy', 'sklearn')
 

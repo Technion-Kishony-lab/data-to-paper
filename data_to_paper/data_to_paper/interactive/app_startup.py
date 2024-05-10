@@ -9,11 +9,11 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (QApplication, QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QFileDialog,
                                QMessageBox, QTextEdit, QWidget, QHBoxLayout, QSizePolicy, QListWidget, QFrame)
 
-from data_to_paper.interactive.get_app import create_app
+from data_to_paper.env import BASE_FOLDER
 from data_to_paper.research_types.scientific_research.steps_runner import ScientificStepsRunner
 from data_to_paper.run.run_all_steps import run_all_steps
 
-BASE_DIRECTORY = Path(__file__).parent
+BASE_DIRECTORY = BASE_FOLDER / 'studies'
 
 style_sheet = """
 QWidget {
@@ -77,7 +77,6 @@ def create_info_label(tooltip_text):
 class StartDialog(QDialog):
     def __init__(self):
         super().__init__()
-        self.config_file = BASE_DIRECTORY / Path("config/run_setup.json")
         self.current_config = {}
         self.setWindowTitle("data-to-paper: Set Project Details")
         self.resize(1000, 1000)
@@ -103,14 +102,6 @@ class StartDialog(QDialog):
         self.list_widget.setStyleSheet(text_box_style)
         self.layout.addWidget(self.list_widget)
         button_layout = QHBoxLayout()
-        load_button = QPushButton("Load Project")
-        load_button.setStyleSheet(positive_button_style)
-        load_button.clicked.connect(self.on_load_clicked)
-        button_layout.addWidget(load_button)
-        delete_button = QPushButton("Delete Project")
-        delete_button.setStyleSheet(negative_button_style)
-        delete_button.clicked.connect(self.on_delete_clicked)
-        button_layout.addWidget(delete_button)
         self.layout.addLayout(button_layout)
 
         # Project name input
@@ -165,46 +156,7 @@ class StartDialog(QDialog):
         buttons_tray.addWidget(close_button)
         self.layout.addLayout(buttons_tray)
 
-        self.load_configurations()
-
-    def save_configuration(self):
-        # Read existing configs or initialize new dictionary
-        if os.path.exists(self.config_file):
-            with open(self.config_file, 'r') as file:
-                configs = json.load(file)
-        else:
-            configs = {}
-
-        # Update current project's config
-        project_name = self.project_name_edit.text().strip().lower().replace(' ', '_')
-        if project_name:
-            configs[project_name] = {
-                'general_description': self.general_description_edit.toPlainText(),
-                'goal': self.goal_edit.toPlainText(),
-                'files': [],
-                'descriptions': []
-            }
-            for i in range(self.files_layout.count()):
-                file_widget = self.files_layout.itemAt(i).widget()
-                _, file_edit, _, _, description_edit = self._get_widgets_from_file_widget(file_widget)
-                configs[project_name]['files'].append(file_edit.text())
-                configs[project_name]['descriptions'].append(description_edit.toPlainText())
-
-            with open(self.config_file, 'w+') as file:
-                json.dump(configs, file, indent=4)
-
-    def load_configurations(self):
-        if os.path.exists(self.config_file):
-            with open(self.config_file, 'r') as file:
-                configs = json.load(file)
-            self.list_widget.clear()
-            for project in configs:
-                self.list_widget.addItem(project)
-
     def load_project(self, project_name):
-        with open(self.config_file, 'r') as file:
-            configs = json.load(file)
-        config = configs.get(project_name, {})
         self.project_name_edit.setText(project_name)
         self.general_description_edit.setPlainText(config.get('general_description', ''))
         self.goal_edit.setPlainText(config.get('goal', ''))
@@ -238,33 +190,6 @@ class StartDialog(QDialog):
         delete_button = file_path_tray.itemAt(4).widget()
         description_edit = layout.itemAt(1).widget()
         return label, file_edit, browse_button, delete_button, description_edit
-
-    def delete_project(self, project_name):
-        if os.path.exists(self.config_file):
-            with open(self.config_file, 'r') as file:
-                configs = json.load(file)
-            if project_name in configs:
-                del configs[project_name]
-                with open(self.config_file, 'w') as file:
-                    json.dump(configs, file, indent=4)
-            self.load_configurations()
-
-    def on_load_clicked(self):
-        selected_item = self.list_widget.currentItem()
-        if selected_item:
-            self.load_project(selected_item.text())
-
-    def on_delete_clicked(self):
-        selected_item = self.list_widget.currentItem()
-        if selected_item:
-            reply = QMessageBox.question(self, 'Confirm Delete',
-                                         f"Are you sure you want to delete the project '{selected_item.text()}'?",
-                                         QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-            if reply == QMessageBox.Yes:
-                self.delete_project(selected_item.text())
-            else:
-                # If the user decides not to delete, do nothing
-                return
 
     def add_file_input(self, file_path='', description=''):
         file_input_widget = QFrame()  # Create a QFrame for encapsulating the file input widget
@@ -376,7 +301,6 @@ class StartDialog(QDialog):
                                         "You might have provided an incorrect file path or moved the file."
                                         f"Please provide a valid file path.")
                     return
-            self.save_configuration()
             self.accept()
         else:
             QMessageBox.warning(self, "Input Required",
