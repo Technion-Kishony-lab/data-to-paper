@@ -5,7 +5,7 @@ import shutil
 from dataclasses import dataclass, field
 
 from pathlib import Path
-from typing import Union, Type
+from typing import Union, Type, Optional
 
 from data_to_paper.base_products.file_descriptions import CreateDataFileDescriptions
 from data_to_paper.env import FOLDER_FOR_RUN
@@ -24,7 +24,7 @@ from data_to_paper.utils.replacer import Replacer
 
 from data_to_paper.base_steps.base_products_conversers import ProductsHandler
 from data_to_paper.interactive.app_interactor import AppInteractor
-from data_to_paper.interactive import PanelNames
+from data_to_paper.interactive import PanelNames, BaseApp
 
 
 @dataclass
@@ -44,7 +44,9 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
     project_directory: Path = None
     temp_folder_to_run_in: Path = FOLDER_FOR_RUN
     actions_and_conversations: ActionsAndConversations = field(default_factory=ActionsAndConversations)
+    should_remove_temp_folder: bool = True
 
+    app: Optional[BaseApp] = None
     cast = None  # Type[Agent]
     should_mock: Union[bool, str] = True
 
@@ -192,7 +194,12 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         with console_log_file_context(self.output_directory / 'console_log.txt'):
             self._create_or_clean_output_folder()
             self._create_temp_folder_to_run_in()
-            run()
+            try:
+                run()
+            finally:
+                if self.should_remove_temp_folder:
+                    # remove temp folder and all its content:
+                    shutil.rmtree(self.temp_folder_to_run_in, ignore_errors=True)
 
     def _read_project_parameters(self):
         """

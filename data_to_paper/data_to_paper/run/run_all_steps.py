@@ -1,15 +1,14 @@
 import sys
 
 from data_to_paper.base_steps import BaseStepsRunner
-from data_to_paper.env import CHOSEN_APP
-from data_to_paper.interactive.get_app import get_or_create_app
+from data_to_paper.interactive.get_app import create_app
 
 
 def run_all_steps(step_runner: BaseStepsRunner):
-    if CHOSEN_APP != 'pyside':
+    app = create_app(step_runner=step_runner)
+    if app is None:
         step_runner.run_all_steps()
     else:
-        app = get_or_create_app()
-        app.start_worker(step_runner.run_all_steps)
-        x = app.q_application.exec()
-        sys.exit(x)
+        step_runner.app = app
+        exit_code = app.initialize()
+        sys.exit(exit_code)

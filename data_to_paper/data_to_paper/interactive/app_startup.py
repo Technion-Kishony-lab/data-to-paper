@@ -9,8 +9,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (QApplication, QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QFileDialog,
                                QMessageBox, QTextEdit, QWidget, QHBoxLayout, QSizePolicy, QListWidget, QFrame)
 
-from data_to_paper.interactive.get_app import get_or_create_app
-from data_to_paper_examples.examples.run_project import get_paper
+from data_to_paper.interactive.get_app import create_app
 
 BASE_DIRECTORY = Path(__file__).parent
 
@@ -404,7 +403,7 @@ def run_app():
         else:
             sys.exit(0)
 
-    main_app = get_or_create_app(app)  # Pass the existing QApplication instance
+    main_app = create_app(app)  # Pass the existing QApplication instance
     main_app.start_worker(partial(get_paper, **RUN_PARAMETERS))
     sys.exit(app.exec())
 

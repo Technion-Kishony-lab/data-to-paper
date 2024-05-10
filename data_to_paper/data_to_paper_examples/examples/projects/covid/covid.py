@@ -2,7 +2,7 @@ import sys
 from functools import partial
 
 from data_to_paper.env import CHOSEN_APP
-from data_to_paper.interactive.get_app import get_or_create_app
+from data_to_paper.interactive.get_app import create_app
 from data_to_paper_examples.examples.run_project import get_paper
 
 RUN_PARAMETERS = dict(
@@ -19,6 +19,6 @@ if __name__ == '__main__':
     if CHOSEN_APP != 'pyside':
         get_paper(**RUN_PARAMETERS)
     else:
-        app = get_or_create_app()
+        app = create_app()
         app.start_worker(partial(get_paper, **RUN_PARAMETERS))
         sys.exit(app.q_application.exec())

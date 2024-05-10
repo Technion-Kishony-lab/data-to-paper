@@ -593,8 +593,9 @@ class PysideApp(QMainWindow, BaseApp):
             cls.instance = cls(mutex, condition)
         return cls.instance
 
-    def start_worker(self, func_to_run: Callable = None):
+    def start_worker(self):
         # Start the worker thread
+        func_to_run = self.step_runner.run_all_steps
         self.worker.func_to_run = func_to_run
         self.worker.start()
 

@@ -23,6 +23,7 @@ class BaseApp:
         if self.instance is not None:
             raise Exception("App is a singleton!")
         self.instance = self
+        self.step_runner = None
         self._panels_and_positions_to_headers = {(panel_name, position): '' for panel_name in PanelNames
                                                  for position in range(2)}
 
@@ -70,6 +71,12 @@ class BaseApp:
 
     def initialize(self):
         pass
+
+    def _run_all_steps(self):
+        self.step_runner.run_all_steps()
+
+    def _get_all_steps(self):
+        return self.step_runner.stages
 
     def _set_status(self, panel_name: PanelNames, position: int, status: str = ''):
         pass
