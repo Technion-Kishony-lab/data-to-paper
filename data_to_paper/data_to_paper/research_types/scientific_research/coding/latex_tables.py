@@ -273,8 +273,7 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
                 wrapper="Calling `{func_name}` on a PValue object is forbidden.\n "
                         "Please use `format_p_value` instead."
             ),
-            'ProvideData': ProvideData(data=
-                                       {'compile_to_pdf_func':
-                                        partial(self._get_static_latex_compilation_func(), is_table=True)}
+            'ProvideData': ProvideData(
+                data={'compile_to_pdf_func': partial(self._get_static_latex_compilation_func(), is_table=True)}
             ),
         }

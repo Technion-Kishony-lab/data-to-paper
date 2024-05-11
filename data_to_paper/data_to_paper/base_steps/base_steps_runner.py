@@ -9,7 +9,7 @@ from typing import Union, Type, Optional
 
 from data_to_paper.base_products.file_descriptions import CreateDataFileDescriptions
 from data_to_paper.env import FOLDER_FOR_RUN
-from data_to_paper.utils.file_utils import run_in_directory, clear_directory
+from data_to_paper.utils.file_utils import clear_directory
 from data_to_paper.utils.print_to_file import print_and_log, console_log_file_context
 from data_to_paper.servers.llm_call import OPENAI_SERVER_CALLER
 from data_to_paper.servers.crossref import CROSSREF_SERVER_CALLER

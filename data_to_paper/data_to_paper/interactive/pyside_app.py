@@ -12,7 +12,6 @@ from data_to_paper.conversation.stage import Stage
 from data_to_paper.interactive.base_app import BaseApp
 from data_to_paper.interactive.enum_types import PanelNames
 from data_to_paper.interactive.utils import open_file_on_os
-from data_to_paper.research_types.scientific_research.scientific_stage import ScientificStage
 
 MAKE_IT_UGLY_IN_MAC_BUT_MORE_CONSISTENT_ACROSS_OS = True
 

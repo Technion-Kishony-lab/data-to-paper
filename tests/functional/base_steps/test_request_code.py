@@ -1,5 +1,5 @@
 import pickle
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Type, Any, Dict, Optional, Collection
 
 from _pytest.fixtures import fixture

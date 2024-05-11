@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Tuple, Optional, Dict, Any
 
 from data_to_paper.code_and_output_files.output_file_requirements import OutputFileRequirements, \

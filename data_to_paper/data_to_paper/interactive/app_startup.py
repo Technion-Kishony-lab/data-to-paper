@@ -5,9 +5,8 @@ from pathlib import Path
 from typing import List, Tuple, NamedTuple, Type, Optional
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import (QApplication, QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QFileDialog,
-                               QMessageBox, QTextEdit, QWidget, QHBoxLayout, QSizePolicy, QListWidget, QFrame,
-                               QCheckBox)
+from PySide6.QtWidgets import QApplication, QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QFileDialog, \
+    QMessageBox, QTextEdit, QWidget, QHBoxLayout, QSizePolicy, QFrame, QCheckBox
 
 from data_to_paper.base_products.file_descriptions import TEXT_EXTS
 from data_to_paper.base_steps import BaseStepsRunner
