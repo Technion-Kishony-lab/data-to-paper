@@ -49,7 +49,6 @@ QPushButton {
     font-size: 16px;
     margin: 4px 2px;
     border-radius: 12px;
-    height: 12px;
 }
 
 QPushButton:hover {
@@ -348,7 +347,9 @@ class StartDialog(QDialog):
         # check that the project directory is empty:
         if list(project_directory.iterdir()):
             QMessageBox.warning(self, "Invalid Directory",
-                                "The selected directory is not empty. Please select an empty directory.")
+                                "The selected directory is not empty. Please select an empty directory, "
+                                "or create a new one.")
+
             return
         return project_directory
 
@@ -394,12 +395,15 @@ class StartDialog(QDialog):
         self._lock_project_for_editing(disable=run_folder.exists())
 
     def _browse_for_existing_project_directory(self) -> Optional[Path]:
-        project_directory = QFileDialog.getExistingDirectory(self, "Select a project directory",
-                                                             str(BASE_PROJECT_DIRECTORY))
-        # check that project directory is a valid directory (contains data-to-paper.json)
+        # project_directory = QFileDialog.getExistingDirectory(self, "Select a project directory",
+        #                                                      str(BASE_PROJECT_DIRECTORY))
+        project_directory = QFileDialog.getOpenFileName(
+            self, "Select a data file", str(BASE_PROJECT_DIRECTORY),
+            "data-to-paper.json (data-to-paper.json);;All Files (*)")[0]
+
         if not project_directory:
             return  # user cancelled
-        project_directory = Path(project_directory)
+        project_directory = Path(project_directory).parent
 
         # check that the project directory contains the project parameters file:
         filename = self.steps_runner_cls.PROJECT_PARAMETERS_FILENAME
