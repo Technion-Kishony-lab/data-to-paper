@@ -418,11 +418,10 @@ class StartDialog(QDialog):
         if project_directory is None:
             self.project_folder_label.setText('Untitled')
         else:
-            if not project_directory.is_absolute():
-                try:
-                    project_directory = project_directory.relative_to(BASE_PROJECT_DIRECTORY)
-                except ValueError:
-                    pass
+            try:
+                project_directory = project_directory.relative_to(BASE_PROJECT_DIRECTORY)
+            except ValueError:
+                pass
             self.project_folder_label.setText(str(project_directory))
             for abs_data_file_path, file_widget in zip(abs_data_file_paths, data_file_widgets):
                 file_widget.path.setText(self._convert_abs_data_file_path_to_abs_or_rel(abs_data_file_path))
