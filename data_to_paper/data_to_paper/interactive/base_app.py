@@ -3,7 +3,7 @@ from typing import Dict, Optional
 from data_to_paper.utils.print_to_file import print_and_log
 from data_to_paper.conversation.stage import Stage
 
-from .types import PanelNames
+from .enum_types import PanelNames
 from .human_actions import ButtonClickedHumanAction, TextSentHumanAction, HumanAction
 
 

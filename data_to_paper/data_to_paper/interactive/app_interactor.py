@@ -12,7 +12,7 @@ from data_to_paper.servers.llm_call import get_human_response
 
 from .base_app import BaseApp
 from .get_app import get_app
-from .types import PanelNames
+from .enum_types import PanelNames
 from .human_actions import HumanAction, ButtonClickedHumanAction, TextSentHumanAction
 
 

@@ -5,7 +5,7 @@ import pytest
 from PySide6.QtWidgets import QApplication
 
 from data_to_paper.interactive.pyside_app import PysideApp
-from data_to_paper.interactive.types import PanelNames
+from data_to_paper.interactive.enum_types import PanelNames
 
 
 # TODO: Need to make this into a real test
