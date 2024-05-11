@@ -2,7 +2,7 @@ import os
 import sys
 from functools import partial
 from pathlib import Path
-from typing import List, Tuple, NamedTuple, Type
+from typing import List, Tuple, NamedTuple, Type, Optional
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (QApplication, QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QFileDialog,
@@ -14,9 +14,24 @@ from data_to_paper.base_steps import BaseStepsRunner
 from data_to_paper.env import BASE_FOLDER
 from data_to_paper.research_types.scientific_research.steps_runner import ScientificStepsRunner
 from data_to_paper.run.run_all_steps import run_all_steps
-from data_to_paper.utils.file_utils import is_valid_filename
 
 BASE_PROJECT_DIRECTORY = BASE_FOLDER / 'projects'
+
+
+def get_relative_path(base_path, target_path):
+    """
+    Get the relative path from base_path to target_path. Allowing for .. in the path.
+    """
+    base_parts = base_path.parts
+    target_parts = target_path.parts
+    common_length = 0
+    for base_part, target_part in zip(base_parts, target_parts):
+        if base_part != target_part:
+            break
+        common_length += 1
+    back_steps = len(base_parts) - common_length
+    forward_steps = target_parts[common_length:]
+    return Path(*(['..'] * back_steps + list(forward_steps)))
 
 
 STEPS_RUNNER_CLS = ScientificStepsRunner
@@ -30,7 +45,7 @@ QWidget {
 }
 
 QPushButton {
-    background-color: #606060; /* Dark Grey */
+    background-color: #6060a0;
     border: none;
     color: #ffffff; /* White */
     padding: 10px 24px;
@@ -43,11 +58,11 @@ QPushButton {
 }
 
 QPushButton:hover {
-    background-color: #808080; /* Lighter Grey */
+    background-color: #7070c0;
 }
 
 QPushButton:pressed {
-    background-color: #404040; /* Darker Grey */
+    background-color: #505080;
 }
 
 QLineEdit {
@@ -58,10 +73,6 @@ QLineEdit {
 
 
 text_box_style = "background-color: #151515; color: white;"
-
-# no border for buttons:
-negative_button_style = "background-color: #aa6060;"
-positive_button_style = "background-color: #60aa60;"
 
 
 class PlainTextPasteTextEdit(QTextEdit):
@@ -94,7 +105,7 @@ class StartDialog(QDialog):
         super().__init__()
         self.steps_runner_cls = steps_runner_cls
         self.current_config = {}
-        self.setWindowTitle("data-to-paper: Set Project Details")
+        self.setWindowTitle("data-to-paper: Set and Run Project")
         self.resize(1000, 1000)
 
         self.setStyleSheet(style_sheet)
@@ -106,27 +117,25 @@ class StartDialog(QDialog):
         spacer = QWidget()
         spacer.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         top_bar_layout.addWidget(spacer)
-        close_button = QPushButton("Exit")
-        close_button.setStyleSheet(negative_button_style)
-        close_button.clicked.connect(self.close_app)
         self.layout.addLayout(top_bar_layout)
 
         # Project name input
         project_name_layout = QHBoxLayout()
         self.layout.addLayout(project_name_layout)
-        project_name_layout.addWidget(QLabel("Project:"))
-        self.project_folder_edit = QLineEdit()
-        self.project_folder_edit.setStyleSheet(text_box_style)
-        self.project_folder_edit.setPlaceholderText("Enter the project folder")
-        project_name_layout.addWidget(self.project_folder_edit)
-        load_button = QPushButton("Load")
-        load_button.setStyleSheet(positive_button_style)
-        load_button.clicked.connect(self.browse_project)
-        project_name_layout.addWidget(load_button)
-        new_button = QPushButton("New")
-        new_button.setStyleSheet(negative_button_style)
-        new_button.clicked.connect(self._clear_all)
-        project_name_layout.addWidget(new_button)
+        self.project_folder_header = QLabel("Project:")
+        project_name_layout.addWidget(self.project_folder_header)
+        self.project_folder_label = QLabel()
+        self.project_folder_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        project_name_layout.addWidget(self.project_folder_label)
+        self.open_button = QPushButton("Open")
+        self.open_button.clicked.connect(self.open_project)
+        project_name_layout.addWidget(self.open_button)
+        self.save_button = QPushButton("Save")
+        self.save_button.clicked.connect(self.save_project)
+        project_name_layout.addWidget(self.save_button)
+        self.new_button = QPushButton("New")
+        self.new_button.clicked.connect(self._clear_all)
+        project_name_layout.addWidget(self.new_button)
 
         # General description input with info label
         general_desc_layout = QVBoxLayout()
@@ -141,12 +150,11 @@ class StartDialog(QDialog):
         self.files_layout = QVBoxLayout()
         self.layout.addLayout(self.files_layout)
         self.add_file_button = QPushButton("Add Another File")
-        self.add_file_button.setStyleSheet(positive_button_style)
-        self.add_file_button.clicked.connect(self.add_file_input)
+        self.add_file_button.clicked.connect(self.add_data_file)
         # Set fixed width to prevent button from expanding and center it in the layout
         self.add_file_button.setFixedWidth(200)
         self.layout.addWidget(self.add_file_button, alignment=Qt.AlignHCenter)
-        self.add_file_input()
+        self.add_data_file()
 
         # Research goal input with info label
         research_goal_layout = QVBoxLayout()
@@ -158,68 +166,56 @@ class StartDialog(QDialog):
             "Optionally specify the research goal, or leave blank for autonomous goal setting.")
         research_goal_layout.addWidget(self.goal_edit)
 
-        # Start button
-        start_button = QPushButton("Start Project")
-        start_button.setStyleSheet(positive_button_style)
-        start_button.clicked.connect(self.on_start_clicked)
-
         # Buttons tray:
         buttons_tray = QHBoxLayout()
-        buttons_tray.addWidget(start_button)
-        buttons_tray.addWidget(close_button)
         self.layout.addLayout(buttons_tray)
 
-    def _delete_all_file_widgets(self):
+        start_button = QPushButton("Save and Start")
+        start_button.clicked.connect(self.on_start_clicked)
+        buttons_tray.addWidget(start_button)
+
+        close_button = QPushButton("Exit")
+        close_button.clicked.connect(self.close_app)
+        buttons_tray.addWidget(close_button)
+
+        self._clear_all()
+
+    def _delete_all_data_file_widgets(self):
         while self.files_layout.count():
             widget = self.files_layout.takeAt(0).widget()
             if widget:
                 widget.deleteLater()
 
     def _clear_all(self):
-        self.project_folder_edit.clear()
+        self._set_project_directory(None)
         self.general_description_edit.clear()
         self.goal_edit.clear()
-        self._delete_all_file_widgets()
-        self.add_file_input()
+        self._delete_all_data_file_widgets()
+        self._disable_all_inputs(disable=False)
+        self.add_data_file()
 
-    def load_project(self, project_directory: str):
-        project_directory = Path(project_directory)
+    def close_app(self):
+        self.reject()
+        QApplication.instance().exit()  # Exit the application
 
-        # if the project directory is under the base project directory, remove the base project directory:
-        if project_directory.parts[:len(BASE_PROJECT_DIRECTORY.parts)] == BASE_PROJECT_DIRECTORY.parts:
-            project_directory = project_directory.relative_to(BASE_PROJECT_DIRECTORY)
-        # path:
-        self.project_folder_edit.setText(str(project_directory))
-        config = self.steps_runner_cls.get_project_parameters_from_project_directory(project_directory)
-        self.general_description_edit.setPlainText(config.get('general_description', ''))
-        self.goal_edit.setPlainText(config.get('research_goal', ''))
-        self._delete_all_file_widgets()
-        for file_path, is_binary, description in zip(
-                config.get('data_filenames', []),
-                config.get('data_files_is_binary', []),
-                config.get('data_file_descriptions', [])):
-            self.add_file_input(file_path, is_binary, description)
-
-        run_folder = project_directory / 'runs'
-        if run_folder.exists():
-            self._disable_inputs()
-
-    def _disable_inputs(self):
-        self.project_folder_edit.setDisabled(True)
-        self.general_description_edit.setDisabled(True)
-        self.goal_edit.setDisabled(True)
-        self.add_file_button.setDisabled(True)
+    def _disable_all_inputs(self, disable=True):
+        self.project_folder_header.setText("Project [LOCKED]:" if disable else "Project:")
+        self.general_description_edit.setReadOnly(disable)
+        self.goal_edit.setReadOnly(disable)
+        self.add_file_button.setDisabled(disable)
+        self.save_button.setDisabled(disable)
         # Disable file inputs
         for i in range(self.files_layout.count()):
             file_widget = self.files_layout.itemAt(i).widget()
             if file_widget:
-                _, file_edit, is_binary_checkbox, browse_button, delete_button, description_edit = \
-                    self._get_widgets_from_file_widget(file_widget)
-                file_edit.setDisabled(True)
-                is_binary_checkbox.setDisabled(True)
-                browse_button.setDisabled(True)
-                description_edit.setDisabled(True)
-                delete_button.setDisabled(True)
+                file_widget = self._get_widgets_from_file_widget(file_widget)
+                file_widget.path.setDisabled(disable)
+                file_widget.is_binary.setDisabled(disable)
+                file_widget.browse.setDisabled(disable)
+                file_widget.delete.setDisabled(disable)
+                file_widget.description.setReadOnly(disable)
+
+    """Data files input"""
 
     def _get_widgets_from_file_widget(self, file_widget) -> FileDialogProperties:
         layout = file_widget.layout()
@@ -233,7 +229,7 @@ class StartDialog(QDialog):
         return \
             FileDialogProperties(label, file_edit, is_binary_checkbox, browse_button, delete_button, description_edit)
 
-    def _get_all_file_widgets(self) -> List[FileDialogProperties]:
+    def _get_all_data_file_widgets(self) -> List[FileDialogProperties]:
         file_widgets = []
         for i in range(self.files_layout.count()):
             file_widget = self.files_layout.itemAt(i).widget()
@@ -241,7 +237,7 @@ class StartDialog(QDialog):
                 file_widgets.append(self._get_widgets_from_file_widget(file_widget))
         return file_widgets
 
-    def add_file_input(self, file_path='', is_binary=False, description=''):
+    def add_data_file(self, file_path='', is_binary=False, description=''):
         file_input_widget = QFrame()  # Create a QFrame for encapsulating the file input widget
         file_input_layout = QVBoxLayout(file_input_widget)  # Maintain horizontal layout
 
@@ -268,13 +264,11 @@ class StartDialog(QDialog):
         file_path_tray.addWidget(is_binary_checkbox)
 
         browse_button = QPushButton("Browse")
-        browse_button.setStyleSheet(positive_button_style)
-        browse_button.clicked.connect(partial(self.browse_files, file_edit, is_binary_checkbox))
+        browse_button.clicked.connect(partial(self.browse_data_files, file_edit, is_binary_checkbox))
         file_path_tray.addWidget(browse_button)
 
         remove_button = QPushButton("Delete")
-        remove_button.setStyleSheet(negative_button_style)
-        remove_button.clicked.connect(partial(self.remove_file_input, file_input_widget))
+        remove_button.clicked.connect(partial(self._remove_data_file, file_input_widget))
         file_path_tray.addWidget(remove_button)
 
         file_input_layout.addLayout(file_path_tray)
@@ -292,50 +286,158 @@ class StartDialog(QDialog):
 
         self.files_layout.addWidget(file_input_widget)
 
-    def remove_file_input(self, widget):
-        widget.destroyed.connect(self.update_file_labels)
+    def _remove_data_file(self, widget):
+        widget.destroyed.connect(self._update_data_file_labels)
         widget.deleteLater()
 
-    def update_file_labels(self):
-        for index, file_widget in enumerate(self._get_all_file_widgets()):
+    def _update_data_file_labels(self):
+        for index, file_widget in enumerate(self._get_all_data_file_widgets()):
             file_widget.label.setText(f"File #{index + 1}:")
 
-    def close_app(self):
-        self.reject()
-        QApplication.instance().exit()  # Exit the application
-
-    def browse_files(self, file_edit, is_binary_checkbox):
-        file, _ = QFileDialog.getOpenFileName(self, "Select a data file", "",
-                                              "CSV Files (*.csv);;ZIP Files (*.zip);;All Files (*)")
-        if file:
-            file_edit.setText(file)
-            file_name = Path(file).name.replace('.zip', '')
-            ext = file_name.split('.')[-1]
-            is_binary = ext not in TEXT_EXTS
+    def browse_data_files(self, file_edit, is_binary_checkbox):
+        project_directory = self._get_absolute_project_directory()
+        search_in = str(BASE_PROJECT_DIRECTORY) if project_directory is None else str(project_directory)
+        file_path, _ = QFileDialog.getOpenFileName(
+            self, "Select a data file", search_in,
+            "CSV Files (*.csv);;Excel Files (*.xlsx, *.xls);;ZIP Files (*.zip);;All Files (*)")
+        if file_path:
+            file_path = file_path.replace('.zip', '')
+            file_path = self._convert_abs_data_file_path_to_abs_or_rel(file_path)
+            file_edit.setText(file_path)
+            ext = file_path.split('.')[-1]
+            is_binary = '.' + ext not in TEXT_EXTS
             is_binary_checkbox.setChecked(is_binary)
 
-    def browse_project(self):
+    def _convert_abs_data_file_path_to_abs_or_rel(self, data_file_path: str) -> str:
+        if not data_file_path:
+            return ''
+        project_directory = self._get_absolute_project_directory()
+        data_file_path = Path(data_file_path)
+        if project_directory is not None:
+            try:
+                data_file_path = get_relative_path(project_directory, data_file_path)
+            except ValueError:
+                pass
+        return str(data_file_path)
+
+    def _convert_abs_or_rel_data_file_path_to_abs(self, data_file_path: str) -> str:
+        if not data_file_path:
+            return ''
+        project_directory = self._get_absolute_project_directory()
+        data_file_path = Path(data_file_path)
+        if not data_file_path.is_absolute() and project_directory is not None:
+            data_file_path = project_directory / data_file_path
+        return str(data_file_path)
+
+    """Save project"""
+
+    def _check_project(self) -> bool:
+        project_name, config = self.get_project_parameters()
+        return True
+
+    def _browse_for_new_project_directory(self) -> Optional[Path]:
+        dialog = QFileDialog(self, "Save Project: Select or create an empty directory",
+                             str(BASE_PROJECT_DIRECTORY))
+        dialog.setFileMode(QFileDialog.Directory)
+        dialog.setOption(QFileDialog.ShowDirsOnly, True)
+        dialog.setAcceptMode(QFileDialog.AcceptOpen)
+        if dialog.exec() != QFileDialog.Accepted:
+            return
+        project_directory = Path(dialog.selectedFiles()[0])
+        # check that the project directory is empty:
+        if list(project_directory.iterdir()):
+            QMessageBox.warning(self, "Invalid Directory",
+                                "The selected directory is not empty. Please select an empty directory.")
+            return
+        return project_directory
+
+    def save_project(self):
+        if not self._check_project():
+            return
+        if not self._get_absolute_project_directory():
+            project_directory = self._browse_for_new_project_directory()
+            if not project_directory:
+                return
+            self._set_project_directory(project_directory)
+        self._save_project()
+
+    def _save_project(self, raise_on_missing_files=False):
+        project_directory, config = self.get_project_parameters()
+        self.steps_runner_cls.create_project_directory_from_project_parameters(
+            project_directory, config, raise_on_missing_files=raise_on_missing_files)
+
+    """Open project"""
+
+    def open_project(self):
+        project_directory = self._browse_for_existing_project_directory()
+        if not project_directory:
+            return
+        self._set_project_directory(project_directory)
+        config = self.steps_runner_cls.get_project_parameters_from_project_directory(project_directory)
+        self.general_description_edit.setPlainText(config.get('general_description', ''))
+        self.goal_edit.setPlainText(config.get('research_goal', ''))
+        self._delete_all_data_file_widgets()
+        for file_path, is_binary, description in zip(
+                config.get('data_filenames', []),
+                config.get('data_files_is_binary', []),
+                config.get('data_file_descriptions', [])):
+            self.add_data_file(file_path, is_binary, description)
+
+        run_folder = project_directory / 'runs'
+        self._disable_all_inputs(disable=run_folder.exists())
+
+    def _browse_for_existing_project_directory(self):
         project_directory = QFileDialog.getExistingDirectory(self, "Select a project directory",
                                                              str(BASE_PROJECT_DIRECTORY))
         # check that project directory is a valid directory (contains data-to-paper.json)
         if not project_directory:
-            return
+            return  # user cancelled
+        project_directory = Path(project_directory)
+
+        # check that the project directory contains the project parameters file:
         filename = self.steps_runner_cls.PROJECT_PARAMETERS_FILENAME
-        if not (Path(project_directory) / filename).exists():
+        if not (project_directory / filename).exists():
             QMessageBox.warning(self, "Invalid Directory",
                                 "The selected directory is not a valid project directory. "
                                 f"Please select a directory, containing '{filename}'.")
             return
-        self.load_project(project_directory)
+        return project_directory
 
-    def get_project_parameters(self):
+    def _set_project_directory(self, project_directory: Optional[Path]):
+        # first, get all the data file abs paths:
+        data_file_widgets = self._get_all_data_file_widgets()
+        abs_data_file_paths = [self._convert_abs_or_rel_data_file_path_to_abs(file_widget.path.text())
+                               for file_widget in data_file_widgets]
+        if project_directory is None:
+            self.project_folder_label.setText('Untitled')
+        else:
+            try:
+                project_directory = project_directory.relative_to(BASE_PROJECT_DIRECTORY)
+            except ValueError:
+                pass
+            self.project_folder_label.setText(str(project_directory))
+            for abs_data_file_path, file_widget in zip(abs_data_file_paths, data_file_widgets):
+                file_widget.path.setText(self._convert_abs_data_file_path_to_abs_or_rel(abs_data_file_path))
+
+    def _get_absolute_project_directory(self):
+        project_directory = self.project_folder_label.text()
+        if not project_directory or project_directory == 'Untitled':
+            return
+        project_directory = Path(project_directory)
+        if not project_directory.is_absolute():
+            project_directory = BASE_PROJECT_DIRECTORY / project_directory
+        return project_directory
+
+    """Start project"""
+
+    def get_project_parameters(self) -> Tuple[Path, dict]:
         config = {}
-        project_folder = self.project_folder_edit.text()
+        project_directory = self._get_absolute_project_directory()
         config['general_description'] = self.general_description_edit.toPlainText()
         data_filenames = []
         data_file_descriptions = []
         data_files_is_binary = []
-        for file_widget in self._get_all_file_widgets():
+        for file_widget in self._get_all_data_file_widgets():
             if file_widget.path.text():
                 data_filenames.append(file_widget.path.text())
                 data_file_descriptions.append(file_widget.description.toPlainText())
@@ -344,45 +446,27 @@ class StartDialog(QDialog):
         config['data_files_is_binary'] = data_files_is_binary
         config['data_file_descriptions'] = data_file_descriptions
         config['research_goal'] = self.goal_edit.toPlainText()
-        return project_folder, config
+        return project_directory, config
 
     def on_start_clicked(self):
-        project_name, config = self.get_project_parameters()
-        # check that project name is a valid file name
-        if not project_name or not is_valid_filename(project_name):
-            QMessageBox.warning(self, "Input Required", "Project name must be an alphanumeric string.")
+        if not self._check_project():
             return
-        if not config['general_description']:
-            QMessageBox.warning(self, "Input Required", "Please provide a general description.")
+        try:
+            self._save_project(raise_on_missing_files=True)
+        except FileNotFoundError as e:
+            QMessageBox.warning(self, "Missing Files",
+                                f"Error saving project:\n{e}")
             return
-        # check the files exist
-        for file_path in config['data_filenames']:
-            if not os.path.exists(file_path):
-                QMessageBox.warning(self, "File Not Found",
-                                    f"File '{file_path}' does not exist. Please provide a valid file path.")
-                return
         self.accept()
 
 
-def interactively_get_project_parameters(steps_runner_cls: Type[BaseStepsRunner]) -> Tuple[Path, dict]:
+def interactively_create_project_folder(steps_runner_cls: Type[BaseStepsRunner]) -> Tuple[Path, dict]:
     start_dialog = StartDialog(steps_runner_cls=steps_runner_cls)
     if start_dialog.exec() == QDialog.Accepted:
         pass
     else:
         sys.exit(0)
-    project_folder, config = start_dialog.get_project_parameters()
-    # resolve the project folder to a full path:
-    # check if relative path is given:
-    project_folder = Path(project_folder)
-    if not project_folder.is_absolute():
-        project_folder = BASE_PROJECT_DIRECTORY / project_folder
-    return project_folder, config
-
-
-def interactively_create_project_folder(steps_runner_cls: Type[BaseStepsRunner]) -> Tuple[Path, dict]:
-    project_folder, config = interactively_get_project_parameters(steps_runner_cls)
-    steps_runner_cls.create_project_directory_from_project_parameters(project_folder, config)
-    return project_folder, config
+    return start_dialog.get_project_parameters()
 
 
 def run_app(steps_runner_cls: Type[BaseStepsRunner],

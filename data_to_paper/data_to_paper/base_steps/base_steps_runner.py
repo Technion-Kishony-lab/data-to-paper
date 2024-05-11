@@ -9,7 +9,7 @@ from typing import Union, Type, Optional
 
 from data_to_paper.base_products.file_descriptions import CreateDataFileDescriptions
 from data_to_paper.env import FOLDER_FOR_RUN
-from data_to_paper.utils.file_utils import run_in_directory
+from data_to_paper.utils.file_utils import run_in_directory, clear_directory
 from data_to_paper.utils.print_to_file import print_and_log, console_log_file_context
 from data_to_paper.servers.llm_call import OPENAI_SERVER_CALLER
 from data_to_paper.servers.crossref import CROSSREF_SERVER_CALLER
@@ -150,9 +150,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         """
         Create a temporary folder to run the code in.
         """
-        if self.temp_folder_to_run_in.exists():
-            shutil.rmtree(self.temp_folder_to_run_in)
-        self.temp_folder_to_run_in.mkdir()
+        clear_directory(self.temp_folder_to_run_in, create_if_missing=True)
 
     def _get_path_in_output_directory(self, file_name: str = None):
         return self.output_directory / file_name if self.should_mock else None
@@ -191,9 +189,9 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
                 self._app_set_header('Completed')
                 print_and_log(f'----- COMPLETED RUN ------\n{msg}\n----------------------------\n')
 
+        self._create_or_clean_output_folder()
+        self._create_temp_folder_to_run_in()
         with console_log_file_context(self.output_directory / 'console_log.txt'):
-            self._create_or_clean_output_folder()
-            self._create_temp_folder_to_run_in()
             try:
                 run()
             finally:
@@ -218,12 +216,12 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         return project_parameters
 
     @classmethod
-    def create_project_directory_from_project_parameters(cls, project_directory: Path, project_parameters: dict):
+    def create_project_directory_from_project_parameters(cls, project_directory: Path, project_parameters: dict,
+                                                         **kwargs):
         """
         Create the project directory from the project parameters.
         """
-        shutil.rmtree(project_directory, ignore_errors=True)  # remove data folder and all its content
-        project_directory.mkdir()
+        clear_directory(project_directory, create_if_missing=True)
         if cls.PROJECT_PARAMETERS_FILENAME:
             with open(project_directory / cls.PROJECT_PARAMETERS_FILENAME, 'w') as file:
                 json.dump(project_parameters, file, indent=4)
@@ -267,7 +265,8 @@ class DataStepRunner(BaseStepsRunner):
         return project_parameters
 
     @classmethod
-    def create_project_directory_from_project_parameters(cls, project_directory: Path, project_parameters: dict):
+    def create_project_directory_from_project_parameters(cls, project_directory: Path, project_parameters: dict,
+                                                         raise_on_missing_files: bool = False, **kwargs):
         """
         Create the project directory from the project parameters.
         """
@@ -278,7 +277,8 @@ class DataStepRunner(BaseStepsRunner):
         CreateDataFileDescriptions(project_directory=project_directory,
                                    data_files_str_paths=project_parameters['data_filenames'],
                                    ).create_file_descriptions(general_description=general_description,
-                                                              data_file_descriptions=data_file_descriptions)
+                                                              data_file_descriptions=data_file_descriptions,
+                                                              raise_on_missing_files=raise_on_missing_files)
 
     def _read_data_file_descriptions(self):
         """

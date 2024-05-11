@@ -12,7 +12,7 @@ import pandas as pd
 from data_to_paper.code_and_output_files.file_view_params import ContentView
 from data_to_paper.env import FOLDER_FOR_RUN
 from data_to_paper.latex.clean_latex import wrap_as_latex_code_output
-from data_to_paper.utils.file_utils import run_in_directory
+from data_to_paper.utils.file_utils import run_in_directory, clear_directory
 from data_to_paper.utils.mutable import Mutable
 from data_to_paper.code_and_output_files.referencable_text import NumericReferenceableText, \
     hypertarget_if_referencable_text
@@ -235,8 +235,7 @@ class CreateDataFileDescriptions:
 
     def _copy_files_and_get_list_of_data_file_descriptions(self) -> List[DataFileDescription]:
         data_file_descriptions = []
-        shutil.rmtree(self.temp_folder_to_run_in, ignore_errors=True)  # remove data folder and all its content
-        self.temp_folder_to_run_in.mkdir(parents=True, exist_ok=True)  # create clean data folder
+        clear_directory(self.temp_folder_to_run_in)  # clear data folder
         for j, data_file_str_path in enumerate(self.data_files_str_paths):
             data_file_path = self._convert_data_file_path_str_to_path(data_file_str_path)
             data_file_path_zip = data_file_path.with_name(data_file_path.name + '.zip')
@@ -277,10 +276,16 @@ class CreateDataFileDescriptions:
             general_description=self._read_general_description(),
         )
 
-    def create_file_descriptions(self, general_description: str, data_file_descriptions: List[str]):
+    def create_file_descriptions(self, general_description: str, data_file_descriptions: List[str],
+                                 raise_on_missing_files: bool = False):
         """
         Create the file descriptions.
         """
         (self.project_directory / self.GENERAL_DESCRIPTION_FILENAME).write_text(general_description)
         for j, data_file_str_path in enumerate(self.data_files_str_paths):
+            # check that the data file exists
+            data_file_path = self._convert_data_file_path_str_to_path(data_file_str_path)
+            data_file_path_zip = data_file_path.with_name(data_file_path.name + '.zip')
+            if raise_on_missing_files and not data_file_path.exists() and not data_file_path_zip.exists():
+                raise FileNotFoundError(f"Data file {data_file_path} not found.")
             self._get_description_file_path(data_file_str_path).write_text(data_file_descriptions[j])

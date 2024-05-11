@@ -19,6 +19,23 @@ def is_valid_filename(filename):
         return False
 
 
+def clear_directory(directory: Union[Path, str], create_if_missing: bool = True):
+    """
+    Clear the directory of all files and subdirectories.
+    """
+    directory = Path(directory)
+    if not directory.exists():
+        if create_if_missing:
+            directory.mkdir(parents=True)
+        else:
+            raise FileNotFoundError(f'Directory {directory} does not exist.')
+    for item in directory.iterdir():
+        if item.is_dir():
+            shutil.rmtree(item)
+        else:
+            item.unlink()
+
+
 def is_name_matches_list_of_wildcard_names(file_name: str, list_of_filenames: Iterable[str]):
     """
     Check if file_name matches any of the wildcard filenames in list_of_filenames.
