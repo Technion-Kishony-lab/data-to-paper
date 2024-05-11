@@ -1,4 +1,3 @@
-import os
 import sys
 from functools import partial
 from pathlib import Path
@@ -11,8 +10,7 @@ from PySide6.QtWidgets import QApplication, QDialog, QVBoxLayout, QLabel, QLineE
 from data_to_paper.base_products.file_descriptions import TEXT_EXTS
 from data_to_paper.base_steps import BaseStepsRunner
 from data_to_paper.env import BASE_FOLDER
-from data_to_paper.research_types.scientific_research.steps_runner import ScientificStepsRunner
-from data_to_paper.run.run_all_steps import run_all_steps
+from data_to_paper.interactive.get_app import get_or_create_q_application_if_app_is_pyside
 
 BASE_PROJECT_DIRECTORY = BASE_FOLDER / 'projects'
 
@@ -32,8 +30,6 @@ def get_relative_path(base_path, target_path):
     forward_steps = target_parts[common_length:]
     return Path(*(['..'] * back_steps + list(forward_steps)))
 
-
-STEPS_RUNNER_CLS = ScientificStepsRunner
 
 style_sheet = """
 QWidget {
@@ -100,10 +96,12 @@ class FileDialogProperties(NamedTuple):
 
 
 class StartDialog(QDialog):
-    def __init__(self, steps_runner_cls: Type[BaseStepsRunner] = None):
+    def __init__(self, steps_runner_cls: Type[BaseStepsRunner] = None,
+                 project_directory: Optional[Path] = None):
         super().__init__()
         self.steps_runner_cls = steps_runner_cls
         self.current_config = {}
+        self.is_locked = False
         self.setWindowTitle("data-to-paper: Set and Run Project")
         self.resize(1000, 1000)
 
@@ -178,6 +176,8 @@ class StartDialog(QDialog):
         buttons_tray.addWidget(close_button)
 
         self._clear_all()
+        if project_directory:
+            self.open_project(project_directory)
 
     def _delete_all_data_file_widgets(self):
         while self.files_layout.count():
@@ -190,14 +190,16 @@ class StartDialog(QDialog):
         self.general_description_edit.clear()
         self.goal_edit.clear()
         self._delete_all_data_file_widgets()
-        self._disable_all_inputs(disable=False)
+        self._lock_project_for_editing(disable=False)
         self.add_data_file()
+        self.current_config = {}
 
     def close_app(self):
         self.reject()
         QApplication.instance().exit()  # Exit the application
 
-    def _disable_all_inputs(self, disable=True):
+    def _lock_project_for_editing(self, disable=True):
+        self.is_locked = disable
         self.project_folder_header.setText("Project [LOCKED]:" if disable else "Project:")
         self.general_description_edit.setReadOnly(disable)
         self.goal_edit.setReadOnly(disable)
@@ -361,20 +363,26 @@ class StartDialog(QDialog):
         self._save_project()
 
     def _save_project(self, raise_on_missing_files=False):
+        if self.is_locked:
+            return
         project_directory, config = self.get_project_parameters()
         self.steps_runner_cls.create_project_directory_from_project_parameters(
             project_directory, config, raise_on_missing_files=raise_on_missing_files)
 
     """Open project"""
 
-    def open_project(self):
-        project_directory = self._browse_for_existing_project_directory()
+    def open_project(self, project_directory: Optional[Path] = None):
+        if project_directory is None:
+            project_directory = self._browse_for_existing_project_directory()
         if not project_directory:
             return
         self._set_project_directory(project_directory)
-        config = self.steps_runner_cls.get_project_parameters_from_project_directory(project_directory)
+        project_directory = self._get_absolute_project_directory()
+        config = self.steps_runner_cls.get_project_parameters_from_project_directory(project_directory,
+                                                                                     add_default_parameters=False)
+        self.current_config = config
         self.general_description_edit.setPlainText(config.get('general_description', ''))
-        self.goal_edit.setPlainText(config.get('research_goal', ''))
+        self.goal_edit.setPlainText(config.get('research_goal', '') or '')
         self._delete_all_data_file_widgets()
         for file_path, is_binary, description in zip(
                 config.get('data_filenames', []),
@@ -383,9 +391,9 @@ class StartDialog(QDialog):
             self.add_data_file(file_path, is_binary, description)
 
         run_folder = project_directory / 'runs'
-        self._disable_all_inputs(disable=run_folder.exists())
+        self._lock_project_for_editing(disable=run_folder.exists())
 
-    def _browse_for_existing_project_directory(self):
+    def _browse_for_existing_project_directory(self) -> Optional[Path]:
         project_directory = QFileDialog.getExistingDirectory(self, "Select a project directory",
                                                              str(BASE_PROJECT_DIRECTORY))
         # check that project directory is a valid directory (contains data-to-paper.json)
@@ -410,10 +418,11 @@ class StartDialog(QDialog):
         if project_directory is None:
             self.project_folder_label.setText('Untitled')
         else:
-            try:
-                project_directory = project_directory.relative_to(BASE_PROJECT_DIRECTORY)
-            except ValueError:
-                pass
+            if not project_directory.is_absolute():
+                try:
+                    project_directory = project_directory.relative_to(BASE_PROJECT_DIRECTORY)
+                except ValueError:
+                    pass
             self.project_folder_label.setText(str(project_directory))
             for abs_data_file_path, file_widget in zip(abs_data_file_paths, data_file_widgets):
                 file_widget.path.setText(self._convert_abs_data_file_path_to_abs_or_rel(abs_data_file_path))
@@ -430,7 +439,7 @@ class StartDialog(QDialog):
     """Start project"""
 
     def get_project_parameters(self) -> Tuple[Path, dict]:
-        config = {}
+        config = self.current_config
         project_directory = self._get_absolute_project_directory()
         config['general_description'] = self.general_description_edit.toPlainText()
         data_filenames = []
@@ -444,7 +453,7 @@ class StartDialog(QDialog):
         config['data_filenames'] = data_filenames
         config['data_files_is_binary'] = data_files_is_binary
         config['data_file_descriptions'] = data_file_descriptions
-        config['research_goal'] = self.goal_edit.toPlainText()
+        config['research_goal'] = self.goal_edit.toPlainText() or None
         return project_directory, config
 
     def on_start_clicked(self):
@@ -459,27 +468,12 @@ class StartDialog(QDialog):
         self.accept()
 
 
-def interactively_create_project_folder(steps_runner_cls: Type[BaseStepsRunner]) -> Tuple[Path, dict]:
-    start_dialog = StartDialog(steps_runner_cls=steps_runner_cls)
+def interactively_create_project_folder(steps_runner_cls: Type[BaseStepsRunner],
+                                        project_directory: Optional[Path] = None) -> Tuple[Path, dict]:
+    get_or_create_q_application_if_app_is_pyside()
+    start_dialog = StartDialog(steps_runner_cls=steps_runner_cls, project_directory=project_directory)
     if start_dialog.exec() == QDialog.Accepted:
         pass
     else:
         sys.exit(0)
     return start_dialog.get_project_parameters()
-
-
-def run_app(steps_runner_cls: Type[BaseStepsRunner],
-            project_directory: Path = None,
-            run_folder: str = 'run_001'):
-    app = QApplication(sys.argv)  # Create QApplication once
-    if not project_directory:
-        project_directory, config = interactively_create_project_folder(steps_runner_cls)
-    step_runner = steps_runner_cls(
-        project_directory=project_directory,
-        output_directory=project_directory / 'runs' / run_folder,
-    )
-    run_all_steps(step_runner=step_runner, q_application=app)  # Pass the existing QApplication instance
-
-
-if __name__ == '__main__':
-    run_app(STEPS_RUNNER_CLS, project_directory=None)

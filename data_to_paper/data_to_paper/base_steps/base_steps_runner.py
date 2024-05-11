@@ -200,16 +200,21 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
                     shutil.rmtree(self.temp_folder_to_run_in, ignore_errors=True)
 
     @classmethod
-    def get_project_parameters_from_project_directory(cls, project_directory: Path) -> dict:
+    def get_project_parameters_from_project_directory(cls, project_directory: Path,
+                                                      add_default_parameters: bool = True
+                                                      ) -> dict:
         """
         Get the project parameters from the project directory.
         """
-        project_parameters = cls.DEFAULT_PROJECT_PARAMETERS.copy()
+        if add_default_parameters:
+            project_parameters = cls.DEFAULT_PROJECT_PARAMETERS.copy()
+        else:
+            project_parameters = {}
         if cls.PROJECT_PARAMETERS_FILENAME:
             with open(project_directory / cls.PROJECT_PARAMETERS_FILENAME) as file:
                 input_project_parameters = json.load(file)
             # check that the keys of input_project_parameters are in project_parameters:
-            unknown_keys = set(input_project_parameters.keys()) - set(project_parameters.keys())
+            unknown_keys = set(input_project_parameters.keys()) - set(cls.DEFAULT_PROJECT_PARAMETERS.keys())
             if unknown_keys:
                 raise ValueError(f'Unknown keys in project parameters: {unknown_keys}')
             project_parameters.update(input_project_parameters)
@@ -248,11 +253,14 @@ class DataStepRunner(BaseStepsRunner):
     )
 
     @classmethod
-    def get_project_parameters_from_project_directory(cls, project_directory: Path) -> dict:
+    def get_project_parameters_from_project_directory(cls, project_directory: Path,
+                                                      add_default_parameters: bool = True
+                                                      ) -> dict:
         """
         Get the project parameters from the project directory.
         """
-        project_parameters = super().get_project_parameters_from_project_directory(project_directory)
+        project_parameters = super().get_project_parameters_from_project_directory(
+            project_directory, add_default_parameters)
         # add data_file descriptions:
         data_file_descriptions = CreateDataFileDescriptions(
                 data_files_str_paths=project_parameters['data_filenames'],

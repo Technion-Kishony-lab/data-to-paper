@@ -3,7 +3,7 @@ from typing import Optional, Set, Iterable, Union, List
 
 from data_to_paper.utils.print_to_file import print_and_log_red
 from data_to_paper.base_cast import Agent
-from data_to_paper.servers.llm_call import try_get_llm_response, get_human_response
+from data_to_paper.servers.llm_call import try_get_llm_response
 from data_to_paper.servers.model_engine import OPENAI_CALL_PARAMETERS_NAMES, OpenaiCallParameters, ModelEngine
 from data_to_paper.run_gpt_code.code_utils import add_label_to_first_triple_quotes_if_missing
 
@@ -241,17 +241,6 @@ class ConversationManager:
         self._create_and_apply_action(
             AppendLLMResponse, comment=comment, hidden_messages=hidden_messages, message=message, **kwargs)
         return message
-
-    def optionally_edit_and_replace_last_message(self, default_content: Optional[str] = None) -> Optional[Message]:
-        """
-        Allow the user to edit the last message and replace it with the edited message.
-        Return the edited message, or None if the user chose not to edit the message.
-        """
-        previous_content = self.conversation[-1].content
-        new_content = get_human_response(initial_content=previous_content, default_content=default_content)
-        if new_content is None:
-            return None
-        return self.replace_last_message(new_content, agent=self.human_agent)
 
     def reset_back_to_tag(self, tag: str, comment: Optional[str] = None):
         """

@@ -10,7 +10,7 @@ from typing import Union, Optional
 
 from .json_dump import dump_to_json, load_from_json
 
-from data_to_paper.env import CHOSEN_APP, DELAY_APP_INTERACTION
+from data_to_paper.env import CHOSEN_APP, DELAY_SERVER_CACHE_RETRIEVAL
 from .serialize_exceptions import serialize_exception, is_exception, de_serialize_exception
 
 
@@ -104,8 +104,7 @@ class ServerCaller(ABC):
             return self._get_server_response_without_raising(*args, **kwargs)
         response = self._get_response_from_records(args, kwargs)
         if response is not None and CHOSEN_APP is not None:
-            if DELAY_APP_INTERACTION:
-                time.sleep(DELAY_APP_INTERACTION.val)
+            time.sleep(DELAY_SERVER_CACHE_RETRIEVAL.val)
         if response is None:
             if not self.record_more_if_needed:
                 raise NoMoreResponsesToMockError()

@@ -13,6 +13,16 @@ if TYPE_CHECKING:
 
 IS_APP_INITIALIZED = False
 THE_APP: Optional[BaseApp] = None
+Q_APPLICATION: Optional[QApplication] = None
+
+
+def get_or_create_q_application_if_app_is_pyside() -> Optional[QApplication]:
+    if CHOSEN_APP != 'pyside':
+        return None
+    global Q_APPLICATION
+    if Q_APPLICATION is None:
+        Q_APPLICATION = QApplication(sys.argv)
+    return Q_APPLICATION
 
 
 def get_app() -> Optional[BaseApp]:
@@ -22,8 +32,7 @@ def get_app() -> Optional[BaseApp]:
     return THE_APP
 
 
-def create_app(step_runner: BaseStepsRunner = None, q_application: Optional[QApplication] = None) \
-        -> Optional[BaseApp]:
+def create_app(step_runner: BaseStepsRunner = None) -> Optional[BaseApp]:
     global IS_APP_INITIALIZED, THE_APP
     if IS_APP_INITIALIZED:
         raise ValueError("App is already initialized")
@@ -35,10 +44,8 @@ def create_app(step_runner: BaseStepsRunner = None, q_application: Optional[QApp
         return THE_APP
     if CHOSEN_APP == 'pyside':
         from .pyside_app import PysideApp
-        if not q_application:
-            q_application = QApplication(sys.argv)  # Create QApplication only if not provided
+        get_or_create_q_application_if_app_is_pyside()
         THE_APP = PysideApp.get_instance()
-        THE_APP.q_application = q_application
     elif CHOSEN_APP == 'console':
         from .base_app import ConsoleApp
         THE_APP = ConsoleApp.get_instance()

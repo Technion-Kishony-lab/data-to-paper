@@ -50,18 +50,23 @@ HIDE_INCOMPLETE_CODE = Flag(True)
 # Max number of tokens allowed in code output:
 MAX_SENSIBLE_OUTPUT_SIZE_TOKENS = Mutable(2500)
 
-DELAY_SEND_TO_WEB = Mutable(0.01)  # seconds
+# Delay for cache retrieval (for replay to behave as if we are waiting for the server):
+DELAY_CODE_RUN_CACHE_RETRIEVAL = Mutable(0.01)  # seconds
+DELAY_SERVER_CACHE_RETRIEVAL = Mutable(0.01)  # seconds
 
 # Human interactions:
-RECORD_INTERACTIONS = Mutable(True)
+# CHOSEN_APP:
+#   'console': console-based interaction
+#   'pyside': GUI-based interaction (requires installing PySide6)
+#    None: Autopilot mode (legacy. not recommended).
+# Runs recorded with 'pyside'/'console' can be replayed with either 'pyside'/'console',
+# but not with None. Runs recorded with None can be replayed only with None.
+CHOSEN_APP = Mutable(None)
+
 HUMAN_EDIT_CODE_REVIEW = True
 HUMAN_NAME = 'Human'
-CHOSEN_APP = Mutable('pyside')  # 'console', 'pyside', None
-DELAY_APP_INTERACTION = Mutable(1)  # seconds
 
 NUM_DIGITS_FOR_FLOATS = 4
-
-os.environ['CLIENT_SERVER_MODE'] = 'False'
 
 FOLDER_FOR_RUN = Path(__file__).parent / 'temp_run'
 

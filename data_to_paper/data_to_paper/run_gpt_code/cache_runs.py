@@ -12,7 +12,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Union
 
-from data_to_paper.env import DELAY_APP_INTERACTION
+from data_to_paper.env import DELAY_CODE_RUN_CACHE_RETRIEVAL
 from data_to_paper.utils.file_utils import run_in_directory
 from data_to_paper.utils.print_to_file import print_and_log
 
@@ -155,8 +155,7 @@ class CacheRunToFile:
 
         if key in cache:
             print_and_log(f"{self.__class__.__name__}: Using cached output.")
-            if DELAY_APP_INTERACTION:
-                time.sleep(DELAY_APP_INTERACTION.val)
+            time.sleep(DELAY_CODE_RUN_CACHE_RETRIEVAL.val)
             results, filenames = cache[key]
             with run_in_directory(self._get_run_directory()):
                 _write_files(filenames)

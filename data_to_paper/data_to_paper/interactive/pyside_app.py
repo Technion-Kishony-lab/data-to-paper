@@ -11,6 +11,7 @@ from pygments.formatters.html import HtmlFormatter
 from data_to_paper.conversation.stage import Stage
 from data_to_paper.interactive.base_app import BaseApp
 from data_to_paper.interactive.enum_types import PanelNames
+from data_to_paper.interactive.get_app import get_or_create_q_application_if_app_is_pyside
 from data_to_paper.interactive.utils import open_file_on_os
 
 MAKE_IT_UGLY_IN_MAC_BUT_MORE_CONSISTENT_ACROSS_OS = True
@@ -468,7 +469,6 @@ class PysideApp(QMainWindow, BaseApp):
 
     def __init__(self, mutex, condition, step_runner=None):
         super().__init__()
-        self.q_application = None
         self.products: Dict[Stage, Any] = {}
         self.popups = set()
 
@@ -601,7 +601,7 @@ class PysideApp(QMainWindow, BaseApp):
                                  for stage in self._get_all_steps()})
         self.show()
         self.start_worker()
-        return self.q_application.exec()
+        return get_or_create_q_application_if_app_is_pyside().exec()
 
     @Slot(PanelNames, int, str)
     def upon_set_status(self, panel_name: PanelNames, position: int, status: str = ''):
