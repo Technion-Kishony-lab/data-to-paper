@@ -125,7 +125,7 @@ class StartDialog(QDialog):
         self.project_folder_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         project_name_layout.addWidget(self.project_folder_label)
         self.open_button = QPushButton("Open")
-        self.open_button.clicked.connect(self.open_project)
+        self.open_button.clicked.connect(lambda _: self.open_project())
         project_name_layout.addWidget(self.open_button)
         self.save_button = QPushButton("Save")
         self.save_button.clicked.connect(self.save_project)
@@ -374,8 +374,8 @@ class StartDialog(QDialog):
     def open_project(self, project_directory: Optional[Path] = None):
         if project_directory is None:
             project_directory = self._browse_for_existing_project_directory()
-        if not project_directory:
-            return
+            if not project_directory:
+                return
         self._set_project_directory(project_directory)
         project_directory = self._get_absolute_project_directory()
         config = self.steps_runner_cls.get_project_parameters_from_project_directory(project_directory,
