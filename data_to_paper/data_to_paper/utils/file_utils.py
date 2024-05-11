@@ -2,10 +2,21 @@ import os
 import shutil
 import tempfile
 import uuid
+import re
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Union, Iterable
 from fnmatch import fnmatch
+
+
+def is_valid_filename(filename):
+    # Regular expression for validating the filename
+    pattern = r'^[a-zA-Z0-9_-]+$'
+    # Match the pattern with the filename
+    if re.match(pattern, filename):
+        return True
+    else:
+        return False
 
 
 def is_name_matches_list_of_wildcard_names(file_name: str, list_of_filenames: Iterable[str]):

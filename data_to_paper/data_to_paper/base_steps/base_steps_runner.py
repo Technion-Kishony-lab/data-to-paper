@@ -88,10 +88,6 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         You can close the app now.
         """)
 
-    def __post_init__(self):
-        super().__post_init__()
-        self._read_project_parameters()
-
     def advance_stage(self, stage: Stage):
         """
         Advance the stage.
@@ -113,6 +109,9 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
                 stage=self.products.get_stage(product_field),
                 product_text=product,
             )
+
+    def _pre_run_preparations(self):
+        self._update_project_parameters()
 
     def _run_all_steps(self):
         """
@@ -173,6 +172,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
             self._get_path_in_output_directory(self.CROSSREF_RESPONSES_FILENAME))
         def run():
             try:
+                self._pre_run_preparations()
                 self._run_all_steps()
             except TerminateException as e:
                 # self.advance_stage(Stage.FAILURE)  # used for the old whatsapp app
@@ -201,19 +201,38 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
                     # remove temp folder and all its content:
                     shutil.rmtree(self.temp_folder_to_run_in, ignore_errors=True)
 
-    def _read_project_parameters(self):
+    @classmethod
+    def get_project_parameters_from_project_directory(cls, project_directory: Path) -> dict:
         """
         Get the project parameters from the project directory.
         """
-        self.project_parameters = self.DEFAULT_PROJECT_PARAMETERS.copy()
-        if self.PROJECT_PARAMETERS_FILENAME:
-            with open(self.project_directory / self.PROJECT_PARAMETERS_FILENAME) as file:
+        project_parameters = cls.DEFAULT_PROJECT_PARAMETERS.copy()
+        if cls.PROJECT_PARAMETERS_FILENAME:
+            with open(project_directory / cls.PROJECT_PARAMETERS_FILENAME) as file:
                 input_project_parameters = json.load(file)
-            # check that the keys of input_project_parameters are in self.project_parameters:
-            unknown_keys = set(input_project_parameters.keys()) - set(self.project_parameters.keys())
+            # check that the keys of input_project_parameters are in project_parameters:
+            unknown_keys = set(input_project_parameters.keys()) - set(project_parameters.keys())
             if unknown_keys:
                 raise ValueError(f'Unknown keys in project parameters: {unknown_keys}')
-            self.project_parameters.update(input_project_parameters)
+            project_parameters.update(input_project_parameters)
+        return project_parameters
+
+    @classmethod
+    def create_project_directory_from_project_parameters(cls, project_directory: Path, project_parameters: dict):
+        """
+        Create the project directory from the project parameters.
+        """
+        shutil.rmtree(project_directory, ignore_errors=True)  # remove data folder and all its content
+        project_directory.mkdir()
+        if cls.PROJECT_PARAMETERS_FILENAME:
+            with open(project_directory / cls.PROJECT_PARAMETERS_FILENAME, 'w') as file:
+                json.dump(project_parameters, file, indent=4)
+
+    def _update_project_parameters(self):
+        """
+        Get the project parameters from the project directory.
+        """
+        self.project_parameters = self.get_project_parameters_from_project_directory(self.project_directory)
 
 
 @dataclass
@@ -226,8 +245,40 @@ class DataStepRunner(BaseStepsRunner):
     DEFAULT_PROJECT_PARAMETERS = dict(
         data_filenames=[],
         data_files_is_binary=[],
-        description='',
+        general_description='',
+        data_file_descriptions=[],
     )
+
+    @classmethod
+    def get_project_parameters_from_project_directory(cls, project_directory: Path) -> dict:
+        """
+        Get the project parameters from the project directory.
+        """
+        project_parameters = super().get_project_parameters_from_project_directory(project_directory)
+        # add data_file descriptions:
+        data_file_descriptions = CreateDataFileDescriptions(
+                data_files_str_paths=project_parameters['data_filenames'],
+                project_directory=project_directory,
+                data_files_is_binary=[None] * len(project_parameters['data_filenames']),
+            ).get_raw_str_data_file_descriptions()
+        project_parameters['data_file_descriptions'] = [
+            data_file_description.description for data_file_description in data_file_descriptions]
+        project_parameters['general_description'] = data_file_descriptions.general_description
+        return project_parameters
+
+    @classmethod
+    def create_project_directory_from_project_parameters(cls, project_directory: Path, project_parameters: dict):
+        """
+        Create the project directory from the project parameters.
+        """
+        project_parameters = project_parameters.copy()
+        data_file_descriptions = project_parameters.pop('data_file_descriptions')
+        general_description = project_parameters.pop('general_description')
+        super().create_project_directory_from_project_parameters(project_directory, project_parameters)
+        CreateDataFileDescriptions(project_directory=project_directory,
+                                   data_files_str_paths=project_parameters['data_filenames'],
+                                   ).create_file_descriptions(general_description=general_description,
+                                                              data_file_descriptions=data_file_descriptions)
 
     def _read_data_file_descriptions(self):
         """
@@ -239,3 +290,7 @@ class DataStepRunner(BaseStepsRunner):
             data_files_is_binary=self.project_parameters['data_files_is_binary'],
             temp_folder_to_run_in=self.temp_folder_to_run_in,
         ).create_temp_folder_and_get_file_descriptions()
+
+    def _pre_run_preparations(self):
+        super()._pre_run_preparations()
+        self._read_data_file_descriptions()

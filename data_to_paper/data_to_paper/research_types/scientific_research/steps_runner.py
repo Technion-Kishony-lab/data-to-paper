@@ -65,7 +65,6 @@ class ScientificStepsRunner(DataStepRunner, CheckLatexCompilation):
         assert set(flattened_paper_sections_to_write) == set(template_sections)
 
     def _run_all_steps(self) -> ScientificProducts:
-        self._read_data_file_descriptions()
         products = self.products  # Start with empty products
 
         # Set the paper section names:

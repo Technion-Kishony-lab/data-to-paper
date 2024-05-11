@@ -17,6 +17,8 @@ from data_to_paper.utils.mutable import Mutable
 from data_to_paper.code_and_output_files.referencable_text import NumericReferenceableText, \
     hypertarget_if_referencable_text
 
+TEXT_EXTS = ['.txt', '.md', '.csv', '.xls', '.xlsx']
+
 
 @dataclass(frozen=True)
 class DataFileDescription:
@@ -31,8 +33,8 @@ class DataFileDescription:
         """
         if self.is_binary is not None:
             return self.is_binary
-        text_exts = ['.txt', '.md', '.csv', '.xls', '.xlsx']
-        return Path(self.file_path).suffix not in text_exts
+
+        return Path(self.file_path).suffix not in TEXT_EXTS
 
     def is_excel(self):
         return Path(self.file_path).suffix in ['.xlsx', '.xls']
@@ -63,8 +65,11 @@ class DataFileDescription:
             return f'Here are the first few lines of the file:\n' \
                    f'```output\n{"".join(head)}\n```\n'
 
-    def pretty_repr(self, num_lines: int = 4, content_view: ContentView = None):
-        s = f'### "{self.file_path}"\n'
+    def pretty_repr(self, num_lines: int = 4, content_view: ContentView = None, file_num: Optional[int] = None) -> str:
+        if file_num is not None:
+            s = f'### File {file_num}: "{self.file_path}"\n'
+        else:
+            s = f'### "{self.file_path}"\n'
         description = self.description
         if description is not None:
             description = hypertarget_if_referencable_text(description, content_view)
@@ -125,7 +130,7 @@ class DataFileDescriptions(List[DataFileDescription]):
         """
         children = self.get_children(data_file)
         index.val += 1
-        s = f"File #{index.val}: {data_file.pretty_repr(0 if children else 4, content_view=content_view)}\n"
+        s = data_file.pretty_repr(0 if children else 4, content_view=content_view, file_num=index.val) + '\n'
         for child in children:
             s += self.get_pretty_description_for_file_and_children(child, index)
         return s
@@ -143,7 +148,7 @@ class DataFileDescriptions(List[DataFileDescription]):
                 s += f"The dataset consists of 1 data file:\n\n"
                 s += self[0].pretty_repr(num_lines, content_view=content_view)
             else:
-                s += f"The dataset consists {len(self)} data files:\n\n"
+                s += f"The dataset consists of {len(self)} data files:\n\n"
                 index = Mutable(0)
                 for parent in self.get_all_raw_files():
                     s += self.get_pretty_description_for_file_and_children(parent, index, content_view=content_view)
@@ -172,7 +177,7 @@ class CreateDataFileDescriptions:
     """
     project_directory: Path = None
     data_files_str_paths: List[str] = field(default_factory=list)
-    data_files_is_binary: List[bool] = field(default_factory=list)
+    data_files_is_binary: List[Optional[bool]] = field(default_factory=list)
 
     GENERAL_DESCRIPTION_FILENAME = 'general_description.txt'
     DESCRIPTION_FILENAME_EXT = '.description.txt'
@@ -187,9 +192,10 @@ class CreateDataFileDescriptions:
         return self.project_directory / (data_file_path.name + self.DESCRIPTION_FILENAME_EXT)
 
     def _read_file_description(self, data_file_path_str: str):
-        if not self._get_description_file_path(data_file_path_str).exists():
+        description_file_path = self._get_description_file_path(data_file_path_str)
+        if not description_file_path.exists():
             raise FileNotFoundError(f"Description file for {data_file_path_str} not found.")
-        return self._get_description_file_path(data_file_path_str).read_text()
+        return description_file_path.read_text()
 
     def _read_general_description(self):
         general_description_file_path = self.project_directory / self.GENERAL_DESCRIPTION_FILENAME
@@ -228,7 +234,7 @@ class CreateDataFileDescriptions:
             self._read_general_description(), None)
 
     def _copy_files_and_get_list_of_data_file_descriptions(self) -> List[DataFileDescription]:
-        data_files_descriptions = []
+        data_file_descriptions = []
         shutil.rmtree(self.temp_folder_to_run_in, ignore_errors=True)  # remove data folder and all its content
         self.temp_folder_to_run_in.mkdir(parents=True, exist_ok=True)  # create clean data folder
         for j, data_file_str_path in enumerate(self.data_files_str_paths):
@@ -245,12 +251,12 @@ class CreateDataFileDescriptions:
                 raise FileNotFoundError(f"File {data_file_path.name} or {data_file_path.name}.zip "
                                         f"not found in {data_file_path.parent}")
 
-            data_files_descriptions.append(DataFileDescription(
+            data_file_descriptions.append(DataFileDescription(
                 file_path=data_file_path.name,  # relative to data dir
                 description=self._get_file_description_referenceable_text(data_file_str_path, j),
                 is_binary=self.data_files_is_binary[j]
             ))
-        return data_files_descriptions
+        return data_file_descriptions
 
     def create_temp_folder_and_get_file_descriptions(self) -> DataFileDescriptions:
         file_descriptions = self._copy_files_and_get_list_of_data_file_descriptions()
@@ -259,3 +265,22 @@ class CreateDataFileDescriptions:
             data_folder=self.temp_folder_to_run_in,
             general_description=self._get_general_description_referenceable_text()
         )
+
+    def get_raw_str_data_file_descriptions(self) -> DataFileDescriptions:
+        return DataFileDescriptions(
+            [DataFileDescription(
+                file_path=data_file_str_path,  # relative to data dir
+                description=self._read_file_description(data_file_str_path),
+                is_binary=self.data_files_is_binary[j]
+            ) for j, data_file_str_path in enumerate(self.data_files_str_paths)],
+            data_folder=None,
+            general_description=self._read_general_description(),
+        )
+
+    def create_file_descriptions(self, general_description: str, data_file_descriptions: List[str]):
+        """
+        Create the file descriptions.
+        """
+        (self.project_directory / self.GENERAL_DESCRIPTION_FILENAME).write_text(general_description)
+        for j, data_file_str_path in enumerate(self.data_files_str_paths):
+            self._get_description_file_path(data_file_str_path).write_text(data_file_descriptions[j])
