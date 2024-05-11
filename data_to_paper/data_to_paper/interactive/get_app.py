@@ -27,7 +27,7 @@ def get_or_create_q_application_if_app_is_pyside() -> Optional[QApplication]:
 
 def get_app() -> Optional[BaseApp]:
     global THE_APP, IS_APP_INITIALIZED
-    if not IS_APP_INITIALIZED:
+    if not IS_APP_INITIALIZED and THE_APP is not None:
         raise ValueError("App is not initialized")
     return THE_APP
 
