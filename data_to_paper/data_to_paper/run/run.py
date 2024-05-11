@@ -15,6 +15,6 @@ project_directory = 'diabetes/diabetes_open_goal'
 
 # Folder where the run will be saved. This will be created inside the project directory.
 # If the folder already exists, it will be replayed.
-run_folder = 'run101'
+run_folder = 'run_001'
 
 set_project_and_run(steps_runner_cls, project_directory=project_directory, run_folder=run_folder)
