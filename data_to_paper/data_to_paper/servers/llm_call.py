@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import time
 from dataclasses import dataclass
 from data_to_paper.utils.text_formatting import dedent_triple_quote_str

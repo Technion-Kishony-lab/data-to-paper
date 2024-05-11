@@ -1,5 +1,6 @@
-# Main script for running a data-to-paper project
-# ===============================================
+# ============================================== #
+# Main script for running data-to-paper projects #
+# ============================================== #
 
 from data_to_paper.research_types.scientific_research.steps_runner import ScientificStepsRunner
 from data_to_paper.run.run_all_steps import set_project_and_run
@@ -14,6 +15,6 @@ project_directory = 'diabetes/diabetes_open_goal'
 
 # Folder where the run will be saved. This will be created inside the project directory.
 # If the folder already exists, it will be replayed.
-run_folder = 'run_007'
+run_folder = 'run101'
 
 set_project_and_run(steps_runner_cls, project_directory=project_directory, run_folder=run_folder)

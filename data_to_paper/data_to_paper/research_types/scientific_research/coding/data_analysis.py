@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Tuple, List, Optional, Dict, Any, Type, Collection
 
 from pandas import DataFrame
@@ -504,7 +504,7 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
             issue_if_statistics_test_not_called=True) | {
                 'ToPickleAttrReplacer': get_dataframe_to_pickle_attr_replacer(),
                 'PickleDumpAttrReplacer': get_pickle_dump_attr_replacer(),
-                }
+        }
 
     @staticmethod
     def _get_table_comments_for_code_and_output(code_and_output: CodeAndOutput) -> str:

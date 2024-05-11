@@ -39,7 +39,7 @@ class ScientificStepsRunner(DataStepRunner, CheckLatexCompilation):
     DEFAULT_PROJECT_PARAMETERS = DataStepRunner.DEFAULT_PROJECT_PARAMETERS | dict(
         research_goal=None,
         should_do_data_exploration=True,
-        should_do_data_preprocessing=True,
+        should_do_data_preprocessing=False,
         should_prepare_hypothesis_testing_plan=True,
         should_do_literature_search=True,
         project_specific_goal_guidelines='',

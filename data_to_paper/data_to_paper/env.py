@@ -58,10 +58,10 @@ DELAY_SERVER_CACHE_RETRIEVAL = Mutable(0.01)  # seconds
 # CHOSEN_APP:
 #   'console': console-based interaction
 #   'pyside': GUI-based interaction (requires installing PySide6)
-#    None: Autopilot mode (legacy. not recommended).
+#    None: Does not ask for or records human interactions (legacy. not recommended).
 # Runs recorded with 'pyside'/'console' can be replayed with either 'pyside'/'console',
 # but not with None. Runs recorded with None can be replayed only with None.
-CHOSEN_APP = Mutable(None)
+CHOSEN_APP = Mutable('pyside')
 
 HUMAN_EDIT_CODE_REVIEW = True
 HUMAN_NAME = 'Human'

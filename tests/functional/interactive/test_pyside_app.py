@@ -2,7 +2,6 @@ import sys
 import time
 
 import pytest
-from PySide6.QtWidgets import QApplication
 
 from data_to_paper.interactive.get_app import get_or_create_q_application_if_app_is_pyside
 from data_to_paper.interactive.pyside_app import PysideApp

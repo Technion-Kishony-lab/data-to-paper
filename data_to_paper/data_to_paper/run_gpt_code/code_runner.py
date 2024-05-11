@@ -160,7 +160,7 @@ class BaseCodeRunner(CacheRunToFile, ABC):
                     result = pickle.load(f)
                 os.remove(queue_or_filepath)
             else:
-                result = reader.get()
+                result = queue_or_filepath.get()
             if isinstance(result, Exception):
                 raise result
         return result
