@@ -1,0 +1,9 @@
+{
+    "data_filenames": [
+        "../data/eng_covid_vaccine_side_effects.csv"
+    ],
+    "data_files_is_binary": [false],
+    "research_goal": null,
+    "should_do_data_exploration": true,
+    "project_specific_goal_guidelines": ""
+}
