@@ -11,15 +11,15 @@ from data_to_paper.utils.highlighted_text import demote_html_headers
 from data_to_paper.servers.llm_call import get_human_response
 
 from .base_app import BaseApp
-from .get_app import get_or_create_app
-from .types import PanelNames
+from .get_app import get_app
+from .enum_types import PanelNames
 from .human_actions import HumanAction, ButtonClickedHumanAction, TextSentHumanAction
 
 
 @dataclass
 class AppInteractor:
 
-    app: Optional[BaseApp] = field(default_factory=get_or_create_app)
+    app: Optional[BaseApp] = field(default_factory=get_app)
 
     def _app_clear_panels(self, panel_name: Union[PanelNames, Iterable[PanelNames]] = PanelNames):
         if self.app is None:

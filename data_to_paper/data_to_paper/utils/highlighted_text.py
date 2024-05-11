@@ -184,9 +184,8 @@ REGULAR_FORMATTER = (colored_text, text_to_html)
 BLOCK_FORMATTER = (light_text, partial(text_to_html, textblock=True))
 
 TAGS_TO_FORMATTERS: Dict[Optional[str], Tuple[Callable, Callable]] = {
-    False: REGULAR_FORMATTER,
+    None: REGULAR_FORMATTER,
     '': BLOCK_FORMATTER,
-    True: BLOCK_FORMATTER,
     'text': REGULAR_FORMATTER,
     'markdown': REGULAR_FORMATTER,
     'md': REGULAR_FORMATTER,
@@ -207,7 +206,7 @@ TAGS_TO_FORMATTERS: Dict[Optional[str], Tuple[Callable, Callable]] = {
 
 NEEDS_NO_WRAPPING_FOR_NO_HTML = {'python', 'output', 'html', 'header'}
 NEEDS_NO_WRAPPING_FOR_HTML = {'python', 'output', 'html', 'header', 'latex'}
-POSSIBLE_MARKDOWN_LABELS = {'markdown', 'text', '', True, False}
+POSSIBLE_MARKDOWN_LABELS = {'markdown', 'text', '', None}
 
 
 def is_text_md(text: str) -> bool:

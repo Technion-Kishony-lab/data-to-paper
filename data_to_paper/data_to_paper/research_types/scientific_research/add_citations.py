@@ -208,7 +208,7 @@ class AddCitationReviewGPT(PythonValueReviewBackgroundProductsConverser):
                     sentences_to_citations[sentence] = CROSSREF_SERVER_CALLER.get_server_response(query)
                     break
                 except ServerErrorCitationException as e:
-                    self.comment(f"CrossRef server error: {e}", web_conversation_name=None)
+                    self.comment(f"CrossRef server error: {e}")
             else:
                 self.apply_append_user_message(f"I failed finding citations for sentence #{sentence_number + 1}",
                                                ignore=True)

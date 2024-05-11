@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Tuple, Optional, Dict, Any
 
 from data_to_paper.code_and_output_files.output_file_requirements import OutputFileRequirements, \
@@ -17,9 +17,6 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT):
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'imblearn')
 
     output_file_requirements: OutputFileRequirements = OutputFileRequirements([DataOutputFileRequirement('*.csv')])
-    additional_contexts: Optional[Dict[str, Any]] = field(
-        default_factory=lambda: get_additional_contexts(allow_dataframes_to_change_existing_series=False,
-                                                        enforce_saving_altered_dataframes=True))
 
     mission_prompt: str = dedent_triple_quote_str("""
         As part of a data-preprocessing phase, please write a complete short Python code for getting a \t
@@ -48,3 +45,7 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT):
         Do not provide a sketch or pseudocode; write a complete runnable code.
         Do not create any graphics, figures or any plots.
         """)
+
+    def get_additional_contexts(self) -> Dict[str, Any]:
+        return get_additional_contexts(allow_dataframes_to_change_existing_series=False,
+                                       enforce_saving_altered_dataframes=True)

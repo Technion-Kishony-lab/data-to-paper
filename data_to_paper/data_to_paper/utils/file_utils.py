@@ -2,13 +2,38 @@ import os
 import shutil
 import tempfile
 import uuid
+import re
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Union, Iterable
 from fnmatch import fnmatch
 
-# Get the path of the current folder:
-THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
+
+def is_valid_filename(filename):
+    # Regular expression for validating the filename
+    pattern = r'^[a-zA-Z0-9_-]+$'
+    # Match the pattern with the filename
+    if re.match(pattern, filename):
+        return True
+    else:
+        return False
+
+
+def clear_directory(directory: Union[Path, str], create_if_missing: bool = True):
+    """
+    Clear the directory of all files and subdirectories.
+    """
+    directory = Path(directory)
+    if not directory.exists():
+        if create_if_missing:
+            directory.mkdir(parents=True)
+        else:
+            raise FileNotFoundError(f'Directory {directory} does not exist.')
+    for item in directory.iterdir():
+        if item.is_dir():
+            shutil.rmtree(item)
+        else:
+            item.unlink()
 
 
 def is_name_matches_list_of_wildcard_names(file_name: str, list_of_filenames: Iterable[str]):

@@ -1,12 +1,35 @@
+from contextlib import contextmanager
 from typing import Optional
 
 import colorama
 from functools import partial
 
+from pathlib import Path
+
+from .console_log_to_html import convert_console_log_to_html
 from .highlighted_text import colored_text
 from .mutable import Mutable
 
 CONSOLE_LOG_FILE = Mutable(None)
+
+
+@contextmanager
+def console_log_file_context(file_path: Path):
+    """
+    Context manager to temporarily change the console log file.
+    If run is successful, also converts the console log to html.
+    """
+    global CONSOLE_LOG_FILE
+    old_val = CONSOLE_LOG_FILE.val
+    CONSOLE_LOG_FILE.val = file_path
+    try:
+        yield
+    except Exception:
+        raise
+    else:
+        convert_console_log_to_html(CONSOLE_LOG_FILE.val)
+    finally:
+        CONSOLE_LOG_FILE.val = old_val
 
 
 def print_and_log(text_in_bw: str, text_in_color: Optional[str] = None, color: Optional[str] = None,

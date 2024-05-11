@@ -1,15 +1,13 @@
 from __future__ import annotations
 
-import time
 from dataclasses import dataclass
 from typing import Optional, List, Set
 
-from data_to_paper.env import DELAY_SEND_TO_WEB
 from data_to_paper.utils.highlighted_text import red_text
 from data_to_paper.base_cast import Agent
 
 from .actions_and_conversations import Action
-from .message import Message, create_message_from_other_message
+from .message import Message
 from .conversation import Conversation
 from .message_designation import GeneralMessageDesignation, SingleMessageDesignation, \
     convert_general_message_designation_to_int_list
@@ -29,9 +27,6 @@ class ConversationAction(Action):
     conversation_name: Optional[str] = None
     "The name of the conversation to perform the action on."
 
-    web_conversation_name: Optional[str] = None
-    "The name of the web-conversation. None means do not apply the action to a web-conversation."
-
     driver: Optional[str] = None
     "The algorithm performing the action."
 
@@ -41,10 +36,6 @@ class ConversationAction(Action):
     @property
     def conversation(self) -> Conversation:
         return self.conversations.get_conversation(self.conversation_name)
-
-    @property
-    def web_conversation(self) -> Conversation:
-        return self.conversations.get_conversation(self.web_conversation_name)
 
     def _pretty_attrs(self) -> str:
         return ''
@@ -62,23 +53,6 @@ class ConversationAction(Action):
             s = red_text(s)
         return s
 
-    def apply_to_web(self) -> bool:
-        return self.web_conversation is not None
-
-
-@dataclass(frozen=True)
-class SetTypingAgent(ConversationAction):
-    """
-    Set the typing agent.
-    """
-    agent: Agent = None
-
-    def _pretty_attrs(self) -> str:
-        return f'{self.agent}'
-
-    def pretty_repr(self, is_color: bool = True, with_conversation_name: bool = True) -> str:
-        return ''
-
 
 @dataclass(frozen=True)
 class ChangeConversationParticipants(ConversationAction):
@@ -88,11 +62,8 @@ class ChangeConversationParticipants(ConversationAction):
     participants: Set[Agent] = None
 
     def _pretty_attrs(self) -> str:
-        return f'name="{self.conversation_name}" web="{self.web_conversation_name}", ' \
+        return f'name="{self.conversation_name}", ' \
                f'participants={sorted([p.name if isinstance(p, Agent) else p for p in self.participants])}'
-
-    def apply_to_web(self) -> bool:
-        return False
 
 
 class CreateConversation(ChangeConversationParticipants):
@@ -104,16 +75,7 @@ class CreateConversation(ChangeConversationParticipants):
         if self.conversation_name is None:
             return
         self.conversations.get_or_create_conversation(
-            conversation_name=self.conversation_name, participants=self.participants, is_web=False)
-
-    def apply_to_web(self) -> bool:
-        if self.web_conversation_name is None:
-            return False
-        if self.conversations.get_conversation(self.web_conversation_name) is not None:
-            return False
-        self.conversations.get_or_create_conversation(
-            conversation_name=self.web_conversation_name, participants=self.participants, is_web=True)
-        return True
+            conversation_name=self.conversation_name, participants=self.participants)
 
 
 class AddParticipantsToConversation(ChangeConversationParticipants):
@@ -141,8 +103,6 @@ class AppendMessage(ChangeMessagesConversationAction):
     """
 
     message: Message = None
-
-    adjust_message_for_web: dict = None
 
     delay: float = None
 
@@ -209,28 +169,6 @@ class AppendMessage(ChangeMessagesConversationAction):
         self.message.index_in_conversation = len(self.conversation)
         self.message.effective_index_in_conversation = len(self.conversation.get_chosen_indices_and_messages())
         self.conversation.append(self.message)
-
-    def get_message_for_web(self) -> Message:
-        """
-        Return the message that will be appended to the web conversation.
-        """
-        if self.adjust_message_for_web:
-            return create_message_from_other_message(
-                self.message,
-                **self.adjust_message_for_web)
-        return self.message
-
-    def apply_to_web(self) -> bool:
-        if not super().apply_to_web():
-            return False
-        if self.message.is_background is None and any(self.get_message_for_web() == m for m in self.web_conversation) \
-                or self.message.is_background is True:
-            return False
-        delay = DELAY_SEND_TO_WEB.val if self.delay is None else self.delay
-        if delay > 0:
-            time.sleep(delay)
-        self.web_conversation.append(self.get_message_for_web())
-        return True
 
 
 @dataclass(frozen=True)

@@ -23,9 +23,6 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
 
     output_file_requirements: OutputFileRequirements = \
         OutputFileRequirements([EnforceContentOutputFileRequirement('data_exploration.txt')])
-    additional_contexts: Optional[Dict[str, Any]] = field(
-        default_factory=lambda: get_additional_contexts(allow_dataframes_to_change_existing_series=False,
-                                                        enforce_saving_altered_dataframes=False))
 
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy')
 
@@ -118,3 +115,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         {"No issues found": "No corrections or improvements are needed."}, return an empty dict instead.
         """), name='output file'),
     )
+
+    def _get_additional_contexts(self) -> Optional[Dict[str, Any]]:
+        return get_additional_contexts(allow_dataframes_to_change_existing_series=False,
+                                       enforce_saving_altered_dataframes=False)

@@ -8,7 +8,7 @@
 4. Activate the newly created environment, run `conda activate data-to-paper`.
 5. Enter the repo root folder, run `cd data-to-paper`.
 6. Install the required packages, run `pip install -r requirements.txt`.
-7. Install the app and further required packages, run `cd ./data_to_paper && pip install -e .`.
+7. Install the app and further required packages, run `pip install -e data_to_paper`.
 8. Install pandoc (follow instructions at [Pandoc Installation](https://pandoc.org/installing.html)).
 9. Install all the required packages for compiling LaTeX:
 
@@ -32,9 +32,9 @@
      - During installation, select 'Yes' when asked to install missing packages on-the-fly.
      - After installation, you may need to add the TeX binaries to your PATH!
 
-### Install using Docker (for legacy purposes only, running existing paper, not recommended for new users)
-
-Note, GUI app is not currently supported in the docker container. If you need to run the GUI app, please install the app on your local machine.
+### Install using Docker
+The Docker container is a self-contained environment that includes all the required dependencies to run the app.
+It is simple to install and run, but we do not recommend using it as it currently does not support the GUI app.
 
 1. Install Docker (follow instructions at https://docs.docker.com/engine/install/) and make sure docker server runs on your computer
 2. Clone the repo, run `git clone https://github.com/Technion-Kishony-lab/data-to-paper`

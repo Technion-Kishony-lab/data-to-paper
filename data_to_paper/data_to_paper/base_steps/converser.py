@@ -6,8 +6,7 @@ from typing import Optional, Any
 
 from data_to_paper import Message
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
-from data_to_paper.env import COALESCE_WEB_CONVERSATIONS, TEXT_WIDTH
-from data_to_paper.conversation.conversation import WEB_CONVERSATION_NAME_PREFIX
+from data_to_paper.env import TEXT_WIDTH
 from data_to_paper.conversation import ConversationManager, GeneralMessageDesignation
 from data_to_paper.interactive import PanelNames
 from data_to_paper.interactive.app_interactor import AppInteractor
@@ -23,7 +22,7 @@ class Converser(Copier, AppInteractor):
     """
     A base class for agents interacting with LLMs.
     """
-    COPY_ATTRIBUTES = {'actions_and_conversations', 'conversation_name', 'web_conversation_name', 'assistant_agent',
+    COPY_ATTRIBUTES = {'actions_and_conversations', 'conversation_name', 'assistant_agent',
                        'user_agent'}
     LLM_PARAMETERS = {}  # default parameters to pass to the LLM. e.g. {'temperature': 0.0, 'max_tokens': 30}
     actions_and_conversations: ActionsAndConversations = None
@@ -44,9 +43,6 @@ class Converser(Copier, AppInteractor):
     # if False, we assert that a conversation with the same name exists.
     # if None, we make sure the conversation is new by changing the name, if needed.
 
-    web_conversation_name: Optional[str] = True
-    # None - do not post to web conversation, True - use default name, str - use given name
-
     driver: str = ''
 
     def __post_init__(self):
@@ -62,20 +58,9 @@ class Converser(Copier, AppInteractor):
         if self.llm_parameters is None:
             self.llm_parameters = self.LLM_PARAMETERS
 
-        if self.web_conversation_name is True:
-            # we determine an automatic conversation name based on the agent that the main agent is talking to:
-            if COALESCE_WEB_CONVERSATIONS:
-                web_conversation_name = \
-                    self.user_agent.get_conversation_name() or self.assistant_agent.get_conversation_name()
-            else:
-                web_conversation_name = self.conversation_name
-            if web_conversation_name:
-                web_conversation_name = WEB_CONVERSATION_NAME_PREFIX + web_conversation_name
-            self.web_conversation_name = web_conversation_name
         self.conversation_manager = ConversationManager(
             actions_and_conversations=self.actions_and_conversations,
             conversation_name=self.conversation_name,
-            web_conversation_name=self.web_conversation_name,
             driver=self.driver if self.driver is not None else type(self).__name__,
             assistant_agent=self.assistant_agent,
             user_agent=self.user_agent,
@@ -147,7 +132,7 @@ class Converser(Copier, AppInteractor):
 
     def apply_append_user_message(self, content: StrOrReplacer, tag: Optional[StrOrReplacer] = None,
                                   comment: Optional[StrOrReplacer] = None,
-                                  ignore: bool = False, reverse_roles_for_web: bool = False,
+                                  ignore: bool = False,
                                   previous_code: Optional[str] = None, is_background: bool = False,
                                   send_to_app: Optional[bool] = None, app_panel: PanelNames = PanelNames.FEEDBACK,
                                   editing_title: str = None, editing_instructions: str = None,
@@ -164,12 +149,12 @@ class Converser(Copier, AppInteractor):
             content=content,
             tag=tag,
             comment=comment,
-            ignore=ignore, reverse_roles_for_web=reverse_roles_for_web,
+            ignore=ignore,
             previous_code=previous_code, is_background=is_background, **kwargs)
 
     def apply_append_system_message(self, content: StrOrReplacer, tag: Optional[StrOrReplacer] = None,
                                     comment: Optional[StrOrReplacer] = None,
-                                    ignore: bool = False, reverse_roles_for_web: bool = False,
+                                    ignore: bool = False,
                                     send_to_app: Optional[bool] = None,
                                     **kwargs):
         if send_to_app is None:
@@ -181,11 +166,11 @@ class Converser(Copier, AppInteractor):
             tag=tag,
             comment=comment,
             ignore=ignore,
-            reverse_roles_for_web=reverse_roles_for_web, **kwargs)
+            **kwargs)
 
     def apply_append_surrogate_message(self, content: StrOrReplacer,
                                        tag: Optional[StrOrReplacer] = None, comment: Optional[StrOrReplacer] = None,
-                                       ignore: bool = False, reverse_roles_for_web: bool = False,
+                                       ignore: bool = False,
                                        previous_code: Optional[str] = None, is_background: bool = False,
                                        send_to_app: Optional[bool] = False,
                                        **kwargs):
@@ -197,7 +182,7 @@ class Converser(Copier, AppInteractor):
             content=format_value(self, content),
             tag=tag,
             comment=comment,
-            ignore=ignore, reverse_roles_for_web=reverse_roles_for_web,
+            ignore=ignore,
             previous_code=previous_code, is_background=is_background, **kwargs)
 
     def apply_delete_messages(self, message_designation: GeneralMessageDesignation, comment: Optional[str] = None):

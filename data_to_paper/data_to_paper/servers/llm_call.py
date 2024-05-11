@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import time
 from dataclasses import dataclass
 from data_to_paper.utils.text_formatting import dedent_triple_quote_str
@@ -11,7 +10,7 @@ from typing import List, Union, Optional, Callable
 
 import tiktoken
 
-from data_to_paper.env import LLM_MODELS_TO_API_KEYS_AND_BASE_URL, RECORD_INTERACTIONS
+from data_to_paper.env import LLM_MODELS_TO_API_KEYS_AND_BASE_URL, CHOSEN_APP
 from data_to_paper.utils.print_to_file import print_and_log_red, print_and_log
 from data_to_paper.exceptions import TerminateException
 from data_to_paper.utils.serialize import SerializableValue, deserialize_serializable_value
@@ -22,10 +21,11 @@ from .model_engine import ModelEngine
 from typing import TYPE_CHECKING
 
 from .serialize_exceptions import serialize_exception, is_exception, de_serialize_exception
+from data_to_paper.interactive import HumanAction, BaseApp
 
 if TYPE_CHECKING:
     from data_to_paper.conversation.message import Message
-    from data_to_paper.interactive import HumanAction, BaseApp
+
 
 TIME_LIMIT_FOR_OPENAI_CALL = 300  # seconds
 MAX_NUM_LLM_ATTEMPTS = 5
@@ -76,7 +76,7 @@ class OpenaiSeverCaller(ListServerCaller):
 
     @staticmethod
     def _check_before_spending_money(messages: List[Message], model_engine: ModelEngine):
-        while False:
+        while True:
             user_choice = input(dedent_triple_quote_str("""
             Please carefully check that you are willing to proceed with this LLM API call.
             We suggest reading the current ongoing conversation and especially the last USER message \t
@@ -91,7 +91,6 @@ class OpenaiSeverCaller(ListServerCaller):
                 break
             else:
                 print_and_log_red('Invalid input. Please choose Y/N.', should_log=False)
-        print_and_log_red('Calling the LLM-API for real.', should_log=False)
 
     @staticmethod
     def _check_after_spending_money(content: str, messages: List[Message], model_engine: ModelEngine):
@@ -118,9 +117,11 @@ class OpenaiSeverCaller(ListServerCaller):
         Connect with openai to get response to conversation.
         """
         if not isinstance(model_engine, ModelEngine):
+            # human action:
             return model_engine(messages, **kwargs)
-        if os.environ['CLIENT_SERVER_MODE'] == 'False':
+        if CHOSEN_APP == 'console' or CHOSEN_APP == None:  # noqa (Mutable)
             OpenaiSeverCaller._check_before_spending_money(messages, model_engine)
+        print_and_log_red('Calling the LLM-API for real.', should_log=False)
 
         api_key, api_base_url = LLM_MODELS_TO_API_KEYS_AND_BASE_URL[model_engine] \
             if model_engine in LLM_MODELS_TO_API_KEYS_AND_BASE_URL \
@@ -220,6 +221,10 @@ def try_get_llm_response(messages: List[Message],
                       should_log=False)
     try:
         action = OPENAI_SERVER_CALLER.get_server_response(messages, model_engine=model_engine, **kwargs)
+        if isinstance(action, HumanAction) and CHOSEN_APP == None:  # noqa (Mutable)
+            raise ValueError(f'Human action retrieved, instead of LLM response.\n'
+                             f'Runs recorded with human actions should be replayed with the same settings\n'
+                             f'(set CHOSEN_APP to value other than None)')
         assert isinstance(action, LLMResponse)
         return action.value
     except openai.error.InvalidRequestError as e:
@@ -236,12 +241,12 @@ def get_human_response(app: BaseApp, **kwargs) -> HumanAction:
     Allow the user to edit a message and return the edited message.
     Return None if the user did not change the message.
     """
-    if RECORD_INTERACTIONS == True:  # noqa
-        return OPENAI_SERVER_CALLER.get_server_response(
-            [], model_engine=lambda messages, **k: app.request_action(**k), **kwargs)
-    elif RECORD_INTERACTIONS == False:  # noqa
-        return app.request_action(**kwargs)
-    else:
-        app.request_action(**kwargs)
-        return OPENAI_SERVER_CALLER.get_server_response(
-            [], model_engine=lambda messages, **k: app.request_action(**k), **kwargs)
+    # app.request_action(**kwargs)  # Uncomment this line for video recording of run playbacks
+    response = OPENAI_SERVER_CALLER.get_server_response(
+        [], model_engine=lambda messages, **k: app.request_action(**k), **kwargs)
+    if isinstance(response, LLMResponse) and CHOSEN_APP != None:  # noqa (Mutable)
+        raise ValueError(f'LLM response retrieved, instead of human action.\n'
+                         f'Runs recorded without human actions should be replayed with the same settings\n'
+                         f'(CHOSEN_APP = None)')
+    assert isinstance(response, HumanAction)
+    return response

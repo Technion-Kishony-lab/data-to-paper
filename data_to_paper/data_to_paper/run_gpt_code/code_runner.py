@@ -36,12 +36,11 @@ class BaseCodeRunner(CacheRunToFile, ABC):
     output_file_requirements: OutputFileRequirements = OutputFileRequirements()
     allowed_read_files: Iterable[str] = ()
     additional_contexts: Optional[Dict[str, Any]] = None  # additional contexts to use when running code
-    runtime_available_objects: dict = field(default_factory=dict)
     run_code_cls: Type[RunCode] = RunCode
     code_and_output_cls: Type[CodeAndOutput] = CodeAndOutput
     _lines_added_in_front_of_code: int = None
     timeout_sec: int = MAX_EXEC_TIME.val
-    cache_filepath: Path = field(default_factory=lambda: RUN_CACHE_FILEPATH.val)
+    cache_filepath: Path = field(default_factory=lambda: RUN_CACHE_FILEPATH.val)  # None if not caching
 
     @property
     def lines_added_in_front_of_code(self) -> int:
@@ -79,7 +78,6 @@ class BaseCodeRunner(CacheRunToFile, ABC):
             self.output_file_requirements.get_all_allowed_created_filenames(),
             output_file_requirements=self.output_file_requirements,
             run_folder=self.run_folder,
-            runtime_available_objects=self.runtime_available_objects,
             additional_contexts=self.additional_contexts,
         )
 
@@ -162,7 +160,7 @@ class BaseCodeRunner(CacheRunToFile, ABC):
                     result = pickle.load(f)
                 os.remove(queue_or_filepath)
             else:
-                result = reader.get()
+                result = queue_or_filepath.get()
             if isinstance(result, Exception):
                 raise result
         return result

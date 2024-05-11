@@ -10,9 +10,9 @@ from pygments.formatters.html import HtmlFormatter
 
 from data_to_paper.conversation.stage import Stage
 from data_to_paper.interactive.base_app import BaseApp
-from data_to_paper.interactive.types import PanelNames
+from data_to_paper.interactive.enum_types import PanelNames
+from data_to_paper.interactive.get_app import get_or_create_q_application_if_app_is_pyside
 from data_to_paper.interactive.utils import open_file_on_os
-from data_to_paper.research_types.scientific_research.scientific_stage import ScientificStage
 
 MAKE_IT_UGLY_IN_MAC_BUT_MORE_CONSISTENT_ACROSS_OS = True
 
@@ -228,16 +228,15 @@ QPushButton:pressed {{
 
 
 class StepsPanel(QWidget):
-    def __init__(self, labels_to_callbacks: Dict[str, Callable]):
+    def __init__(self):
         super().__init__()
-        self.labels_to_callbacks = labels_to_callbacks
+        self.labels_to_callbacks = None
         self.current_step = 0
         self.layout = QVBoxLayout(self)
         self.step_widgets = []
-        self.init_ui()
-        self.refresh()
 
-    def init_ui(self):
+    def init_ui(self, labels_to_callbacks: Dict[str, Callable]):
+        self.labels_to_callbacks = labels_to_callbacks
         for label, func in self.labels_to_callbacks.items():
             step_button = QPushButton(label)
             step_button.setFixedWidth(150)
@@ -245,6 +244,7 @@ class StepsPanel(QWidget):
             self.layout.addWidget(step_button)
             self.step_widgets.append(step_button)
         self.layout.setSpacing(5)
+        self.refresh()
 
     def refresh(self):
         for i, step in enumerate(self.step_widgets):
@@ -467,7 +467,7 @@ class PysideApp(QMainWindow, BaseApp):
     send_continue_signal = Signal()
     a_application = None
 
-    def __init__(self, mutex, condition):
+    def __init__(self, mutex, condition, step_runner=None):
         super().__init__()
         self.products: Dict[Stage, Any] = {}
         self.popups = set()
@@ -498,9 +498,7 @@ class PysideApp(QMainWindow, BaseApp):
         self.continue_button = continue_button
 
         # Steps panel
-        # TODO: ScientificStage should be transferred as a variable to the app
-        self.step_panel = StepsPanel({stage.value: partial(self.show_product_for_stage, stage)
-                                      for stage in ScientificStage})
+        self.step_panel = StepsPanel()
         left_side.addWidget(self.step_panel)
 
         # Right side is a QHBoxLayout with a header on top and a splitter with the text panels below
@@ -593,13 +591,17 @@ class PysideApp(QMainWindow, BaseApp):
             cls.instance = cls(mutex, condition)
         return cls.instance
 
-    def start_worker(self, func_to_run: Callable = None):
+    def start_worker(self):
         # Start the worker thread
-        self.worker.func_to_run = func_to_run
+        self.worker.func_to_run = self._run_all_steps
         self.worker.start()
 
     def initialize(self):
+        self.step_panel.init_ui({stage.value: partial(self.show_product_for_stage, stage)
+                                 for stage in self._get_all_steps()})
         self.show()
+        self.start_worker()
+        return get_or_create_q_application_if_app_is_pyside().exec()
 
     @Slot(PanelNames, int, str)
     def upon_set_status(self, panel_name: PanelNames, position: int, status: str = ''):

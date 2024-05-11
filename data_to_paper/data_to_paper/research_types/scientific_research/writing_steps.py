@@ -28,7 +28,7 @@ class ShowCitationProducts:
 
     def _pre_populate_background(self):
         for content in self.get_repr_citation_products():
-            self.comment(content, web_conversation_name=None)
+            self.comment(content)
         return super()._pre_populate_background()
 
     def get_repr_citation_products(self) -> List[str]:

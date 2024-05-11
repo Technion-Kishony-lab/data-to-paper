@@ -3,7 +3,7 @@ from typing import Optional, Set, Iterable, Union, List
 
 from data_to_paper.utils.print_to_file import print_and_log_red
 from data_to_paper.base_cast import Agent
-from data_to_paper.servers.llm_call import try_get_llm_response, get_human_response
+from data_to_paper.servers.llm_call import try_get_llm_response
 from data_to_paper.servers.model_engine import OPENAI_CALL_PARAMETERS_NAMES, OpenaiCallParameters, ModelEngine
 from data_to_paper.run_gpt_code.code_utils import add_label_to_first_triple_quotes_if_missing
 
@@ -13,7 +13,7 @@ from .message import Message, Role, create_message, create_message_from_other_me
 from .message_designation import GeneralMessageDesignation, convert_general_message_designation_to_list
 from .conversation_actions import ConversationAction, AppendMessage, DeleteMessages, ResetToTag, \
     AppendLLMResponse, FailedLLMResponse, ReplaceLastMessage, \
-    CreateConversation, AddParticipantsToConversation, SetTypingAgent
+    CreateConversation, AddParticipantsToConversation
 
 
 @dataclass
@@ -32,8 +32,6 @@ class ConversationManager:
     "Indicates whether to print added actions to the console."
 
     conversation_name: Optional[str] = None
-
-    web_conversation_name: Optional[str] = None
 
     driver: str = ''
     "Name of the algorithm that is instructing this conversation manager."
@@ -59,10 +57,6 @@ class ConversationManager:
         return self.conversations.get_conversation(self.conversation_name)
 
     @property
-    def web_conversation(self) -> Conversation:
-        return self.conversations.get_conversation(self.web_conversation_name)
-
-    @property
     def participants(self) -> Set[Agent]:
         return {self.assistant_agent, self.user_agent}
 
@@ -79,17 +73,9 @@ class ConversationManager:
         self._apply_action(action_type(
             should_print=self.should_print,
             conversations=self.conversations,
-            web_conversation_name=kwargs.pop('web_conversation_name', self.web_conversation_name),
             conversation_name=kwargs.pop('conversation_name', self.conversation_name),
             driver=kwargs.pop('driver', self.driver),
             **kwargs))
-
-    def _create_and_apply_set_typing_action(self, agent: Agent, reverse_roles_for_web: bool = False, **kwargs):
-        if agent is not None and self.web_conversation and kwargs.get('web_conversation_name', True) is not None:
-            self._create_and_apply_action(
-                SetTypingAgent,
-                agent=self.web_conversation.get_other_participant(agent) if reverse_roles_for_web else agent,
-            )
 
     def create_conversation(self):
         self._create_and_apply_action(CreateConversation, participants=self.participants)
@@ -104,21 +90,16 @@ class ConversationManager:
             if self.participants - self.conversation.participants:
                 self.add_participants(self.participants - self.conversation.participants)
 
-    def append_message(self, message: Message, comment: Optional[str] = None, reverse_roles_for_web: bool = False,
-                       **kwargs):
+    def append_message(self, message: Message, comment: Optional[str] = None, **kwargs):
         """
         Append a message to a specified conversation.
         """
-        self._create_and_apply_action(
-            AppendMessage,
-            adjust_message_for_web={'agent': self.web_conversation.get_other_participant(message.agent)
-                                    } if reverse_roles_for_web and self.web_conversation else None,
-            message=message, comment=comment, **kwargs)
+        self._create_and_apply_action(AppendMessage, message=message, comment=comment, **kwargs)
 
     def create_and_append_message(self, role: Role, content: str, tag: Optional[str], comment: Optional[str] = None,
                                   ignore: bool = False, previous_code: Optional[str] = None, is_code: bool = False,
                                   context: Optional[List[Message]] = None,
-                                  is_background: bool = False, reverse_roles_for_web: bool = False, **kwargs):
+                                  is_background: bool = False, **kwargs):
         """
         Append a message to a specified conversation.
         """
@@ -128,14 +109,13 @@ class ConversationManager:
             agent = self.user_agent
         else:
             agent = None
-        self._create_and_apply_set_typing_action(agent=agent, reverse_roles_for_web=reverse_roles_for_web, **kwargs)
         message = create_message(role=role, content=content, tag=tag, agent=agent, ignore=ignore,
                                  context=context, previous_code=previous_code, is_code=is_code,
                                  is_background=is_background)
-        self.append_message(message, comment, reverse_roles_for_web=reverse_roles_for_web, **kwargs)
+        self.append_message(message, comment, **kwargs)
 
     def append_system_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
-                              ignore: bool = False, reverse_roles_for_web: bool = False,
+                              ignore: bool = False,
                               is_background: bool = None, **kwargs):
         """
         Append a system-message to a specified conversation.
@@ -143,17 +123,17 @@ class ConversationManager:
         tag = tag or 'system_prompt'
         self.create_and_append_message(Role.SYSTEM, content, tag, comment,
                                        ignore=ignore, is_background=is_background,
-                                       reverse_roles_for_web=reverse_roles_for_web, **kwargs)
+                                       **kwargs)
 
     def append_user_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
-                            ignore: bool = False, reverse_roles_for_web: bool = False,
+                            ignore: bool = False,
                             previous_code: Optional[str] = None, is_background: bool = False, **kwargs):
         """
         Append a user-message to a specified conversation.
         """
         self.create_and_append_message(Role.USER, content, tag, comment,
                                        ignore=ignore, previous_code=previous_code, is_background=is_background,
-                                       reverse_roles_for_web=reverse_roles_for_web, **kwargs)
+                                       **kwargs)
 
     def append_commenter_message(self, content: str, tag: Optional[str] = None,
                                  comment: Optional[str] = None, **kwargs):
@@ -166,7 +146,7 @@ class ConversationManager:
         self.create_and_append_message(Role.COMMENTER, content, tag, comment, **kwargs)
 
     def append_surrogate_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
-                                 ignore: bool = False, reverse_roles_for_web: bool = False,
+                                 ignore: bool = False,
                                  previous_code: Optional[str] = None,
                                  is_background: bool = False, **kwargs):
         """
@@ -174,7 +154,7 @@ class ConversationManager:
         """
         self.create_and_append_message(Role.SURROGATE, content, tag, comment,
                                        ignore=ignore, previous_code=previous_code, is_background=is_background,
-                                       reverse_roles_for_web=reverse_roles_for_web, **kwargs)
+                                       **kwargs)
 
     def get_and_append_assistant_message(self, tag: Optional[str] = None, comment: Optional[str] = None,
                                          is_code: bool = False, previous_code: Optional[str] = None,
@@ -187,8 +167,6 @@ class ConversationManager:
 
         If failed, retry while removing more messages upstream.
         """
-        self._create_and_apply_set_typing_action(agent=self.assistant_agent, reverse_roles_for_web=False, **kwargs)
-
         hidden_messages = convert_general_message_designation_to_list(hidden_messages)
         indices_and_messages = self.conversation.get_chosen_indices_and_messages(hidden_messages)
         actual_hidden_messages = hidden_messages.copy()
@@ -263,17 +241,6 @@ class ConversationManager:
         self._create_and_apply_action(
             AppendLLMResponse, comment=comment, hidden_messages=hidden_messages, message=message, **kwargs)
         return message
-
-    def optionally_edit_and_replace_last_message(self, default_content: Optional[str] = None) -> Optional[Message]:
-        """
-        Allow the user to edit the last message and replace it with the edited message.
-        Return the edited message, or None if the user chose not to edit the message.
-        """
-        previous_content = self.conversation[-1].content
-        new_content = get_human_response(initial_content=previous_content, default_content=default_content)
-        if new_content is None:
-            return None
-        return self.replace_last_message(new_content, agent=self.human_agent)
 
     def reset_back_to_tag(self, tag: str, comment: Optional[str] = None):
         """

@@ -1,32 +1,30 @@
 import glob
+import json
 import os
 import shutil
 from dataclasses import dataclass, field
 
 from pathlib import Path
-from typing import Union
+from typing import Union, Type, Optional
 
-from data_to_paper.env import COALESCE_WEB_CONVERSATIONS, PRODUCTS_TO_SEND_TO_CLIENT
-from data_to_paper.utils.print_to_file import print_and_log
+from data_to_paper.base_products.file_descriptions import CreateDataFileDescriptions
+from data_to_paper.env import FOLDER_FOR_RUN
+from data_to_paper.utils.file_utils import clear_directory
+from data_to_paper.utils.print_to_file import print_and_log, console_log_file_context
 from data_to_paper.servers.llm_call import OPENAI_SERVER_CALLER
 from data_to_paper.servers.crossref import CROSSREF_SERVER_CALLER
 from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER
-from data_to_paper.conversation.conversation_actions import CreateConversation
-from data_to_paper.conversation.stage import AdvanceStage, SetActiveConversation, SetProduct, Stage, \
-    SendFinalProduct
-from data_to_paper.conversation.conversation import WEB_CONVERSATION_NAME_PREFIX
+from data_to_paper.conversation.stage import Stage
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
-from data_to_paper.base_cast import Agent
 from data_to_paper.exceptions import TerminateException
 from data_to_paper.base_products import DataFileDescriptions
 from data_to_paper.run_gpt_code.code_runner import RUN_CACHE_FILEPATH
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.replacer import Replacer
-from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
 
-from .base_products_conversers import ProductsHandler
+from data_to_paper.base_steps.base_products_conversers import ProductsHandler
 from data_to_paper.interactive.app_interactor import AppInteractor
-from data_to_paper.interactive import PanelNames
+from data_to_paper.interactive import PanelNames, BaseApp
 
 
 @dataclass
@@ -40,17 +38,32 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
     SEMANTIC_SCHOLAR_RESPONSES_FILENAME = 'semantic_scholar_responses.bin'
     CODE_RUNNER_CACHE_FILENAME = 'code_runner_cache.pkl'
 
+    PROJECT_PARAMETERS_FILENAME = 'data-to-paper.json'
+    DEFAULT_PROJECT_PARAMETERS = dict()
+    project_parameters: dict = field(default_factory=DEFAULT_PROJECT_PARAMETERS.copy)
+    project_directory: Path = None
+    temp_folder_to_run_in: Path = FOLDER_FOR_RUN
     actions_and_conversations: ActionsAndConversations = field(default_factory=ActionsAndConversations)
+    should_remove_temp_folder: bool = True
 
+    app: Optional[BaseApp] = None
     cast = None  # Type[Agent]
-    data_file_descriptions: DataFileDescriptions = None
-    mock_servers: Union[bool, str] = False
+    should_mock: Union[bool, str] = True
 
+    stages: Type[Stage] = Stage
     current_stage: Stage = None
 
     failure_message = dedent_triple_quote_str("""
         ## Run Terminated
         Run terminated prematurely during stage `{current_stage}`.
+        ```error
+        {exception}
+        ```
+        """)
+    unexpected_error_message = dedent_triple_quote_str("""
+        # Run failed.
+        *data-to-paper* exited unexpectedly.
+        ### Exception:
         ```error
         {exception}
         ```
@@ -75,49 +88,12 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         You can close the app now.
         """)
 
-    def create_web_conversations(self):
-        if not COALESCE_WEB_CONVERSATIONS:
-            return
-        if self.cast is None:
-            return
-        for agent in self.cast:
-            if agent.get_conversation_name():
-                self.actions_and_conversations.actions.apply_action(CreateConversation(
-                    conversations=self.actions_and_conversations.conversations,
-                    web_conversation_name=self.get_conversation_name_for_agent(agent),
-                    participants={agent, self.cast.get_primary_agent()},
-                ))
-
-    def get_conversation_name_for_agent(self, agent):
-        """
-        Get the conversation name for the given agent.
-        """
-        if agent.get_conversation_name():
-            return WEB_CONVERSATION_NAME_PREFIX + agent.get_conversation_name()
-        return None
-
     def advance_stage(self, stage: Stage):
         """
         Advance the stage.
         """
         self.current_stage = stage
-        self.actions_and_conversations.actions.apply_action(AdvanceStage(stage=stage))
         self._app_advance_stage(stage)
-
-    def set_active_conversation(self, agent: Agent):
-        """
-        Advance the stage of the research goal.
-        """
-        self.actions_and_conversations.actions.apply_action(SetActiveConversation(agent=agent))
-
-    def advance_stage_and_set_active_conversation(self, stage: Stage = None, agent: Agent = None):
-        """
-        Advance the stage of the research goal.
-        """
-        if stage is not None:
-            self.advance_stage(stage=stage)
-        if agent is not None:
-            self.set_active_conversation(agent=agent)
 
     def send_product_to_client(self, product_field: str, save_to_file: bool = False):
         """
@@ -127,11 +103,6 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
             filename = product_field + '.txt'
             with open(self.output_directory / filename, 'w') as file:
                 file.write(self.products.get_description(product_field))
-        self.actions_and_conversations.actions.apply_action(
-            SetProduct(
-                stage=self.products.get_stage(product_field),
-                products=self.products,
-                product_field=product_field))
         if self.app:
             product = self.products.get_description_as_html(product_field)
             self._app_send_product_of_stage(
@@ -139,17 +110,8 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
                 product_text=product,
             )
 
-    @property
-    def absolute_data_folder(self):
-        return self.data_file_descriptions.data_folder
-
-    def send_final_products_to_client(self, product_name: str):
-        """
-        Get the base GPT script file.
-        """
-        self.actions_and_conversations.actions.apply_action(
-            SendFinalProduct(product_name=product_name)
-        )
+    def _pre_run_preparations(self):
+        self._update_project_parameters()
 
     def _run_all_steps(self):
         """
@@ -168,7 +130,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
                     self.CROSSREF_RESPONSES_FILENAME,
                     self.SEMANTIC_SCHOLAR_RESPONSES_FILENAME]]
 
-    def create_empty_output_folder(self):
+    def _create_or_clean_output_folder(self):
         """
         Create empty output folder (delete all files if exists).
         """
@@ -184,54 +146,159 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         else:
             os.makedirs(self.output_directory)
 
-    def get_mock_responses_file(self, file_name: str = None):
-        if self.mock_servers is False:
-            return None
-        directory = self.output_directory if self.mock_servers is True else self.mock_servers
-        return Path(directory).absolute() / file_name
+    def _create_temp_folder_to_run_in(self):
+        """
+        Create a temporary folder to run the code in.
+        """
+        clear_directory(self.temp_folder_to_run_in, create_if_missing=True)
 
-    @property
-    def should_mock(self):
-        return self.mock_servers is not False
+    def _get_path_in_output_directory(self, file_name: str = None):
+        return self.output_directory / file_name if self.should_mock else None
 
     def run_all_steps(self):
         """
         Run all steps and save all created files to the output folder.
         """
-        self.create_empty_output_folder()
 
-        @RUN_CACHE_FILEPATH.temporary_set(self.output_directory / self.CODE_RUNNER_CACHE_FILENAME)
+        @RUN_CACHE_FILEPATH.temporary_set(
+            self._get_path_in_output_directory(self.CODE_RUNNER_CACHE_FILENAME))
         @SEMANTIC_SCHOLAR_SERVER_CALLER.record_or_replay(
-            self.get_mock_responses_file(self.SEMANTIC_SCHOLAR_RESPONSES_FILENAME), should_mock=self.should_mock)
+            self._get_path_in_output_directory(self.SEMANTIC_SCHOLAR_RESPONSES_FILENAME))
         @OPENAI_SERVER_CALLER.record_or_replay(
-            self.get_mock_responses_file(self.OPENAI_RESPONSES_FILENAME), should_mock=self.should_mock)
+            self._get_path_in_output_directory(self.OPENAI_RESPONSES_FILENAME))
         @CROSSREF_SERVER_CALLER.record_or_replay(
-            self.get_mock_responses_file(self.CROSSREF_RESPONSES_FILENAME), should_mock=self.should_mock)
+            self._get_path_in_output_directory(self.CROSSREF_RESPONSES_FILENAME))
         def run():
-            self.create_web_conversations()
-            self._run_all_steps()
+            try:
+                self._pre_run_preparations()
+                self._run_all_steps()
+            except TerminateException as e:
+                # self.advance_stage(Stage.FAILURE)  # used for the old whatsapp app
+                msg = Replacer(self, self.failure_message, kwargs={'exception': str(e)}).format_text()
+                self._app_send_prompt(PanelNames.MISSION_PROMPT, msg, from_md=True)
+                self._app_set_header('Terminate upon failure')
+                print_and_log(f'----- TERMINATING RUN ------\n{msg}\n----------------------------\n')
+            except Exception as e:
+                self._app_clear_panels()
+                msg = Replacer(self, self.unexpected_error_message, kwargs={'exception': str(e)}).format_text()
+                self._app_send_prompt(PanelNames.MISSION_PROMPT, msg, from_md=True)
+                raise
+            else:
+                msg = Replacer(self, self.success_message).format_text()
+                self._app_send_prompt(PanelNames.MISSION_PROMPT, msg, from_md=True)
+                self._app_set_header('Completed')
+                print_and_log(f'----- COMPLETED RUN ------\n{msg}\n----------------------------\n')
 
-        try:
-            run()
-        except TerminateException as e:
-            # self.advance_stage(Stage.FAILURE)  # used for the old whatsapp app
-            msg = Replacer(self, self.failure_message, kwargs={'exception': str(e)}).format_text()
-            self._app_send_prompt(PanelNames.MISSION_PROMPT, msg, from_md=True)
-            self._app_set_header('Terminate upon failure')
-            print_and_log(f'----- TERMINATING RUN ------\n{msg}\n----------------------------\n')
-        except Exception as e:
-            self._app_clear_panels()
-            self._app_send_prompt(PanelNames.MISSION_PROMPT,
-                                  '# Run failed.\n*data-to-paper* exited unexpectedly.\n'
-                                  '### Exception:\n'
-                                  f'{wrap_text_with_triple_quotes(str(e), "error")}',
-                                  from_md=True)
-            raise
+        self._create_or_clean_output_folder()
+        self._create_temp_folder_to_run_in()
+        with console_log_file_context(self.output_directory / 'console_log.txt'):
+            try:
+                run()
+            finally:
+                if self.should_remove_temp_folder:
+                    # remove temp folder and all its content:
+                    shutil.rmtree(self.temp_folder_to_run_in, ignore_errors=True)
+
+    @classmethod
+    def get_project_parameters_from_project_directory(cls, project_directory: Path,
+                                                      add_default_parameters: bool = True
+                                                      ) -> dict:
+        """
+        Get the project parameters from the project directory.
+        """
+        if add_default_parameters:
+            project_parameters = cls.DEFAULT_PROJECT_PARAMETERS.copy()
         else:
-            for product in PRODUCTS_TO_SEND_TO_CLIENT:
-                self.send_final_products_to_client(product_name=product)
-            # self.advance_stage(Stage.FINISHED)  # used for the old whatsapp app
-            msg = Replacer(self, self.success_message).format_text()
-            self._app_send_prompt(PanelNames.MISSION_PROMPT, msg, from_md=True)
-            self._app_set_header('Completed')
-            print_and_log(f'----- COMPLETED RUN ------\n{msg}\n----------------------------\n')
+            project_parameters = {}
+        if cls.PROJECT_PARAMETERS_FILENAME:
+            with open(project_directory / cls.PROJECT_PARAMETERS_FILENAME) as file:
+                input_project_parameters = json.load(file)
+            # check that the keys of input_project_parameters are in project_parameters:
+            unknown_keys = set(input_project_parameters.keys()) - set(cls.DEFAULT_PROJECT_PARAMETERS.keys())
+            if unknown_keys:
+                raise ValueError(f'Unknown keys in project parameters: {unknown_keys}')
+            project_parameters.update(input_project_parameters)
+        return project_parameters
+
+    @classmethod
+    def create_project_directory_from_project_parameters(cls, project_directory: Path, project_parameters: dict,
+                                                         **kwargs):
+        """
+        Create the project directory from the project parameters.
+        """
+        clear_directory(project_directory, create_if_missing=True)
+        if cls.PROJECT_PARAMETERS_FILENAME:
+            with open(project_directory / cls.PROJECT_PARAMETERS_FILENAME, 'w') as file:
+                json.dump(project_parameters, file, indent=4)
+
+    def _update_project_parameters(self):
+        """
+        Get the project parameters from the project directory.
+        """
+        self.project_parameters = self.get_project_parameters_from_project_directory(self.project_directory)
+
+
+@dataclass
+class DataStepRunner(BaseStepsRunner):
+    """
+    A class for running a series of steps towards a high level goal.
+    With the ability to handle data files.
+    """
+    data_file_descriptions: DataFileDescriptions = field(default_factory=DataFileDescriptions)
+    DEFAULT_PROJECT_PARAMETERS = dict(
+        data_filenames=[],
+        data_files_is_binary=[],
+        general_description='',
+        data_file_descriptions=[],
+    )
+
+    @classmethod
+    def get_project_parameters_from_project_directory(cls, project_directory: Path,
+                                                      add_default_parameters: bool = True
+                                                      ) -> dict:
+        """
+        Get the project parameters from the project directory.
+        """
+        project_parameters = super().get_project_parameters_from_project_directory(
+            project_directory, add_default_parameters)
+        # add data_file descriptions:
+        data_file_descriptions = CreateDataFileDescriptions(
+                data_files_str_paths=project_parameters['data_filenames'],
+                project_directory=project_directory,
+                data_files_is_binary=[None] * len(project_parameters['data_filenames']),
+            ).get_raw_str_data_file_descriptions()
+        project_parameters['data_file_descriptions'] = [
+            data_file_description.description for data_file_description in data_file_descriptions]
+        project_parameters['general_description'] = data_file_descriptions.general_description
+        return project_parameters
+
+    @classmethod
+    def create_project_directory_from_project_parameters(cls, project_directory: Path, project_parameters: dict,
+                                                         raise_on_missing_files: bool = False, **kwargs):
+        """
+        Create the project directory from the project parameters.
+        """
+        project_parameters = project_parameters.copy()
+        data_file_descriptions = project_parameters.pop('data_file_descriptions')
+        general_description = project_parameters.pop('general_description')
+        super().create_project_directory_from_project_parameters(project_directory, project_parameters)
+        CreateDataFileDescriptions(project_directory=project_directory,
+                                   data_files_str_paths=project_parameters['data_filenames'],
+                                   ).create_file_descriptions(general_description=general_description,
+                                                              data_file_descriptions=data_file_descriptions,
+                                                              raise_on_missing_files=raise_on_missing_files)
+
+    def _read_data_file_descriptions(self):
+        """
+        Read the data file descriptions from the project directory
+        """
+        self.data_file_descriptions = CreateDataFileDescriptions(
+            data_files_str_paths=self.project_parameters['data_filenames'],
+            project_directory=self.project_directory,
+            data_files_is_binary=self.project_parameters['data_files_is_binary'],
+            temp_folder_to_run_in=self.temp_folder_to_run_in,
+        ).create_temp_folder_and_get_file_descriptions()
+
+    def _pre_run_preparations(self):
+        super()._pre_run_preparations()
+        self._read_data_file_descriptions()

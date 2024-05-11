@@ -1,9 +1,11 @@
 from typing import Dict, Optional
 
+import colorama
+
 from data_to_paper.utils.print_to_file import print_and_log
 from data_to_paper.conversation.stage import Stage
 
-from .types import PanelNames
+from .enum_types import PanelNames
 from .human_actions import ButtonClickedHumanAction, TextSentHumanAction, HumanAction
 
 
@@ -23,6 +25,7 @@ class BaseApp:
         if self.instance is not None:
             raise Exception("App is a singleton!")
         self.instance = self
+        self.step_runner = None
         self._panels_and_positions_to_headers = {(panel_name, position): '' for panel_name in PanelNames
                                                  for position in range(2)}
 
@@ -71,6 +74,12 @@ class BaseApp:
     def initialize(self):
         pass
 
+    def _run_all_steps(self):
+        self.step_runner.run_all_steps()
+
+    def _get_all_steps(self):
+        return self.step_runner.stages
+
     def _set_status(self, panel_name: PanelNames, position: int, status: str = ''):
         pass
 
@@ -94,6 +103,9 @@ class ConsoleApp(BaseApp):
     Very simple implementation of the edit_text and show_text methods, for debugging purposes.
     """
 
+    def initialize(self):
+        self._run_all_steps()
+
     @staticmethod
     def get_multiline_input() -> str:
         lines = []
@@ -104,25 +116,37 @@ class ConsoleApp(BaseApp):
             lines.append(line)
         return '\n'.join(lines)
 
-    def request_action(self, panel_name: PanelNames, initial_text: str = '',
-                       title: Optional[str] = None,
-                       instructions: Optional[str] = None,
-                       optional_suggestions: Dict[str, str] = None) -> str:
-        print_and_log(title)
-        print_and_log("Suggestions:")
-        print_and_log(f"{0}. {'Initial content'}")
-        print_and_log(initial_text)
+    def request_text(self, panel_name: PanelNames, initial_text: str = '',
+                     title: Optional[str] = None,
+                     instructions: Optional[str] = None,
+                     optional_suggestions: Dict[str, str] = None) -> str:
+        if panel_name != PanelNames.FEEDBACK:
+            # In the console app, we only support the feedback panel:
+            return initial_text
+        color = colorama.Fore.BLUE
+        light_color = colorama.Fore.LIGHTBLUE_EX
+        print_and_log(title, color=light_color)
+        print_and_log("Suggestions:", should_log=False, color=color)
+        print_and_log(f"#{0}. {'Initial content'}:", should_log=False, color=light_color)
+        print_and_log(initial_text or "<empty>", should_log=False, color=color)
         if optional_suggestions:
             for index, (suggestion_name, suggestion_content) in enumerate(optional_suggestions.items()):
-                print_and_log(f"{index + 1}. {suggestion_name}")
-                print_and_log(suggestion_content)
-        print_and_log("Enter your text, or the number of the suggestion you want to use:")
-        text = self.get_multiline_input()
+                print_and_log(f"#{index + 1}. {suggestion_name}:", should_log=False, color=light_color)
+                print_and_log(suggestion_content or "<empty>", should_log=False, color=color)
+        print_and_log("Enter your text, or the number of the suggestion you want to use "
+                      f"(0 - {len(optional_suggestions)}): (use Enter newline. End with an empty line to submit)",
+                      should_log=False, color=color)
+        text = self.get_multiline_input().strip()
         if text.isdigit():
             suggestion_index = int(text)
             if suggestion_index == 0:
-                return initial_text
-            return list(optional_suggestions.values())[suggestion_index - 1]
+                text = initial_text
+            else:
+                text = list(optional_suggestions.values())[suggestion_index - 1]
+        print_and_log(f"Text received:", color=light_color)
+        print_and_log(text or "<empty>", color=color)
+        return text
 
     def show_text(self, panel_name: PanelNames, text: str, is_html: bool = False):
-        print_and_log(text)
+        # print_and_log(text)
+        pass  # no need to print, user already sees all console messages.

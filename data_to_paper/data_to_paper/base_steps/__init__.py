@@ -11,7 +11,7 @@ Base classes to use for building each step in a multi-step process towards a goa
 # --- RUNNING MULTI-STEP PROCESS ---
 
 # Base class for running multiple steps while accumulating Products towards a goal:
-from .base_steps_runner import BaseStepsRunner
+from .base_steps_runner import BaseStepsRunner, DataStepRunner
 
 # In each step, we can use the Products from the previous step and choose
 # from one of the base-classes below to create new Products.

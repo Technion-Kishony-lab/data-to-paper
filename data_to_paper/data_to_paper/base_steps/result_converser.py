@@ -339,7 +339,7 @@ class ResultConverser(Converser):
         self.apply_delete_messages(
             RangeMessageDesignation.from_(start + offset, last))
 
-    def _iterate_until_valid_response(self, alter_web_response: bool = False) -> Tuple[bool, bool]:
+    def _iterate_until_valid_response(self) -> Tuple[bool, bool]:
         """
         Iterate until we get a valid response from self (return is_converged=True),
         or until we exceed max_valid_response_iterations (return is_converged=False).
@@ -368,7 +368,7 @@ class ResultConverser(Converser):
                 self._conversation_len_before_first_response -= 1
 
             if not is_preexisting_self_response:
-                self_message = self.apply_get_and_append_assistant_message(web_conversation_name=None)
+                self_message = self.apply_get_and_append_assistant_message()
                 self_response = self_message.content
 
             # check if the response is valid:
@@ -387,11 +387,6 @@ class ResultConverser(Converser):
                     except SelfResponseError as e:
                         response_error = e
                 is_new_valid_result = self._valid_result_update_count > initial_valid_result_update_count
-            if not is_preexisting_self_response:
-                self.apply_append_surrogate_message(
-                    content=(self_response if extracted_text is None or not alter_web_response
-                             else self._convert_extracted_text_to_fresh_looking_response(extracted_text)),
-                    conversation_name=None, context=self_message.context)
 
             if response_error:
                 self._self_response_iteration_count -= response_error.add_iterations
@@ -406,7 +401,6 @@ class ResultConverser(Converser):
                         model_was_bumped = False
                     if model_was_bumped:
                         msg = f"You seem totally drunk. Let's Bump you to {self.model_engine} and try again..."
-                        self.apply_append_user_message(msg, conversation_name=None)  # web only
                         print_and_log_red(msg)
             else:
                 self._app_send_prompt(PanelNames.FEEDBACK,
@@ -421,8 +415,7 @@ class ResultConverser(Converser):
                     and extracted_text:
                 self.apply_delete_messages(SingleMessageDesignation(-1))
                 self.apply_append_surrogate_message(
-                    self._convert_extracted_text_to_fresh_looking_response(extracted_text),
-                    web_conversation_name=None)
+                    self._convert_extracted_text_to_fresh_looking_response(extracted_text))
             # add the rule-based error message:
             if response_error:
                 self.apply_append_user_message(

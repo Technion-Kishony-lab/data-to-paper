@@ -54,8 +54,7 @@ def add_label_to_first_triple_quotes_if_missing(content: str, requested_label: s
     formatted_sections = FormattedSections.from_text(content)
     first_block = formatted_sections.get_first_block()
     if first_block is not None:
-        label = first_block.label
-        if requested_label is not True and (label is not False and label.lower() in ['', requested_label]):
+        if first_block.label.lower() == '':
             first_block.label = requested_label
     return formatted_sections.to_text()
 

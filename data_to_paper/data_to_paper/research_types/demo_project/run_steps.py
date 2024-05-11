@@ -35,20 +35,19 @@ class DemoStepsRunner(BaseStepsRunner):
                                                       user_agent=DemoAgent.Performer,
                                                       conversation_name='with_director',
                                                       )
-        self.advance_stage_and_set_active_conversation(DemoStages.DATA, DemoAgent.Director)
+        self.advance_stage(DemoStages.DATA)
         products.data_file_descriptions = director_converser.get_product_or_no_product_from_director(
             product_field='data_file_descriptions', returned_product=self.data_file_descriptions)
         self.send_product_to_client('data_file_descriptions')
 
         # Goal
-        self.advance_stage_and_set_active_conversation(DemoStages.DATA, DemoAgent.Director)
+        self.advance_stage(DemoStages.DATA)
         products.research_goal = director_converser.get_product_or_no_product_from_director(
             product_field='research_goal', returned_product=self.research_goal,
             acknowledge_no_product_message="OK. no problem. I will devise the goal myself.")
 
         # Write code
-        self.advance_stage_and_set_active_conversation(
-            DemoStages.CODE, DemoAgent.Debugger)
+        self.advance_stage(DemoStages.CODE)
         products.code_and_output = DemoCodeProductsGPT.from_(self).get_code_and_output()
         self.send_product_to_client('code_and_output')
 

@@ -17,7 +17,7 @@ from data_to_paper.utils.types import ListBasedSet
 
 from .base_run_contexts import RunContext
 from .overrides.attr_replacers import PreventCalling
-from .run_contexts import PreventFileOpen, PreventImport, WarningHandler, ProvideData, IssueCollector, \
+from .run_contexts import PreventFileOpen, PreventImport, WarningHandler, IssueCollector, \
     TrackCreatedFiles
 
 from .exceptions import FailedRunningCode, BaseRunContextException, CodeTimeoutException
@@ -103,7 +103,6 @@ class RunCode:
     # Allowed new files. Assessed at end of run. If None then all files are allowed.
     output_file_requirements: Optional[OutputFileRequirements] = OutputFileRequirements()
 
-    runtime_available_objects: Optional[Dict] = None
     run_folder: Union[Path, str] = field(default_factory=Path)
 
     additional_contexts: Optional[Dict[str, Any]] = None
@@ -134,8 +133,6 @@ class RunCode:
         }
 
         # Optional builtin contexts:
-        if self.runtime_available_objects is not None:
-            contexts['ProvideData'] = ProvideData(data=self.runtime_available_objects)
         if self.forbidden_modules_and_functions is not None:
             contexts['PreventCalling'] = PreventCalling(modules_and_functions=self.forbidden_modules_and_functions)
         if self.forbidden_imports is not None:

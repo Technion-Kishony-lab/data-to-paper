@@ -1,6 +1,6 @@
 ## data-to-paper: AI-driven research from data to human-verifiable research papers
 
-<img src="https://github.com/Technion-Kishony-lab/data-to-paper/blob/main/data_to_paper_icon.gif?raw=true" width="200" align="right">
+<img src="https://github.com/Technion-Kishony-lab/data-to-paper/blob/main/data_to_paper_icon.gif?raw=true" width="300" align="right">
 
 [*data-to-paper*](https://arxiv.org/abs/2404.17605) is a framework for systematically navigating the power of AI to perform complete end-to-end 
 scientific research, starting from raw data and concluding with comprehensive, transparent, and human-verifiable 
@@ -40,6 +40,22 @@ at each research step.
 * **Replay**. The entire process is recorded, including all LLM responses, Human feedback, and 
 literature search retrievals, allowing for transparent replay of the process.
 
+### Installation
+See [INSTALL.md](INSTALL.md) for installation instructions.
+
+### How to run
+1. Install data-to-paper ([INSTALL](INSTALL.md)).
+2. Run data-to-paper:
+      ```python data_to_paper/data_to_paper/run/run.py```
+3. This will open a startup dialog that will allow you to specify your own project, 
+or to reproduce example projects (`data-to-paper/projects`) 
+4. Click "Start" to start the run, with human overseeing and feedback.
+5. At the end of the process, a pdf of the manuscript will be created in the project folder.
+
+### GUI app demo
+
+https://github.com/Technion-Kishony-lab/data-to-paper/assets/65530510/878865a7-45b4-496c-a62f-71d0003ce44b
+
 ### Examples
 
 We ran **data-to-paper** on the following test cases:
@@ -66,21 +82,6 @@ We ran **data-to-paper** on the following test cases:
   ([Shim et al](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0257069)).
 
   Branch: `examples/tube_levels`
-
-### Installation
-See [INSTALL.md](INSTALL.md) for installation instructions.
-
-### How to run
-1. Follow the installation instructions in [INSTALL.md](INSTALL.md).
-2. Run the GUI app by running the following command:
-      ```python data-to-paper/data_to_paper/data_to_paper/interactive/app_startup.py```
-3. This will open a startup dialog that will allow you to kickstart your own project, add dataset, and possibly a research goal. 
-4. After you will correctly add all the required data files and metadata the main GUI app will open, it will allow you to run the project, oversee the products created and provide feedback along the way.
-
-### GUI app demo
-
-https://github.com/Technion-Kishony-lab/data-to-paper/assets/65530510/878865a7-45b4-496c-a62f-71d0003ce44b
-
 
 ### Contributing
 We invite people to try out **data-to-paper** with their own data and are eager for feedback and suggestions.
@@ -116,7 +117,7 @@ responsible for monitoring and managing your own token usage and the associated 
 It is highly recommended to check your API usage regularly and set up any necessary limits or alerts to 
 prevent unexpected charges.
 
-### Other related projects
+### Related projects
 
 Here are some other cool multi-agent relted projects:
 - [LangChain](https://github.com/langchain-ai/langchain)

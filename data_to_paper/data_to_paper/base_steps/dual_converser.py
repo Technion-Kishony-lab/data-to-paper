@@ -28,13 +28,11 @@ class DualConverserGPT(Converser):
     """
     A base class for agents running two LLM agents.
     """
-    COPY_ATTRIBUTES = Converser.COPY_ATTRIBUTES | {'other_conversation_name', 'other_web_conversation_name'}
+    COPY_ATTRIBUTES = Converser.COPY_ATTRIBUTES | {'other_conversation_name'}
 
     other_system_prompt: str = 'You are a helpful scientist.'
 
     other_conversation_name: str = None
-
-    other_web_conversation_name: Optional[str] = None
 
     suppress_printing_other_conversation: bool = False
 
@@ -50,7 +48,6 @@ class DualConverserGPT(Converser):
         self.other_conversation_manager = ConversationManager(
             actions_and_conversations=self.actions_and_conversations,
             conversation_name=self.other_conversation_name,
-            web_conversation_name=self.other_web_conversation_name,
             driver=self.driver if self.driver is not None else type(self).__name__,
             should_print=not self.suppress_printing_other_conversation,
         )
@@ -70,9 +67,6 @@ class DualConverserGPT(Converser):
         self.other_conversation_manager.initialize_conversation_if_needed()
         if len(self.other_conversation) == 0:
             self.apply_to_other_append_system_message(self.other_system_prompt)
-            # add the message also to the web conversation:
-            self.apply_append_system_message(self.other_system_prompt, conversation_name=None, ignore=True,
-                                             reverse_roles_for_web=True)
         self._pre_populate_other_background()
 
     def apply_to_other_get_and_append_assistant_message(self, tag: Optional[StrOrReplacer] = None,
@@ -285,8 +279,7 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
             self._rewind_conversation_to_first_response(-1, -1, start=conversation_len_before_first_round)
         elif self.rewind_after_end_of_review == Rewind.AS_FRESH:
             self._rewind_conversation_to_first_response(0, -1, start=conversation_len_before_first_round)
-            self.apply_append_surrogate_message(self._convert_valid_results_to_fresh_looking_response(valid_result),
-                                                web_conversation_name=None)
+            self.apply_append_surrogate_message(self._convert_valid_results_to_fresh_looking_response(valid_result))
         return cycle_status
 
     def run_one_cycle(self) -> CycleStatus:
@@ -295,7 +288,7 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
         _check_and_extract_value_from_self_response().
         """
         is_last_round = self.round_num >= self.max_reviewing_rounds
-        is_converged, is_new_valid_result = self._iterate_until_valid_response(alter_web_response=not is_last_round)
+        is_converged, is_new_valid_result = self._iterate_until_valid_response()
         if not is_new_valid_result:
             return CycleStatus.FAILED_CHECK_SELF_RESPONSE
 

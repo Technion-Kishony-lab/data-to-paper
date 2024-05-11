@@ -16,7 +16,7 @@ from dataclasses import dataclass, field
 
 from data_to_paper.utils.print_to_file import print_and_log
 from data_to_paper.base_cast import Agent
-from .conversation import Conversation, WebConversation
+from .conversation import Conversation
 
 
 @dataclass(frozen=True)
@@ -42,9 +42,6 @@ class Action:
         """
         pass
 
-    def apply_to_web(self) -> bool:
-        return False
-
 
 @dataclass(frozen=True)
 class Conversations(Dict[str, Conversation]):
@@ -58,12 +55,10 @@ class Conversations(Dict[str, Conversation]):
         """
         return self.get(conversation_name, None)
 
-    def get_or_create_conversation(self, conversation_name: str, participants: Set[Agent] = None, is_web: bool = False
-                                   ) -> Conversation:
+    def get_or_create_conversation(self, conversation_name: str, participants: Set[Agent] = None) -> Conversation:
         if conversation_name in self:
             return self[conversation_name]
-        conversation = Conversation(conversation_name=conversation_name, participants=participants) if not is_web \
-            else WebConversation(conversation_name=conversation_name, participants=participants)
+        conversation = Conversation(conversation_name=conversation_name, participants=participants)
         self[conversation.conversation_name] = conversation
         return conversation
 
@@ -89,7 +84,6 @@ class Actions(List[Action]):
 
     def apply_action(self, action: Action, is_color: bool = True,
                      should_append: bool = True):
-        from data_to_paper.base_cast import update_cast_and_messenger_on_action
         if action.should_print:
             from .conversation_actions import AppendMessage
             if self.abbreviate_repeated_printed_content \
@@ -105,10 +99,6 @@ class Actions(List[Action]):
         if should_append:
             self.append(action)
         action.apply()
-
-        # update the messenger system:
-        if action.apply_to_web():
-            update_cast_and_messenger_on_action(action)
 
     def save_actions_to_file(self, file_path: Union[str, Path]):
         """

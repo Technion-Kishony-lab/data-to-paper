@@ -11,8 +11,8 @@ from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue
 from .check_df_of_table import check_df_of_table_for_content_issues, check_df_filename
 
 
-def dataframe_to_pickle_with_checks(df: pd.DataFrame, path: str, *args,
-                                    original_func=None, context_manager: AttrReplacer = None, **kwargs):
+def _dataframe_to_pickle_with_checks(df: pd.DataFrame, path: str, *args,
+                                     original_func=None, context_manager: AttrReplacer = None, **kwargs):
     """
     Save a data frame to a pickle file.
     Check for content issues.
@@ -44,7 +44,7 @@ def dataframe_to_pickle_with_checks(df: pd.DataFrame, path: str, *args,
         original_func(df, path)
 
 
-def read_pickle_and_save_filename(*args, original_func=None, context_manager: AttrReplacer = None, **kwargs):
+def _read_pickle_and_save_filename(*args, original_func=None, context_manager: AttrReplacer = None, **kwargs):
     """
     Read a pickle file into a data frame.
     Save the filename.
@@ -56,18 +56,18 @@ def read_pickle_and_save_filename(*args, original_func=None, context_manager: At
 
 
 def get_dataframe_to_pickle_attr_replacer():
-    return AttrReplacer(obj_import_str='pandas.DataFrame', attr='to_pickle', wrapper=dataframe_to_pickle_with_checks,
+    return AttrReplacer(obj_import_str='pandas.DataFrame', attr='to_pickle', wrapper=_dataframe_to_pickle_with_checks,
                         send_context_to_wrapper=True, send_original_to_wrapper=True)
 
 
 def get_read_pickle_attr_replacer():
-    context = AttrReplacer(obj_import_str='pandas', attr='read_pickle', wrapper=read_pickle_and_save_filename,
+    context = AttrReplacer(obj_import_str='pandas', attr='read_pickle', wrapper=_read_pickle_and_save_filename,
                            send_context_to_wrapper=True, send_original_to_wrapper=True)
     context.last_read_pickle_filename = None
     return context
 
 
-def pickle_dump_with_checks(obj, file, *args, original_func=None, context_manager: AttrReplacer = None, **kwargs):
+def _pickle_dump_with_checks(obj, file, *args, original_func=None, context_manager: AttrReplacer = None, **kwargs):
     """
     Save a Dict[str, Any] to a pickle file.
     Check for content issues.
@@ -106,5 +106,5 @@ def pickle_dump_with_checks(obj, file, *args, original_func=None, context_manage
 
 
 def get_pickle_dump_attr_replacer():
-    return AttrReplacer(obj_import_str='pickle', attr='dump', wrapper=pickle_dump_with_checks,
+    return AttrReplacer(obj_import_str='pickle', attr='dump', wrapper=_pickle_dump_with_checks,
                         send_context_to_wrapper=True, send_original_to_wrapper=True)
