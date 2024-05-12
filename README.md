@@ -1,10 +1,10 @@
 ## data-to-paper: AI-driven research from data to human-verifiable research papers
 
-<img src="https://github.com/Technion-Kishony-lab/data-to-paper/blob/main/data_to_paper_icon.gif?raw=true" width="300" align="right">
+<img src="https://github.com/Technion-Kishony-lab/data-to-paper/blob/main/data_to_paper_icon.gif?raw=true" width="400" align="right">
 
 [*data-to-paper*](https://arxiv.org/abs/2404.17605) is a framework for systematically navigating the power of AI to perform complete end-to-end 
 scientific research, starting from raw data and concluding with comprehensive, transparent, and human-verifiable 
-scientific papers.
+scientific papers ([example](https://t.co/iz44TDZZHb)).
 
 Towards this goal, *data-to-paper* systematically guides interacting 
 LLM and rule-based agents through the conventional scientific path, from annotated data, through creating 
@@ -61,25 +61,25 @@ https://github.com/Technion-Kishony-lab/data-to-paper/assets/65530510/878865a7-4
 We ran **data-to-paper** on the following test cases:
 
 * **Health Indicators (open goal).** A clean unweighted subset of CDC’s Behavioral Risk Factor Surveillance System (BRFSS) 2015 annual dataset 
-  ([Kaggle](https://www.kaggle.com/datasets/alexteboul/diabetes-health-indicators-dataset)).
+  ([Kaggle](https://www.kaggle.com/datasets/alexteboul/diabetes-health-indicators-dataset)). Here is an [example Paper](https://github.com/rkishony/data-to-paper-supplementary/blob/main/Supplementary%20Data-chained%20Manuscripts/Supplementary%20Data-chained%20Manuscript%20A.pdf) created by data-to paper.
  
   Branch: `examples/diabetes`
-
+  
 
 * **Social Network (open goal).** A directed graph of Twitter interactions among the 117th Congress members
-  ([Fink et al](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10493874/)).
+  ([Fink et al](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10493874/)). Here is an [example Paper](https://github.com/rkishony/data-to-paper-supplementary/blob/main/Supplementary%20Data-chained%20Manuscripts/Supplementary%20Data-chained%20Manuscript%20B.pdf) created by data-to paper.
 
   Branch: `examples/congress_social_network`
 
 
 * **Treatment Policy (fixed-goal).** A dataset on treatment and outcomes of non-vigorous infants admitted to the Neonatal Intensive Care Unit (NICU), before and after a change to treatment guidelines was implemented
-  ([Saint-Fleur et al](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0289945)).
+  ([Saint-Fleur et al](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0289945)). Here is an [example Paper](https://github.com/rkishony/data-to-paper-supplementary/blob/main/Supplementary%20Data-chained%20Manuscripts/Supplementary%20Data-chained%20Manuscript%20C.pdf) created by data-to paper.
 
   Branch: `examples/nicu`
 
 
 * **Treatment Optimization (fixed-goal).** A dataset of pediatric patients, which received mechanical ventilation after undergoing surgery, including an x-ray-based determination of the optimal tracheal tube intubation depth and a set of personalized patient attributes to be used in machine learning and formula-based models to predict this optimal depth
-  ([Shim et al](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0257069)).
+  ([Shim et al](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0257069)). Here is an [example Paper](https://github.com/rkishony/data-to-paper-supplementary/blob/main/Supplementary%20Data-chained%20Manuscripts/Supplementary%20Data-chained%20Manuscript%20D.pdf) created by data-to paper.
 
   Branch: `examples/tube_levels`
 
