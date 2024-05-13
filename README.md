@@ -14,7 +14,7 @@ interpreting the results, and ultimately the step-by-step writing of a complete 
 The *data-to-paper* framework is created as a research project to understand the 
 capacities and limitations of LLM-driven scientific research, and to develop ways of harnessing LLM to accelerate 
 research while maintaining, and even enhancing, key scientific values, such as transparency, traceability and verifiability, 
-and while allowing scinetist to oversee and direct the process 
+and while allowing scientist to oversee and direct the process 
 [see also: [living guidelines](https://www.nature.com/articles/d41586-023-03266-1)].
 
 
