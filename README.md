@@ -11,7 +11,7 @@ LLM and rule-based agents through the conventional scientific path, from annotat
 research hypotheses, conducting literature search, writing and debugging data analysis code, 
 interpreting the results, and ultimately the step-by-step writing of a complete research paper.
 
-The **data-to-paper** framework is created as a research project to understand the 
+The *data-to-paper* framework is created as a research project to understand the 
 capacities and limitations of LLM-driven scientific research, and to develop ways of harnessing LLM to accelerate 
 research while maintaining, and even enhancing, key scientific values, such as transparency, traceability and verifiability, 
 and while allowing scinetist to oversee and direct the process 
@@ -30,15 +30,17 @@ The **data-to-paper** framework is described in the following pre-print:
 ### Key features
 * **Field agnostic**. We strive to make the framework as general as possible, so that it can be used across different 
 fields of research.
-* **Open-goal or fixed goal research.** *data-to-paper* can be used to autonomously raise and test 
-a hypothesis, or to test a specific pre-defined user-defined hypothesis.
+* **Open-goal or fixed-goal research.** *data-to-paper* can be used to autonomously raise and test 
+a hypothesis, or to test a specific pre-defined user-provided hypothesis.
 * **Data-chained manuscripts**. The process creates transparent and verifiable manuscripts, where results, 
 methodology and data are programmatically linked 
-(all numeric values can be click-traced back to the code lines that created them). 
+(all numeric values can be click-traced back to the code lines that created them).
+* **Coding guardrails.** Standard statistical packages are overridden with multiple guardrails to minimize
+common LLM coding errors.
 * **Human-in-the-loop.** A GUI app allows the user to oversee the process, and to intervene 
 at each research step.
-* **Replay**. The entire process is recorded, including all LLM responses, Human feedback, and 
-literature search retrievals, allowing for transparent replay of the process.
+* **Record & Replay**. The entire process is recorded, including all LLM responses, Human feedback, and 
+literature search retrievals, allowing for transparent replay.
 
 ### Installation
 See [INSTALL.md](INSTALL.md) for installation instructions.
@@ -119,11 +121,11 @@ prevent unexpected charges.
 
 ### Related projects
 
-Here are some other cool multi-agent relted projects:
+Here are some other cool multi-agent related projects:
 - [LangChain](https://github.com/langchain-ai/langchain)
 - [AutoGen](https://microsoft.github.io/autogen/)
 - [AutoGPT](https://github.com/Significant-Gravitas/AutoGPT)
 - [MetaGPT](https://github.com/geekan/MetaGPT)
 
-And also this curated list of AI agents projects [awesome-agents](https://github.com/kyrolabs/awesome-agents)
+And also this curated list of [awesome-agents](https://github.com/kyrolabs/awesome-agents).
 
