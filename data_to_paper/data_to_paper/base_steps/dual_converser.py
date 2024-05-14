@@ -309,9 +309,9 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
         if self.human_review and self.app:
             other_response = self._app_receive_text(PanelNames.FEEDBACK, '',
                                                     title='User feedback requested',
-                                                    instructions=f'Give feedback on the product. Blank if ok.',
-                                                    optional_suggestions={'AI': other_response,
-                                                                          'Default': ''})
+                                                    in_field_instructions='Give feedback on the product.\n'
+                                                                          'Leave blank if product is ok.',
+                                                    optional_suggestions={'AI': other_response, 'Default': ''})
             # replace other response with the human response in other conversation:
             if self.are_we_reviewing_at_all:
                 self.apply_to_other_delete_messages(-1)

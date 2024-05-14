@@ -55,8 +55,10 @@ class AppInteractor:
     def _app_receive_text(self, panel_name: PanelNames, initial_text: str = '',
                           title: Optional[str] = '',
                           instructions: Optional[str] = '',
+                          in_field_instructions: Optional[str] = '',
                           optional_suggestions: Dict[str, str] = None) -> str:
-        action = self._app_receive_action(panel_name, initial_text, title, instructions, optional_suggestions)
+        action = self._app_receive_action(panel_name, initial_text, title, instructions, in_field_instructions,
+                                          optional_suggestions)
         if isinstance(action, TextSentHumanAction):
             return action.value
         button = action.value
@@ -67,6 +69,7 @@ class AppInteractor:
     def _app_receive_action(self, panel_name: PanelNames, initial_text: str = '',
                             title: Optional[str] = '',
                             instructions: Optional[str] = '',
+                            in_field_instructions: Optional[str] = '',
                             optional_suggestions: Dict[str, str] = None) -> HumanAction:
         if self.app is None:
             return ButtonClickedHumanAction('Initial')
@@ -74,6 +77,7 @@ class AppInteractor:
                                   panel_name=panel_name,
                                   initial_text=initial_text,
                                   instructions=instructions,
+                                  in_field_instructions=in_field_instructions,
                                   title=title,
                                   optional_suggestions=optional_suggestions)
 

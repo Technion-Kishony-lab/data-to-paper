@@ -145,7 +145,7 @@ def _get_label_height(label: QLabel) -> int:
 
 class Worker(QThread):
     # Signal now carries a string payload for initial text
-    request_text_signal = Signal(PanelNames, str, str, str, dict)
+    request_text_signal = Signal(PanelNames, str, str, str, str, dict)
     show_text_signal = Signal(PanelNames, str, bool)
     set_focus_on_panel_signal = Signal(PanelNames)
     advance_stage_signal = Signal(Stage)
@@ -175,9 +175,11 @@ class Worker(QThread):
     def worker_request_text(self, panel_name: PanelNames, initial_text: str = '',
                             title: Optional[str] = None,
                             instructions: Optional[str] = None,
+                            in_field_instructions: Optional[str] = None,
                             optional_suggestions: Dict[str, str] = None) -> str:
         self.mutex.lock()
-        self.request_text_signal.emit(panel_name, initial_text, title, instructions, optional_suggestions)
+        self.request_text_signal.emit(panel_name, initial_text, title, instructions, in_field_instructions,
+                                      optional_suggestions)
         self.condition.wait(self.mutex)
         input_text = self._text_input
         self.mutex.unlock()
@@ -333,7 +335,7 @@ class EditableTextPanel(Panel):
         # Instructions:
         self.instructions = None
         self.instructions_label = QLabel()
-        self.reset_instructions()
+        self.update_instructions()
         self.layout.addWidget(self.instructions_label)
 
         # Buttons:
@@ -363,9 +365,12 @@ class EditableTextPanel(Panel):
         for button in self.suggestion_buttons:
             button.setVisible(visible)
 
-    def reset_instructions(self):
+    def update_instructions(self):
         if self.instructions is not None:
             self.instructions_label.setText(self.instructions)
+        else:
+            self.instructions_label.setText('')
+        self.instructions_label.setVisible(bool(self.instructions))
 
     def on_suggestion_button_click(self):
         button = self.sender()
@@ -397,13 +402,16 @@ class EditableTextPanel(Panel):
 
     def set_instructions(self, instructions: str):
         self.instructions = instructions
-        self.reset_instructions()
+        self.update_instructions()
 
     def edit_text(self, text: Optional[str] = '',
                   title: Optional[str] = None,
                   instruction: Optional[str] = None,
+                  in_field_instructions: Optional[str] = None,
                   suggestion_texts: Optional[List[str]] = None):
         self.text_edit.setReadOnly(False)
+        if in_field_instructions:
+            self.text_edit.setPlaceholderText(in_field_instructions)
         self._set_plain_text(text)
         self._set_buttons_visibility(True)
         if suggestion_texts is not None:
@@ -415,9 +423,10 @@ class EditableTextPanel(Panel):
 
     def on_submit(self):
         self.text_edit.setReadOnly(True)
+        self.text_edit.setPlaceholderText('')
         self._set_buttons_visibility(False)
         self.set_header_right('')
-        self.reset_instructions()
+        self.set_instructions('')
         if self.loop is not None:
             self.loop.exit()
 
@@ -652,11 +661,12 @@ class PysideApp(QMainWindow, BaseApp):
     def upon_request_text(self, panel_name: PanelNames, initial_text: str = '',
                           title: Optional[str] = None,
                           instructions: Optional[str] = None,
+                          in_field_instructions: Optional[str] = None,
                           optional_suggestions: Dict[str, str] = None):
         panel = self.panels[panel_name]
         if optional_suggestions is None:
             optional_suggestions = {}
-        panel.edit_text(initial_text, title, instructions, list(optional_suggestions.values()))
+        panel.edit_text(initial_text, title, instructions, in_field_instructions, list(optional_suggestions.values()))
 
     @Slot(PanelNames)
     def submit_text(self, panel_name: PanelNames):

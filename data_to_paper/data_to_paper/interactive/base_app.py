@@ -44,6 +44,7 @@ class BaseApp:
     def request_action(self, panel_name: PanelNames, initial_text: str = '',
                        title: Optional[str] = None,
                        instructions: Optional[str] = None,
+                       in_field_instructions: Optional[str] = '',
                        optional_suggestions: Dict[str, str] = None) -> HumanAction:
         """
         Requests text from the user.
@@ -51,7 +52,8 @@ class BaseApp:
         """
         optional_suggestions = optional_suggestions or {}
         optional_suggestions = {"Initial": initial_text, **optional_suggestions}
-        text = self.request_text(panel_name, initial_text, title, instructions, optional_suggestions)
+        text = self.request_text(panel_name, initial_text, title, instructions, in_field_instructions,
+                                 optional_suggestions)
         if text == initial_text:
             return ButtonClickedHumanAction('Initial')
         for suggestion_name, suggestion_content in optional_suggestions.items():
