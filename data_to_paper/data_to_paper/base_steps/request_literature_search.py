@@ -129,7 +129,7 @@ class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
         html = f'<h2>Querying Citations</h2>'
         html += f'<p>Searching "{server_name}" ' \
                 f'for papers related to our study in the following areas:</p>'
-        with self._app_with_set_panel_status(PanelNames.FEEDBACK, 'Querying citations...'):
+        with self._app_temporarily_set_panel_status(PanelNames.FEEDBACK, 'Querying citations...'):
             for scope, queries in scopes_to_list_of_queries.items():
                 queries_to_citations = {}
                 html += f'<h3>{scope.title()}-related queries:</h3>'

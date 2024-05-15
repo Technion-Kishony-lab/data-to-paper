@@ -372,7 +372,7 @@ class ResultConverser(Converser):
                 self_response = self_message.content
 
             # check if the response is valid:
-            with self._app_with_set_panel_status(PanelNames.FEEDBACK, 'Rule-based check ...'):
+            with self._app_temporarily_set_panel_status(PanelNames.FEEDBACK, 'Rule-based check ...'):
                 self._app_send_prompt(PanelNames.FEEDBACK)
                 response_error = None
                 extracted_text = None

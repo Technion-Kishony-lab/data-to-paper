@@ -97,7 +97,7 @@ class AppInteractor:
         self.app.set_status(panel_name, 1, status)
 
     @contextmanager
-    def _app_with_set_panel_status(self, panel_name: PanelNames, status: str = ''):
+    def _app_temporarily_set_panel_status(self, panel_name: PanelNames, status: str = ''):
         if self.app is None:
             yield
             return

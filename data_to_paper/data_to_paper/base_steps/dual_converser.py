@@ -76,7 +76,7 @@ class DualConverserGPT(Converser):
                                                         hidden_messages: GeneralMessageDesignation = None,
                                                         expected_tokens_in_response: int = None,
                                                         **kwargs) -> Message:
-        with self._app_with_set_panel_status(PanelNames.FEEDBACK, 'Waiting for LLM Reviewer...'):
+        with self._app_temporarily_set_panel_status(PanelNames.FEEDBACK, 'Waiting for LLM Reviewer...'):
             self._app_send_prompt(PanelNames.FEEDBACK)
             message = self.other_conversation_manager.get_and_append_assistant_message(
                 tag=tag,
