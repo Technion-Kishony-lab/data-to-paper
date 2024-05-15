@@ -126,8 +126,7 @@ class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgr
         """)
     rewind_after_getting_a_valid_response: Optional[Rewind] = Rewind.AS_FRESH
 
-    request_triple_quote_block: Optional[str] = None  # `None` or "" - do not request triple-quoted.
-    # or, can be something like: 'Please send your response as a triple-backtick "latex" block.'
+    request_triple_quote_block: Optional[str] = None
 
     un_allowed_commands: Tuple[str, ...] = (r'\cite', r'\verb', r'\begin{figure}')
 
@@ -165,8 +164,7 @@ class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgr
         Return a response that looks fresh.
         """
         s = super()._convert_extracted_text_to_fresh_looking_response(extracted_text)
-        if self.request_triple_quote_block:
-            s = wrap_text_with_triple_quotes(s, 'latex')
+        s = wrap_text_with_triple_quotes(s, 'latex')
         return s
 
     def _convert_valid_result_back_to_extracted_text(self, valid_result: List[str]) -> List[str]:
@@ -182,13 +180,12 @@ class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgr
         """
         Extract a section from the response.
         """
-        if self.request_triple_quote_block:
-            try:
-                response = extract_content_of_triple_quote_block(response, 'latex', 'latex')
-            except FailedExtractingBlock as e:
-                self._raise_self_response_error(
-                    str(e),
-                    missing_end=isinstance(e, IncompleteBlockFailedExtractingBlock))
+        try:
+            response = extract_content_of_triple_quote_block(response, 'latex', 'latex')
+        except FailedExtractingBlock as e:
+            self._raise_self_response_error(
+                str(e),
+                missing_end=isinstance(e, IncompleteBlockFailedExtractingBlock))
         try:
             return extract_latex_section_from_response(response, section_name)
         except FailedToExtractLatexContent as e:
