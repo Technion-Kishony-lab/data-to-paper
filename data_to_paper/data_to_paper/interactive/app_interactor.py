@@ -5,8 +5,10 @@ from typing import Optional, Dict, Union, Iterable
 
 from data_to_paper.utils import format_text_with_code_blocks
 from data_to_paper.utils.replacer import format_value, StrOrReplacer
-from data_to_paper.conversation.stage import Stage
 from data_to_paper.utils.highlighted_text import demote_html_headers
+from data_to_paper.utils.mutable import Mutable
+
+from data_to_paper.conversation.stage import Stage
 
 from data_to_paper.servers.llm_call import get_human_response
 
@@ -36,7 +38,7 @@ class AppInteractor:
         self.app.request_panel_continue(panel_name)
 
     def _app_send_prompt(self, panel_name: PanelNames, prompt: StrOrReplacer = '', provided_as_html: bool = False,
-                         from_md: bool = False, demote_headers_by: int = 0, sleep_for: Optional[float] = None,
+                         from_md: bool = False, demote_headers_by: int = 0, sleep_for: Optional[float] = 0,
                          scroll_to_bottom: bool = False):
         if self.app is None:
             return
@@ -45,10 +47,12 @@ class AppInteractor:
             s = format_text_with_code_blocks(s, is_html=True, width=None, from_md=from_md)
         s = demote_html_headers(s, demote_headers_by)
         self.app.show_text(panel_name, s, is_html=True, scroll_to_bottom=scroll_to_bottom)
-        if panel_name == PanelNames.FEEDBACK and prompt:
+        if isinstance(sleep_for, Mutable):
+            sleep_for = sleep_for.val
+        if sleep_for is None:
             self._app_request_panel_continue(panel_name)
-        # if sleep_for is not None:
-        #     time.sleep(sleep_for)
+        else:
+            time.sleep(sleep_for)
 
     def _app_request_continue(self):
         if self.app is None:

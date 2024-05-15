@@ -9,6 +9,7 @@ from data_to_paper.base_steps.converser import Converser
 from data_to_paper.base_steps.exceptions import FailedCreatingProductException
 from data_to_paper.conversation.message_designation import RangeMessageDesignation, SingleMessageDesignation
 from data_to_paper.conversation.stage import Stage
+from data_to_paper.env import PAUSE_AT_RULE_BASED_FEEDBACK
 from data_to_paper.exceptions import data_to_paperException
 from data_to_paper.interactive import PanelNames
 from data_to_paper.utils import format_text_with_code_blocks
@@ -405,7 +406,7 @@ class ResultConverser(Converser):
             else:
                 self._app_send_prompt(PanelNames.FEEDBACK,
                                       wrap_text_with_triple_quotes('Rule-based check passed.', 'ok'),
-                                      sleep_for=2)
+                                      sleep_for=PAUSE_AT_RULE_BASED_FEEDBACK)
 
             rewind = response_error.rewind if response_error else self.rewind_after_getting_a_valid_response
 
@@ -419,7 +420,8 @@ class ResultConverser(Converser):
             # add the rule-based error message:
             if response_error:
                 self.apply_append_user_message(
-                    Replacer(self, self.response_to_self_error, args=(response_error.error_message,)))
+                    Replacer(self, self.response_to_self_error, args=(response_error.error_message,)),
+                    sleep_for=PAUSE_AT_RULE_BASED_FEEDBACK)
 
             # rewind:
             if rewind == Rewind.RESTART:

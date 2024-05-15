@@ -363,7 +363,7 @@ class EditableTextPanel(Panel):
         self.buttons_tray.addWidget(self.continue_button)
 
         self.submit_button = QPushButton("Submit")
-        self.submit_button.setStyleSheet('QPushButton {background-color: #10E010; color:' + BACKGROUND_COLOR + ';}')
+        self.submit_button.setStyleSheet('QPushButton {background-color: #008000; color:' + BACKGROUND_COLOR + ';}')
         self.submit_button.clicked.connect(self.on_submit)
         self.buttons_tray.addWidget(self.submit_button)
 

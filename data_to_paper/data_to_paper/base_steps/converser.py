@@ -130,21 +130,30 @@ class Converser(Copier, AppInteractor):
                                       provided_as_html=True)
         return message
 
+    def _show_and_edit_content(self, content: StrOrReplacer,
+                               editing_title: str, editing_instructions: str,
+                               send_to_app: Optional[bool], app_panel: PanelNames, sleep_for: Optional[float]) -> str:
+        content = format_value(self, content)
+        if send_to_app and self.app:
+            if editing_title or editing_instructions:
+                content = self._app_receive_text(app_panel, content,
+                                                 title=editing_title, instructions=editing_instructions)
+            self._app_send_prompt(app_panel, content, from_md=True, demote_headers_by=1,
+                                  sleep_for=sleep_for)
+        return content
+
     def apply_append_user_message(self, content: StrOrReplacer, tag: Optional[StrOrReplacer] = None,
                                   comment: Optional[StrOrReplacer] = None,
                                   ignore: bool = False,
                                   previous_code: Optional[str] = None, is_background: bool = False,
                                   send_to_app: Optional[bool] = None, app_panel: PanelNames = PanelNames.FEEDBACK,
                                   editing_title: str = None, editing_instructions: str = None,
+                                  sleep_for: Optional[float] = 0,
                                   **kwargs):
-        content = format_value(self, content)
         if send_to_app is None:
             send_to_app = not is_background and not ignore
-        if send_to_app and self.app:
-            if editing_title or editing_instructions:
-                content = self._app_receive_text(app_panel, content,
-                                                 title=editing_title, instructions=editing_instructions)
-            self._app_send_prompt(app_panel, content, from_md=True, demote_headers_by=1)
+        content = \
+            self._show_and_edit_content(content, editing_title, editing_instructions, send_to_app, app_panel, sleep_for)
         return self.conversation_manager.append_user_message(
             content=content,
             tag=tag,

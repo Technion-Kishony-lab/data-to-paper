@@ -54,6 +54,11 @@ MAX_SENSIBLE_OUTPUT_SIZE_TOKENS = Mutable(2500)
 DELAY_CODE_RUN_CACHE_RETRIEVAL = Mutable(0.01)  # seconds
 DELAY_SERVER_CACHE_RETRIEVAL = Mutable(0.01)  # seconds
 
+# Pause time (in seconds). 0 for no pause; None to wait for Continue button.
+PAUSE_AT_RULE_BASED_FEEDBACK = Mutable(None)
+PAUSE_AT_LLM_FEEDBACK = Mutable(None)
+PAUSE_AT_PROMPT_FOR_LLM_FEEDBACK = Mutable(None)
+
 # Human interactions:
 # CHOSEN_APP:
 #   'console': console-based interaction

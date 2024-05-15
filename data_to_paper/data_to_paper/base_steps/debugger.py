@@ -7,7 +7,7 @@ from typing import Optional, List, Tuple, Union, Type, Dict, Any
 
 import numpy as np
 
-from data_to_paper.env import SUPPORTED_PACKAGES, PRINT_COMMENTS, MAX_EXEC_TIME
+from data_to_paper.env import SUPPORTED_PACKAGES, PRINT_COMMENTS, MAX_EXEC_TIME, PAUSE_AT_RULE_BASED_FEEDBACK
 from data_to_paper.utils import dedent_triple_quote_str, line_count
 from data_to_paper.utils.replacer import format_value
 from data_to_paper.utils.print_to_file import print_and_log
@@ -517,6 +517,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         self.apply_append_user_message(
             content=message,
             comment=self.iteration_str + ': ' + comment,
+            sleep_for=PAUSE_AT_RULE_BASED_FEEDBACK,
         )
 
         if action == "regen":
@@ -611,11 +612,12 @@ class DebuggerConverser(BackgroundProductsConverser):
                 self._app_send_prompt(
                     PanelNames.FEEDBACK,
                     wrap_text_with_triple_quotes('Code ran without issues and passed rule-based checks', 'ok'),
-                    sleep_for=2)
+                    sleep_for=PAUSE_AT_RULE_BASED_FEEDBACK)
                 return code_and_output
         self.apply_append_user_message(
             "It seems like we are not converging. Let's try again from the start.\n"
-            "Please provide a fresh new attempt of the code.", ignore=True)
+            "Please provide a fresh new attempt of the code.", ignore=True,
+            sleep_for=PAUSE_AT_RULE_BASED_FEEDBACK)
         self._rewind_conversation_to_first_response()
 
         return None

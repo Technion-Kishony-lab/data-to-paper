@@ -2,7 +2,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, Tuple, Dict, Type, Any, Iterable, NamedTuple, Collection
 
-from data_to_paper.env import SUPPORTED_PACKAGES, HUMAN_EDIT_CODE_REVIEW
+from data_to_paper.env import SUPPORTED_PACKAGES, HUMAN_EDIT_CODE_REVIEW, PAUSE_AT_LLM_FEEDBACK, \
+    PAUSE_AT_PROMPT_FOR_LLM_FEEDBACK
 from data_to_paper.interactive import PanelNames
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.run_gpt_code.run_issues import CodeProblem
@@ -341,8 +342,9 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                 if code_review_prompt.name:
                     review_name = Replacer(self, code_review_prompt.name, kwargs=dict(filename=filename))
                     header += f' of {review_name}'
+                self._app_send_prompt(PanelNames.FEEDBACK, formatted_code_review_prompt,
+                                      sleep_for=PAUSE_AT_PROMPT_FOR_LLM_FEEDBACK, from_md=True)
                 with self._app_temporarily_set_panel_status(PanelNames.FEEDBACK, f"Waiting for LLM {header}"):
-                    self._app_send_prompt(PanelNames.FEEDBACK, formatted_code_review_prompt, from_md=True)
                     issues_to_is_ok_and_feedback = RequestIssuesToSolutions.from_(
                         self,
                         model_engine=self.model_engine,
@@ -353,7 +355,8 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                 termination_phrase = f'{header}: no issues found.'
                 llm_msg, app_msg = \
                     self._convert_issues_to_is_ok_and_feedback_to_strs(issues_to_is_ok_and_feedback, termination_phrase)
-                self._app_send_prompt(PanelNames.FEEDBACK, app_msg, sleep_for=3, from_md=True)
+                self._app_send_prompt(PanelNames.FEEDBACK, app_msg,
+                                      sleep_for=PAUSE_AT_LLM_FEEDBACK, from_md=True)
                 if self.app and (HUMAN_EDIT_CODE_REVIEW or (HUMAN_EDIT_CODE_REVIEW is None and is_last_review)):
                     llm_msg = self._app_receive_text(
                         PanelNames.FEEDBACK, '',

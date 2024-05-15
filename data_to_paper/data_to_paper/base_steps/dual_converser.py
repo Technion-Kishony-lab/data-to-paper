@@ -8,7 +8,7 @@ from data_to_paper.utils.replacer import StrOrReplacer, format_value
 from data_to_paper.utils.print_to_file import print_and_log_magenta
 from data_to_paper.utils.text_counting import is_bulleted_list
 from data_to_paper.interactive import PanelNames
-from data_to_paper.env import TEXT_WIDTH, CHOSEN_APP
+from data_to_paper.env import TEXT_WIDTH, CHOSEN_APP, PAUSE_AT_LLM_FEEDBACK
 from data_to_paper.run_gpt_code.code_utils import extract_content_of_triple_quote_block, FailedExtractingBlock, \
     IncompleteBlockFailedExtractingBlock
 
@@ -91,7 +91,15 @@ class DualConverserGPT(Converser):
                                            comment: Optional[StrOrReplacer] = None,
                                            ignore: bool = False,
                                            previous_code: Optional[str] = None, is_background: bool = False,
+                                           send_to_app: Optional[bool] = None,
+                                           app_panel: PanelNames = PanelNames.FEEDBACK,
+                                           editing_title: str = None, editing_instructions: str = None,
+                                           sleep_for: Optional[float] = 0,
                                            **kwargs) -> Message:
+        if send_to_app is None:
+            send_to_app = not is_background and not ignore
+        content = \
+            self._show_and_edit_content(content, editing_title, editing_instructions, send_to_app, app_panel, sleep_for)
         return self.other_conversation_manager.append_user_message(
             content=format_value(self, content),
             tag=tag,
@@ -229,7 +237,7 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
         """
         Append response from other as user message to self conversation, and get response from assistant.
         """
-        self.apply_append_user_message(altered_other_response)
+        self.apply_append_user_message(altered_other_response, sleep_for=PAUSE_AT_LLM_FEEDBACK)
         return self.apply_get_and_append_assistant_message()
 
     def _alter_self_response(self, response: str) -> str:
@@ -319,7 +327,8 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
         altered_other_response = self._alter_other_response(other_response)
         if self._is_reviewer_response_terminating(other_response):
             if self.append_termination_response_to_self:
-                self.apply_append_user_message(other_response, context=other_message.context if other_message else None)
+                self.apply_append_user_message(other_response, context=other_message.context if other_message else None,
+                                               sleep_for=PAUSE_AT_LLM_FEEDBACK.val and not self.human_review)
                 if self.fake_performer_message_to_add_after_reviewer_approval:
                     self.apply_append_surrogate_message(self.fake_performer_message_to_add_after_reviewer_approval,
                                                         ignore=True)
