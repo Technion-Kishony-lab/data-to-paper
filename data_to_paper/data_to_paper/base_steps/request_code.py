@@ -22,6 +22,8 @@ from .result_converser import Rewind
 
 
 class CodeReviewPrompt(NamedTuple):
+    name: Optional[str]
+
     wildcard_filename: Optional[str]
     # if None, the code review is done on the code itself without looking at the content of the created files
     # if not None, the code review is done on the content of the file(s) that match the wildcard_filename
@@ -33,26 +35,37 @@ class CodeReviewPrompt(NamedTuple):
     # use {filename} to include the name of the created file
     # use {file_contents_str} to include the content of the created file(s)
 
-    human_edit: Optional[bool] = None
-    # if True, the human can edit the response
-    # if False, the response is AI only
-    # if None, the human can edit the response only if this is the final review
-
-    name: Optional[str] = None
-
 
 @dataclass
 class RequestIssuesToSolutions(PythonDictReviewBackgroundProductsConverser):
     LLM_PARAMETERS = {'temperature': 0.0}
-    value_type: type = Dict[str, str]
+    value_type: type = Dict[str, Tuple[str, str]]
     response_to_self_error: str = dedent_triple_quote_str("""
-        Your response should include a Python dictionary Dict[str, str], mapping the issues you found (keys), \t
-        to suggested solutions (values).
-        If you are sure that there are no issues, you should respond with an empty dictionary, `{}`.
+        {}
+        
+        Your response should include a Python dictionary Dict[str, Tuple[str, str]], \t
+        mapping the checks you have done (keys) to a Tuple[str, str], either indicating a concern \t
+        ("CONCERN", "<your concern>") or your assertion that it is ok ("OK", "<your assertion>").
+        
+        Note that the different checks (dict keys) I have listed above are just examples.
+        You should add/remove/modify checks to fit with the specifics of the code we are reviewing.
         """)
     is_new_conversation: Optional[bool] = False
     rewind_after_getting_a_valid_response: Rewind = Rewind.DELETE_ALL
     default_rewind_for_result_error: Rewind = Rewind.AS_FRESH_CORRECTION
+
+    def _check_response_value(self, response_value: Any) -> Any:
+        # The type and structure of the response is checked in the parent class.
+        response_value = super()._check_response_value(response_value)
+        for key, (is_ok, feedback) in response_value.items():
+            is_ok = is_ok.upper()
+            if is_ok not in ('CONCERN', 'OK'):
+                self._raise_self_response_error(dedent_triple_quote_str(f"""
+                    Invalid value. The first element of the tuple should be \t
+                    either "CONCERN" or "OK", but got "{is_ok}".
+                    """))
+            response_value[key] = (is_ok, feedback)
+        return response_value
 
 
 @dataclass
@@ -98,17 +111,29 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         """)  # set to None to not present code
 
     code_review_formatting_instructions: str = dedent_triple_quote_str("""
-        Return your choice as a Python Dict[str, str], mapping possible issues to suggested changes in the code.
+        Return your assessment as a Python Dict[str, Tuple[str, str]], \t
+        where the keys are descriptions of checks you have performed and the values are \t
+        ("OK", "<your assertion>") when you concluded that the point is addressed correctly in the code, or \t
+        ("CONCERN", "<your concern>") when you found an issue that needs to be fixed.
+        """)
 
-        If you have no suggestions for improvement, return an empty dict:
-        ```python
-        {}
-        ```
+    code_review_notes: str = dedent_triple_quote_str("""
+        Notes:
+        (1) Generalize. 
+        The points above are just examples, provided as a basis from which you can generalize to checks \t
+        relevant to our specific code.
+        (2) Skip irrelevant points. 
+        If any of the points above are not applicable, you can skip them.
+        (3) Add more checks.
+        You can also add as many other relevant checks, both positive ("OK", "...") and negative ("CONCERN", "...").
+        (4) Be specific.
+        Be specific in the description of the checks (keys) and assessment (values), so that it is clear \t
+        what you are referring to in the code.
         """)
 
     # set to () to skip option for revision
     code_review_prompts: Collection[CodeReviewPrompt] = (
-        CodeReviewPrompt('*', False, dedent_triple_quote_str("""
+        CodeReviewPrompt(None, '*', False, dedent_triple_quote_str("""
             I ran your code. 
 
             Here is the content of the output file(s) that the code created:
@@ -119,8 +144,27 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
             that may indicate that code improvements are needed).
 
             {code_review_formatting_instructions}
-            """)
-                         ),
+            
+            For example:
+            ```python
+            {
+                "NaN values in the output file":
+                    ("CONCERN", "The output contains NaN values in ..."),
+                "Output file should be self-contained":
+                    ("CONCERN", "A header is missing for ..."),
+                "Output file should contain all the required analysis": 
+                    ("OK", "Nothing is missing"),
+                "Sensible results": 
+                    ("CONCERN", "The average of ... does not make sense"),
+                "<Any other issues you find>":
+                    ("CONCERN", "<Issue description>"),
+                "<Any other point you checked and asserted is OK>":
+                    ("OK", "<Assertion description>"),
+            }
+            ```
+            
+            {code_review_notes}
+            """)),
     )
 
     file_review_prompts: Iterable[Tuple[str, str]] = ()  # (wildcard_filename, prompt)
@@ -232,28 +276,54 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
             return code_and_output, debugger
         return None, None
 
+    def _get_content_files_to_contents(self, code_and_output: CodeAndOutput, wildcard_filename: str,
+                                       individually: bool) -> Dict[str, str]:
+        if wildcard_filename is None:
+            content_files_to_contents = {None: None}
+        else:
+            content_files_to_contents = \
+                code_and_output.created_files.get_created_content_files_to_pretty_contents(
+                    match_filename=wildcard_filename,
+                    content_view=ContentViewPurpose.CODE_REVIEW)
+            if not individually:
+                content_files_to_contents = {wildcard_filename: '\n'.join(content_files_to_contents.values())}
+        return content_files_to_contents
+
+    @staticmethod
+    def _convert_issues_to_is_ok_and_feedback_to_strs(issues: Dict[str, Tuple[str, str]],
+                                                      termination_phrase: str) -> Tuple[str, str]:
+        """
+        Convert the issues to:
+        - llm_msg: a string with the issues that are problems to send to the LLM
+        - app_msg: a string with all the issues to present in the app
+        """
+        ok_issues = {issue: feedback for issue, (is_ok, feedback) in issues.items() if is_ok == 'OK'}
+        concern_issues = {issue: feedback for issue, (is_ok, feedback) in issues.items() if is_ok != 'OK'}
+
+        llm_msg = '\n\n'.join(f'# {issue}\n{solution}' for issue, solution in concern_issues.items())
+        if llm_msg:
+            llm_msg += '\n\n# Other\nPlease fix any other issues that you may find.'
+        else:
+            llm_msg = termination_phrase
+
+        app_msg = '## LLM Code Review\n'
+        if issues:
+            app_msg += '\n'.join(f'### {issue} ({is_ok})\n{feedback}' for issue, (is_ok, feedback) in issues.items())
+        else:
+            app_msg += f'### {termination_phrase}'
+        return llm_msg, app_msg
+
     def _are_further_code_revisions_needed(self, code_and_output: CodeAndOutput, debugger: DebuggerConverser) -> bool:
         """
         Return True/False indicating if the LLM wants to revise the code.
         If true, set the conversation to the state where the user ask the LLM to revise the code.
         """
-        specific_attrs_for_code_and_output = self._get_specific_attrs_for_code_and_output(code_and_output)
-        prompt_to_append_at_end_of_response = (
-            Replacer(debugger, debugger.prompt_to_append_at_end_of_response).format_text())
+        prompt_to_append_at_end_of_response = \
+            Replacer(debugger, debugger.prompt_to_append_at_end_of_response).format_text()
         for index, code_review_prompt in enumerate(self.code_review_prompts):
-            if code_review_prompt.wildcard_filename is None:
-                content_files_to_contents = {None: None}
-            else:
-                content_files_to_contents = \
-                    code_and_output.created_files.get_created_content_files_to_pretty_contents(
-                        match_filename=code_review_prompt.wildcard_filename,
-                        content_view=ContentViewPurpose.CODE_REVIEW)
-                # TODO: check if less confusing for the LLM if we use pvalue_on_str=OnStr.EPSILON
-                if len(content_files_to_contents) == 0:
-                    continue
-                if not code_review_prompt.individually:
-                    content_files_to_contents = {code_review_prompt.wildcard_filename:
-                                                 '\n'.join(content_files_to_contents.values())}
+            is_last_review = index == len(self.code_review_prompts) - 1
+            content_files_to_contents = self._get_content_files_to_contents(
+                code_and_output, code_review_prompt.wildcard_filename, code_review_prompt.individually)
             for filename, file_contents_str in content_files_to_contents.items():
                 formatted_code_review_prompt = \
                     Replacer(
@@ -262,17 +332,18 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                             file_contents_str=file_contents_str,
                             filename=filename,
                             **{k: Replacer(self, v).format_text()
-                               for k, v in specific_attrs_for_code_and_output.items()},
+                               for k, v in self._get_specific_attrs_for_code_and_output(code_and_output).items()},
                         ))
                 if not formatted_code_review_prompt:
                     continue
                 self._app_send_prompt(PanelNames.FEEDBACK)
                 header = 'Review'
                 if code_review_prompt.name:
-                    review_name = Replacer(self, code_review_prompt.name, kwargs=dict(filename=filename)).format_text()
+                    review_name = Replacer(self, code_review_prompt.name, kwargs=dict(filename=filename))
                     header += f' of {review_name}'
                 with self._app_temporarily_set_panel_status(PanelNames.FEEDBACK, f"Waiting for LLM {header}"):
-                    issues_to_solutions = RequestIssuesToSolutions.from_(
+                    self._app_send_prompt(PanelNames.FEEDBACK, formatted_code_review_prompt, from_md=True)
+                    issues_to_is_ok_and_feedback = RequestIssuesToSolutions.from_(
                         self,
                         model_engine=self.model_engine,
                         background_product_fields_to_hide=self.background_product_fields_to_hide_during_code_revision,
@@ -280,48 +351,27 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                         app=None,
                     ).run_and_get_valid_result(with_review=False)
                 termination_phrase = f'{header}: no issues found.'
-                if issues_to_solutions:
-                    ai_issues = '\n\n'.join(f'- {issue}:\n{solution}'
-                                            for issue, solution in issues_to_solutions.items())
-                    ai_issues += '\n\n- And please fix any other issues that you may find.'
-                else:
-                    ai_issues = termination_phrase
-                allow_human_edit = (HUMAN_EDIT_CODE_REVIEW and self.app and
-                                    (code_review_prompt.human_edit or
-                                     (code_review_prompt.human_edit is None
-                                      and index == len(self.code_review_prompts) - 1)))
-                llm_review_message_for_app = None
-                if allow_human_edit:
-                    if issues_to_solutions:
-                        llm_review_message_for_app = \
-                            f'I have found some issues for the {header}.\nClick on the "AI" button to see them.'
-                    else:
-                        llm_review_message_for_app = wrap_text_with_triple_quotes(termination_phrase, 'ok')
-                else:
-                    if not issues_to_solutions:
-                        llm_review_message_for_app = wrap_text_with_triple_quotes(termination_phrase, 'ok')
-                if llm_review_message_for_app:
-                    self._app_send_prompt(PanelNames.FEEDBACK, llm_review_message_for_app, sleep_for=3)
-                if allow_human_edit:
-                    # Allow human edit of the response if human_edit is True,
-                    # or if it is None and this is the final review
-                    human_response = self._app_receive_text(
+                llm_msg, app_msg = \
+                    self._convert_issues_to_is_ok_and_feedback_to_strs(issues_to_is_ok_and_feedback, termination_phrase)
+                self._app_send_prompt(PanelNames.FEEDBACK, app_msg, sleep_for=3, from_md=True)
+                if self.app and (HUMAN_EDIT_CODE_REVIEW or (HUMAN_EDIT_CODE_REVIEW is None and is_last_review)):
+                    llm_msg = self._app_receive_text(
                         PanelNames.FEEDBACK, '',
                         title='Code Review Requested',
-                        instructions='Your feedback on code and output. Blank if no issues.',
-                        optional_suggestions={'AI': ai_issues,
-                                              'Default': ''})
-                else:
-                    human_response = None
-                issues = ai_issues if human_response is None else human_response
-                if issues.strip() and issues != termination_phrase:
+                        in_field_instructions=dedent_triple_quote_str("""
+                            Feedback on code and output.
+                            Check carefully the code and the output file(s) and provide feedback on any issues.  
+                            Leave blank if no issues.
+                            """),
+                        optional_suggestions={'AI': llm_msg, 'Default': ''})
+                if llm_msg.strip() and llm_msg != termination_phrase:
                     response = dedent_triple_quote_str("""
                         The code has some issues that need to be fixed:
 
                         {issues_to_solutions}
 
                         {prompt_to_append_at_end_of_response}
-                        """).format(issues_to_solutions=issues,
+                        """).format(issues_to_solutions=llm_msg,
                                     prompt_to_append_at_end_of_response=prompt_to_append_at_end_of_response)
                     self.apply_append_user_message(response)
                     return True
