@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from typing import Optional, Dict, Union, Iterable
 
 from data_to_paper.utils import format_text_with_code_blocks
-from data_to_paper.utils.replacer import format_value
+from data_to_paper.utils.replacer import format_value, StrOrReplacer
 from data_to_paper.conversation.stage import Stage
 from data_to_paper.utils.highlighted_text import demote_html_headers
 
@@ -30,7 +30,7 @@ class AppInteractor:
             self._app_set_panel_header(panel_name, panel_name.value)
             self._app_set_panel_status(panel_name, '')
 
-    def _app_send_prompt(self, panel_name: PanelNames, prompt: str = '', provided_as_html: bool = False,
+    def _app_send_prompt(self, panel_name: PanelNames, prompt: StrOrReplacer = '', provided_as_html: bool = False,
                          from_md: bool = False, demote_headers_by: int = 0, sleep_for: Optional[float] = None):
         if self.app is None:
             return
