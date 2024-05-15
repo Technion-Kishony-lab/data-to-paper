@@ -49,7 +49,7 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
             self._raise_self_response_error(
                 f'{e}\n'
                 f'Your response should be formatted as a single Python {self.parent_type.__name__}, '
-                f'within a triple backtick code block.',
+                f'within a triple-backtick code block.',
                 missing_end=isinstance(e, IncompleteBlockFailedExtractingBlock))
 
     def _check_extracted_text_and_update_valid_result(self, extracted_text: str):

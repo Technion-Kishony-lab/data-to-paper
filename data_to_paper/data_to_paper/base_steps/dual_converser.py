@@ -168,7 +168,7 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
 
     # TODO: Responding to ambiguous reviewer leads to the reviewer always apologizing and the conversation is not
     #  sensible anymore.
-    #  This can only work if the reviewer is forced to return structured response, like triple quotes, or python
+    #  This can only work if the reviewer is forced to return structured response, like triple-backtick block, or python
     #  list of strings, containing the feedback. or empty of for no feedback.
 
     # dedent_triple_quote_str("""
@@ -405,10 +405,10 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
     """
     A base class for agents running a dialog between two LLM agents, where one is a "reviwee" who needs to perform
     a task towards a certain "goal", and the other is a "reviewer" who provides constructive feedback.
-    The performer is expected to return the goal as a triple-quoted string, so that it can be extracted.
+    The performer is expected to return the goal as a triple-backtick block, so that it can be extracted.
     """
 
-    quote_request: str = '\n\nPlease return your answer enclosed within triple-backticks ' \
+    quote_request: str = '\n\nPlease return your answer enclosed within a triple-backtick block ' \
                          '(but send text, not code).'
     flanked_header: str = '\n\nMake sure you are flanking the entire response and not just the headers.'
     mission_prompt: str = ReviewDialogDualConverserGPT.mission_prompt + '\n{quote_request}'

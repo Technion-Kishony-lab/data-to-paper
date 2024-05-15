@@ -35,7 +35,7 @@ class MultiBlocksFailedExtractingBlock(FailedExtractingBlock):
 @dataclass
 class IncompleteBlockFailedExtractingBlock(FailedExtractingBlock):
     def __str__(self):
-        return f"You sent an incomplete triple-quoted block. Please try again."
+        return f"You sent an incomplete triple-backtick block. Please try again."
 
 
 @dataclass
@@ -49,7 +49,7 @@ class WrongLabelFailedExtractingBlock(FailedExtractingBlock):
 
 def add_label_to_first_triple_quotes_if_missing(content: str, requested_label: str) -> str:
     """
-    Add "python" to triple quotes if missing.
+    Add "python" to triple-backtick if missing.
     """
     formatted_sections = FormattedSections.from_text(content)
     first_block = formatted_sections.get_first_block()

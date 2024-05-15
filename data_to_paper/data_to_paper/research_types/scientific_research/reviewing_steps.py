@@ -74,7 +74,7 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
         """)
     quote_request: str = dedent_triple_quote_str("""
         INSTRUCTIONS FOR FORMATTING YOUR RESPONSE:
-        Please return the goal and hypothesis enclosed within triple-backticks, like this:
+        Please return the goal and hypothesis enclosed within a triple-backtick block, like this:
         ```
         # Research Goal: 
         <your research goal here>

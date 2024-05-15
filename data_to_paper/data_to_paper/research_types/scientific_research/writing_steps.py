@@ -86,7 +86,7 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
         """)
 
     request_triple_quote_block: Optional[str] = dedent_triple_quote_str("""
-        The {goal_noun} should be enclosed within triple-backtick "latex" code block, like this:
+        The {goal_noun} should be enclosed within triple-backtick "latex" block, like this:
 
         ```latex
         \\section{<section name>}
@@ -236,7 +236,7 @@ class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProd
     conversation_name: str = 'Writing: Title and Abstract (first draft)'
 
     request_triple_quote_block: Optional[str] = dedent_triple_quote_str("""
-        The {goal_noun} should be enclosed within triple-backtick "latex" code block, like this:
+        The {goal_noun} should be enclosed within triple-backtick "latex" block, like this:
 
         ```latex
         \\title{<your latex-formatted paper title here>}
@@ -374,7 +374,7 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         return s
 
     section_specific_instructions: str = dedent_triple_quote_str("""\n
-        The Methods section should be enclosed within triple-backtick "latex" code block \
+        The Methods section should be enclosed within triple-backtick "latex" block \
         and have 3 subsections, as follows: 
 
         ```latex
@@ -403,7 +403,7 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         - URLs, links or references.""")
 
     request_triple_quote_block: str = dedent_triple_quote_str("""
-        Remember to enclose the Methods section within triple-backtick "latex" code block.
+        Remember to enclose the Methods section within triple-backtick "latex" block.
         """)
 
     latex_instructions: str = ''

@@ -19,7 +19,7 @@ class FormattedSection:
 
 class FormattedSections(List[FormattedSection]):
     """
-    Represents a text with multiple triple-quoted sections.
+    Represents a text with multiple triple-backtick sections.
 
     We split the text into sections.
     For example:
