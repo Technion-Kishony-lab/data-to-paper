@@ -3,23 +3,14 @@ from dataclasses import dataclass
 
 from data_to_paper.base_steps.base_products_conversers import ReviewBackgroundProductsConverser
 
-from typing import Any, Dict, Optional, get_origin, Collection, Iterable
+from typing import Any, Dict, Optional, get_origin, Collection, Iterable, Tuple
 
 from data_to_paper.base_steps.result_converser import Rewind
 from data_to_paper.run_gpt_code.code_utils import extract_content_of_triple_quote_block, FailedExtractingBlock, \
-    NoBlocksFailedExtractingBlock, IncompleteBlockFailedExtractingBlock
+    IncompleteBlockFailedExtractingBlock
 from data_to_paper.utils.nice_list import NiceDict
-from data_to_paper.utils.tag_pairs import TagPairs
 from data_to_paper.utils.check_type import validate_value_type, WrongTypeException
-from data_to_paper.utils.text_extractors import extract_text_between_most_flanking_tags
 from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
-
-TYPES_TO_TAG_PAIRS: Dict[type, TagPairs] = {
-    dict: TagPairs('{', '}'),
-    list: TagPairs('[', ']'),
-    tuple: TagPairs('(', ')'),
-    set: TagPairs('{', '}'),
-}
 
 
 @dataclass
@@ -54,23 +45,12 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
 
         try:
             return extract_content_of_triple_quote_block(response, self.goal_noun, 'python')
-        except NoBlocksFailedExtractingBlock:
-            pass
         except FailedExtractingBlock as e:
             self._raise_self_response_error(
                 f'{e}\n'
                 f'Your response should be formatted as a single Python {self.parent_type.__name__}, '
                 f'within a triple backtick code block.',
                 missing_end=isinstance(e, IncompleteBlockFailedExtractingBlock))
-
-        tags = TYPES_TO_TAG_PAIRS.get(self.parent_type)
-        try:
-            return extract_text_between_most_flanking_tags(response, *tags, keep_tags=True)
-        except ValueError:
-            self._raise_self_response_error(
-                f'Your response should be formatted as a single Python {self.parent_type.__name__}, '
-                f'flanked by `{tags[0]}` and `{tags[1]}`.',
-                missing_end=tags[0] in response and tags[1] not in response)
 
     def _check_extracted_text_and_update_valid_result(self, extracted_text: str):
         response_value = self._evaluate_python_value_from_str(extracted_text)
