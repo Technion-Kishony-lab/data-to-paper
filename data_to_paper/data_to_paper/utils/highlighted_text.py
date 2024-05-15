@@ -116,11 +116,11 @@ def md_to_html(md):
 
 
 def text_to_red_html(text: str) -> str:
-    return f'<span style="color: red;">{text}</span>'
+    return '<span style="color: red;">' + text_to_html(text) + '</span>'
 
 
 def text_to_green_html(text: str) -> str:
-    return (f'<span style="color: green; font-size: 16px;">{text}</span>')
+    return '<span style="color: green;">' + text_to_html(text) + '</span>'
 
 
 def text_to_html(text: str, textblock: bool = False, from_md: bool = False) -> str:
