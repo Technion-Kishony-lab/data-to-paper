@@ -13,7 +13,8 @@ SUPPORTED_PACKAGES = ('numpy', 'pandas', 'scipy', 'sklearn')
 
 OPENAI_API_BASE = "https://api.openai.com/v1"
 DEEPINFRA_API_BASE = "https://api.deepinfra.com/v1/openai"
-CUSTOM_API_BASE = "<custom_api_base>"
+OLLAMA_API_BASE = "http://localhost:11434/v1"
+CUSTOM_API_BASE = "<CUSTOM_API_BASE>"
 
 # OpenAI API keys. model=None is the default key.
 LLM_MODELS_TO_API_KEYS_AND_BASE_URL = dict[Optional[ModelEngine], str]({
@@ -33,6 +34,8 @@ LLM_MODELS_TO_API_KEYS_AND_BASE_URL = dict[Optional[ModelEngine], str]({
         (os.environ.get('DEEPINFRA_API_KEY'), DEEPINFRA_API_BASE),
     ModelEngine.CODELLAMA:
         (os.environ.get('DEEPINFRA_API_KEY'), DEEPINFRA_API_BASE),
+    ModelEngine.LLAMA3:
+        (os.environ.get('OLLAMA_API_KEY', 'ollama'), OLLAMA_API_BASE),
     ModelEngine.CUSTOM:
         (os.environ.get('CUSTOM_API_KEY'), CUSTOM_API_BASE),
 })

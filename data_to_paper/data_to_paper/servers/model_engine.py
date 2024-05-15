@@ -22,6 +22,7 @@ class ModelEngine(IndexOrderedEnum):
     LLAMA_2_7b = "meta-llama/Llama-2-7b-chat-hf"
     LLAMA_2_70b = "meta-llama/Llama-2-70b-chat-hf"
     CODELLAMA = "codellama/CodeLlama-34b-Instruct-hf"
+    LLAMA3 = "llama3"
     CUSTOM = "<custom_model_name>"
 
     def __str__(self):

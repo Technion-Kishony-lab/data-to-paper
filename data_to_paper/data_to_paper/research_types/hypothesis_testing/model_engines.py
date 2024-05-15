@@ -1,9 +1,9 @@
 from data_to_paper.servers.model_engine import ModelEngine
 from collections import defaultdict
 
-TYPE_OF_MODELS = 'closed' # change this to 'custom' for your own custom models
+TYPE_OF_MODELS = 'ollama' # 'openai', 'deepinfra', 'ollama', 'custom'
 
-if TYPE_OF_MODELS == 'closed':
+if TYPE_OF_MODELS == 'openai':
     ModelEngine.DEFAULT = ModelEngine.GPT4o_MINI
     CLASSES_TO_MODEL_ENGINES = {
         "DataExplorationCodeProductsGPT": ModelEngine.GPT4o,
@@ -16,7 +16,7 @@ if TYPE_OF_MODELS == 'closed':
         "IntroductionSectionWriterReviewGPT": ModelEngine.GPT4o,
         "DiscussionSectionWriterReviewGPT": ModelEngine.GPT4o,
     }
-elif TYPE_OF_MODELS == 'open':
+elif TYPE_OF_MODELS == 'deepinfra':
     ModelEngine.DEFAULT = ModelEngine.LLAMA_2_70b
     CLASSES_TO_MODEL_ENGINES = {
         "DataExplorationCodeProductsGPT": ModelEngine.GPT4,
@@ -26,6 +26,9 @@ elif TYPE_OF_MODELS == 'open':
         "IntroductionSectionWriterReviewGPT": ModelEngine.LLAMA_2_70b,
         "DiscussionSectionWriterReviewGPT": ModelEngine.LLAMA_2_70b,
     }
+elif TYPE_OF_MODELS == 'ollama':
+    ModelEngine.DEFAULT = ModelEngine.LLAMA3
+    CLASSES_TO_MODEL_ENGINES = defaultdict(lambda: ModelEngine.LLAMA3)
 elif TYPE_OF_MODELS == 'custom':
     ModelEngine.DEFAULT = ModelEngine.CUSTOM
     CLASSES_TO_MODEL_ENGINES = defaultdict(lambda: ModelEngine.CUSTOM)
