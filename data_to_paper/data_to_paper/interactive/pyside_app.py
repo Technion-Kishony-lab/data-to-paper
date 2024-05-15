@@ -374,7 +374,6 @@ class EditableTextPanel(Panel):
             self.suggestion_buttons.append(button)
         self._set_buttons_visibility(False)
 
-        self.loop = None
         if MAKE_IT_UGLY_IN_MAC_BUT_MORE_CONSISTENT_ACROSS_OS:
             self.setStyleSheet("color: white;")
 
@@ -437,13 +436,13 @@ class EditableTextPanel(Panel):
             self.suggestion_texts = suggestion_texts
         self.set_instructions(instruction or '')
         self.set_header_right(title or '')
-        self.loop = QEventLoop()
-        self.loop.exec()
+
+    def scroll_to_bottom(self):
+        self.text_edit.moveCursor(QTextCursor.End)
+        self.text_edit.ensureCursorVisible()
 
     def wait_for_continue(self):
         self.continue_button.setVisible(True)
-        self.loop = QEventLoop()
-        self.loop.exec()
 
     def on_submit(self):
         self.text_edit.setReadOnly(True)
@@ -451,13 +450,9 @@ class EditableTextPanel(Panel):
         self._set_buttons_visibility(False)
         self.set_header_right('')
         self.set_instructions('')
-        if self.loop is not None:
-            self.loop.exit()
 
     def on_continue(self):
         self.continue_button.setVisible(False)
-        if self.loop is not None:
-            self.loop.exit()
 
     def get_text(self):
         return self.text_edit.toPlainText()
