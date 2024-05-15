@@ -64,7 +64,8 @@ class BaseApp:
                 return ButtonClickedHumanAction(suggestion_name)
         return TextSentHumanAction(text)
 
-    def show_text(self, panel_name: PanelNames, text: str, is_html: bool = False):
+    def show_text(self, panel_name: PanelNames, text: str, is_html: bool = False,
+                  scroll_to_bottom: bool = False):
         pass
 
     def set_focus_on_panel(self, panel_name: PanelNames):
@@ -152,6 +153,7 @@ class ConsoleApp(BaseApp):
         print_and_log(text or "<empty>", color=color)
         return text
 
-    def show_text(self, panel_name: PanelNames, text: str, is_html: bool = False):
+    def show_text(self, panel_name: PanelNames, text: str, is_html: bool = False,
+                  scroll_to_bottom: bool = False):
         # print_and_log(text)
         pass  # no need to print, user already sees all console messages.

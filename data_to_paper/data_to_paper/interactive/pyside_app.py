@@ -1,7 +1,7 @@
 from functools import partial
 from typing import Optional, List, Collection, Dict, Callable, Any
 
-from PySide6.QtGui import QTextOption
+from PySide6.QtGui import QTextOption, QTextCursor
 from PySide6.QtWidgets import QMainWindow, QVBoxLayout, QLabel, QPushButton, QWidget, \
     QHBoxLayout, QSplitter, QTextEdit, QTabWidget, QDialog, QSizePolicy
 from PySide6.QtCore import Qt, QEventLoop, QMutex, QWaitCondition, QThread, Signal, Slot
@@ -147,7 +147,7 @@ class Worker(QThread):
     # Signal now carries a string payload for initial text
     request_panel_continue_signal = Signal(PanelNames)
     request_text_signal = Signal(PanelNames, str, str, str, str, dict)
-    show_text_signal = Signal(PanelNames, str, bool)
+    show_text_signal = Signal(PanelNames, str, bool, bool)
     set_focus_on_panel_signal = Signal(PanelNames)
     advance_stage_signal = Signal(Stage)
     send_product_of_stage_signal = Signal(Stage, str)
@@ -198,8 +198,9 @@ class Worker(QThread):
         self.condition.wait(self.mutex)
         self.mutex.unlock()
 
-    def worker_show_text(self, panel_name: PanelNames, text: str, is_html: bool = False):
-        self.show_text_signal.emit(panel_name, text, is_html)
+    def worker_show_text(self, panel_name: PanelNames, text: str, is_html: bool = False,
+                         scroll_to_bottom: bool = False):
+        self.show_text_signal.emit(panel_name, text, is_html, scroll_to_bottom)
 
     def worker_set_focus_on_panel(self, panel_name: PanelNames):
         self.set_focus_on_panel_signal.emit(panel_name)
@@ -713,10 +714,13 @@ class PysideApp(QMainWindow, BaseApp):
         text = panel.get_text()
         self.send_text_signal.emit(panel_name, text)
 
-    @Slot(PanelNames, str)
-    def upon_show_text(self, panel_name: PanelNames, text: str, is_html: bool = False):
+    @Slot(PanelNames, str, bool, bool)
+    def upon_show_text(self, panel_name: PanelNames, text: str, is_html: bool = False,
+                       scroll_to_bottom: bool = False):
         panel = self.panels[panel_name]
         panel.set_text(text, is_html)
+        if scroll_to_bottom:
+            panel.scroll_to_bottom()
 
     @Slot(PanelNames)
     def upon_set_focus_on_panel(self, panel_name: PanelNames):
