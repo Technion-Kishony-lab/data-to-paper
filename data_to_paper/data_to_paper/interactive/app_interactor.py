@@ -30,6 +30,11 @@ class AppInteractor:
             self._app_set_panel_header(panel_name, panel_name.value)
             self._app_set_panel_status(panel_name, '')
 
+    def _app_request_panel_continue(self, panel_name: PanelNames):
+        if self.app is None:
+            return
+        self.app.request_panel_continue(panel_name)
+
     def _app_send_prompt(self, panel_name: PanelNames, prompt: StrOrReplacer = '', provided_as_html: bool = False,
                          from_md: bool = False, demote_headers_by: int = 0, sleep_for: Optional[float] = None):
         if self.app is None:
@@ -39,8 +44,10 @@ class AppInteractor:
             s = format_text_with_code_blocks(s, is_html=True, width=None, from_md=from_md)
         s = demote_html_headers(s, demote_headers_by)
         self.app.show_text(panel_name, s, is_html=True)
-        if sleep_for is not None:
-            time.sleep(sleep_for)
+        if panel_name == PanelNames.FEEDBACK and prompt:
+            self._app_request_panel_continue(panel_name)
+        # if sleep_for is not None:
+        #     time.sleep(sleep_for)
 
     def _app_request_continue(self):
         if self.app is None:

@@ -145,6 +145,7 @@ def _get_label_height(label: QLabel) -> int:
 
 class Worker(QThread):
     # Signal now carries a string payload for initial text
+    request_panel_continue_signal = Signal(PanelNames)
     request_text_signal = Signal(PanelNames, str, str, str, str, dict)
     show_text_signal = Signal(PanelNames, str, bool)
     set_focus_on_panel_signal = Signal(PanelNames)
@@ -171,6 +172,12 @@ class Worker(QThread):
 
     def worker_set_header(self, header: str):
         self.set_header_signal.emit(header)
+
+    def worker_request_panel_continue(self, panel_name: PanelNames):
+        self.mutex.lock()
+        self.request_panel_continue_signal.emit(panel_name)
+        self.condition.wait(self.mutex)
+        self.mutex.unlock()
 
     def worker_request_text(self, panel_name: PanelNames, initial_text: str = '',
                             title: Optional[str] = None,
@@ -213,6 +220,12 @@ class Worker(QThread):
 
     @Slot()
     def receive_continue_signal(self):
+        self.mutex.lock()
+        self.condition.wakeAll()
+        self.mutex.unlock()
+
+    @Slot(PanelNames)
+    def receive_panel_continue_signal(self, panel_name):
         self.mutex.lock()
         self.condition.wakeAll()
         self.mutex.unlock()
@@ -342,8 +355,14 @@ class EditableTextPanel(Panel):
         self.buttons_tray = QHBoxLayout()
         self.layout.addLayout(self.buttons_tray)
 
+        self.continue_button = QPushButton("Continue")
+        self.continue_button.setVisible(False)
+        self.continue_button.setStyleSheet('QPushButton {background-color: #E3E0DA; color:' + BACKGROUND_COLOR + ';}')
+        self.continue_button.clicked.connect(self.on_continue)
+        self.buttons_tray.addWidget(self.continue_button)
+
         self.submit_button = QPushButton("Submit")
-        self.submit_button.setStyleSheet('QPushButton {background-color: #E3E0DA; color:' + BACKGROUND_COLOR + ';}')
+        self.submit_button.setStyleSheet('QPushButton {background-color: #10E010; color:' + BACKGROUND_COLOR + ';}')
         self.submit_button.clicked.connect(self.on_submit)
         self.buttons_tray.addWidget(self.submit_button)
 
@@ -421,12 +440,22 @@ class EditableTextPanel(Panel):
         self.loop = QEventLoop()
         self.loop.exec()
 
+    def wait_for_continue(self):
+        self.continue_button.setVisible(True)
+        self.loop = QEventLoop()
+        self.loop.exec()
+
     def on_submit(self):
         self.text_edit.setReadOnly(True)
         self.text_edit.setPlaceholderText('')
         self._set_buttons_visibility(False)
         self.set_header_right('')
         self.set_instructions('')
+        if self.loop is not None:
+            self.loop.exit()
+
+    def on_continue(self):
+        self.continue_button.setVisible(False)
         if self.loop is not None:
             self.loop.exit()
 
@@ -474,6 +503,7 @@ def create_tabs(names_to_panels: Dict[str, Panel]):
 class PysideApp(QMainWindow, BaseApp):
     send_text_signal = Signal(str, PanelNames)
     send_continue_signal = Signal()
+    send_panel_continue_signal = Signal(PanelNames)
     a_application = None
 
     def __init__(self, mutex, condition, step_runner=None):
@@ -563,6 +593,7 @@ class PysideApp(QMainWindow, BaseApp):
         # Worker thread setup
         self.worker = Worker(mutex, condition)
         # Slot now accepts a string argument for the initial text
+        self.worker.request_panel_continue_signal.connect(self.upon_request_panel_continue)
         self.worker.request_text_signal.connect(self.upon_request_text)
         self.worker.show_text_signal.connect(self.upon_show_text)
         self.worker.set_focus_on_panel_signal.connect(self.upon_set_focus_on_panel)
@@ -573,6 +604,7 @@ class PysideApp(QMainWindow, BaseApp):
         self.worker.request_continue_signal.connect(self.upon_request_continue)
 
         # Define the request_text and show_text methods
+        self.request_panel_continue = self.worker.worker_request_panel_continue
         self.request_text = self.worker.worker_request_text
         self.show_text = self.worker.worker_show_text
         self.set_focus_on_panel = self.worker.worker_set_focus_on_panel
@@ -587,10 +619,13 @@ class PysideApp(QMainWindow, BaseApp):
             if panel_name == PanelNames.PRODUCT:
                 continue
             self.panels[panel_name].submit_button.clicked.connect(partial(self.submit_text, panel_name=panel_name))
+            self.panels[panel_name].continue_button.clicked.connect(partial(self.upon_panel_continue,
+                                                                            panel_name=panel_name))
 
         # Connect the MainWindow signal to the worker's slot
         self.send_text_signal.connect(self.worker.receive_text_signal)
         self.send_continue_signal.connect(self.worker.receive_continue_signal)
+        self.send_panel_continue_signal.connect(self.worker.receive_panel_continue_signal)
 
     @classmethod
     def get_instance(cls):
@@ -657,6 +692,11 @@ class PysideApp(QMainWindow, BaseApp):
         closed_popup = self.sender()
         self.popups.discard(closed_popup)
 
+    @Slot(PanelNames)
+    def upon_request_panel_continue(self, panel_name: PanelNames):
+        panel = self.panels[panel_name]
+        panel.wait_for_continue()
+
     @Slot(PanelNames, str, str, dict)
     def upon_request_text(self, panel_name: PanelNames, initial_text: str = '',
                           title: Optional[str] = None,
@@ -667,6 +707,10 @@ class PysideApp(QMainWindow, BaseApp):
         if optional_suggestions is None:
             optional_suggestions = {}
         panel.edit_text(initial_text, title, instructions, in_field_instructions, list(optional_suggestions.values()))
+
+    @Slot(PanelNames)
+    def upon_panel_continue(self, panel_name: PanelNames):
+        self.send_panel_continue_signal.emit(panel_name)
 
     @Slot(PanelNames)
     def submit_text(self, panel_name: PanelNames):

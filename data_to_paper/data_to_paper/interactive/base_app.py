@@ -35,6 +35,9 @@ class BaseApp:
             cls.instance = cls()
         return cls.instance
 
+    def request_panel_continue(self, panel_name: PanelNames):
+        pass
+
     def request_text(self, panel_name: PanelNames, initial_text: str = '',
                      title: Optional[str] = None,
                      instructions: Optional[str] = None,
