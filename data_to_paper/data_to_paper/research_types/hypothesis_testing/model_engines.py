@@ -1,6 +1,7 @@
 from data_to_paper.servers.model_engine import ModelEngine
+from collections import defaultdict
 
-TYPE_OF_MODELS = 'closed'
+TYPE_OF_MODELS = 'closed' # change this to 'custom' for your own custom models
 
 if TYPE_OF_MODELS == 'closed':
     ModelEngine.DEFAULT = ModelEngine.GPT4o_MINI
@@ -25,6 +26,9 @@ elif TYPE_OF_MODELS == 'open':
         "IntroductionSectionWriterReviewGPT": ModelEngine.LLAMA_2_70b,
         "DiscussionSectionWriterReviewGPT": ModelEngine.LLAMA_2_70b,
     }
+elif TYPE_OF_MODELS == 'custom':
+    ModelEngine.DEFAULT = ModelEngine.CUSTOM
+    CLASSES_TO_MODEL_ENGINES = defaultdict(lambda: ModelEngine.CUSTOM)
 else:
     raise ValueError(f'Unknown type of models: {TYPE_OF_MODELS}')
 
