@@ -101,9 +101,6 @@ class BaseApp:
     def set_header(self, header: str):
         pass
 
-    def request_continue(self):
-        pass
-
 
 class ConsoleApp(BaseApp):
     """

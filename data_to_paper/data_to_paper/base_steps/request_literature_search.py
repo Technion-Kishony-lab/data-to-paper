@@ -172,7 +172,6 @@ class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
                     "title": self.get_title(),
                     "abstract": self.get_abstract()})
 
-        self._app_request_continue()
         return literature_search
 
     def _update_valid_result(self, valid_result: Any):

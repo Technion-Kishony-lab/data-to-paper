@@ -473,7 +473,7 @@ class ResultConverser(Converser):
         """
         Post-run actions.
         """
-        self._app_request_continue()
+        pass
 
     def _run_and_return_termination_reason(self, *args, **kwargs) -> Any:
         """

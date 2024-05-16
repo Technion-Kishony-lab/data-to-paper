@@ -153,7 +153,6 @@ class Worker(QThread):
     send_product_of_stage_signal = Signal(Stage, str)
     set_status_signal = Signal(PanelNames, int, str)
     set_header_signal = Signal(str)
-    request_continue_signal = Signal()
 
     def __init__(self, mutex, condition, func_to_run=None):
         super().__init__()
@@ -191,12 +190,6 @@ class Worker(QThread):
         input_text = self._text_input
         self.mutex.unlock()
         return input_text
-
-    def worker_request_continue(self):
-        self.mutex.lock()
-        self.request_continue_signal.emit()
-        self.condition.wait(self.mutex)
-        self.mutex.unlock()
 
     def worker_show_text(self, panel_name: PanelNames, text: str, is_html: bool = False,
                          scroll_to_bottom: bool = False):
@@ -498,7 +491,6 @@ def create_tabs(names_to_panels: Dict[str, Panel]):
 
 class PysideApp(QMainWindow, BaseApp):
     send_text_signal = Signal(str, PanelNames)
-    send_continue_signal = Signal()
     send_panel_continue_signal = Signal(PanelNames)
     a_application = None
 
@@ -522,15 +514,6 @@ class PysideApp(QMainWindow, BaseApp):
         # Left side is a VBox with "Continue" button above and the steps panel below
         left_side = QVBoxLayout()
         self.layout.addLayout(left_side)
-
-        # Continue button
-        continue_button = QPushButton("Continue")
-        continue_button.setEnabled(False)
-        continue_button.setVisible(False)  # TODO: the Continue button is currently not used. Can be removed.
-
-        continue_button.clicked.connect(self.upon_continue)
-        left_side.addWidget(continue_button)
-        self.continue_button = continue_button
 
         # Steps panel
         self.step_panel = StepsPanel()
@@ -597,7 +580,6 @@ class PysideApp(QMainWindow, BaseApp):
         self.worker.send_product_of_stage_signal.connect(self.upon_send_product_of_stage)
         self.worker.set_status_signal.connect(self.upon_set_status)
         self.worker.set_header_signal.connect(self.upon_set_header)
-        self.worker.request_continue_signal.connect(self.upon_request_continue)
 
         # Define the request_text and show_text methods
         self.request_panel_continue = self.worker.worker_request_panel_continue
@@ -608,7 +590,6 @@ class PysideApp(QMainWindow, BaseApp):
         self.send_product_of_stage = self.worker.worker_send_product_of_stage
         self._set_status = self.worker.worker_set_status
         self.set_header = self.worker.worker_set_header
-        self.request_continue = self.worker.worker_request_continue
 
         # Connect UI elements
         for panel_name in PanelNames:
@@ -620,7 +601,6 @@ class PysideApp(QMainWindow, BaseApp):
 
         # Connect the MainWindow signal to the worker's slot
         self.send_text_signal.connect(self.worker.receive_text_signal)
-        self.send_continue_signal.connect(self.worker.receive_continue_signal)
         self.send_panel_continue_signal.connect(self.worker.receive_panel_continue_signal)
 
     @classmethod
@@ -659,15 +639,6 @@ class PysideApp(QMainWindow, BaseApp):
     @Slot(str)
     def upon_set_header(self, header: str):
         self.header.setText(header)
-
-    @Slot()
-    def upon_request_continue(self):
-        self.continue_button.setEnabled(True)
-
-    @Slot()
-    def upon_continue(self):
-        self.continue_button.setEnabled(False)
-        self.send_continue_signal.emit()
 
     def show_product_for_stage(self, stage: Stage):
         """

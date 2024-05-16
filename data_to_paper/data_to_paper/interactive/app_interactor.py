@@ -56,11 +56,6 @@ class AppInteractor:
         else:
             time.sleep(sleep_for)
 
-    def _app_request_continue(self):
-        if self.app is None:
-            return
-        # self.app.request_continue()
-
     def _app_set_focus_on_panel(self, panel_name: PanelNames):
         if self.app is None:
             return
