@@ -24,12 +24,11 @@ CSS = '''
     color: #FFA500;
 }
 .textblock_highlight {
-    font-family: Consolas, 'Courier New', monospace; font-weight: bold;
-    color: #FF8C00;
+    font-family: Consolas, 'Courier New', monospace; font-size: 14px;
 }
-.code_error {
+.runtime_error {
     color: red;
-    font-family: Consolas, 'Courier New', monospace;
+    font-family: Consolas, 'Courier New', monospace; font-size: 14px;
 }
 .markdown {
     font-family: Arial, sans-serif;

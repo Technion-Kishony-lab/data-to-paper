@@ -17,6 +17,13 @@ def convert_latex_to_html(latex: str) -> str:
     Returns:
     - str: The converted HTML text.
     """
+
+    from data_to_paper.research_types.scientific_research.coding.original_utils.to_latex_with_note import \
+        get_html_from_latex_table
+    html = get_html_from_latex_table(latex)
+    if html:
+        return html
+
     # check if pandoc is installed
     try:
         subprocess.run(['pandoc', '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
@@ -42,6 +49,9 @@ def convert_latex_to_html(latex: str) -> str:
 
     if not is_title:
         command += ['--metadata', 'title=Titleless LaTeX Document']
+
+    # To show citation commands (like '\\cite{ref1}'):
+    command += ['--citeproc']
 
     try:
         with run_in_temp_directory():

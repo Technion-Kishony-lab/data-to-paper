@@ -114,34 +114,19 @@ def md_to_html(md):
     # Convert bold and italic
     md = re.sub(pattern=r'\*\*(.*?)\*\*', repl=r'<b>\1</b>', string=md)
     md = re.sub(pattern=r'\*(.*?)\*', repl=r'<i>\1</i>', string=md)
-
-    # Wrap with css class
-    md = f'<div class="markdown">{md}</div>'
     return md
 
 
-def text_to_red_html(text: str) -> str:
-    return f"""<div class="code_error">{text}</div>"""
-
-
-def text_to_green_html(text: str) -> str:
-    return '<span style="color: green;">' + text_to_html(text) + '</span>'
-
-
-def text_to_html(text: str, textblock: bool = False, from_md: bool = False) -> str:
-    if not textblock and CHOSEN_APP == 'pyside':
-        if from_md:
-            return md_to_html(text)
-        return text.replace('\n', '<br>')
-
-    # using some hacky stuff to get around pygments not highlighting text blocks, while kipping newlines as <br>
-    text = '|' + text + '|'
-    if textblock:
-        html = highlight(text, TextLexer(), html_textblock_formatter)
+def text_to_html(text: str, from_md: bool = False, css_class: str = 'markdown') -> str:
+    # strip newlines from the right end of the text:
+    while text and text[-1] == '\n':
+        text = text[:-1]
+    text = text.replace('<', '&lt;').replace('>', '&gt;')
+    if from_md:
+        html = md_to_html(text)
     else:
-        html = highlight(text, TextLexer(), html_formatter)
-    html = html.replace('|', '', 1).replace('|', '', -1)
-    return html.replace('\n', '<br>').replace('<br></pre>', '</pre>', -1)
+        html = text.replace('\n', '<br>')
+    return f'<div class="{css_class}">{html}</div>'
 
 
 def colored_text(text: str, color: str, is_color: bool = True) -> str:
@@ -162,10 +147,12 @@ def green_text(text: str, is_color: bool = True) -> str:
 
 def get_pre_html_format(text,
                         color: str = None,
-                        font_style: str = 'normal',
+                        font_style: str = None,  # normal, italic, oblique
                         font_size: int = 16,
-                        font_weight: str = 'normal',
+                        font_weight: str = None,  # normal, bold
                         font_family: str = None):
+    if color is None and font_style is None and font_size == 16 and font_weight is None and font_family is None:
+        return f'<pre>{text}</pre>'
     s = '<pre style="'
     if color:
         s += f'color: {color};'
@@ -186,7 +173,7 @@ def identity(text: str) -> str:
 
 
 REGULAR_FORMATTER = (colored_text, text_to_html)
-BLOCK_FORMATTER = (light_text, partial(text_to_html, textblock=True))
+BLOCK_FORMATTER = (light_text, get_pre_html_format)
 
 TAGS_TO_FORMATTERS: Dict[Optional[str], Tuple[Callable, Callable]] = {
     None: REGULAR_FORMATTER,
@@ -197,16 +184,9 @@ TAGS_TO_FORMATTERS: Dict[Optional[str], Tuple[Callable, Callable]] = {
     'python': (python_to_highlighted_text, python_to_highlighted_html),
     'output': (light_text, output_to_highlighted_html),
     'html': (colored_text, identity),
-    'highlight': (colored_text, partial(get_pre_html_format, color='#334499', font_size=20, font_weight='bold',
-                                        font_family="'Courier', sans-serif")),
-    'comment': (colored_text, partial(get_pre_html_format, color='#424141', font_style='italic', font_size=16,
-                                      font_weight='bold')),
-    'system': (colored_text, partial(get_pre_html_format, color='#20191D', font_style='italic', font_size=16,
-                                     font_family="'Courier', sans-serif")),
     'header': (light_text, partial(get_pre_html_format, color='#FF0000', font_size=12)),
     'latex': (colored_text, convert_latex_to_html),
-    'error': (red_text, text_to_red_html),
-    'ok': (green_text, text_to_green_html),
+    'error': (red_text, partial(text_to_html, css_class="runtime_error"))
 }
 
 NEEDS_NO_WRAPPING_FOR_NO_HTML = {'python', 'output', 'html', 'header'}
@@ -227,17 +207,14 @@ def format_text_with_code_blocks(text: str, text_color: str = '', from_md: Optio
         formatter = TAGS_TO_FORMATTERS.get(label, BLOCK_FORMATTER)[is_html]
         is_section_md = (label == 'markdown' or label in POSSIBLE_MARKDOWN_LABELS
                          and (from_md or from_md is None and is_text_md(section)))
-        if not is_html and label not in ['python', 'header', 'comment', 'system']:
-            section = FormattedSections([formatted_section]).to_text()
         if is_html:
-            if label not in NEEDS_NO_WRAPPING_FOR_HTML:
-                section = wrap_string(section, width=width)
             if formatter == text_to_html:
                 s += formatter(section, from_md=is_section_md)
             else:
                 s += formatter(section)
         else:
-            if label not in NEEDS_NO_WRAPPING_FOR_NO_HTML:
-                section = wrap_string(section, width=width)
+            if label not in ['python', 'header', 'comment', 'system']:
+                section = FormattedSections([formatted_section]).to_text()
+            section = wrap_string(section, width=width)
             s += formatter(section, text_color)
     return s
