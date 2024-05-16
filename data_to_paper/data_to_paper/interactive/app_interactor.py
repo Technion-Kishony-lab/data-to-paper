@@ -3,6 +3,8 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from typing import Optional, Dict, Union, Iterable
 
+from data_to_paper.env import REQUEST_CONTINUE_IN_PLAYBACK
+
 from data_to_paper.utils import format_text_with_code_blocks
 from data_to_paper.utils.replacer import format_value, StrOrReplacer
 from data_to_paper.utils.highlighted_text import demote_html_headers
@@ -16,7 +18,7 @@ from .base_app import BaseApp
 from .get_app import get_app
 from .enum_types import PanelNames
 from .human_actions import HumanAction, ButtonClickedHumanAction, TextSentHumanAction
-from ..env import REQUEST_CONTINUE_IN_PLAYBACK
+
 
 
 @dataclass
@@ -33,11 +35,17 @@ class AppInteractor:
             self._app_set_panel_header(panel_name, panel_name.value)
             self._app_set_panel_status(panel_name, '')
 
-    def _app_request_panel_continue(self, panel_name: PanelNames):
+    def _app_request_panel_continue(self, panel_name: PanelNames, sleep_for: Union[None, float, bool] = 0):
         if self.app is None:
             return
-        if not are_more_responses_available() or REQUEST_CONTINUE_IN_PLAYBACK:
-            self.app.request_panel_continue(panel_name)
+        is_playback = are_more_responses_available()
+        if isinstance(sleep_for, Mutable):
+            sleep_for = sleep_for.val
+        if sleep_for is None:
+            if not is_playback or REQUEST_CONTINUE_IN_PLAYBACK:
+                self.app.request_panel_continue(panel_name)
+        else:
+            time.sleep(sleep_for)
 
     def _app_send_prompt(self, panel_name: PanelNames, prompt: StrOrReplacer = '', provided_as_html: bool = False,
                          from_md: bool = False, demote_headers_by: int = 0, sleep_for: Union[None, float, bool] = 0,
@@ -51,10 +59,7 @@ class AppInteractor:
         self.app.show_text(panel_name, s, is_html=True, scroll_to_bottom=scroll_to_bottom)
         if isinstance(sleep_for, Mutable):
             sleep_for = sleep_for.val
-        if sleep_for is None:
-            self._app_request_panel_continue(panel_name)
-        else:
-            time.sleep(sleep_for)
+        self._app_request_panel_continue(panel_name, sleep_for)
 
     def _app_set_focus_on_panel(self, panel_name: PanelNames):
         if self.app is None:

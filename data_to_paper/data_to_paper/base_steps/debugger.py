@@ -95,9 +95,10 @@ class DebuggerConverser(BackgroundProductsConverser):
 
     prompt_to_append_at_end_of_response: str = \
         dedent_triple_quote_str("""
+            # Instructions:
             Please rewrite the complete code again with these issues corrected.
 
-            GENERAL FORMATTING INSTRUCTIONS:
+            # General formatting instructions:
             Even if you are changing just a few lines, you must return the complete code again in a \t
             single code block, including the unchanged parts, so that I can just copy-paste and run it.
             {required_headers_prompt}    
@@ -204,6 +205,7 @@ class DebuggerConverser(BackgroundProductsConverser):
     def _get_issue_for_regular_exception_or_warning(self, error: FailedRunningCode,
                                                     code_runner: BaseCodeRunner) -> RunIssue:
         return RunIssue(
+            category='Runtime exception',
             issue=_get_description_of_run_error(error.get_traceback_message(code_runner.lines_added_in_front_of_code)),
             code_problem=CodeProblem.SyntaxError if isinstance(error, SyntaxError) else CodeProblem.RuntimeError,
             comment='Runtime exception in code',

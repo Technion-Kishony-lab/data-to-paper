@@ -1,16 +1,19 @@
 from dataclasses import dataclass, field
 from typing import Dict, List, Collection, Optional, Any
 
+from data_to_paper.env import PAUSE_AFTER_LITERATURE_SEARCH
+
 from data_to_paper.utils import dedent_triple_quote_str, word_count
 from data_to_paper.utils.nice_list import NiceDict, NiceList
 from data_to_paper.utils.print_to_file import print_and_log_red
 from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER, \
     SEMANTIC_SCHOLAR_EMBEDDING_SERVER_CALLER
 
+from data_to_paper.interactive import PanelNames
+
 from .request_python_value import PythonDictWithDefinedKeysReviewBackgroundProductsConverser
 from .literature_search import LiteratureSearch, QueryCitationCollectionProduct, \
     LiteratureSearchQueriesProduct
-from ..interactive import PanelNames
 
 
 @dataclass
@@ -141,8 +144,8 @@ class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
                     citations = SEMANTIC_SCHOLAR_SERVER_CALLER.get_server_response(query,
                                                                                    rows=self.number_of_papers_per_query)
                     num_citations = len(citations)
-                    html += (f'<p><b style="color: #1E90FF;">Query:</b> "{query}". '
-                             f'Found: <b style="color: #1E90FF;">{num_citations} citations.</b></p>')
+                    html += f'<p><b style="color: #1E90FF;">Query:</b> "{query}". '
+                    html += f'<br><b style="color: #1E90FF;">Found:</b> {num_citations} citations.</p>'
                     self._app_send_prompt(PanelNames.FEEDBACK, html, provided_as_html=True,
                                           scroll_to_bottom=True)
                     self.comment(f'\nQuerying Semantic Scholar. '
@@ -172,6 +175,7 @@ class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
                     "title": self.get_title(),
                     "abstract": self.get_abstract()})
 
+        self._app_request_panel_continue(PanelNames.FEEDBACK, sleep_for=PAUSE_AFTER_LITERATURE_SEARCH)
         return literature_search
 
     def _update_valid_result(self, valid_result: Any):

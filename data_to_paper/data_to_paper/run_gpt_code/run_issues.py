@@ -141,7 +141,7 @@ class RunIssues(List[RunIssue]):
                 for issue in issues_in_category:
                     if issue.item and issue.item != last_item:
                         last_item = issue.item
-                        note += f'* {issue.item}:\n'
+                        note += f'## {issue.item}:\n'
                     if issue.linenos_and_lines and issue.linenos_and_lines != last_linenos_and_lines:
                         last_linenos_and_lines = issue.linenos_and_lines
                         note += 'On line:\n'

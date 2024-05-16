@@ -191,8 +191,8 @@ class ResultConverser(Converser):
         """
         if self.mission_prompt:
             self.apply_append_user_message(self.mission_prompt, app_panel=PanelNames.MISSION_PROMPT,
-                                           editing_title='Input requested',
-                                           editing_instructions='Please revise the mission prompt as needed.')
+                                           editing_title='Revise as needed',
+                                           in_field_instructions='Write the mission prompt.')
 
     @property
     def _has_valid_result(self) -> bool:

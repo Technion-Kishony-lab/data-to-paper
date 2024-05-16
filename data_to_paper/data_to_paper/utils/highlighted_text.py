@@ -11,10 +11,11 @@ from pygments.lexers import TextLexer
 from pygments.styles import get_style_by_name
 from pygments import highlight, token
 
+from data_to_paper.latex.latex_to_html import convert_latex_to_html
+from data_to_paper.env import CHOSEN_APP
+
 from .formatted_sections import FormattedSections
 from .text_formatting import wrap_string
-from data_to_paper.latex.latex_to_html import convert_latex_to_html
-from ..env import CHOSEN_APP
 
 COLORS_TO_LIGHT_COLORS = {
     colorama.Fore.BLACK: colorama.Fore.LIGHTBLACK_EX,
@@ -97,10 +98,14 @@ def md_to_html(md):
         if re.match(pattern=r'^#{1,5} ', string=line):
             header_level = len(line.split(' ')[0])
             html_line = f'<h{header_level}>{line[header_level + 1:]}</h{header_level}>'
+            if html_lines and html_lines[-1] == '<br>':
+                html_lines.pop()
         elif line.startswith('- '):
             html_line = f'<li>- {line[2:]}</li>'
         elif line.startswith('* '):
             html_line = f'<li>* {line[2:]}</li>'
+        elif not line.strip():
+            html_line = '<br>'
         else:
             html_line = line + '<br>'
         html_lines.append(html_line)
@@ -116,7 +121,7 @@ def md_to_html(md):
 
 
 def text_to_red_html(text: str) -> str:
-    return '<span style="color: red;">' + text_to_html(text) + '</span>'
+    return """<span style="color: red; font-name: 'Courier';">""" + text_to_html(text) + '</span>'
 
 
 def text_to_green_html(text: str) -> str:

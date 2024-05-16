@@ -94,12 +94,14 @@ class DualConverserGPT(Converser):
                                            send_to_app: Optional[bool] = None,
                                            app_panel: PanelNames = PanelNames.FEEDBACK,
                                            editing_title: str = None, editing_instructions: str = None,
+                                           in_field_instructions: Optional[str] = None,
                                            sleep_for: Optional[float] = 0,
                                            **kwargs) -> Message:
         if send_to_app is None:
             send_to_app = not is_background and not ignore
         content = \
-            self._show_and_edit_content(content, editing_title, editing_instructions, send_to_app, app_panel, sleep_for)
+            self._show_and_edit_content(content, editing_title, editing_instructions, in_field_instructions,
+                                        send_to_app, app_panel, sleep_for)
         return self.other_conversation_manager.append_user_message(
             content=format_value(self, content),
             tag=tag,
