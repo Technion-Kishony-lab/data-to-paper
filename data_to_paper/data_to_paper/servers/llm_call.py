@@ -250,3 +250,10 @@ def get_human_response(app: BaseApp, **kwargs) -> HumanAction:
                          f'(CHOSEN_APP = None)')
     assert isinstance(response, HumanAction)
     return response
+
+
+def are_more_responses_available() -> bool:
+    """
+    Check if there are more recorded responses available from openai.
+    """
+    return OPENAI_SERVER_CALLER.are_more_records_available()

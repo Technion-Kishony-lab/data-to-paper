@@ -10,12 +10,13 @@ from data_to_paper.utils.mutable import Mutable
 
 from data_to_paper.conversation.stage import Stage
 
-from data_to_paper.servers.llm_call import get_human_response
+from data_to_paper.servers.llm_call import get_human_response, are_more_responses_available
 
 from .base_app import BaseApp
 from .get_app import get_app
 from .enum_types import PanelNames
 from .human_actions import HumanAction, ButtonClickedHumanAction, TextSentHumanAction
+from ..env import REQUEST_CONTINUE_IN_PLAYBACK
 
 
 @dataclass
@@ -35,7 +36,8 @@ class AppInteractor:
     def _app_request_panel_continue(self, panel_name: PanelNames):
         if self.app is None:
             return
-        self.app.request_panel_continue(panel_name)
+        if not are_more_responses_available() or REQUEST_CONTINUE_IN_PLAYBACK:
+            self.app.request_panel_continue(panel_name)
 
     def _app_send_prompt(self, panel_name: PanelNames, prompt: StrOrReplacer = '', provided_as_html: bool = False,
                          from_md: bool = False, demote_headers_by: int = 0, sleep_for: Optional[float] = 0,
