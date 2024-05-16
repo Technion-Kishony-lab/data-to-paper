@@ -70,18 +70,6 @@ class BackgroundProductsConverser(ProductsConverser):
     product_acknowledgement: str = "Thank you for the {}. \n"
     goal_noun: str = None
     goal_verb: str = None
-    fake_performer_request_for_help: str = \
-        "Hi {user_skin_name}, I need to {goal_verb} {goal_noun}. Could you please guide me?"
-    fake_reviewer_agree_to_help: str = dedent_triple_quote_str("""
-        Sure, I am happy to guide you {goal_verb} the {goal_noun} and can also provide feedback.
-
-        Note that your {goal_noun} should be based on the following research products that you have now \t
-        already obtained:
-        ```highlight
-        {vertical_actual_background_product_names}
-        ```
-        Please carefully review these intermediate products and then proceed according to my guidelines below. 
-        """)
     post_background_comment: str = 'Background messages completed. Requesting "{goal_noun}".'
 
     @property
@@ -142,17 +130,6 @@ class BackgroundProductsConverser(ProductsConverser):
         product_description, tag = self.get_product_description_and_tag(product_field)
         self.apply_append_user_message(product_description, tag=tag, is_background=True)
 
-    def _add_fake_pre_conversation_exchange(self):
-        """
-        Add fake exchange to the conversation before providing background information.
-        """
-        if self.fake_performer_request_for_help:
-            self.apply_append_surrogate_message(
-                content=self.fake_performer_request_for_help, ignore=True)
-            if self.fake_reviewer_agree_to_help:
-                self.apply_append_user_message(
-                    content=self.fake_reviewer_agree_to_help, ignore=True)
-
     def _pre_populate_background(self):
         """
         Add background information to the conversation.
@@ -160,7 +137,6 @@ class BackgroundProductsConverser(ProductsConverser):
         previous_product_items = self.actual_background_product_fields
         if previous_product_items is not None:
             assert len(self.conversation.get_chosen_messages()) == 1
-            self._add_fake_pre_conversation_exchange()
             for i, product_field in enumerate(previous_product_items or []):
                 is_last = i == len(previous_product_items) - 1
                 self._add_product_description(product_field)

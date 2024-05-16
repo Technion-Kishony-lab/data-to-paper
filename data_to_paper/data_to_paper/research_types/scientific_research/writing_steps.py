@@ -66,9 +66,6 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
     should_remove_citations_from_section: bool = True
     un_allowed_commands: Tuple[str, ...] = (r'\verb', r'\begin{figure}')
 
-    fake_performer_request_for_help: str = \
-        'Hi {user_skin_name}, could you please help me {goal_verb} the {pretty_section_names} for my paper?'
-
     max_reviewing_rounds: int = 1
     goal_noun: str = '{pretty_section_names} section'
     conversation_name: str = None

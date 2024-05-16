@@ -35,9 +35,6 @@ class RewriteSentenceWithCitations(PythonValueReviewBackgroundProductsConverser)
 
     value_type: type = List[str]
     max_reviewing_rounds: int = 0  # no review
-    fake_performer_request_for_help: str = None
-    fake_reviewer_agree_to_help: str = None
-    fake_performer_message_to_add_after_max_rounds: str = None
     max_valid_response_iterations: int = 2
     mission_prompt: str = dedent_triple_quote_str("""
         Choose the most appropriate citations to add for the sentence: 
@@ -164,8 +161,6 @@ class AddCitationReviewGPT(PythonValueReviewBackgroundProductsConverser):
         }
         ```
     """)
-
-    fake_performer_message_to_add_after_max_rounds: str = None
 
     # input:
     section_name: str = None  # The section of the paper to which we are adding citations to.

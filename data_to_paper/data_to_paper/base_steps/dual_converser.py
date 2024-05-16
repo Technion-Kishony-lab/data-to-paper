@@ -181,9 +181,6 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
 
     append_termination_response_to_self: bool = True
 
-    fake_performer_message_to_add_after_max_rounds: str = \
-        "No need for additional feedback. Thanks much - I think I have it now!"
-    fake_performer_message_to_add_after_reviewer_approval: str = "Thanks much - this was very helpful!"
     max_reviewing_rounds: int = 3
     max_reviewer_attempts: int = 4
 
@@ -302,8 +299,6 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
 
         # We have a valid response from self. Now we can proceed with the dialog:
         if is_last_round and not (self.human_review and CHOSEN_APP != None):  # noqa
-            if self.fake_performer_message_to_add_after_max_rounds is not None:
-                self.apply_append_surrogate_message(self.fake_performer_message_to_add_after_max_rounds, ignore=True)
             return CycleStatus.MAX_ROUNDS_EXCEEDED
         valid_result = self._get_valid_result()
         fresh_looking_self_response = self._convert_valid_results_to_fresh_looking_response(valid_result)
@@ -329,9 +324,6 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
             if self.append_termination_response_to_self:
                 self.apply_append_user_message(other_response, context=other_message.context if other_message else None,
                                                sleep_for=PAUSE_AT_LLM_FEEDBACK.val and not self.human_review)
-                if self.fake_performer_message_to_add_after_reviewer_approval:
-                    self.apply_append_surrogate_message(self.fake_performer_message_to_add_after_reviewer_approval,
-                                                        ignore=True)
             return CycleStatus.APPROVED_BY_OTHER
 
         self.get_response_from_self_in_response_to_response_from_other(altered_other_response)
