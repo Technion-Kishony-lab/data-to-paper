@@ -10,7 +10,7 @@ from data_to_paper.run_gpt_code.code_utils import extract_content_of_triple_quot
     IncompleteBlockFailedExtractingBlock
 from data_to_paper.utils.nice_list import NiceDict
 from data_to_paper.utils.check_type import validate_value_type, WrongTypeException
-from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
+from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes, dedent_triple_quote_str
 
 
 @dataclass
@@ -29,8 +29,18 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
             self.llm_parameters['response_format'] = {"type": "json_object"}
 
     @property
+    def your_response_should_be_formatted_as(self) -> str:
+        if self.json_mode:
+            return f"a JSON object that can be evaluated with `json.loads()` to a Python {self.type_name}."
+        return f"a Python {self.type_name} wrapped within a triple backtick 'python' code block."
+
+    @property
     def parent_type(self) -> type:
         return get_origin(self.value_type)
+
+    @property
+    def type_name(self) -> str:
+        return str(self.value_type).replace('typing.', '')
 
     def get_valid_result_as_markdown(self) -> str:
         return wrap_text_with_triple_quotes(self.valid_result, 'python')
@@ -47,9 +57,8 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
             return extract_content_of_triple_quote_block(response, self.goal_noun, 'python')
         except FailedExtractingBlock as e:
             self._raise_self_response_error(
-                f'{e}\n'
-                f'Your response should be formatted as a single Python {self.parent_type.__name__}, '
-                f'within a triple-backtick code block.',
+                title='# Failed to extract python block',
+                error_message=str(e),
                 missing_end=isinstance(e, IncompleteBlockFailedExtractingBlock))
 
     def _check_extracted_text_and_update_valid_result(self, extracted_text: str):
@@ -67,21 +76,22 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
         return wrap_text_with_triple_quotes(extracted_text, 'python')
 
     def _evaluate_python_value_from_str(self, response: str) -> Any:
-        if self.json_mode:
-            try:
-                return json.loads(response)
-            except Exception as e:
-                self._raise_self_response_error(
-                    f'I tried to load your response with Python `json.loads()`, but got:\n{e}\n'
-                    f'Your response should be a valid JSON value.')
         try:
-            return eval(response)
+            if self.json_mode:
+                return json.loads(response)
+            else:
+                return eval(response)
         except Exception as e:
+            func = 'json.loads()' if self.json_mode else 'eval()'
+            formatting_instructions = "{formatting_instructions_for_feedback}" + \
+                f"I need to be able to just cut and paste it and evaluate with `{func}`."
+            if not self.json_mode:
+                formatting_instructions += "\nSo it has to be a valid Python value (not an assignment statement)."
             self._raise_self_response_error(
-                f'I tried to eval your response with Python `eval()`, but got:\n{e}\n'
-                f'Your response should be formatted as a single Python {self.parent_type.__name__} value '
-                f'(not an assignment, and with no comments, etc) '
-                f'that I can cut and paste and evaluated as is with `eval()`')
+                title='# Incorrect response format',
+                error_message=f'I tried to eval your response with Python `{func}`, but got:\n{e}\n',
+                formatting_instructions=formatting_instructions
+            )
 
     def _validate_value_type(self, response_value: Any) -> Any:
         """
@@ -90,7 +100,9 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
         try:
             validate_value_type(response_value, self.value_type)
         except WrongTypeException as e:
-            self._raise_self_response_error(e.message)
+            self._raise_self_response_error(
+                title='# Incorrect response type',
+                error_message=e.message)
         return response_value
 
     def _check_response_value(self, response_value: Any) -> Any:
@@ -130,9 +142,11 @@ class PythonDictWithDefinedKeysReviewBackgroundProductsConverser(PythonDictRevie
         check_response_value = super()._check_response_value(response_value)
         if self.requested_keys is not None:
             if set(response_value.keys()) != set(self.requested_keys):
-                type_name = 'JSON' if self.json_mode else 'single Python dict'
+                type_name = 'JSON' if self.json_mode else 'Python'
                 self._raise_self_response_error(
-                    f'Your response should include a {type_name} containing the keys: {self.requested_keys}')
+                    title='# Incorrect keys in response',
+                    error_message=f'Your response should include a {type_name} dict containing the keys: '
+                                  f'{self.requested_keys}')
 
         return check_response_value
 
@@ -152,5 +166,6 @@ class PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser(
         for key, value in response_value.items():
             if value not in self.allowed_values_for_keys[key]:
                 self._raise_self_response_error(
-                    f'The value for key `{key}` should be one of: {self.allowed_values_for_keys[key]}')
+                    title='# Incorrect values in python dict',
+                    error_message=f'The value for key `{key}` should be one of: {self.allowed_values_for_keys[key]}')
         return check_response_value

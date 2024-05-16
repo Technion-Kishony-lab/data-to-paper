@@ -110,7 +110,9 @@ class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
                 if word_count(query) > 10:
                     too_long_queries.append(query)
         if too_long_queries:
-            self._raise_self_response_error(dedent_triple_quote_str("""
+            self._raise_self_response_error(
+                title='# Too long queries',
+                error_message=dedent_triple_quote_str("""
                 Queries should be 5-10 word long.
 
                 The following queries are too long:

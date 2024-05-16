@@ -330,7 +330,8 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
                              as_action=False)
             else:
                 self._raise_self_response_error(
-                    Replacer(self, self.report_non_match_prompt, args=(ListBasedSet(non_matching),)),
+                    title='# Non-matching numeric values in the section',
+                    error_message=Replacer(self, self.report_non_match_prompt, args=(ListBasedSet(non_matching),)),
                     rewind=Rewind.AS_FRESH,
                     add_iterations=add_iterations,
                     bump_model=BumpModel.HIGHER_STRENGTH,
@@ -342,7 +343,8 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
         """
         if 'http' in text or 'www.' in text or 'mailto' in text:
             self._raise_self_response_error(
-                'The text contains a URL which is not allowed.',
+                title='# URL in text',
+                error_message='The text contains URLs which is not allowed.',
                 rewind=Rewind.AS_FRESH,
             )
         return text
@@ -426,7 +428,8 @@ class CheckReferencedNumericReviewBackgroundProductsConverser(CheckExtractionRev
 
         if TARGET.replace('\\', '') in text:
             self._raise_self_response_error(
-                f'Do not use `{TARGET}`, use `{LINK}` instead.',
+                title='# Wrong numeric referencing',
+                error_message=f'Do not use `{TARGET}`, use `{LINK}` instead.',
                 rewind=Rewind.AS_FRESH,
             )
 
@@ -470,7 +473,8 @@ class CheckReferencedNumericReviewBackgroundProductsConverser(CheckExtractionRev
 
         if s:
             self._raise_self_response_error(
-                Replacer(self, self.report_non_match_prompt, args=(s,)),
+                title='# Wrong numeric referencing',
+                error_message=Replacer(self, self.report_non_match_prompt, args=(s,)),
                 rewind=Rewind.AS_FRESH,
                 bump_model=BumpModel.HIGHER_STRENGTH,
             )

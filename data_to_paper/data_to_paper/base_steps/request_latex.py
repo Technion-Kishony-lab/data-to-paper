@@ -119,15 +119,14 @@ class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgr
 
     section_names: List[str] = field(default_factory=list)
 
-    response_to_self_error: str = dedent_triple_quote_str("""
-        {}
-
-        Please {goal_verb} the {goal_noun} again with this error corrected.
+    your_response_should_be_formatted_as: str = "a triple backtick latex block."
+    formatting_instructions_for_feedback: str = dedent_triple_quote_str("""
+        Please {goal_verb} the {goal_noun} again according to my feedback above.
+        
+        Remember your response should be formatted as {your_response_should_be_formatted_as}
         """)
     rewind_after_getting_a_valid_response: Optional[Rewind] = Rewind.AS_FRESH
-
-    request_triple_quote_block: Optional[str] = None
-
+    
     un_allowed_commands: Tuple[str, ...] = (r'\cite', r'\verb', r'\begin{figure}')
 
     response_to_non_matching_citations: str = dedent_triple_quote_str("""
@@ -184,7 +183,8 @@ class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgr
             response = extract_content_of_triple_quote_block(response, 'latex', 'latex')
         except FailedExtractingBlock as e:
             self._raise_self_response_error(
-                str(e),
+                title='# Failed to extract latex block',
+                error_message=str(e),
                 missing_end=isinstance(e, IncompleteBlockFailedExtractingBlock))
         try:
             return extract_latex_section_from_response(response, section_name)
@@ -192,7 +192,8 @@ class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgr
             tags_list = get_list_of_tag_pairs_for_section_or_fragment(section_name)
             tags = tags_list[0]
             self._raise_self_response_error(
-                str(e),
+                title='# Failed to extract latex section(s)',
+                error_message=str(e),
                 missing_end=len(tags_list) == 1 and tags[0] in response and tags[1] not in response)
 
     def _process_non_math_parts(self, section: str) -> str:
@@ -202,7 +203,9 @@ class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgr
         try:
             check_usage_of_un_allowed_commands(section, self.un_allowed_commands)
         except UnwantedCommandsUsedInLatex as e:
-            self._raise_self_response_error(str(e))
+            self._raise_self_response_error(
+                title='# Unwanted commands used in latex',
+                error_message=str(e))
         return section
 
     def _remove_citations_from_section(self, section) -> str:
@@ -236,12 +239,13 @@ class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgr
                 not_found_and_not_corrected_ids.append(not_found_id)
         if not_found_and_not_corrected_ids:
             self._raise_self_response_error(
-                self.response_to_non_matching_citations.format(not_found_and_not_corrected_ids))
+                title='# Citation ids not found',
+                error_message=self.response_to_non_matching_citations.format(not_found_and_not_corrected_ids))
         return section
 
     def _check_for_floating_citations(self, section: str) -> str:
         r"""
-        Check that there are no floating citations, not enclosed with \cite{}.
+        Check that there are no floating citations, namely citations not enclosed with \cite{}.
         """
         if self.response_to_floating_citations:
             section_without_citations = remove_citations_from_section(section)
@@ -249,7 +253,9 @@ class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgr
             floating_ids = ListBasedSet([citation_id for citation_id in allowed_ids
                                          if citation_id in section_without_citations])
             if floating_ids:
-                self._raise_self_response_error(self.response_to_floating_citations.format(floating_ids))
+                self._raise_self_response_error(
+                    title='# Floating citation ids',
+                    error_message=self.response_to_floating_citations.format(floating_ids))
         return section
 
     def _process_citations(self, section: str) -> str:
@@ -272,23 +278,26 @@ class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgr
                              if section_name not in SECTIONS_OR_FRAGMENTS_TO_TAG_PAIR_OPTIONS]
         provided_sections = re.findall(pattern=r'\\section\*?\{([^}]*)\}', string=response)
         provided_but_not_required_sections = set(provided_sections) - set(required_sections)
-        request_triple_quote_block = self.request_triple_quote_block or ''
         if provided_but_not_required_sections:
             self._raise_self_response_error(
+                title='# Undesired sections in the response',
+                error_message=
                 f'You must only write the {self.pretty_section_names} section(s). '
-                f'But, you wrote also these section(s): '
-                f'{NiceList(provided_but_not_required_sections, wrap_with="`")}.\n\n' +
-                format_value(self, request_triple_quote_block))
+                f'But, you wrote also these section(s):\n'
+                f'{NiceList(provided_but_not_required_sections, wrap_with="`")}\n\n'
+            )
 
         # check for duplicates in provided_sections:
         sections_appearing_more_than_once = [section for section in provided_sections
                                              if provided_sections.count(section) > 1]
         if sections_appearing_more_than_once:
             self._raise_self_response_error(
+                title='# Duplicate sections in the response',
+                error_message=
                 f'You must only write the {self.pretty_section_names} section(s). '
                 f'But, you wrote the following section(s) more than once: '
-                f'{NiceList(sections_appearing_more_than_once, wrap_with="`")}.\n\n' +
-                format_value(self, request_triple_quote_block))
+                f'{NiceList(sections_appearing_more_than_once, wrap_with="`")}.'
+            )
 
     def _check_response_and_get_extracted_text(self, response: str) -> List[str]:
         """
@@ -314,4 +323,6 @@ class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgr
 
         # raise the compilation errors
         if exception is not None:
-            self._raise_self_response_error(str(exception))
+            self._raise_self_response_error(
+                title='# LaTex compilation error',
+                error_message=str(exception))

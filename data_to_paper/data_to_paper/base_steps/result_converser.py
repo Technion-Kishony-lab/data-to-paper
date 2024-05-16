@@ -90,14 +90,16 @@ class SelfResponseError(data_to_paperException):
     """
     Exception raised when the response to a request for a latex section is not acceptable.
     """
-    error_message: StrOrReplacer = None
+    error_message: str = None
+    title: str = ''
+    formatting_instructions: str = None
     rewind: Rewind = None
     bump_model: Optional[BumpModel] = None
     add_iterations: int = 0
     # if positive, we will *reduce* the iteration count so that we have more iterations to correct the response
 
     def __str__(self):
-        return self.error_message
+        return f'SelfResponseError: {self.error_message}'
 
 
 class NoResponse:
@@ -132,8 +134,10 @@ class ResultConverser(Converser):
 
     max_valid_response_iterations: int = 6
 
-    response_to_self_error: str = "{}"
-    # {} is the error message. subclasses can add additional text you want to send to self upon error in its response.
+    your_response_should_be_formatted_as: str = ""
+
+    formatting_instructions_for_feedback: str = \
+        "Your response should be formatted as {your_response_should_be_formatted_as}"
 
     default_rewind_for_result_error: Rewind = Rewind.AS_FRESH
     # Can be any of the Rewind options. In particular:
@@ -218,6 +222,8 @@ class ResultConverser(Converser):
 
     def _raise_self_response_error(self,
                                    error_message: StrOrReplacer,
+                                   title: str = '',
+                                   formatting_instructions: StrOrReplacer = None,
                                    missing_end: bool = False,
                                    rewind: Optional[Rewind] = None,
                                    add_iterations: Optional[int] = None,
@@ -254,8 +260,19 @@ class ResultConverser(Converser):
                 add_iterations = 0
             if bump_model is None:
                 bump_model = BumpModel.DO_NOT_BUMP
-        raise SelfResponseError(format_value(self, error_message), rewind=rewind, bump_model=bump_model,
+        raise SelfResponseError(format_value(self, error_message),
+                                title=title, formatting_instructions=formatting_instructions,
+                                rewind=rewind, bump_model=bump_model,
                                 add_iterations=add_iterations)
+
+
+    def _convert_response_error_to_error_message(self, response_error: SelfResponseError) -> str:
+        """
+        Convert the response error to an error message.
+        """
+        formatting_instructions = response_error.formatting_instructions or self.formatting_instructions_for_feedback
+        return format_value(self, response_error.title) + '\n' + format_value(self, response_error.error_message) \
+            + '\n' + format_value(self, formatting_instructions)
 
     """
     Response --> extracted_text --> valid_result --> Product
@@ -419,9 +436,8 @@ class ResultConverser(Converser):
                     self._convert_extracted_text_to_fresh_looking_response(extracted_text))
             # add the rule-based error message:
             if response_error:
-                self.apply_append_user_message(
-                    Replacer(self, self.response_to_self_error, args=(response_error.error_message,)),
-                    sleep_for=PAUSE_AT_RULE_BASED_FEEDBACK)
+                self.apply_append_user_message(self._convert_response_error_to_error_message(response_error),
+                                               sleep_for=PAUSE_AT_RULE_BASED_FEEDBACK)
 
             # rewind:
             if rewind == Rewind.RESTART:

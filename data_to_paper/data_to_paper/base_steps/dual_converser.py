@@ -408,15 +408,14 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
     The performer is expected to return the goal as a triple-backtick block, so that it can be extracted.
     """
 
-    quote_request: str = '\n\nPlease return your answer enclosed within a triple-backtick block ' \
-                         '(but send text, not code).'
-    flanked_header: str = '\n\nMake sure you are flanking the entire response and not just the headers.'
-    mission_prompt: str = ReviewDialogDualConverserGPT.mission_prompt + '\n{quote_request}'
+    your_response_should_be_formatted_as: str = 'a triple-backtick block (but send text, not code).'
+    mission_prompt: str = ReviewDialogDualConverserGPT.mission_prompt \
+        + '\nYour response should be formatted as {your_response_should_be_formatted_as}'
 
     sentence_to_add_at_the_end_of_reviewer_response: str = dedent_triple_quote_str("""\n\n
         Please correct your response according to any points you find relevant and applicable in my feedback.
         Send back a complete rewrite of the {goal_noun}.
-        {quote_request}
+        Your response should be formatted as {your_response_should_be_formatted_as}
         """)
 
     rewind_after_getting_a_valid_response: Optional[Rewind] = Rewind.AS_FRESH
@@ -433,10 +432,14 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
             return extract_content_of_triple_quote_block(response, self.goal_noun, None)
         except FailedExtractingBlock as e:
             self._raise_self_response_error(
-                str(e),
+                title='# Failed to extract triple quote block',
+                error_message=str(e),
                 missing_end=isinstance(e, IncompleteBlockFailedExtractingBlock)
             )
 
     def _check_flanked_response_is_not_just_header(self, response: str):
         if response.count('\n') < 2 and response.count(' ') < 5:
-            self._raise_self_response_error(self.flanked_header)
+            self._raise_self_response_error(
+                title='# Response seems too short',
+                error_message='Make sure you are flanking the entire response and not just the headers.'
+            )

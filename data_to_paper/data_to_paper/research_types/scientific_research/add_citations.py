@@ -47,23 +47,22 @@ class RewriteSentenceWithCitations(PythonValueReviewBackgroundProductsConverser)
         Choose as many relevant citations as possible from the following citations:
 
         {citations}
+        
+        Your response should be formatted as {your_response_should_be_formatted_as}
+        """)
 
-        Send your reply formatted as a Python list of str, representing the ids of the citations you choose. 
-        For example, write:
+    your_response_should_be_formatted_as: str = dedent_triple_quote_str("""
+        a Python List[str], representing the ids of the citations you choose. 
+        For example:
         ```python
         ["AuthorX2022", "AuthorY2009"]
         ```
 
-        where AuthorX2022 and AuthorY2009 are the ids of the citations you think are making a good fit for the sentence.
+        where "AuthorX2022" and "AuthorY2009" are the ids of the citations you think are a good fit for the sentence.
         Choose only citations that are relevant to the sentence.
-        You can choose one or more citations, or you can choose not adding citations to this sentence by replying `[]`.
-        """)
-
-    response_to_self_error = dedent_triple_quote_str("""
-        {}
-        Please try again making sure you return the chosen citations with the correct format, like this:
-        ``` 
-        ["AuthorX2022Title", "AuthorY2009Title"]
+        You can choose one or more citations, or you can choose not adding citations to this sentence by replying:
+        ```python
+        []
         ```
         """)
 
@@ -81,6 +80,8 @@ class RewriteSentenceWithCitations(PythonValueReviewBackgroundProductsConverser)
         ids_not_in_options = self._add_citations_in_options_and_return_citations_not_in_options(response_value)
         if len(ids_not_in_options) > 0:
             self._raise_self_response_error(
+                title='# Invalid citations',
+                error_message=
                 f'You returned {ids_not_in_options}, which is not part of the allowed options: {self.citation_ids}.')
         return None  # this will get into the response_value, which we are not using.
 
@@ -141,8 +142,18 @@ class AddCitationReviewGPT(PythonValueReviewBackgroundProductsConverser):
     mission_prompt: str = dedent_triple_quote_str("""
         Extract from the above section of a scientific paper all the factual sentences to which we need to \t
         add citations.
+        
+        Your response should be formatted as {your_response_should_be_formatted_as}
 
-        Return a Python Dict[str, str] mapping each chosen sentence to a short literature search query \t
+        Identify *all* the sentences that you think we need to add citations to - you should include any sentence 
+        that can benefit from a reference.
+
+        However, be cautious to avoid choosing sentences that do not refer to existing knowledge, but rather \t
+        describe the finding of the current paper.
+        """)
+
+    your_response_should_be_formatted_as: str = dedent_triple_quote_str("""
+        a Python Dict[str, str] mapping each chosen sentence to a short literature search query \t
         (up to a maximum of 5 words), like this:
 
         ```python
@@ -151,21 +162,6 @@ class AddCitationReviewGPT(PythonValueReviewBackgroundProductsConverser):
          "This is another important claim": "Some important keywords for this sentence", 
          "This is the another factual sentence that needs a source": "This is the best query for this sentence",
         }
-        ```
-
-        Identify *all* the sentences that you think we need to add citations to - you should include any sentence 
-        that can benefit from a reference.
-
-        However, be cautious to avoid choosing sentences that do not refer to existing knowledge, but rather \t
-        describe the finding of the current paper.
-    """)
-
-    response_to_self_error: str = dedent_triple_quote_str("""
-        {}
-        Please try again making sure you return the results with the correct format, like this:
-        ```python
-        {"sentence extracted from the section": "query of the key sentence", 
-        "another sentence extracted from the section": "the query of this sentence"}
         ```
     """)
 
@@ -233,10 +229,15 @@ class AddCitationReviewGPT(PythonValueReviewBackgroundProductsConverser):
         if sentences_not_in_section:
             if len(sentences_not_in_section) == len(response_value):
                 self._raise_self_response_error(
-                    f'The sentences that you returned are not precise extraction from the section.')
+                    title='# No sentences in the section',
+                    error_message='The sentences that you returned are not precise extraction from the section.'
+                )
             self._raise_self_response_error(
+                title='# Some sentences not in the section',
+                error_message=
                 f'The following sentences that you returned are not precise extraction from the section:\n'
-                f'{sentences_not_in_section}.\n')
+                f'{sentences_not_in_section}.\n'
+            )
         return None  # this will get into the response_value, which we are not using.
 
     def rewrite_section_with_citations(self) -> Tuple[str, ListBasedSet[CrossrefCitation]]:

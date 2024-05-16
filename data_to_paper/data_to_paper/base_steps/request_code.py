@@ -13,7 +13,6 @@ from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.utils.replacer import Replacer
 from data_to_paper.code_and_output_files.file_view_params import ContentViewPurpose
-from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
 
 from .debugger import DebuggerConverser
 from .base_products_conversers import BackgroundProductsConverser
@@ -41,16 +40,19 @@ class CodeReviewPrompt(NamedTuple):
 class RequestIssuesToSolutions(PythonDictReviewBackgroundProductsConverser):
     LLM_PARAMETERS = {'temperature': 0.0}
     value_type: type = Dict[str, Tuple[str, str]]
-    response_to_self_error: str = dedent_triple_quote_str("""
-        {}
-        
-        Your response should include a Python dictionary Dict[str, Tuple[str, str]], \t
-        mapping the checks you have done (keys) to a Tuple[str, str], either indicating a concern \t
-        ("CONCERN", "<your concern>") or your assertion that it is ok ("OK", "<your assertion>").
+    your_response_should_be_formatted_as: str = dedent_triple_quote_str("""
+        a Python Dict[str, Tuple[str, str]], \t
+        mapping the checks you have done (keys) to a Tuple[str, str], indicating either your concern \t
+        ("CONCERN", "<your concern>") or your assertion that this check is ok ("OK", "<your assertion>").""")
+    formatting_instructions_for_feedback: str = dedent_triple_quote_str("""
+        Please correct your response according to my feedback, and send it again.
         
         Note that the different checks (dict keys) I have listed above are just examples.
         You should add/remove/modify checks to fit with the specifics of the code we are reviewing.
+        
+        Remember, your response should be formatted as {your_response_should_be_formatted_as}
         """)
+    
     is_new_conversation: Optional[bool] = False
     rewind_after_getting_a_valid_response: Rewind = Rewind.DELETE_ALL
     default_rewind_for_result_error: Rewind = Rewind.AS_FRESH_CORRECTION
@@ -58,14 +60,14 @@ class RequestIssuesToSolutions(PythonDictReviewBackgroundProductsConverser):
     def _check_response_value(self, response_value: Any) -> Any:
         # The type and structure of the response is checked in the parent class.
         response_value = super()._check_response_value(response_value)
-        for key, (is_ok, feedback) in response_value.items():
-            is_ok = is_ok.upper()
-            if is_ok not in ('CONCERN', 'OK'):
-                self._raise_self_response_error(dedent_triple_quote_str(f"""
-                    Invalid value. The first element of the tuple should be \t
-                    either "CONCERN" or "OK", but got "{is_ok}".
-                    """))
-            response_value[key] = (is_ok, feedback)
+        for key, (type_, feedback) in response_value.items():
+            type_ = type_.upper()
+            if type_ not in ('CONCERN', 'OK'):
+                self._raise_self_response_error(
+                    title='# Invalid value.',
+                    error_message=f'The first element of the tuple should be "CONCERN" or "OK", but got "{type_}".'
+                )
+            response_value[key] = (type_, feedback)
         return response_value
 
 
@@ -111,12 +113,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         ```
         """)  # set to None to not present code
 
-    code_review_formatting_instructions: str = dedent_triple_quote_str("""
-        Return your assessment as a Python Dict[str, Tuple[str, str]], \t
-        where the keys are descriptions of checks you have performed and the values are \t
-        ("OK", "<your assertion>") when you concluded that the point is addressed correctly in the code, or \t
-        ("CONCERN", "<your concern>") when you found an issue that needs to be fixed.
-        """)
+    code_review_formatting_instructions: str = RequestIssuesToSolutions.your_response_should_be_formatted_as
 
     code_review_notes: str = dedent_triple_quote_str("""
         Notes:
@@ -298,8 +295,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         - llm_msg: a string with the issues that are problems to send to the LLM
         - app_msg: a string with all the issues to present in the app
         """
-        ok_issues = {issue: feedback for issue, (is_ok, feedback) in issues.items() if is_ok == 'OK'}
-        concern_issues = {issue: feedback for issue, (is_ok, feedback) in issues.items() if is_ok != 'OK'}
+        concern_issues = {issue: feedback for issue, (type_, feedback) in issues.items() if type_ != 'OK'}
 
         llm_msg = '\n\n'.join(f'# {issue}\n{solution}' for issue, solution in concern_issues.items())
         if llm_msg:
@@ -309,7 +305,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
 
         app_msg = '## LLM Code Review\n'
         if issues:
-            app_msg += '\n'.join(f'### {issue} ({is_ok})\n{feedback}' for issue, (is_ok, feedback) in issues.items())
+            app_msg += '\n'.join(f'### {issue} ({type_})\n{feedback}' for issue, (type_, feedback) in issues.items())
         else:
             app_msg += f'### {termination_phrase}'
         return llm_msg, app_msg

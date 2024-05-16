@@ -70,11 +70,11 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
         Please suggest a research goal and an hypothesis that can be studied using only the provided dataset. 
         The goal and hypothesis should be interesting and novel.
         {goal_guidelines}
-        {quote_request}
+        
+        Your response should be formatted as {your_response_should_be_formatted_as}
         """)
-    quote_request: str = dedent_triple_quote_str("""
-        INSTRUCTIONS FOR FORMATTING YOUR RESPONSE:
-        Please return the goal and hypothesis enclosed within a triple-backtick block, like this:
+    your_response_should_be_formatted_as: str = dedent_triple_quote_str("""
+        a triple-backtick block, like this:
         ```
         # Research Goal: 
         <your research goal here>
@@ -107,7 +107,10 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
 
     def _check_extracted_text_and_update_valid_result(self, extracted_text: str):
         if '\n# Research Goal:' not in extracted_text or '\n# Hypothesis:' not in extracted_text:
-            self._raise_self_response_error(self.quote_request)
+            self._raise_self_response_error(
+                title='# Incorrect response format',
+                error_message='Your response should contain both a "# Research Goal:" and a "# Hypothesis:" section.',
+            )
         self._update_valid_result(extracted_text)
 
 
@@ -264,7 +267,8 @@ class ReGoalReviewGPT(GoalReviewGPT):
         please revise, or completely re-write, the research goal and hypothesis that we have so that they \t
         do not completely overlap existing literature.
         {goal_guidelines}
-        {quote_request}
+        
+        Your response should be formatted as {your_response_should_be_formatted_as}
         """)
 
 
