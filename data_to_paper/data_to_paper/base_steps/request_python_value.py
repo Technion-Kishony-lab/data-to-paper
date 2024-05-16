@@ -22,6 +22,7 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
     value_type: type = None
     rewind_after_getting_a_valid_response: Optional[Rewind] = Rewind.AS_FRESH
     json_mode: bool = False
+    your_response_should_be_formatted_as: str = '{property_your_response_should_be_formatted_as}'
 
     def __post_init__(self):
         super().__post_init__()
@@ -29,7 +30,7 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
             self.llm_parameters['response_format'] = {"type": "json_object"}
 
     @property
-    def your_response_should_be_formatted_as(self) -> str:
+    def property_your_response_should_be_formatted_as(self) -> str:
         if self.json_mode:
             return f"a JSON object that can be evaluated with `json.loads()` to a Python {self.type_name}."
         return f"a Python {self.type_name} wrapped within a triple backtick 'python' code block."

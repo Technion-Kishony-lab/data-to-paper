@@ -10,7 +10,7 @@ from data_to_paper.interactive.enum_types import PanelNames
 
 
 # TODO: Need to make this into a real test
-@pytest.mark.skip(reason="Need some work to make it into a real test")
+# @pytest.mark.skip(reason="Need some work to make it into a real test")
 def test_pyside_app():
     def func_to_run():
         # Request text input from the user with an initial text

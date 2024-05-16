@@ -27,6 +27,7 @@ from data_to_paper.base_cast import Agent
 from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
 
 from .base_products_conversers import BackgroundProductsConverser
+from ..interactive.symbols import Symbols
 
 KNOWN_MIS_IMPORTS = {
     'Mediation': 'statsmodels.stats.mediation',
@@ -611,7 +612,9 @@ class DebuggerConverser(BackgroundProductsConverser):
             if code_and_output is not None:
                 self._app_send_prompt(
                     PanelNames.FEEDBACK,
-                    wrap_text_with_triple_quotes('Code ran without issues and passed rule-based checks', 'ok'),
+                    f'## {Symbols.CHECK_SYMBOL} Code check successful\n' +
+                    "Code ran without issues and passed all rule-based checks",
+                    from_md=True,
                     sleep_for=PAUSE_AT_RULE_BASED_FEEDBACK)
                 return code_and_output
         self.apply_append_user_message(

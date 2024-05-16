@@ -40,7 +40,7 @@ class AppInteractor:
             self.app.request_panel_continue(panel_name)
 
     def _app_send_prompt(self, panel_name: PanelNames, prompt: StrOrReplacer = '', provided_as_html: bool = False,
-                         from_md: bool = False, demote_headers_by: int = 0, sleep_for: Optional[float] = 0,
+                         from_md: bool = False, demote_headers_by: int = 0, sleep_for: Union[None, float, bool] = 0,
                          scroll_to_bottom: bool = False):
         if self.app is None:
             return
@@ -70,15 +70,26 @@ class AppInteractor:
                           title: Optional[str] = '',
                           instructions: Optional[str] = '',
                           in_field_instructions: Optional[str] = '',
-                          optional_suggestions: Dict[str, str] = None) -> str:
+                          optional_suggestions: Dict[str, str] = None,
+                          sleep_for: Union[None, float, bool] = 0) -> str:
+        is_playback = are_more_responses_available()
         action = self._app_receive_action(panel_name, initial_text, title, instructions, in_field_instructions,
                                           optional_suggestions)
         if isinstance(action, TextSentHumanAction):
-            return action.value
-        button = action.value
-        if button == 'Initial':
-            return initial_text
-        return optional_suggestions[button]
+            content = action.value
+        else:
+            button = action.value
+            if button == 'Initial':
+                content = initial_text
+            else:
+                content = optional_suggestions[button]
+        if is_playback and REQUEST_CONTINUE_IN_PLAYBACK:
+            sleep_for = None
+        if not is_playback:
+            sleep_for = 0
+        self._app_send_prompt(panel_name, content, from_md=True, demote_headers_by=1,
+                              sleep_for=sleep_for)
+        return content
 
     def _app_receive_action(self, panel_name: PanelNames, initial_text: str = '',
                             title: Optional[str] = '',

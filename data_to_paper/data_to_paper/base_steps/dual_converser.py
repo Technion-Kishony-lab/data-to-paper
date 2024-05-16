@@ -323,7 +323,7 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
         if self._is_reviewer_response_terminating(other_response):
             if self.append_termination_response_to_self:
                 self.apply_append_user_message(other_response, context=other_message.context if other_message else None,
-                                               sleep_for=PAUSE_AT_LLM_FEEDBACK.val and not self.human_review)
+                                               sleep_for=not self.human_review and PAUSE_AT_LLM_FEEDBACK.val)
             return CycleStatus.APPROVED_BY_OTHER
 
         self.get_response_from_self_in_response_to_response_from_other(altered_other_response)

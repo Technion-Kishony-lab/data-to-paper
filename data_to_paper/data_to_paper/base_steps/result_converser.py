@@ -12,6 +12,7 @@ from data_to_paper.conversation.stage import Stage
 from data_to_paper.env import PAUSE_AT_RULE_BASED_FEEDBACK
 from data_to_paper.exceptions import data_to_paperException
 from data_to_paper.interactive import PanelNames
+from data_to_paper.interactive.symbols import Symbols
 from data_to_paper.utils import format_text_with_code_blocks
 from data_to_paper.utils.mutable import Flag
 from data_to_paper.utils.print_to_file import print_and_log_red
@@ -420,10 +421,12 @@ class ResultConverser(Converser):
                     if model_was_bumped:
                         msg = f"You seem totally drunk. Let's Bump you to {self.model_engine} and try again..."
                         print_and_log_red(msg)
-            else:
-                self._app_send_prompt(PanelNames.FEEDBACK,
-                                      wrap_text_with_triple_quotes('Rule-based check passed.', 'ok'),
-                                      sleep_for=PAUSE_AT_RULE_BASED_FEEDBACK)
+            # else:
+            #     self._app_send_prompt(PanelNames.FEEDBACK,
+            #                           f'## {Symbols.CHECK_SYMBOL} Rule-based check passed.\n'
+            #                           'The LLM response has successfully passed all rule-based checks.',
+            #                           from_md=True,
+            #                           sleep_for=PAUSE_AT_RULE_BASED_FEEDBACK)
 
             rewind = response_error.rewind if response_error else self.rewind_after_getting_a_valid_response
 

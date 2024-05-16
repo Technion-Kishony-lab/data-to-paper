@@ -19,7 +19,7 @@ class FailedExtractingBlock(Exception):
         return ''
 
     def __str__(self):
-        return f"# Error extracting '{self.block_name()}' block:\n" + self.get_problem()
+        return f"Error extracting '{self.block_name()}' block:\n" + self.get_problem()
 
 
 @dataclass

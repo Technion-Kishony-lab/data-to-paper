@@ -2,14 +2,15 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from typing import Optional, Any
+from typing import Optional, Any, Union
 
 from data_to_paper import Message
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
-from data_to_paper.env import TEXT_WIDTH
+from data_to_paper.env import TEXT_WIDTH, REQUEST_CONTINUE_IN_PLAYBACK
 from data_to_paper.conversation import ConversationManager, GeneralMessageDesignation
 from data_to_paper.interactive import PanelNames
 from data_to_paper.interactive.app_interactor import AppInteractor
+from data_to_paper.servers.llm_call import are_more_responses_available
 from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils.copier import Copier
 from data_to_paper.utils.replacer import StrOrReplacer, format_value
@@ -137,7 +138,8 @@ class Converser(Copier, AppInteractor):
         if send_to_app and self.app:
             if editing_title or editing_instructions:
                 content = self._app_receive_text(app_panel, content,
-                                                 title=editing_title, instructions=editing_instructions)
+                                                 title=editing_title, instructions=editing_instructions,
+                                                 sleep_for=sleep_for)
             self._app_send_prompt(app_panel, content, from_md=True, demote_headers_by=1,
                                   sleep_for=sleep_for)
         return content
@@ -148,7 +150,7 @@ class Converser(Copier, AppInteractor):
                                   previous_code: Optional[str] = None, is_background: bool = False,
                                   send_to_app: Optional[bool] = None, app_panel: PanelNames = PanelNames.FEEDBACK,
                                   editing_title: str = None, editing_instructions: str = None,
-                                  sleep_for: Optional[float] = 0,
+                                  sleep_for: Union[None, float, bool] = 0,
                                   **kwargs):
         if send_to_app is None:
             send_to_app = not is_background and not ignore

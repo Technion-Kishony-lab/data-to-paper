@@ -465,7 +465,6 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         ('additional_results_linked', 'additional_results'),
         ('data_file_descriptions_no_headers_linked', 'data_file_descriptions_no_headers'),
     )
-    formatting_instructions_for_feedback = s
     max_reviewing_rounds: int = 1
     section_specific_instructions: str = dedent_triple_quote_str("""
         {general_result_instructions}

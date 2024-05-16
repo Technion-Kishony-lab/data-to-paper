@@ -1,3 +1,4 @@
+from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, Tuple, Dict, Type, Any, Iterable, NamedTuple, Collection
@@ -19,6 +20,7 @@ from .base_products_conversers import BackgroundProductsConverser
 from .exceptions import FailedCreatingProductException
 from .request_python_value import PythonDictReviewBackgroundProductsConverser
 from .result_converser import Rewind
+from ..interactive.symbols import Symbols
 
 
 class CodeReviewPrompt(NamedTuple):
@@ -32,8 +34,15 @@ class CodeReviewPrompt(NamedTuple):
     # if True, the code review is done separately for each file that matches the wildcard_filename
 
     prompt: str
+
     # use {filename} to include the name of the created file
     # use {file_contents_str} to include the content of the created file(s)
+
+    def get_header(self) -> str:
+        header = 'Review'
+        if self.name:
+            header += f' of {self.name}'
+        return header
 
 
 @dataclass
@@ -52,7 +61,7 @@ class RequestIssuesToSolutions(PythonDictReviewBackgroundProductsConverser):
         
         Remember, your response should be formatted as {your_response_should_be_formatted_as}
         """)
-    
+
     is_new_conversation: Optional[bool] = False
     rewind_after_getting_a_valid_response: Rewind = Rewind.DELETE_ALL
     default_rewind_for_result_error: Rewind = Rewind.AS_FRESH_CORRECTION
@@ -221,7 +230,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                 raise FailedCreatingProductException("Code debugging failed.")
             if self.revision_round == self.max_code_revisions:
                 break
-            if not self._are_further_code_revisions_needed(code_and_output, debugger):
+            if not self._get_llm_review_and_human_review(code_and_output, debugger):
                 break
             # delete created files:
             code_and_output.created_files.delete_all_created_files(self.data_folder)
@@ -288,13 +297,17 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         return content_files_to_contents
 
     @staticmethod
-    def _convert_issues_to_is_ok_and_feedback_to_strs(issues: Dict[str, Tuple[str, str]],
-                                                      termination_phrase: str) -> Tuple[str, str]:
+    def _convert_issues_to_messages(issues: Dict[str, Tuple[str, str]],
+                                    termination_phrase: str) -> Tuple[str, str]:
         """
         Convert the issues to:
         - llm_msg: a string with the issues that are problems to send to the LLM
         - app_msg: a string with all the issues to present in the app
         """
+
+        def _get_sign(type_: str) -> str:
+            return Symbols.CHECK_SYMBOL if type_ == 'OK' else Symbols.CROSS_SYMBOL
+
         concern_issues = {issue: feedback for issue, (type_, feedback) in issues.items() if type_ != 'OK'}
 
         llm_msg = '\n\n'.join(f'# {issue}\n{solution}' for issue, solution in concern_issues.items())
@@ -303,14 +316,14 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         else:
             llm_msg = termination_phrase
 
-        app_msg = '## LLM Code Review\n'
         if issues:
-            app_msg += '\n'.join(f'### {issue} ({type_})\n{feedback}' for issue, (type_, feedback) in issues.items())
+            app_msg = '\n'.join(
+                f'### {_get_sign(type_)} {issue}\n{feedback}' for issue, (type_, feedback) in issues.items())
         else:
-            app_msg += f'### {termination_phrase}'
+            app_msg = f'### {termination_phrase}'
         return llm_msg, app_msg
 
-    def _are_further_code_revisions_needed(self, code_and_output: CodeAndOutput, debugger: DebuggerConverser) -> bool:
+    def _get_llm_review_and_human_review(self, code_and_output: CodeAndOutput, debugger: DebuggerConverser) -> bool:
         """
         Return True/False indicating if the LLM wants to revise the code.
         If true, set the conversation to the state where the user ask the LLM to revise the code.
@@ -322,22 +335,16 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
             content_files_to_contents = self._get_content_files_to_contents(
                 code_and_output, code_review_prompt.wildcard_filename, code_review_prompt.individually)
             for filename, file_contents_str in content_files_to_contents.items():
+                replacing_kwargs = dict(
+                    file_contents_str=file_contents_str,
+                    filename=filename,
+                    **{k: Replacer(self, v).format_text()
+                       for k, v in self._get_specific_attrs_for_code_and_output(code_and_output).items()},
+                )
+                header = Replacer(self, code_review_prompt.get_header(), kwargs=replacing_kwargs).format_text()
                 formatted_code_review_prompt = \
-                    Replacer(
-                        self, code_review_prompt.prompt,
-                        kwargs=dict(
-                            file_contents_str=file_contents_str,
-                            filename=filename,
-                            **{k: Replacer(self, v).format_text()
-                               for k, v in self._get_specific_attrs_for_code_and_output(code_and_output).items()},
-                        ))
-                if not formatted_code_review_prompt:
-                    continue
+                    Replacer(self, '## Request ' + header + '\n' + code_review_prompt.prompt, kwargs=replacing_kwargs)
                 self._app_send_prompt(PanelNames.FEEDBACK)
-                header = 'Review'
-                if code_review_prompt.name:
-                    review_name = Replacer(self, code_review_prompt.name, kwargs=dict(filename=filename))
-                    header += f' of {review_name}'
                 self._app_send_prompt(PanelNames.FEEDBACK, formatted_code_review_prompt,
                                       sleep_for=PAUSE_AT_PROMPT_FOR_LLM_FEEDBACK, from_md=True)
                 with self._app_temporarily_set_panel_status(PanelNames.FEEDBACK, f"Waiting for LLM {header}"):
@@ -350,16 +357,15 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                     ).run_and_get_valid_result(with_review=False)
                 termination_phrase = f'{header}: no issues found.'
                 llm_msg, app_msg = \
-                    self._convert_issues_to_is_ok_and_feedback_to_strs(issues_to_is_ok_and_feedback, termination_phrase)
-                self._app_send_prompt(PanelNames.FEEDBACK, app_msg,
+                    self._convert_issues_to_messages(issues_to_is_ok_and_feedback, termination_phrase)
+                self._app_send_prompt(PanelNames.FEEDBACK, f'## LLM {header}\n{app_msg}',
                                       sleep_for=PAUSE_AT_LLM_FEEDBACK, from_md=True)
                 if self.app and (HUMAN_EDIT_CODE_REVIEW or (HUMAN_EDIT_CODE_REVIEW is None and is_last_review)):
                     llm_msg = self._app_receive_text(
                         PanelNames.FEEDBACK, '',
-                        title='Code Review Requested',
+                        title='Human Code Review',
                         in_field_instructions=dedent_triple_quote_str("""
-                            Feedback on code and output.
-                            Check carefully the code and the output file(s) and provide feedback on any issues.  
+                            Enter your feedback on code and output.
                             Leave blank if no issues.
                             """),
                         optional_suggestions={'AI': llm_msg, 'Default': ''})
