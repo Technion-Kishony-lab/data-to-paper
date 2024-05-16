@@ -631,16 +631,16 @@ class PysideApp(QMainWindow, BaseApp):
             cls.instance = cls(mutex, condition)
         return cls.instance
 
-    def start_worker(self):
+    def start_worker(self, func_to_run=None):
         # Start the worker thread
-        self.worker.func_to_run = self._run_all_steps
+        self.worker.func_to_run = func_to_run or self._run_all_steps
         self.worker.start()
 
-    def initialize(self):
+    def initialize(self, func_to_run=None):
         self.step_panel.init_ui({stage.value: partial(self.show_product_for_stage, stage)
                                  for stage in self._get_all_steps()})
         self.show()
-        self.start_worker()
+        self.start_worker(func_to_run)
         return get_or_create_q_application_if_app_is_pyside().exec()
 
     @Slot(PanelNames, int, str)

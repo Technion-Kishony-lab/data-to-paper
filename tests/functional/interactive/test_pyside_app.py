@@ -3,6 +3,7 @@ import time
 
 import pytest
 
+from data_to_paper.env import CHOSEN_APP
 from data_to_paper.interactive.get_app import get_or_create_q_application_if_app_is_pyside
 from data_to_paper.interactive.pyside_app import PysideApp
 from data_to_paper.interactive.enum_types import PanelNames
@@ -19,8 +20,8 @@ def test_pyside_app():
         # Show the processed text in the UI
         app.show_text(PanelNames.SYSTEM_PROMPT, "Hi " + text_input)
 
-    q_application = get_or_create_q_application_if_app_is_pyside()
-    app = PysideApp.get_instance()
-    app.initialize()
-    app.start_worker(func_to_run)
-    sys.exit(q_application.exec())
+    with CHOSEN_APP.temporary_set('pyside'):
+        q_application = get_or_create_q_application_if_app_is_pyside()
+        app = PysideApp.get_instance()
+        app.initialize(func_to_run)
+        sys.exit(q_application.exec())

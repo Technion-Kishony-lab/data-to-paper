@@ -84,6 +84,8 @@ class BaseApp:
         self.step_runner.run_all_steps()
 
     def _get_all_steps(self):
+        if self.step_runner is None:
+            return []
         return self.step_runner.stages
 
     def _set_status(self, panel_name: PanelNames, position: int, status: str = ''):
