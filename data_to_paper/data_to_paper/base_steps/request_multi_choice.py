@@ -20,12 +20,11 @@ class MultiChoiceBackgroundProductsConverser(BackgroundProductsConverser):
         1. Looks good. Choice 1.
         2. Something is wrong. Choice 2.
 
-        {choice_instructions}
+        Your response should be formatted as {your_response_should_be_formatted_as}
         """)
 
-    choice_instructions: str = dedent_triple_quote_str("""
-        Answer with just a single character, designating the option you choose {possible_choices}.
-        """)
+    your_response_should_be_formatted_as: str = \
+        "a single character, designating the option you choose {possible_choices}."
 
     possible_choices: Tuple[str, ...] = ('1', '2')
 
@@ -36,7 +35,10 @@ class MultiChoiceBackgroundProductsConverser(BackgroundProductsConverser):
         choices_in_response = [choice for choice in self.possible_choices if choice in response]
         if len(choices_in_response) == 1:
             return choices_in_response[0]
-        self._raise_self_response_error(self.choice_instructions)
+        self._raise_self_response_error(
+            title='# Could not extract the chosen choice',
+            error_message=f'Could not extract a single choice from the response.',
+        )
 
     def _check_extracted_text_and_update_valid_result(self, extracted_text: str):
         chosen_choice = self._get_chosen_choice_from_response(extracted_text)

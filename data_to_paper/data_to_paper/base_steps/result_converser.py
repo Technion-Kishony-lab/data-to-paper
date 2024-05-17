@@ -9,13 +9,13 @@ from data_to_paper.base_steps.converser import Converser
 from data_to_paper.base_steps.exceptions import FailedCreatingProductException
 from data_to_paper.conversation.message_designation import RangeMessageDesignation, SingleMessageDesignation
 from data_to_paper.conversation.stage import Stage
+from data_to_paper.env import PAUSE_AT_RULE_BASED_FEEDBACK
 from data_to_paper.exceptions import data_to_paperException
 from data_to_paper.interactive import PanelNames
 from data_to_paper.utils import format_text_with_code_blocks
 from data_to_paper.utils.mutable import Flag
 from data_to_paper.utils.print_to_file import print_and_log_red
-from data_to_paper.utils.replacer import Replacer, StrOrReplacer, format_value
-from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
+from data_to_paper.utils.replacer import StrOrReplacer, format_value
 
 
 class Rewind(Enum):
@@ -89,14 +89,16 @@ class SelfResponseError(data_to_paperException):
     """
     Exception raised when the response to a request for a latex section is not acceptable.
     """
-    error_message: StrOrReplacer = None
+    error_message: str = None
+    title: str = ''
+    formatting_instructions: str = None
     rewind: Rewind = None
     bump_model: Optional[BumpModel] = None
     add_iterations: int = 0
     # if positive, we will *reduce* the iteration count so that we have more iterations to correct the response
 
     def __str__(self):
-        return self.error_message
+        return f'SelfResponseError: {self.error_message}'
 
 
 class NoResponse:
@@ -131,8 +133,10 @@ class ResultConverser(Converser):
 
     max_valid_response_iterations: int = 6
 
-    response_to_self_error: str = "{}"
-    # {} is the error message. subclasses can add additional text you want to send to self upon error in its response.
+    your_response_should_be_formatted_as: str = ""
+
+    formatting_instructions_for_feedback: str = \
+        "Your response should be formatted as {your_response_should_be_formatted_as}"
 
     default_rewind_for_result_error: Rewind = Rewind.AS_FRESH
     # Can be any of the Rewind options. In particular:
@@ -185,8 +189,8 @@ class ResultConverser(Converser):
         """
         if self.mission_prompt:
             self.apply_append_user_message(self.mission_prompt, app_panel=PanelNames.MISSION_PROMPT,
-                                           editing_title='Input requested',
-                                           editing_instructions='Please revise the mission prompt as needed.')
+                                           editing_title='Revise as needed',
+                                           in_field_instructions='Write the mission prompt.')
 
     @property
     def _has_valid_result(self) -> bool:
@@ -216,7 +220,9 @@ class ResultConverser(Converser):
             self._app_send_prompt(PanelNames.PRODUCT, html, provided_as_html=True)
 
     def _raise_self_response_error(self,
+                                   title: str,
                                    error_message: StrOrReplacer,
+                                   formatting_instructions: StrOrReplacer = None,
                                    missing_end: bool = False,
                                    rewind: Optional[Rewind] = None,
                                    add_iterations: Optional[int] = None,
@@ -253,8 +259,18 @@ class ResultConverser(Converser):
                 add_iterations = 0
             if bump_model is None:
                 bump_model = BumpModel.DO_NOT_BUMP
-        raise SelfResponseError(format_value(self, error_message), rewind=rewind, bump_model=bump_model,
+        raise SelfResponseError(format_value(self, error_message),
+                                title=title, formatting_instructions=formatting_instructions,
+                                rewind=rewind, bump_model=bump_model,
                                 add_iterations=add_iterations)
+
+    def _convert_response_error_to_error_message(self, response_error: SelfResponseError) -> str:
+        """
+        Convert the response error to an error message.
+        """
+        formatting_instructions = response_error.formatting_instructions or self.formatting_instructions_for_feedback
+        return format_value(self, response_error.title) + '\n' + format_value(self, response_error.error_message) \
+            + '\n' + format_value(self, formatting_instructions)
 
     """
     Response --> extracted_text --> valid_result --> Product
@@ -372,7 +388,7 @@ class ResultConverser(Converser):
                 self_response = self_message.content
 
             # check if the response is valid:
-            with self._app_with_set_panel_status(PanelNames.FEEDBACK, 'Rule-based check ...'):
+            with self._app_temporarily_set_panel_status(PanelNames.FEEDBACK, 'Rule-based check ...'):
                 self._app_send_prompt(PanelNames.FEEDBACK)
                 response_error = None
                 extracted_text = None
@@ -402,10 +418,12 @@ class ResultConverser(Converser):
                     if model_was_bumped:
                         msg = f"You seem totally drunk. Let's Bump you to {self.model_engine} and try again..."
                         print_and_log_red(msg)
-            else:
-                self._app_send_prompt(PanelNames.FEEDBACK,
-                                      wrap_text_with_triple_quotes('Rule-based check passed.', 'ok'),
-                                      sleep_for=2)
+            # else:
+            #     self._app_send_prompt(PanelNames.FEEDBACK,
+            #                           f'## {Symbols.CHECK_SYMBOL} Rule-based check passed.\n'
+            #                           'The LLM response has successfully passed all rule-based checks.',
+            #                           from_md=True,
+            #                           sleep_for=PAUSE_AT_RULE_BASED_FEEDBACK)
 
             rewind = response_error.rewind if response_error else self.rewind_after_getting_a_valid_response
 
@@ -418,8 +436,8 @@ class ResultConverser(Converser):
                     self._convert_extracted_text_to_fresh_looking_response(extracted_text))
             # add the rule-based error message:
             if response_error:
-                self.apply_append_user_message(
-                    Replacer(self, self.response_to_self_error, args=(response_error.error_message,)))
+                self.apply_append_user_message(self._convert_response_error_to_error_message(response_error),
+                                               sleep_for=PAUSE_AT_RULE_BASED_FEEDBACK)
 
             # rewind:
             if rewind == Rewind.RESTART:
@@ -452,7 +470,7 @@ class ResultConverser(Converser):
         """
         Post-run actions.
         """
-        self._app_request_continue()
+        pass
 
     def _run_and_return_termination_reason(self, *args, **kwargs) -> Any:
         """

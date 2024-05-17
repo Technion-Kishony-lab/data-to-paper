@@ -10,7 +10,7 @@ class BaseProductsQuotedReviewGPT(QuotedReviewDialogDualConverserGPT, ReviewBack
     """
     Base class for conversers that specify prior products and then set a goal for the new product
     to be suggested and reviewed.
-    The goal is requested from the user as a triple quoted text thereby allowing extraction.
+    The goal is requested from the user as a triple-backtick text thereby allowing extraction.
     Option for reviewing the sections (set max_review_turns > 0).
     """
 

@@ -7,14 +7,15 @@ from pygments.formatters.html import HtmlFormatter
 from pygments.lexers import PythonLexer
 from pygments.lexer import RegexLexer
 from pygments.formatters import Terminal256Formatter
-from pygments.lexers import TextLexer
 from pygments.styles import get_style_by_name
 from pygments import highlight, token
+from typing import List
+
+from data_to_paper.latex.latex_to_html import convert_latex_to_html
+from data_to_paper.env import CHOSEN_APP
 
 from .formatted_sections import FormattedSections
-from .text_formatting import wrap_string
-from data_to_paper.latex.latex_to_html import convert_latex_to_html
-from ..env import CHOSEN_APP
+from .text_formatting import wrap_string, wrap_text_with_triple_quotes
 
 COLORS_TO_LIGHT_COLORS = {
     colorama.Fore.BLACK: colorama.Fore.LIGHTBLACK_EX,
@@ -64,7 +65,7 @@ def output_to_highlighted_html(output_str: str) -> str:
     return highlight(output_str, CSVLexer(), html_code_formatter)
 
 
-def python_to_highlighted_text(code_str: str, color: str = '') -> str:
+def python_to_highlighted_text(code_str: str, color: str = '', label: Optional[str] = None) -> str:
     if color:
         return highlight(code_str, PythonLexer(), terminal_formatter)
     else:
@@ -97,10 +98,14 @@ def md_to_html(md):
         if re.match(pattern=r'^#{1,5} ', string=line):
             header_level = len(line.split(' ')[0])
             html_line = f'<h{header_level}>{line[header_level + 1:]}</h{header_level}>'
+            if html_lines and html_lines[-1] == '<br>':
+                html_lines.pop()
         elif line.startswith('- '):
             html_line = f'<li>- {line[2:]}</li>'
         elif line.startswith('* '):
             html_line = f'<li>* {line[2:]}</li>'
+        elif not line.strip():
+            html_line = '<br>'
         else:
             html_line = line + '<br>'
         html_lines.append(html_line)
@@ -109,59 +114,58 @@ def md_to_html(md):
     # Convert bold and italic
     md = re.sub(pattern=r'\*\*(.*?)\*\*', repl=r'<b>\1</b>', string=md)
     md = re.sub(pattern=r'\*(.*?)\*', repl=r'<i>\1</i>', string=md)
-
-    # Wrap with css class
-    md = f'<div class="markdown">{md}</div>'
     return md
 
 
-def text_to_red_html(text: str) -> str:
-    return f'<span style="color: red;">{text}</span>'
-
-
-def text_to_green_html(text: str) -> str:
-    return (f'<span style="color: green; font-size: 16px;">{text}</span>')
-
-
-def text_to_html(text: str, textblock: bool = False, from_md: bool = False) -> str:
-    if not textblock and CHOSEN_APP == 'pyside':
-        if from_md:
-            return md_to_html(text)
-        return text.replace('\n', '<br>')
-
-    # using some hacky stuff to get around pygments not highlighting text blocks, while kipping newlines as <br>
-    text = '|' + text + '|'
-    if textblock:
-        html = highlight(text, TextLexer(), html_textblock_formatter)
+def text_to_html(text: str, label: Optional[str] = None,
+                 from_md: bool = False, css_class: Optional[str] = 'markdown') -> str:
+    # strip newlines from the right end of the text:
+    text = text.strip('\n')
+    text = _escape_html(text)
+    if from_md:
+        html = md_to_html(text)
     else:
-        html = highlight(text, TextLexer(), html_formatter)
-    html = html.replace('|', '', 1).replace('|', '', -1)
-    return html.replace('\n', '<br>').replace('<br></pre>', '</pre>', -1)
+        html = text.replace('\n', '<br>')
+    if css_class is not None:
+        html = f'<div class="{css_class}">{html}</div>'
+    return html
 
 
-def colored_text(text: str, color: str, is_color: bool = True) -> str:
-    return color + text + colorama.Style.RESET_ALL if is_color and color != '' else text
-
-
-def light_text(text: str, color: str, is_color: bool = True) -> str:
-    return colored_text(text, COLORS_TO_LIGHT_COLORS[color], is_color)
+def colored_text(text: str, color: str, is_color: bool = True, is_light: bool = False) -> str:
+    if not is_color or color == '':
+        return text
+    if is_light:
+        color = COLORS_TO_LIGHT_COLORS[color]
+    return color + text + colorama.Style.RESET_ALL
 
 
 def red_text(text: str, is_color: bool = True) -> str:
     return colored_text(text, colorama.Fore.RED, is_color)
 
 
-def green_text(text: str, is_color: bool = True) -> str:
-    return colored_text(text, colorama.Fore.GREEN, is_color)
+def _colored_block(text: str, label: Optional[str], color: str, with_tags: bool = True,
+                   is_color: bool = True, is_light: bool = False) -> str:
+    if with_tags and label:
+        text = wrap_text_with_triple_quotes(text, label)
+    return colored_text(text, color, is_color, is_light)
+
+
+_light_colored_block = partial(_colored_block, is_light=True)
+_light_colored_block_no_tags = partial(_light_colored_block, with_tags=False)
+
+
+def _escape_html(text: str) -> str:
+    return text.replace('<', '&lt;').replace('>', '&gt;')
 
 
 def get_pre_html_format(text,
                         color: str = None,
-                        font_style: str = 'normal',
-                        font_size: int = 16,
-                        font_weight: str = 'normal',
+                        font_style: str = None,  # normal, italic, oblique
+                        font_size: int = None,
+                        font_weight: str = None,  # normal, bold
                         font_family: str = None):
-    s = '<pre style="'
+    text = _escape_html(text)
+    s = '<pre style="white-space: pre-wrap;'
     if color:
         s += f'color: {color};'
     if font_style:
@@ -176,37 +180,31 @@ def get_pre_html_format(text,
     return s + text + '</pre>'
 
 
-def identity(text: str) -> str:
+def _block_to_html(text: str, label: Optional[str], with_tags: bool = True, **kwargs) -> str:
+    if with_tags and label is not None:
+        text = wrap_text_with_triple_quotes(text, label)
+    return get_pre_html_format(text, **kwargs)
+
+
+def identity(text) -> str:
     return text
 
 
-REGULAR_FORMATTER = (colored_text, text_to_html)
-BLOCK_FORMATTER = (light_text, partial(text_to_html, textblock=True))
+BLOCK_FORMATTER = (_light_colored_block, _block_to_html)
 
 TAGS_TO_FORMATTERS: Dict[Optional[str], Tuple[Callable, Callable]] = {
-    None: REGULAR_FORMATTER,
+    None: (_colored_block, text_to_html),
     '': BLOCK_FORMATTER,
-    'text': REGULAR_FORMATTER,
-    'markdown': REGULAR_FORMATTER,
-    'md': REGULAR_FORMATTER,
+    'markdown': (_light_colored_block, partial(text_to_html, from_md=True, label=None)),
+    'md': (_light_colored_block, partial(text_to_html, from_md=True, label=None)),
     'python': (python_to_highlighted_text, python_to_highlighted_html),
-    'output': (light_text, output_to_highlighted_html),
-    'html': (colored_text, identity),
-    'highlight': (colored_text, partial(get_pre_html_format, color='#334499', font_size=20, font_weight='bold',
-                                        font_family="'Courier', sans-serif")),
-    'comment': (colored_text, partial(get_pre_html_format, color='#424141', font_style='italic', font_size=16,
-                                      font_weight='bold')),
-    'system': (colored_text, partial(get_pre_html_format, color='#20191D', font_style='italic', font_size=16,
-                                     font_family="'Courier', sans-serif")),
-    'header': (light_text, partial(get_pre_html_format, color='#FF0000', font_size=12)),
-    'latex': (colored_text, convert_latex_to_html),
-    'error': (red_text, text_to_red_html),
-    'ok': (green_text, text_to_green_html),
+    'output': (_light_colored_block, output_to_highlighted_html),
+    'html': (_light_colored_block, identity),
+    'header': (_light_colored_block_no_tags, partial(get_pre_html_format, color='#FF0000', font_size=12)),
+    'latex': (_light_colored_block, convert_latex_to_html),
+    'error': (partial(_light_colored_block_no_tags, color=colorama.Fore.RED),
+              partial(text_to_html, css_class="runtime_error"))
 }
-
-NEEDS_NO_WRAPPING_FOR_NO_HTML = {'python', 'output', 'html', 'header'}
-NEEDS_NO_WRAPPING_FOR_HTML = {'python', 'output', 'html', 'header', 'latex'}
-POSSIBLE_MARKDOWN_LABELS = {'markdown', 'text', '', None}
 
 
 def is_text_md(text: str) -> bool:
@@ -214,25 +212,28 @@ def is_text_md(text: str) -> bool:
 
 
 def format_text_with_code_blocks(text: str, text_color: str = '', from_md: Optional[bool] = None,
-                                 width: Optional[int] = 150, is_html: bool = False) -> str:
+                                 width: Optional[int] = 150, is_html: bool = False,
+                                 do_not_format: List[str] = None) -> str:
+    if from_md is None:
+        from_md = is_text_md(text)
+    do_not_format = do_not_format or []
     s = ''
     formatted_sections = FormattedSections.from_text(text)
     for formatted_section in formatted_sections:
         label, section, _, = formatted_section.to_tuple()
-        formatter = TAGS_TO_FORMATTERS.get(label, BLOCK_FORMATTER)[is_html]
-        is_section_md = (label == 'markdown' or label in POSSIBLE_MARKDOWN_LABELS
-                         and (from_md or from_md is None and is_text_md(section)))
-        if not is_html and label not in ['python', 'header', 'comment', 'system']:
-            section = FormattedSections([formatted_section]).to_text()
+        if label in do_not_format:
+            formatters = BLOCK_FORMATTER
+        else:
+            formatters = TAGS_TO_FORMATTERS.get(label, BLOCK_FORMATTER)
+        formatter = formatters[is_html]
         if is_html:
-            if label not in NEEDS_NO_WRAPPING_FOR_HTML:
-                section = wrap_string(section, width=width)
             if formatter == text_to_html:
-                s += formatter(section, from_md=is_section_md)
+                s += formatter(section, from_md=from_md)
+            elif formatter == _block_to_html:
+                s += formatter(section, label=label)
             else:
                 s += formatter(section)
         else:
-            if label not in NEEDS_NO_WRAPPING_FOR_NO_HTML:
-                section = wrap_string(section, width=width)
-            s += formatter(section, text_color)
+            section = wrap_string(section, width=width)
+            s += formatter(section, color=text_color, label=label)
     return s

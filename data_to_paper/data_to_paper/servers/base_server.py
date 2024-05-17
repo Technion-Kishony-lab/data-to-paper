@@ -242,6 +242,9 @@ class ListServerCaller(ServerCaller, ABC):
         return [self._deserialize_record(serialized_record)
                 for serialized_record in load_from_json(filepath)]
 
+    def are_more_records_available(self):
+        return self.index_in_old_records < len(self.old_records)
+
     def __enter__(self):
         self.index_in_old_records = 0
         return super().__enter__()

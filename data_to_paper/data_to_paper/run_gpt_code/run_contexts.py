@@ -219,6 +219,7 @@ class WarningHandler(SingletonRegisteredRunContext):
             pass
         elif self._is_matched_cls(category, self.categories_to_issue):
             self.issues.append(RunIssue.from_current_tb(
+                category='Undesired warning',
                 issue=f'Code produced an undesired warning:\n```\n{str(message).strip()}\n```',
                 instructions='Please see if you understand the cause of this warning and fix the code.\n'
                              'Alternatively, if the warning is expected, then change the code to ignore it.',

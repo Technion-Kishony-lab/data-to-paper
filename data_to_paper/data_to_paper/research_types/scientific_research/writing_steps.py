@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass, field
-from typing import Tuple, List, Set, Optional, Iterable
+from typing import Tuple, List, Set, Iterable
 
 from data_to_paper.base_steps import LatexReviewBackgroundProductsConverser, \
     CheckReferencedNumericReviewBackgroundProductsConverser
@@ -66,9 +66,6 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
     should_remove_citations_from_section: bool = True
     un_allowed_commands: Tuple[str, ...] = (r'\verb', r'\begin{figure}')
 
-    fake_performer_request_for_help: str = \
-        'Hi {user_skin_name}, could you please help me {goal_verb} the {pretty_section_names} for my paper?'
-
     max_reviewing_rounds: int = 1
     goal_noun: str = '{pretty_section_names} section'
     conversation_name: str = None
@@ -85,8 +82,8 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
         Write in tex format, escaping any math or symbols that needs tex escapes.
         """)
 
-    request_triple_quote_block: Optional[str] = dedent_triple_quote_str("""
-        The {goal_noun} should be enclosed within triple-backtick "latex" code block, like this:
+    your_response_should_be_formatted_as: str = dedent_triple_quote_str("""
+        a triple-backtick "latex" block, like this:
 
         ```latex
         \\section{<section name>}
@@ -109,7 +106,7 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
         Do not write any other parts!
         {section_specific_instructions}
         {latex_instructions}
-        {request_triple_quote_block}
+        The {goal_noun} should be formatted as {your_response_should_be_formatted_as}
         """)
 
     termination_phrase: str = 'The {goal_noun} does not require any changes'
@@ -180,7 +177,9 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
     def _check_allowed_subsections(self, section: str):
         if not self.allow_subsections:
             if r'\subsection' in section:
-                self._raise_self_response_error('Do not include subsections in the {goal_noun}')
+                self._raise_self_response_error(
+                    title='# Subsections are not allowed',
+                    error_message='Do not include subsections in the {goal_noun}')
 
     @staticmethod
     def _is_pharse_in_section(section: str, phrase: str, match_case: bool) -> bool:
@@ -195,8 +194,10 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
             if self._is_pharse_in_section(section, phrase, match_case)
         ]
         if used_forbidden_phrases:
-            self._raise_self_response_error('Do not include: {}'.format(
-                nicely_join(used_forbidden_phrases, wrap_with='"', separator=', ')))
+            self._raise_self_response_error(
+                title='# Forbidden phrases',
+                error_message='Do not include: {}'.format(
+                    nicely_join(used_forbidden_phrases, wrap_with='"', separator=', ')))
 
     def _check_for_aborting_phrases(self, section: str):
         used_aborting_phrases = [
@@ -235,8 +236,8 @@ class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProd
     max_reviewing_rounds: int = 1
     conversation_name: str = 'Writing: Title and Abstract (first draft)'
 
-    request_triple_quote_block: Optional[str] = dedent_triple_quote_str("""
-        The {goal_noun} should be enclosed within triple-backtick "latex" code block, like this:
+    your_response_should_be_formatted_as: str = dedent_triple_quote_str("""
+        a triple-backtick "latex" block, like this:
 
         ```latex
         \\title{<your latex-formatted paper title here>}
@@ -272,10 +273,16 @@ class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProd
             if ':' in section and not self._raised_colon_error:
                 self._raised_colon_error = True
                 self._raise_self_response_error(
-                    'Titles of manuscripts in {journal_name} typically do not have a colon. '
-                    'Can you think of a different title that clearly state a single message without using a colon?')
+                    title='# Colon in title',
+                    error_message=dedent_triple_quote_str("""
+                        Titles of manuscripts in {journal_name} typically do not have a colon. '
+                        Can you think of a different title that clearly state a single message without using a colon?
+                        """)
+                )
         if section_name == 'abstract' and section.count('\n') > 2:
-            self._raise_self_response_error(f'The abstract should writen as a single paragraph.')
+            self._raise_self_response_error(
+                title='# Abstract should be a single paragraph',
+                error_message='The abstract should writen as a single paragraph.')
         return super()._check_and_refine_section(section, section_name)
 
 
@@ -302,7 +309,7 @@ class SecondTitleAbstractSectionWriterReviewGPT(FirstTitleAbstractSectionWriterR
         (see above Literature Searches for list of related papers).
 
         {latex_instructions}
-        {request_triple_quote_block}
+        Your response should be formatted as {your_response_should_be_formatted_as}
         """)
 
 
@@ -374,7 +381,7 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         return s
 
     section_specific_instructions: str = dedent_triple_quote_str("""\n
-        The Methods section should be enclosed within triple-backtick "latex" code block \
+        The Methods section should be enclosed within triple-backtick "latex" block \
         and have 3 subsections, as follows: 
 
         ```latex
@@ -402,11 +409,19 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         "We used a linear regression model") 
         - URLs, links or references.""")
 
-    request_triple_quote_block: str = dedent_triple_quote_str("""
-        Remember to enclose the Methods section within triple-backtick "latex" code block.
-        """)
-
     latex_instructions: str = ''
+    your_response_should_be_formatted_as: str = dedent_triple_quote_str("""
+        a triple-backtick "latex" block, like this:
+        ```latex
+        \\section{Methods}
+        \\subsection{Data Source}
+        <your latex-formatted description of the data source here>
+        \\subsection{Data Preprocessing}
+        <your latex-formatted description of the data preprocessing here>
+        \\subsection{Data Analysis}
+        <your latex-formatted description of the data analysis here>
+        ```
+        """)
 
     section_review_specific_instructions: str = "{section_specific_instructions}"
 
@@ -417,15 +432,20 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         pattern = r'version(?:\s*=\s*|\s+)(\d+\.\d+(\.\d+)?)|Python\s+(\d+\.\d+)'
         if re.findall(pattern, response):
             self._raise_self_response_error(
-                f'Do not mention specific version of software packages.')
+                title='# Software packages',
+                error_message=f'Do not mention specific version of software packages.')
 
         # Check subsection headings:
         pattern = r'\\subsection{([^}]*)}'
         matches = re.findall(pattern, response)
         if set(matches) != {'Data Source', 'Data Preprocessing', 'Data Analysis'}:
             self._raise_self_response_error(
-                f'The Methods section should only have the following 3 subsections: '
-                f'Data Source, Data Preprocessing, Data Analysis. ')
+                title='# Allowed subsections',
+                error_message=dedent_triple_quote_str(f"""
+                    The Methods section should only have the following 3 subsections: '
+                    Data Source, Data Preprocessing, Data Analysis.
+                    """)
+            )
         return super()._check_extracted_text_and_update_valid_result(extracted_text)
 
     def run_and_get_valid_result(self) -> list:
@@ -531,7 +551,7 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         \\hyperlink{Z3b}{0.072} (P-value: < \\hyperlink{Z3c}{1e-6}).
         ```
 
-        And are some examples of proper ways to calculate dependent values, using the \\num command:
+        And here are some examples of proper ways to calculate dependent values, using the \\num command:
         ```
         The difference in response was \\num{\\hyperlink{Z2a}{0.87} - \\hyperlink{Z1a}{0.65}, \t
         "Difference between responses with and without treatment"}.
@@ -591,11 +611,14 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         table_labels = self._get_table_labels(section_name)
         for table_label in table_labels:
             if table_label not in section:
-                self._raise_self_response_error(dedent_triple_quote_str(f"""
-                    The {section_name} section should specifically reference each of the Tables that we have.
-                    Please make sure we have a sentence addressing Table "{table_label}".
-                    The sentence should have a reference like this: "Table~\\ref{{{table_label}}}".
-                    """))
+                self._raise_self_response_error(
+                    title='# Missing Table reference',
+                    error_message=dedent_triple_quote_str(f"""
+                        The {section_name} section should specifically reference each of the Tables that we have.
+                        Please make sure we have a sentence addressing Table "{table_label}".
+                        The sentence should have a reference like this: "Table~\\ref{{{table_label}}}".
+                        """)
+                )
         return result
 
 

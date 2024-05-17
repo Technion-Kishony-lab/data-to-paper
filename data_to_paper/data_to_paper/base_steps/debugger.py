@@ -7,7 +7,7 @@ from typing import Optional, List, Tuple, Union, Type, Dict, Any
 
 import numpy as np
 
-from data_to_paper.env import SUPPORTED_PACKAGES, PRINT_COMMENTS, MAX_EXEC_TIME
+from data_to_paper.env import SUPPORTED_PACKAGES, PRINT_COMMENTS, MAX_EXEC_TIME, PAUSE_AT_RULE_BASED_FEEDBACK
 from data_to_paper.utils import dedent_triple_quote_str, line_count
 from data_to_paper.utils.replacer import format_value
 from data_to_paper.utils.print_to_file import print_and_log
@@ -27,6 +27,7 @@ from data_to_paper.base_cast import Agent
 from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
 
 from .base_products_conversers import BackgroundProductsConverser
+from ..interactive.symbols import Symbols
 
 KNOWN_MIS_IMPORTS = {
     'Mediation': 'statsmodels.stats.mediation',
@@ -94,9 +95,10 @@ class DebuggerConverser(BackgroundProductsConverser):
 
     prompt_to_append_at_end_of_response: str = \
         dedent_triple_quote_str("""
+            # Instructions:
             Please rewrite the complete code again with these issues corrected.
 
-            GENERAL FORMATTING INSTRUCTIONS:
+            # General formatting instructions:
             Even if you are changing just a few lines, you must return the complete code again in a \t
             single code block, including the unchanged parts, so that I can just copy-paste and run it.
             {required_headers_prompt}    
@@ -203,6 +205,7 @@ class DebuggerConverser(BackgroundProductsConverser):
     def _get_issue_for_regular_exception_or_warning(self, error: FailedRunningCode,
                                                     code_runner: BaseCodeRunner) -> RunIssue:
         return RunIssue(
+            category='Runtime exception',
             issue=_get_description_of_run_error(error.get_traceback_message(code_runner.lines_added_in_front_of_code)),
             code_problem=CodeProblem.SyntaxError if isinstance(error, SyntaxError) else CodeProblem.RuntimeError,
             comment='Runtime exception in code',
@@ -212,6 +215,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         linenos_lines, msg = e.get_lineno_line_message()
         on_line = '\n'.join(f'On line {lineno}: {line}' for lineno, line in linenos_lines)
         return RunIssue(
+            category='Timeout',
             issue=f"I ran the code, but it just ran forever... Perhaps got stuck in too long calculations.\n"
                   f"{on_line}",
             instructions="Anything we can do to make it run faster?",
@@ -227,6 +231,7 @@ class DebuggerConverser(BackgroundProductsConverser):
             instructions = "Please REGENERATE!"
 
         return RunIssue(
+            category='Code extraction problem',
             issue="Your sent incomplete code.",
             instructions=instructions,
             comment='Code is incomplete',
@@ -240,6 +245,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         If the conversation already has this notification, we regenerate gpt response instead.
         """
         return RunIssue(
+            category='Code extraction problem',
             issue=str(e),
             comment='Failed extracting code from gpt response',
             end_with=self.required_headers_prompt,
@@ -271,6 +277,7 @@ class DebuggerConverser(BackgroundProductsConverser):
     def _get_issue_for_forbidden_import(self, error: CodeImportForbiddenModule, e: FailedRunningCode) -> RunIssue:
         module = error.module
         return RunIssue(
+            category='Importing packages',
             issue=f"Your code import the module `{module}`, which is not allowed.",
             instructions="Your code can only use these packages: {supported_packages}.",
             code_problem=CodeProblem.RuntimeError,
@@ -281,6 +288,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         required_strings_not_found = [s for s in self.headers_required_in_code if s.lower() not in code.lower()]
         if len(required_strings_not_found) > 0:
             issues.append(RunIssue(
+                category='Code structure',
                 issue=dedent_triple_quote_str("""
                 Your code must contain the following sections: 
                 {headers_required_in_code}.
@@ -303,6 +311,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         for phrase in self.un_allowed_phrases:
             if phrase in code:
                 issues.append(RunIssue(
+                    category='Un-allowed phrases in code',
                     issue=f"Your code uses `{phrase}`, which is not allowed.",
                     instructions=f"Please rewrite the complete code again without using `{phrase}`.",
                     comment=f'Code uses forbidden phrase.',
@@ -313,6 +322,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         for phrase in self.phrases_required_in_code:
             if phrase not in code:
                 issues.append(RunIssue(
+                    category='Missing/imperfect commands',
                     issue=f"Your code must explicitly use:\n`{phrase.strip()}`.",
                     comment=f'Code does not use required phrase.',
                     code_problem=CodeProblem.StaticCheck,
@@ -323,6 +333,7 @@ class DebuggerConverser(BackgroundProductsConverser):
     def _get_issue_for_forbidden_write(self, error: CodeWriteForbiddenFile, e: FailedRunningCode) -> RunIssue:
         file = error.file
         return RunIssue(
+            category='Wrong output files',
             issue=f'Your code writes to the file "{file}" which is not allowed.',
             instructions=self.description_of_allowed_output_files,
             code_problem=CodeProblem.RuntimeError,
@@ -331,6 +342,7 @@ class DebuggerConverser(BackgroundProductsConverser):
 
     def _get_issue_for_un_allowed_files_created(self, error: UnAllowedFilesCreated, e: FailedRunningCode) -> RunIssue:
         return RunIssue(
+            category='Wrong output files',
             issue=f"Your code creates the following files {error.un_allowed_files} which is not allowed.",
             instructions=self.description_of_allowed_output_files,
             code_problem=CodeProblem.RuntimeError,
@@ -342,6 +354,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         is_read_file_in_output_file_requirements = len(self.output_file_requirements.get_unmatched_files([file])) == 0
         if is_read_file_in_output_file_requirements:
             return RunIssue(
+                category='Wrong input file',
                 issue=f'Your code tries reading from the output file "{file}".',
                 instructions=dedent_triple_quote_str("""
                     The code can create and write to this output file, but should not read from it.
@@ -353,6 +366,7 @@ class DebuggerConverser(BackgroundProductsConverser):
             )
         else:
             return RunIssue(
+                category='Wrong input file',
                 issue=f'Your code reads from the file "{file}" which is not part of the dataset.',
                 instructions=dedent_triple_quote_str("""
                     We only have these files:
@@ -382,6 +396,7 @@ class DebuggerConverser(BackgroundProductsConverser):
                                                                      old_code: str) -> Optional[RunIssue]:
         if line_count(new_code) < line_count(old_code) * 0.9:
             return RunIssue(
+                category='New code instead of modifications',
                 issue="Your code does not seem to be a modification of the previous code.",
                 instructions="Please rewrite the complete code again, making sure that the new code is "
                              "a modification of the old code.",
@@ -514,10 +529,12 @@ class DebuggerConverser(BackgroundProductsConverser):
         message, comment = issues.get_message_and_comment(
             end_with=format_value(self, self.prompt_to_append_at_end_of_response))
         message += '\n\nREGENERATE' if action == "regenerate" else ''
-        self.apply_append_user_message(
-            content=message,
-            comment=self.iteration_str + ': ' + comment,
-        )
+        with self._app_temporarily_set_panel_status(PanelNames.FEEDBACK):
+            self.apply_append_user_message(
+                content=message,
+                comment=self.iteration_str + ': ' + comment,
+                sleep_for=PAUSE_AT_RULE_BASED_FEEDBACK,
+            )
 
         if action == "regen":
             # To regenerate, we delete the required pairs of assistant+user messages
@@ -604,18 +621,24 @@ class DebuggerConverser(BackgroundProductsConverser):
         for self.debug_iteration in range(1, self.max_debug_iterations + 1):
             response = self.apply_get_and_append_assistant_message(is_code=True,
                                                                    previous_code=self.previous_code).content
-            with self._app_with_set_panel_status(PanelNames.FEEDBACK, 'Running and checking code'):
+            with self._app_temporarily_set_panel_status(PanelNames.FEEDBACK, 'Running and checking code'):
                 self._app_send_prompt(PanelNames.FEEDBACK)
                 code_and_output = self._get_code_and_respond_to_issues(response)
             if code_and_output is not None:
                 self._app_send_prompt(
                     PanelNames.FEEDBACK,
-                    wrap_text_with_triple_quotes('Code ran without issues and passed rule-based checks', 'ok'),
-                    sleep_for=2)
+                    dedent_triple_quote_str(f"""
+                    ## {Symbols.CHECK_SYMBOL} Code check successful
+                    Code ran without issues and passed all rule-based checks.
+                    You can see code output in the Product panel.
+                    """),
+                    from_md=True,
+                    sleep_for=PAUSE_AT_RULE_BASED_FEEDBACK)
                 return code_and_output
         self.apply_append_user_message(
             "It seems like we are not converging. Let's try again from the start.\n"
-            "Please provide a fresh new attempt of the code.", ignore=True)
+            "Please provide a fresh new attempt of the code.", ignore=True,
+            sleep_for=PAUSE_AT_RULE_BASED_FEEDBACK)
         self._rewind_conversation_to_first_response()
 
         return None

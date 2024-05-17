@@ -70,18 +70,6 @@ class BackgroundProductsConverser(ProductsConverser):
     product_acknowledgement: str = "Thank you for the {}. \n"
     goal_noun: str = None
     goal_verb: str = None
-    fake_performer_request_for_help: str = \
-        "Hi {user_skin_name}, I need to {goal_verb} {goal_noun}. Could you please guide me?"
-    fake_reviewer_agree_to_help: str = dedent_triple_quote_str("""
-        Sure, I am happy to guide you {goal_verb} the {goal_noun} and can also provide feedback.
-
-        Note that your {goal_noun} should be based on the following research products that you have now \t
-        already obtained:
-        ```highlight
-        {vertical_actual_background_product_names}
-        ```
-        Please carefully review these intermediate products and then proceed according to my guidelines below. 
-        """)
     post_background_comment: str = 'Background messages completed. Requesting "{goal_noun}".'
 
     @property
@@ -142,17 +130,6 @@ class BackgroundProductsConverser(ProductsConverser):
         product_description, tag = self.get_product_description_and_tag(product_field)
         self.apply_append_user_message(product_description, tag=tag, is_background=True)
 
-    def _add_fake_pre_conversation_exchange(self):
-        """
-        Add fake exchange to the conversation before providing background information.
-        """
-        if self.fake_performer_request_for_help:
-            self.apply_append_surrogate_message(
-                content=self.fake_performer_request_for_help, ignore=True)
-            if self.fake_reviewer_agree_to_help:
-                self.apply_append_user_message(
-                    content=self.fake_reviewer_agree_to_help, ignore=True)
-
     def _pre_populate_background(self):
         """
         Add background information to the conversation.
@@ -160,7 +137,6 @@ class BackgroundProductsConverser(ProductsConverser):
         previous_product_items = self.actual_background_product_fields
         if previous_product_items is not None:
             assert len(self.conversation.get_chosen_messages()) == 1
-            self._add_fake_pre_conversation_exchange()
             for i, product_field in enumerate(previous_product_items or []):
                 is_last = i == len(previous_product_items) - 1
                 self._add_product_description(product_field)
@@ -330,7 +306,8 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
                              as_action=False)
             else:
                 self._raise_self_response_error(
-                    Replacer(self, self.report_non_match_prompt, args=(ListBasedSet(non_matching),)),
+                    title='# Non-matching numeric values in the section',
+                    error_message=Replacer(self, self.report_non_match_prompt, args=(ListBasedSet(non_matching),)),
                     rewind=Rewind.AS_FRESH,
                     add_iterations=add_iterations,
                     bump_model=BumpModel.HIGHER_STRENGTH,
@@ -342,7 +319,8 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
         """
         if 'http' in text or 'www.' in text or 'mailto' in text:
             self._raise_self_response_error(
-                'The text contains a URL which is not allowed.',
+                title='# URL in text',
+                error_message='The text contains URLs which is not allowed.',
                 rewind=Rewind.AS_FRESH,
             )
         return text
@@ -426,7 +404,8 @@ class CheckReferencedNumericReviewBackgroundProductsConverser(CheckExtractionRev
 
         if TARGET.replace('\\', '') in text:
             self._raise_self_response_error(
-                f'Do not use `{TARGET}`, use `{LINK}` instead.',
+                title='# Wrong numeric referencing',
+                error_message=f'Do not use `{TARGET}`, use `{LINK}` instead.',
                 rewind=Rewind.AS_FRESH,
             )
 
@@ -470,7 +449,8 @@ class CheckReferencedNumericReviewBackgroundProductsConverser(CheckExtractionRev
 
         if s:
             self._raise_self_response_error(
-                Replacer(self, self.report_non_match_prompt, args=(s,)),
+                title='# Wrong numeric referencing',
+                error_message=Replacer(self, self.report_non_match_prompt, args=(s,)),
                 rewind=Rewind.AS_FRESH,
                 bump_model=BumpModel.HIGHER_STRENGTH,
             )

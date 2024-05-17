@@ -35,9 +35,6 @@ class RewriteSentenceWithCitations(PythonValueReviewBackgroundProductsConverser)
 
     value_type: type = List[str]
     max_reviewing_rounds: int = 0  # no review
-    fake_performer_request_for_help: str = None
-    fake_reviewer_agree_to_help: str = None
-    fake_performer_message_to_add_after_max_rounds: str = None
     max_valid_response_iterations: int = 2
     mission_prompt: str = dedent_triple_quote_str("""
         Choose the most appropriate citations to add for the sentence: 
@@ -48,22 +45,21 @@ class RewriteSentenceWithCitations(PythonValueReviewBackgroundProductsConverser)
 
         {citations}
 
-        Send your reply formatted as a Python list of str, representing the ids of the citations you choose. 
-        For example, write:
+        Your response should be formatted as {your_response_should_be_formatted_as}
+        """)
+
+    your_response_should_be_formatted_as: str = dedent_triple_quote_str("""
+        a Python List[str], representing the ids of the citations you choose. 
+        For example:
         ```python
         ["AuthorX2022", "AuthorY2009"]
         ```
 
-        where AuthorX2022 and AuthorY2009 are the ids of the citations you think are making a good fit for the sentence.
+        where "AuthorX2022" and "AuthorY2009" are the ids of the citations you think are a good fit for the sentence.
         Choose only citations that are relevant to the sentence.
-        You can choose one or more citations, or you can choose not adding citations to this sentence by replying `[]`.
-        """)
-
-    response_to_self_error = dedent_triple_quote_str("""
-        {}
-        Please try again making sure you return the chosen citations with the correct format, like this:
-        ``` 
-        ["AuthorX2022Title", "AuthorY2009Title"]
+        You can choose one or more citations, or you can choose not adding citations to this sentence by replying:
+        ```python
+        []
         ```
         """)
 
@@ -81,7 +77,9 @@ class RewriteSentenceWithCitations(PythonValueReviewBackgroundProductsConverser)
         ids_not_in_options = self._add_citations_in_options_and_return_citations_not_in_options(response_value)
         if len(ids_not_in_options) > 0:
             self._raise_self_response_error(
-                f'You returned {ids_not_in_options}, which is not part of the allowed options: {self.citation_ids}.')
+                title='# Invalid citations',
+                error_message=f'You returned {ids_not_in_options}, which is not part of the allowed options:\n'
+                              f'{self.citation_ids}.')
         return None  # this will get into the response_value, which we are not using.
 
     def _add_citations_in_options_and_return_citations_not_in_options(self, chosen_citation_ids: List[str]) -> Set[str]:
@@ -142,7 +140,17 @@ class AddCitationReviewGPT(PythonValueReviewBackgroundProductsConverser):
         Extract from the above section of a scientific paper all the factual sentences to which we need to \t
         add citations.
 
-        Return a Python Dict[str, str] mapping each chosen sentence to a short literature search query \t
+        Your response should be formatted as {your_response_should_be_formatted_as}
+
+        Identify *all* the sentences that you think we need to add citations to - you should include any sentence 
+        that can benefit from a reference.
+
+        However, be cautious to avoid choosing sentences that do not refer to existing knowledge, but rather \t
+        describe the finding of the current paper.
+        """)
+
+    your_response_should_be_formatted_as: str = dedent_triple_quote_str("""
+        a Python Dict[str, str] mapping each chosen sentence to a short literature search query \t
         (up to a maximum of 5 words), like this:
 
         ```python
@@ -152,24 +160,7 @@ class AddCitationReviewGPT(PythonValueReviewBackgroundProductsConverser):
          "This is the another factual sentence that needs a source": "This is the best query for this sentence",
         }
         ```
-
-        Identify *all* the sentences that you think we need to add citations to - you should include any sentence 
-        that can benefit from a reference.
-
-        However, be cautious to avoid choosing sentences that do not refer to existing knowledge, but rather \t
-        describe the finding of the current paper.
     """)
-
-    response_to_self_error: str = dedent_triple_quote_str("""
-        {}
-        Please try again making sure you return the results with the correct format, like this:
-        ```python
-        {"sentence extracted from the section": "query of the key sentence", 
-        "another sentence extracted from the section": "the query of this sentence"}
-        ```
-    """)
-
-    fake_performer_message_to_add_after_max_rounds: str = None
 
     # input:
     section_name: str = None  # The section of the paper to which we are adding citations to.
@@ -233,10 +224,14 @@ class AddCitationReviewGPT(PythonValueReviewBackgroundProductsConverser):
         if sentences_not_in_section:
             if len(sentences_not_in_section) == len(response_value):
                 self._raise_self_response_error(
-                    f'The sentences that you returned are not precise extraction from the section.')
+                    title='# No sentences in the section',
+                    error_message='The sentences that you returned are not precise extraction from the section.'
+                )
             self._raise_self_response_error(
-                f'The following sentences that you returned are not precise extraction from the section:\n'
-                f'{sentences_not_in_section}.\n')
+                title='# Some sentences not in the section',
+                error_message=f'The following sentences are not precise extraction from the section:\n'
+                              f'{sentences_not_in_section}.\n'
+            )
         return None  # this will get into the response_value, which we are not using.
 
     def rewrite_section_with_citations(self) -> Tuple[str, ListBasedSet[CrossrefCitation]]:

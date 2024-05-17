@@ -15,10 +15,16 @@ class FailedExtractingBlock(Exception):
         else:
             return f'triple-backtick "{self.requested_label}" block'
 
+    def get_problem(self):
+        return ''
+
+    def __str__(self):
+        return f"Error extracting '{self.block_name()}' block:\n" + self.get_problem()
+
 
 @dataclass
 class NoBlocksFailedExtractingBlock(FailedExtractingBlock):
-    def __str__(self):
+    def get_problem(self):
         return f"You did not send any triple-backtick block.\n" \
                f"Please try again, making sure the {self.content_name} is enclosed within {self.block_name()}."
 
@@ -27,29 +33,29 @@ class NoBlocksFailedExtractingBlock(FailedExtractingBlock):
 class MultiBlocksFailedExtractingBlock(FailedExtractingBlock):
     num_blocks: int
 
-    def __str__(self):
+    def get_problem(self):
         return f"You sent {self.num_blocks} triple-backtick blocks. " \
                f"Please send the {self.content_name} as a single {self.block_name()}."
 
 
 @dataclass
 class IncompleteBlockFailedExtractingBlock(FailedExtractingBlock):
-    def __str__(self):
-        return f"You sent an incomplete triple-quoted block. Please try again."
+    def get_problem(self):
+        return f"You sent an incomplete triple-backtick block. Please try again."
 
 
 @dataclass
 class WrongLabelFailedExtractingBlock(FailedExtractingBlock):
     label: str
 
-    def __str__(self):
+    def get_problem(self):
         return f'Your sent a "{self.label}" block. ' \
                f'Please send your {self.content_name} as a "{self.block_name()}".'
 
 
 def add_label_to_first_triple_quotes_if_missing(content: str, requested_label: str) -> str:
     """
-    Add "python" to triple quotes if missing.
+    Add "python" to triple-backtick if missing.
     """
     formatted_sections = FormattedSections.from_text(content)
     first_block = formatted_sections.get_first_block()

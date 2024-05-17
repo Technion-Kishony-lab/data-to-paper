@@ -36,7 +36,7 @@ class EnforceContentOutputFileRequirement(TextContentOutputFileRequirement, Nume
         missing_headers = [header for header in self.headers_required_in_output if header not in content]
         if missing_headers:
             issues.append(RunIssue(
-                category='Output file content',
+                category='Problem in output file(s)',
                 item=filename,
                 issue=f'The output file "{filename}" should have the following headers: '
                       f'{NiceList(self.headers_required_in_output, wrap_with="`")}.\n'
@@ -113,6 +113,7 @@ class DataAnalysisDebuggerConverser(DebuggerConverser):
                     break
         if not any_pvalues:
             issues.append(RunIssue(
+                category='Statistics: good practices',
                 issue='We are presenting results for a statistical-testing paper, but no p-values are reported in '
                       'any of the created files.',
                 instructions='Please revise the code to perform statistical tests and report p-values in the tables.',
@@ -128,7 +129,7 @@ class DataAnalysisDebuggerConverser(DebuggerConverser):
             table_header = code_and_output.get_code_header_for_file(table_file_name)
             if table_header not in code_and_output.code:
                 issues.append(RunIssue(
-                    category="Each saved table should have a header comment with the table name.\n",
+                    category="Code structure",
                     issue=f'Your code is missing a comment "{table_header}".',
                     instructions='Please make sure all saved tables have a header comment with the table name.\n'
                                  'If you are creating multiple tables in the same section of the code, '
@@ -143,6 +144,7 @@ class DataAnalysisDebuggerConverser(DebuggerConverser):
         for class_name, from_formula in self.class_and_from_formula:
             if class_name + '(' in code:
                 issues.append(RunIssue(
+                    category='Coding: good practices',
                     issue=f'You are using the "{class_name}" class. ',
                     instructions=dedent_triple_quote_str(f"""
                         You should use the "{from_formula}" function instead, so that the formula is clearly \t
@@ -311,190 +313,176 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         rather than integer-based column/index positions. 
         """)
 
-    code_review_formatting_instructions: str = dedent_triple_quote_str("""
-        Try to be as specific as possible when describing the issues and proposed fixes.
-        Include in the dict as many issues as you find. 
-        If you are sure that there are no issues, and the code and tables need no revision, \t
-        then return an empty dict: `{}`. 
-        """)
-
     code_review_prompts: Collection[CodeReviewPrompt] = (
-        CodeReviewPrompt(None, False, dedent_triple_quote_str("""
-        The code runs ok, but I am worried that it may contain some fundamental mathematical or statistical \t
-        flaws. To check for such flaws, I will need you to carefully follow these two steps:
-
-        (1) Deeply check your Python code for any fundamental coding/mathematical/statistical flaws \t
-        and return a bullet-point response addressing these points (as applicable):
-
-        * WRONG CALCULATIONS:
-        - List all key mathematical calculations used in the code and indicate for each one if it is correct, \t
-        or if it should be revised. 
-
-        * TRIVIALLY-TRUE STATISTICAL TESTS:
-        Are there any statistical tests that are mathematically trivial? Like:
-        - testing whether the mean of all values above 0 is above 0.
-        - comparing distributions that have different underlying scales (or different ranges), \t
-        and which were not properly normalized.
-        - testing whether the mean of X + Y is larger than the mean of X, when Y is positive.
-        - etc, any other tests that you suspect are trivial.
-
-        * OTHER:
-        Any other mathematical or statistical issues that you can identify.
-
-        (2) Based on your assessment above, return a Python Dict[str, str] mapping the issues you have noted 
-        above (dict keys) to specific suggested corrections/improvements in the code (dict values).
+        CodeReviewPrompt('code flaws', None, False, dedent_triple_quote_str("""
+        The code runs without any obvious bugs, but I am worried that it may have some fundamental \t
+        mathematical or statistical flaws.
+        I will need you to carefully check the Python code for possible flaws.
+        {code_review_formatting_instructions}
 
         For example:
         ```python
         {
-            "The formula for the regression model is incorrect":
-                "revise the code to use the following formula: ...",
+            # * CHECK FOR FUNDAMENTAL FLAWS:
+            # Check for any fundamental mathematical or statistical flaws in the code.
+            # For example:
+            "The analysis of <analysis name>": ("OK", "It is correct to ... "),
+            "The analysis of <other analysis name>": ("CONCERN", "Forgot to include ..."),
+            "The analysis of xxx vs yyy": ("CONCERN", "Different units were not standardized"),
 
-            "The statistical test for association of ... and ... is trivial":
-                "revise the code to perform the following more meaningful test: ...",
+            # * CHECK FOR WRONG CALCULATIONS:
+            # Go through each key calculation in the code and check for any mistakes.
+            # For example:
+            "mean_signal = np.mean(signal)": ("OK", "The mean is calculated correctly"),
+            "sem_signal = np.std(signal)": ("CONCERN", "Forgot to divide by sqrt(n)"),  
+
+            # * CHECK FOR MATH TRIVIALITIES:
+            # Check for any mathematically trivial assessments / statistical tests.
+            # For example:
+            "The test of positivity of mean(z)": ("CONCERN", "By definition, all z values are positive, so \t
+        the mean is triviality positive"),
+            "The test A > B": ("CONCERN", "In our case, this is always true because B is negative and A is positive"),
+            "The test C > 0": ("OK", "This is a valid test because ..."),
         }
         ```
 
+        {code_review_notes}
+        """)),
+        CodeReviewPrompt('data handling', None, False, dedent_triple_quote_str("""
+        The code runs without any obvious bugs, but I am worried that it may contain some flaws in the analysis. 
+        I will need you to carefully check the Python code for possible issues.
         {code_review_formatting_instructions}
-        """), name='code flaws'),
-        CodeReviewPrompt(None, False, dedent_triple_quote_str("""
-        Please follow these two steps:
 
-        (1) Check your Python code and return a bullet-point response addressing these points (as applicable):
+        For example:
+        ```python
+        {
+            # * DATASET PREPARATIONS:
+            # - Missing values. If applicable, did we deal with missing, unknown, or undefined values,
+            # or with special numeric values that stand for unknown/undefined?
+            # Check the "{data_file_descriptions}" for any such missing values.
+            # For example:
+            "Missing values": ("OK", "We correctly dealt with missing values"),
 
-        * DATASET PREPARATIONS:
-        - Missing values. If applicable, did we deal with missing, unknown, or undefined values, \t
-        or with special numeric values that stand for unknown/undefined \t
-        (check the "{data_file_descriptions}" for any such missing values)? 
-        - Units. If applicable, did we correctly standardize numeric values with different units into same-unit values? 
-        - Data restriction. If applicable, are we restricting the analysis to the correct part of the data \t
-        (based on the study goal)?
+            # - Units. If applicable, did we correctly standardize numeric values with different units 
+            # into same-unit values?
+            # For example:
+            "Standardizing units": ("CONCERN", "In the comparison of x and y, different units were not standardized"),
 
-        * DESCRIPTIVE STATISTICS:
-        If applicable: 
-        - Did we correctly report descriptive statistics? 
-        - Is the choice of descriptive statistics and chosen variables contribute to the scope of study?
-        - Is descriptive analysis done on the correct data (for example, before any data normalization steps)?
+            # - Data restriction. If applicable, are we restricting the analysis to the correct part of the data
+            # (based on the {hypothesis_testing_plan})?
+            # For example:
+            "Data restriction": ("OK", "No data restriction is needed. We are correctly using all data"),  
 
-        * PREPROCESSING:
-        Review the above "{data_file_descriptions}", then check our data preprocessing:
-        - Are we performing any preprocessing steps that are not needed?
-        - Are we missing any preprocessing steps that are needed?
+            # * DESCRIPTIVE STATISTICS:
+            # As applicable, check for issues in the descriptive statistics.
+            # For example:
+            "Descriptive statistics: presented if needed": ("OK", "The code does not create a descriptive statistics \t
+        table, but this is ok because ..."),
+            "Descriptive statistics: variable choice": ("CONCERN", "We should not have included xxx in the table ..."),
+            "Descriptive statistics: Correct data": ("CONCERN", "We mistakenly reported descriptive statistics on the \t
+        data after normalization"),
 
-        * ANALYSIS:
-        As applicable, check for any data analysis issues, including:
-        - Analysis that should be performed on the preprocessed data is mistakenly performed on the original data.
-        - Analysis that should be performed on the original data is mistakenly performed on the preprocessed data.
-        - Incorrect choice of statistical test.
-        - Imperfect implementation of statistical tests.
-        - Did we correctly chose the variables that best represent the tested hypothesis? 
-        - Are we accounting for relevant confounding variables (consult the "{data_file_descriptions}")?
+            # * PREPROCESSING:
+            # Review the above "{data_file_descriptions}", then check our data preprocessing.
+            # Are we performing all needed preprocessing steps? Are we mistakenly performing any unneeded steps?
+            # For example:
+            "Preprocessing": ("CONCERN", "We have normalized all variables, but xxx should not be normalized"),
+
+            # * ANALYSIS:        
+            # As applicable, check for any data analysis issues, including:
+
+            # - Each analysis is done on the relevant data.
+            # For example:
+            "Analysis on correct data": ("CONCERN", "We mistakenly performed the xxx analysis \t
+        on the preprocessed data. This step should have been done on the original data"),
+
+            # - Choice and implementation of statistical tests.
+            # For example:
+            "Choice of statistical test": ("CONCERN", "We should have used ttt test instead of sss test, because ..."),
+            "Implementation of statistical test <test name>": ("OK", "The implementation is correct, because ..."),
         {regression_comments}\t
         {mediation_comments}\t
         {machine_learning_comments}\t
         {scipy_unpacking_comments}\t
-        - Any other statistical analysis issues.
-
-        (2) Based on your assessment above, return a Python Dict[str, str] mapping the issues you have noted 
-        above (dict keys) to specific suggested corrections/improvements in the code (dict values).
-
-        For example:
-        ```python
-        {
-            "The model does not adequately account for confounding variables":
-                "revise the code to add the following confounding variables ...",
-
-            "The descriptive statistics is performed on the wrong data":
-                "revise the code to perform the descriptive statistics on the preprocessed data.",
         }
         ```
 
-        {code_review_formatting_instructions}
-        """), name='data handling'),
-        CodeReviewPrompt('table_*.pkl', True, dedent_triple_quote_str("""
+        {code_review_notes}
+        """)),
+        CodeReviewPrompt('content of "{filename}"', 'table_*.pkl', True, dedent_triple_quote_str("""
         I ran your code.
 
         Here is the content of the table '{filename}' that the code created for our scientific paper:
 
         {file_contents_str}
 
-        Please review the table and follow these two steps:
-
-        (1) Check the created table and return a bullet-point response addressing these points:
-        * Sensible numeric values: Check each numeric value in the table and make sure it is sensible.
-        For example:
-        - If the table reports the mean of a variable, is the mean value sensible?
-        - If the table reports CI, are the CI values flanking the mean?
-        - Do values have correct signs?
-        - Do you see any values that are not sensible (too large, too small)?
-        - Do you see any 0 values that do not make sense?
-
-        * Measures of uncertainty: If the table reports nominal values (like regression coefs), does \t
-        it also report their measures of uncertainty (like p-value, CI, or STD, as applicable)?
-
-        * Missing data: Are we missing key variables, or important results, that we should calculate and report? 
-
-        * Any other issues you find.
-
-        (2) Based on your assessment above, return a Python Dict[str, str] mapping the issues you have noted 
-        above (dict keys) to specific suggested corrections/improvements in the code (dict values).
+        Please review the table and return a list of point-by-point assessments. 
+        {code_review_formatting_instructions}
 
         For example:
         ```python
         {
-            "Table {filename} reports incomplete results":
-                "revise the code to add the following new column '<your suggested column name>'",
+            # * SENSIBLE NUMERIC VALUES:
+            # Check each numeric value in the table and make sure it is sensible.
+            # For example:
+            "Sensible values": ("OK", "All the values in the table are sensible"),
+            "Order of magnitude": ("CONCERN", "Weight values of 10^3 are not sensible"), 
+            "CI of variables": ("CONCERN", "The CI values of 'xxx' are not flanking the mean of 'xxx'"),
+            "Sign of values": ("CONCERN", "Height cannot be negative, but we have negative values"),
+            "Zero values": ("CONCERN", "We have zero values for ..., but this is not possible"),
 
-            "Table {filename} reports nominal values without measures of uncertainty":
-                "revise the code to add STD and p-value.", 
+            # * MEASURES OF UNCERTAINTY: 
+            # If the table reports nominal values (like regression coefs), 
+            # does it also report their measures of uncertainty (like p-value, CI, or STD, as applicable)?
+            # For example:
+            "Measures of uncertainty": ("CONCERN", "We should have included p-values for ..."),
+
+            # * MISSING DATA: 
+            # Are we missing key variables, or important results, that we should calculate and report in the table?
+            # For example:
+            "Missing data": ("CONCERN", "To fit with our hypothesis testing plan, we should have included ..."), 
         }
         ```
 
-        {code_review_formatting_instructions}
-        """), name='output of "{filename}"'),
-        CodeReviewPrompt('*', False, dedent_triple_quote_str("""
+        {code_review_notes}
+        """)),
+        CodeReviewPrompt('all output files', '*', False, dedent_triple_quote_str("""
         I ran your code.
 
         Here is the content of the file(s) that the code created for our scientific paper:
 
         {file_contents_str}
 
-        Please review the code and theses output files and return a bullet-point response addressing these points:
+        Please carefully review the code and these output files and return a point by point assessment.
+        {code_review_formatting_instructions}:
 
-        * Does the code create and output all needed results to address our {hypothesis_testing_plan}?
-
-        * Sensible numeric values: Check each numeric value in the tables and in the additional results file \t
-        and make sure it is sensible.
-        For example: 
-        - If a table reports the mean of a variable, is the mean value sensible?
-        - If a table reports CI, are the CI values flanking the mean?
-        - Do values have correct signs?
-        - Do you see any values that are not sensible (too large, too small)?
-
-        * Measures of uncertainty: If a table reports a nominal value (like mean of a variable), does \t
-        it also report its measures of uncertainty (CI, or STD, as applicable)?
-
-        * Missing data in a table: Are we missing key variables in a given table?
-
-        {missing_tables_comments}
-        * Any other issues you find.
-
-        (2) Based on your assessment above, return a Python Dict[str, str] mapping the issues you have noted 
-        above (dict keys) to specific suggested corrections/improvements in the code (dict values).
-
-        For example:
+        for example:
         ```python
         {
-            "A table is missing":
-                "revise the code to add the following new table '<your suggested table caption>'",
+            # * COMPLETENESS OF TABLES:
+            # Does the code create and output all needed results to address our {hypothesis_testing_plan}?
+            # For example:
+            "Completeness of output": ("OK", "We should include the P-values for the test in table_?.pkl"),
 
-            "Table <n> reports nominal values without measures of uncertainty":
-                "revise the code to add STD and p-value.", 
+            # * CONSISTENCY ACROSS TABLES:
+            # Are the tables consistent in terms of the variables included, the measures of uncertainty, etc?
+            # For example:
+            "Consistency among tables": ("CONCERN", "In Table 1, we provide age in years, but in table_?.pkl, \t
+        we provide age in months"),
+
+            # * MISSING DATA: 
+            # Are we missing key variables in a given table? Are we missing measures of uncertainty 
+            # (like p-value, CI, or STD, as applicable)?
+            # For example:
+            "Missing data": ("CONCERN", "We have to add the variable 'xxx' to table_?.pkl"),
+            "Measures of uncertainty": ("CONCERN", "We should have included p-values for ..."),
+
+        {missing_tables_comments}
         }
         ```
 
-        {code_review_formatting_instructions}
-        """), name='all output files'),
+        {code_review_notes}
+        """)),
     )
 
     def _get_additional_contexts(self) -> Optional[Dict[str, Any]]:
@@ -514,25 +502,25 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         # is_descriptive_table = 'table_0.pkl' in tables
         if num_tables == 0:
             return dedent_triple_quote_str("""
-                * Missing tables: \t
-                You did not create any tables. \t
-                Note that research papers typically have 2 or more tables. \t
-                Please suggest which tables to create and additional analysis needed.\n
-                """)
+                # * MISSING TABLES:
+                # Note that the code does not create any tables.
+                # Research papers typically have 2 or more tables. \t
+                # Please suggest which tables to create and additional analysis needed.
+                "Missing tables": ("CONCERN", "I suggest creating tables for ...")""", indent=4)
         if num_tables == 1:
             return dedent_triple_quote_str("""
-                * Missing tables: \t
-                You only produced 1 table. \t
-                Note that research papers typically have 2 or more tables. \t
-                Are you sure all relevant tables are created? Can you suggest any additional analysis leading \t
-                to additional tables?'\n
-                """)
+                # * MISSING TABLES:
+                # The code only creates 1 table.
+                # Research papers typically have 2 or more tables. \t
+                # Are you sure all relevant tables are created? Can you suggest any additional analysis leading \t
+                to additional tables?
+                "Missing tables": ("CONCERN", "I suggest creating an extra table for showing ...")""", indent=4)
         if num_tables == 2:
             return dedent_triple_quote_str("""
-                * Missing tables: \t
-                Considering our research goal and hypothesis testing plan, \t
-                are all relevant tables created? If not, can you suggest any additional tables?\n
-                """)
+                # * MISSING TABLES:
+                # Considering our research goal and hypothesis testing plan,
+                # are all relevant tables created? If not, can you suggest any additional tables?
+                "Missing tables": ("CONCERN", "I suggest creating an extra table showing ...")""", indent=4)
         return ''
 
     def _get_specific_attrs_for_code_and_output(self, code_and_output: CodeAndOutput) -> Dict[str, str]:

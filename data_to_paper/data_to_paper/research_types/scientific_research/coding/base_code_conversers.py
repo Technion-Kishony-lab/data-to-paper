@@ -108,24 +108,31 @@ class BaseCreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         func_names = [func for func in linear_regression_funcs if func in code]
         if not func_names:
             return ''
-        return dedent_triple_quote_str("""
-            - In linear regression, if interactions terms are included:
-              * did we remember to include the main effects?
-              * did we use the `*` operator in statsmodels formula as recommended? \t
-            (as applicable, better use `formula = "y ~ a * b"`, instead of trying to \t
+        return dedent_triple_quote_str("""\n
+            # - In regressions, in case interactions terms are included:
+            # Is the main effect adequately included in the model with interaction terms?
+            # Did we use the `*` operator in statsmodels formula as recommended?
+            # (as applicable, better use `formula = "y ~ a * b"`, instead of trying to \t
             manually multiply the variables)
-            """)
+            # For example:
+            "Model with interaction terms": 
+                ("CONCERN", "We forgot to include the main effect in the xxx model, \t
+            please use the `*` operator in the formula")
+            """, indent=4)
 
     @staticmethod
     def _get_mediation_comments_for_code_and_output(code_and_output: CodeAndOutput) -> str:
-        if 'mediation' not in code_and_output.code.lower():
+        if 'mediation' not in code_and_output.code.lower() and False:
             return ''
-        return dedent_triple_quote_str("""
-            - In mediation analysis:
-              * did we calculate the mediation effect (e.g., using the Sobel test or other)?
-              * did we account for relevant confounding factors? \t
-            (by adding these same confounding factors to both the 'a' and 'b' paths)
-            """)
+        return dedent_triple_quote_str("""\n
+            # - In mediation analysis:
+            # did we calculate the mediation effect (e.g., using the Sobel test or other)?
+            # did we account for relevant confounding factors?
+            # (by adding these same confounding factors to both the 'a' and 'b' paths)
+            # For example:
+            "Mediation analysis":
+                ("CONCERN", "We did not explicitly calculate the mediation effect")
+            """, indent=4)
 
     @staticmethod
     def _get_machine_learning_comments_for_code_and_output(code_and_output: CodeAndOutput) -> str:
@@ -138,12 +145,14 @@ class BaseCreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         func_names = [func for func in ml_funcs if func in code_and_output.code]
         if not func_names:
             return ''
-        return dedent_triple_quote_str("""
-            - For created Machine-Learning models:
-              * Check whether we adequately perform hyperparameter tuning using cross-validation (as appropriate). 
-              * Check whether the best hyperparameters are reported \t
-              (either in a table file or in the "additional_results.pkl" file).
-            """)
+        return dedent_triple_quote_str("""\n
+            # - Machine-Learning models:
+            # Are we adequately performing hyperparameter tuning using cross-validation (as appropriate). 
+            # Are the best hyperparameters reported (either in a table file or in the "additional_results.pkl" file).
+            # For example:
+            "Hyperparameter tuning":
+                ("CONCERN", "We forgot to perform hyperparameter tuning")
+            """, indent=4)
 
     @staticmethod
     def _get_scipy_unpacking_comments_for_code_and_output(code_and_output: CodeAndOutput) -> str:
@@ -154,10 +163,11 @@ class BaseCreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         if scipy_context:
             func_to_fields = scipy_context.unpacking_func_to_fields
             if func_to_fields:
-                s = '- When unpacking or indexing the results of {}, are we using the correct order of fields?\n'. \
+                s = ('\n# - Unpacking order\n'
+                     '# When unpacking or indexing the results of {}, are we using the correct order of fields?\n'). \
                     format(NiceList(func_to_fields.keys(), wrap_with="`", last_separator=" or "))
                 for func, fields in func_to_fields.items():
-                    s += f'  The correct order for `{func}` is: {NiceList(fields, wrap_with="`")}.\n'
+                    s += f'#   The correct order for `{func}` is: {NiceList(fields, wrap_with="`")}.\n'
                 return s
         return ''
 

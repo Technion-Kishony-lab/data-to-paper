@@ -54,6 +54,13 @@ MAX_SENSIBLE_OUTPUT_SIZE_TOKENS = Mutable(2500)
 DELAY_CODE_RUN_CACHE_RETRIEVAL = Mutable(0.01)  # seconds
 DELAY_SERVER_CACHE_RETRIEVAL = Mutable(0.01)  # seconds
 
+# Pause time (in seconds). 0 for no pause; None to wait for Continue button.
+PAUSE_AT_RULE_BASED_FEEDBACK = Mutable(None)
+PAUSE_AT_LLM_FEEDBACK = Mutable(None)
+PAUSE_AT_PROMPT_FOR_LLM_FEEDBACK = Mutable(None)
+PAUSE_AFTER_LITERATURE_SEARCH = Mutable(None)
+REQUEST_CONTINUE_IN_PLAYBACK = Flag(True)
+
 # Human interactions:
 # CHOSEN_APP:
 #   'console': console-based interaction
@@ -63,7 +70,12 @@ DELAY_SERVER_CACHE_RETRIEVAL = Mutable(0.01)  # seconds
 # but not with None. Runs recorded with None can be replayed only with None.
 CHOSEN_APP = Mutable('pyside')
 
-HUMAN_EDIT_CODE_REVIEW = True
+# Human code review:
+# If True, the user can change all code reviews.
+# If None, the user can change only the last code review.
+# If False, the user cannot change code reviews.
+HUMAN_EDIT_CODE_REVIEW = None
+
 HUMAN_NAME = 'Human'
 
 NUM_DIGITS_FOR_FLOATS = 4

@@ -15,7 +15,7 @@ def format_with_args_or_kwargs(text: str, args_or_kwargs: ArgsOrKwargs) -> str:
         return text.format(**args_or_kwargs)
 
 
-def dedent_triple_quote_str(s: str):
+def dedent_triple_quote_str(s: str, indent: int = 0) -> str:
     """
     Format a triple-quote string to remove extra indentation and leading newline.
     """
@@ -23,6 +23,8 @@ def dedent_triple_quote_str(s: str):
         s = s[1:]
     s = textwrap.dedent(s)
     s = s.replace('\t\n', '')  # allows continuing lines in triple-quote strings by ending with \t
+    if indent > 0:
+        s = textwrap.indent(s, ' ' * indent)
     return s
 
 

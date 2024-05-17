@@ -21,9 +21,6 @@ class WriteTitleAndAbstract(LatexReviewBackgroundProductsConverser):
     allow_citations_from_step: str = None
     should_remove_citations_from_section: bool = False
 
-    fake_performer_request_for_help: str = \
-        'Hi {user_skin_name}, could you please help me {goal_verb} the {pretty_section_names} for my paper?'
-
     max_reviewing_rounds: int = 1
     goal_noun: str = 'Title and Abstract for a funny math article'
     goal_verb: str = 'write'

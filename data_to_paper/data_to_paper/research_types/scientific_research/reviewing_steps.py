@@ -70,11 +70,11 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
         Please suggest a research goal and an hypothesis that can be studied using only the provided dataset. 
         The goal and hypothesis should be interesting and novel.
         {goal_guidelines}
-        {quote_request}
+
+        Your response should be formatted as {your_response_should_be_formatted_as}
         """)
-    quote_request: str = dedent_triple_quote_str("""
-        INSTRUCTIONS FOR FORMATTING YOUR RESPONSE:
-        Please return the goal and hypothesis enclosed within triple-backticks, like this:
+    your_response_should_be_formatted_as: str = dedent_triple_quote_str("""
+        a triple-backtick block, like this:
         ```
         # Research Goal: 
         <your research goal here>
@@ -107,7 +107,10 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
 
     def _check_extracted_text_and_update_valid_result(self, extracted_text: str):
         if '\n# Research Goal:' not in extracted_text or '\n# Hypothesis:' not in extracted_text:
-            self._raise_self_response_error(self.quote_request)
+            self._raise_self_response_error(
+                title='# Incorrect response format',
+                error_message='Your response should contain both a "# Research Goal:" and a "# Hypothesis:" section.',
+            )
         self._update_valid_result(extracted_text)
 
 
@@ -150,7 +153,9 @@ class GetMostSimilarCitations(ShowCitationProducts, PythonDictReviewBackgroundPr
             {citation.bibtex_id: citation for citation in available_citations}
         non_matching_ids = [key for key in response_value.keys() if key not in bibtex_ids_to_citations]
         if non_matching_ids:
-            self._raise_self_response_error(f'Invalid bibtex ids: {non_matching_ids}')
+            self._raise_self_response_error(
+                title='Invalid bibtex ids',
+                error_message=f'Invalid bibtex ids:\n{non_matching_ids}')
 
         # replace with correct citation titles
         response_value = type(response_value)({key: bibtex_ids_to_citations[key].title for key in response_value})
@@ -228,6 +233,11 @@ class NoveltyAssessmentReview(ShowCitationProducts, PythonDictWithDefinedKeysRev
         ```
         """)
 
+    your_response_should_be_formatted_as: str = dedent_triple_quote_str("""
+        a Python dictionary, like this:"
+        {'similarities': List[str], 'differences': List[str], 'choice': str, 'explanation': str}
+        """)
+
     product_type: Type[ValueProduct] = NoveltyAssessmentProduct
 
     def _check_response_value(self, response_value: Any) -> Any:
@@ -246,9 +256,9 @@ class NoveltyAssessmentReview(ShowCitationProducts, PythonDictWithDefinedKeysRev
         if errors:
             errors = '\n'.join(errors)
             self._raise_self_response_error(
-                f"Errors in response structure:\n{errors}\n"
-                f"Your response should be formatted as a Python dictionary, like this:\n"
-                "{'similarities': List[str], 'differences': List[str], 'choice': str, 'explanation': str}")
+                title='# Errors in response structure',
+                error_message=errors,
+            )
         return response_value
 
 
@@ -264,7 +274,8 @@ class ReGoalReviewGPT(GoalReviewGPT):
         please revise, or completely re-write, the research goal and hypothesis that we have so that they \t
         do not completely overlap existing literature.
         {goal_guidelines}
-        {quote_request}
+
+        Your response should be formatted as {your_response_should_be_formatted_as}
         """)
 
 
@@ -338,6 +349,7 @@ class HypothesesTestingPlanReviewGPT(PythonDictReviewBackgroundProductsConverser
         response_value = super()._check_response_value(response_value)
         if len(response_value) > self.max_hypothesis_count:
             self._raise_self_response_error(
+                '# Too many hypotheses',
                 f'Please do not specify more than {self.max_hypothesis_count} hypotheses. '
                 f'Revise your response to return a maximum of {self.max_hypothesis_count} hypotheses, '
                 f'which should all build towards a single study goal.')

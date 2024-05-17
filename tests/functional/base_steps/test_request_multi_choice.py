@@ -18,8 +18,8 @@ correct_answer = "I choose option 2"
 
 
 @pytest.mark.parametrize('correct_response, incorrect_response, expected_value, error_keywords', [
-    (correct_answer, correct_answer.replace('2', '3'), '2', ('just a single character', '1', '2')),
-    (correct_answer, correct_answer.replace('2', '1 and 2'), '2', ('just a single character', '1', '2')),
+    (correct_answer, correct_answer.replace('2', '3'), '2', ('a single character', '1', '2')),
+    (correct_answer, correct_answer.replace('2', '1 and 2'), '2', ('a single character', '1', '2')),
 ])
 def test_request_multi_choice_incorrect_then_correct(correct_response, incorrect_response,
                                                      expected_value, error_keywords):
@@ -44,5 +44,5 @@ def test_request_multi_choice_only_keeps_one_error_message():
     # assert context as sent to the server:
     messages_lists = [h[0][0] for h in OPENAI_SERVER_CALLER.args_kwargs_response_history]
     assert [len(lst) for lst in messages_lists] == [2, 4, 4, 4]
-    assert all('Answer with just' in lst[-1].content for lst in messages_lists[1:])
+    assert all('a single character' in lst[-1].content for lst in messages_lists[1:])
     assert [lst[-2].content for lst in messages_lists[1:]] == ['nothing', 'something else', '1 and 2']

@@ -70,50 +70,37 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         """)
 
     code_review_prompts: Collection[CodeReviewPrompt] = (
-        CodeReviewPrompt('*', False, dedent_triple_quote_str("""
+        CodeReviewPrompt('output file', '*', False, dedent_triple_quote_str("""
         I ran your code.
 
         Here is the content of the output file that the code created:
 
         {file_contents_str}
 
-        Please follow these two steps:
-
-        (1) Check the code and the output for any issues, and return a bullet-point response addressing these points:
-        * Are there any unexpected NaN values in the output.
-        * Can results be understood from the output file? In particular, do we have a short label for each result?
-        * Are there any results that are missing. Check that under each header in the output file there is \t
-        a corresponding meaningful result (or "Not Applicable" if not applicable).
-        * Any other issues you find.
-
-        (2) Based on your assessment above, return a Python Dict[str, str] mapping the issues you have noted \t
-        above (dict keys) to specific suggested corrections/improvements in the code (dict values).
+        Please carefully check the Python code and the output for possible issues, and \t
+        provide a point-by-point assessment. 
+        {code_review_formatting_instructions}
 
         For example:
         ```python
         {
-            "The result of the average of variable ... is missing":
-                "Add the missing calculation of ... to the code.",
-
-            "The average of the variable ... is `Nan`":
-                "Remove missing values in the calculation."
+            "NaN values in the output file":
+                ("CONCERN", "The output contains NaN values in ..."),
+            "Output file should be self-contained":
+                ("CONCERN", "A header is missing for ..."),
+            "Output file should contain all the required analysis": 
+                ("OK", "Nothing is missing"),
+            "Sensible results": 
+                ("CONCERN", "The average of ... does not make sense"),
+            "<Any other issues you find>":
+                ("CONCERN", "<Issue description>"),
+            "<Any other point you checked and asserted is OK>":
+                ("OK", "<Assertion description>"),
         }
         ```
 
-        Try to be as specific as possible when describing the issues and proposed fixes.
-        Include in the dict as many issues as you find. 
-        If there are no issues, and the code and tables are just perfect and need no corrections or enhancements, \t
-        then return an empty dict: 
-        ```python
-        {}
-        ```
-
-        Important:
-        * Do not return the revised code, only the issues and suggested fixes.
-        * If there are no critical issues, then return an empty dict: `{}`.
-        * Do not create positive issues that require no change in the code. In particular, do not write \t
-        {"No issues found": "No corrections or improvements are needed."}, return an empty dict instead.
-        """), name='output file'),
+        {code_review_notes}
+        """)),
     )
 
     def _get_additional_contexts(self) -> Optional[Dict[str, Any]]:

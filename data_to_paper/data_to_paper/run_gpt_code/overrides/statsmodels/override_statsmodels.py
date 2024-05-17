@@ -76,6 +76,7 @@ class StatsmodelsFitPValueOverride(SystematicMethodReplacerContext, TrackPValueC
             Prevents the use of the summary function.
             """
             raise RunIssue.from_current_tb(
+                category="Statsmodels: good practices",
                 issue=f"Do not use the `summary` function of statsmodels.",
                 instructions=f"Use the `summary2` function instead.",
                 code_problem=CodeProblem.RuntimeError,
@@ -91,6 +92,7 @@ class StatsmodelsFitPValueOverride(SystematicMethodReplacerContext, TrackPValueC
             if self._is_called_from_data_to_paper():
                 if hasattr(obj, '_prior_fit_results') and obj._prior_fit_results is result:
                     raise RunIssue.from_current_tb(
+                        category='Statsmodels: good practices',
                         issue=f"The `{original_func.__name__}` function was already called on this object. ",
                         instructions=f"Multiple calls should be avoided as the same result instance is returned again.",
                         code_problem=CodeProblem.RuntimeError,
@@ -131,6 +133,7 @@ class StatsmodelsFitPValueOverride(SystematicMethodReplacerContext, TrackPValueC
                         assert min_eigenval == min(eigenvals)
                         if min_eigenval < 1e-10:
                             self.issues.append(RunIssue.from_current_tb(
+                                category='Statsmodels: eigenvalues too small',
                                 issue="The eigenvalues of the covariance matrix are too small. "
                                       "This might indicate that there are strong multicollinearity problems "
                                       "or that the design matrix is singular.",

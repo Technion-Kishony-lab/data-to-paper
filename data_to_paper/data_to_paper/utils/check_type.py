@@ -24,6 +24,14 @@ def check_all_of_type(elements: Iterable, type_: type, description: str = ''):
         validate_value_type(e, type_, description)
 
 
+def check_all_of_types(elements: Iterable, types_: Iterable[type], description: str = ''):
+    """
+    Check if all elements are of their matching types.
+    """
+    for e, type_ in zip(elements, types_):
+        validate_value_type(e, type_, description)
+
+
 def validate_value_type(value: Any, type_: type, description: str = ''):
     """
     Validate that the response is given in the correct format. if not raise TypeError.
@@ -44,7 +52,9 @@ def validate_value_type(value: Any, type_: type, description: str = ''):
     if isinstance(value, dict):
         check_all_of_type(value.keys(), child_types[0], f'within the dict keys{description}')
         check_all_of_type(value.values(), child_types[1], f'within the dict values{description}')
-    elif isinstance(value, (list, tuple, set)):
+    elif isinstance(value, (list, set)) and len(child_types) == 1:
         check_all_of_type(value, child_types[0], f'within the {type(value).__name__}{description}')
+    elif isinstance(value, tuple) and len(child_types) == len(value):
+        check_all_of_types(value, child_types, f'within the tuple{description}')
     else:
         raise NotImplementedError(f'format_type: {type(value)} is not implemented')

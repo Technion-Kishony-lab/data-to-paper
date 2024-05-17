@@ -8,7 +8,7 @@ from data_to_paper.utils.replacer import StrOrReplacer, format_value
 from data_to_paper.utils.print_to_file import print_and_log_magenta
 from data_to_paper.utils.text_counting import is_bulleted_list
 from data_to_paper.interactive import PanelNames
-from data_to_paper.env import TEXT_WIDTH, CHOSEN_APP
+from data_to_paper.env import TEXT_WIDTH, CHOSEN_APP, PAUSE_AT_LLM_FEEDBACK
 from data_to_paper.run_gpt_code.code_utils import extract_content_of_triple_quote_block, FailedExtractingBlock, \
     IncompleteBlockFailedExtractingBlock
 
@@ -76,7 +76,7 @@ class DualConverserGPT(Converser):
                                                         hidden_messages: GeneralMessageDesignation = None,
                                                         expected_tokens_in_response: int = None,
                                                         **kwargs) -> Message:
-        with self._app_with_set_panel_status(PanelNames.FEEDBACK, 'Waiting for LLM Reviewer...'):
+        with self._app_temporarily_set_panel_status(PanelNames.FEEDBACK, 'Waiting for LLM Reviewer...'):
             self._app_send_prompt(PanelNames.FEEDBACK)
             message = self.other_conversation_manager.get_and_append_assistant_message(
                 tag=tag,
@@ -91,7 +91,17 @@ class DualConverserGPT(Converser):
                                            comment: Optional[StrOrReplacer] = None,
                                            ignore: bool = False,
                                            previous_code: Optional[str] = None, is_background: bool = False,
+                                           send_to_app: Optional[bool] = None,
+                                           app_panel: PanelNames = PanelNames.FEEDBACK,
+                                           editing_title: str = None, editing_instructions: str = None,
+                                           in_field_instructions: Optional[str] = None,
+                                           sleep_for: Optional[float] = 0,
                                            **kwargs) -> Message:
+        if send_to_app is None:
+            send_to_app = not is_background and not ignore
+        content = \
+            self._show_and_edit_content(content, editing_title, editing_instructions, in_field_instructions,
+                                        send_to_app, app_panel, sleep_for)
         return self.other_conversation_manager.append_user_message(
             content=format_value(self, content),
             tag=tag,
@@ -160,7 +170,7 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
 
     # TODO: Responding to ambiguous reviewer leads to the reviewer always apologizing and the conversation is not
     #  sensible anymore.
-    #  This can only work if the reviewer is forced to return structured response, like triple quotes, or python
+    #  This can only work if the reviewer is forced to return structured response, like triple-backtick block, or python
     #  list of strings, containing the feedback. or empty of for no feedback.
 
     # dedent_triple_quote_str("""
@@ -173,9 +183,6 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
 
     append_termination_response_to_self: bool = True
 
-    fake_performer_message_to_add_after_max_rounds: str = \
-        "No need for additional feedback. Thanks much - I think I have it now!"
-    fake_performer_message_to_add_after_reviewer_approval: str = "Thanks much - this was very helpful!"
     max_reviewing_rounds: int = 3
     max_reviewer_attempts: int = 4
 
@@ -212,9 +219,8 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
         self.apply_to_other_append_user_message(altered_self_response)
         message = self.apply_to_other_get_and_append_assistant_message()
         if self.respond_to_ambiguous_reviewer_termination is not None:
-            termination_phrase = format_value(self, self.termination_phrase)
             for attempt in range(self.max_reviewer_attempts):
-                is_termination = self._is_reviewer_response_terminating(message.content, termination_phrase)
+                is_termination = self._is_reviewer_response_terminating(message.content)
                 if is_termination is not None:
                     break
                 # The reviewer response is ambiguous
@@ -225,11 +231,13 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
                 message = self.apply_to_other_get_and_append_assistant_message()
         return message
 
-    def get_response_from_self_in_response_to_response_from_other(self, altered_other_response: str) -> Message:
+    def get_response_from_self_in_response_to_response_from_other(self, altered_other_response: str,
+                                                                  is_human_review: bool = False) -> Message:
         """
         Append response from other as user message to self conversation, and get response from assistant.
         """
-        self.apply_append_user_message(altered_other_response)
+        self.apply_append_user_message(altered_other_response,
+                                       sleep_for=0 if is_human_review else PAUSE_AT_LLM_FEEDBACK)
         return self.apply_get_and_append_assistant_message()
 
     def _alter_self_response(self, response: str) -> str:
@@ -294,8 +302,6 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
 
         # We have a valid response from self. Now we can proceed with the dialog:
         if is_last_round and not (self.human_review and CHOSEN_APP != None):  # noqa
-            if self.fake_performer_message_to_add_after_max_rounds is not None:
-                self.apply_append_surrogate_message(self.fake_performer_message_to_add_after_max_rounds, ignore=True)
             return CycleStatus.MAX_ROUNDS_EXCEEDED
         valid_result = self._get_valid_result()
         fresh_looking_self_response = self._convert_valid_results_to_fresh_looking_response(valid_result)
@@ -306,12 +312,13 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
         else:
             other_message = self.get_response_from_other_in_response_to_response_from_self(altered_self_response)
             other_response = other_message.content
-        if self.human_review and self.app:
+        is_human_review = self.human_review and self.app
+        if is_human_review:
             other_response = self._app_receive_text(PanelNames.FEEDBACK, '',
                                                     title='User feedback requested',
-                                                    instructions=f'Give feedback on the product. Blank if ok.',
-                                                    optional_suggestions={'AI': other_response,
-                                                                          'Default': ''})
+                                                    in_field_instructions='Give feedback on the product.\n'
+                                                                          'Leave blank if product is ok.',
+                                                    optional_suggestions={'AI': other_response, 'Default': ''})
             # replace other response with the human response in other conversation:
             if self.are_we_reviewing_at_all:
                 self.apply_to_other_delete_messages(-1)
@@ -319,13 +326,12 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
         altered_other_response = self._alter_other_response(other_response)
         if self._is_reviewer_response_terminating(other_response):
             if self.append_termination_response_to_self:
-                self.apply_append_user_message(other_response, context=other_message.context if other_message else None)
-                if self.fake_performer_message_to_add_after_reviewer_approval:
-                    self.apply_append_surrogate_message(self.fake_performer_message_to_add_after_reviewer_approval,
-                                                        ignore=True)
+                self.apply_append_user_message(other_response, context=other_message.context if other_message else None,
+                                               sleep_for=not self.human_review and PAUSE_AT_LLM_FEEDBACK.val)
             return CycleStatus.APPROVED_BY_OTHER
 
-        self.get_response_from_self_in_response_to_response_from_other(altered_other_response)
+        self.get_response_from_self_in_response_to_response_from_other(altered_other_response,
+                                                                       is_human_review=is_human_review)
         return CycleStatus.NOT_APPROVED_BY_OTHER
 
 
@@ -396,18 +402,17 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
     """
     A base class for agents running a dialog between two LLM agents, where one is a "reviwee" who needs to perform
     a task towards a certain "goal", and the other is a "reviewer" who provides constructive feedback.
-    The performer is expected to return the goal as a triple-quoted string, so that it can be extracted.
+    The performer is expected to return the goal as a triple-backtick block, so that it can be extracted.
     """
 
-    quote_request: str = '\n\nPlease return your answer enclosed within triple-backticks ' \
-                         '(but send text, not code).'
-    flanked_header: str = '\n\nMake sure you are flanking the entire response and not just the headers.'
-    mission_prompt: str = ReviewDialogDualConverserGPT.mission_prompt + '\n{quote_request}'
+    your_response_should_be_formatted_as: str = 'a triple-backtick block (but send text, not code).'
+    mission_prompt: str = ReviewDialogDualConverserGPT.mission_prompt \
+        + '\nYour response should be formatted as {your_response_should_be_formatted_as}'
 
     sentence_to_add_at_the_end_of_reviewer_response: str = dedent_triple_quote_str("""\n\n
         Please correct your response according to any points you find relevant and applicable in my feedback.
         Send back a complete rewrite of the {goal_noun}.
-        {quote_request}
+        Your response should be formatted as {your_response_should_be_formatted_as}
         """)
 
     rewind_after_getting_a_valid_response: Optional[Rewind] = Rewind.AS_FRESH
@@ -424,10 +429,14 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
             return extract_content_of_triple_quote_block(response, self.goal_noun, None)
         except FailedExtractingBlock as e:
             self._raise_self_response_error(
-                str(e),
+                title='# Failed to extract triple quote block',
+                error_message=str(e),
                 missing_end=isinstance(e, IncompleteBlockFailedExtractingBlock)
             )
 
     def _check_flanked_response_is_not_just_header(self, response: str):
         if response.count('\n') < 2 and response.count(' ') < 5:
-            self._raise_self_response_error(self.flanked_header)
+            self._raise_self_response_error(
+                title='# Response seems too short',
+                error_message='Make sure you are flanking the entire response and not just the headers.'
+            )

@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 
 import colorama
 
@@ -35,6 +35,9 @@ class BaseApp:
             cls.instance = cls()
         return cls.instance
 
+    def request_panel_continue(self, panel_name: PanelNames):
+        pass
+
     def request_text(self, panel_name: PanelNames, initial_text: str = '',
                      title: Optional[str] = None,
                      instructions: Optional[str] = None,
@@ -44,6 +47,7 @@ class BaseApp:
     def request_action(self, panel_name: PanelNames, initial_text: str = '',
                        title: Optional[str] = None,
                        instructions: Optional[str] = None,
+                       in_field_instructions: Optional[str] = '',
                        optional_suggestions: Dict[str, str] = None) -> HumanAction:
         """
         Requests text from the user.
@@ -51,7 +55,8 @@ class BaseApp:
         """
         optional_suggestions = optional_suggestions or {}
         optional_suggestions = {"Initial": initial_text, **optional_suggestions}
-        text = self.request_text(panel_name, initial_text, title, instructions, optional_suggestions)
+        text = self.request_text(panel_name, initial_text, title, instructions, in_field_instructions,
+                                 optional_suggestions)
         if text == initial_text:
             return ButtonClickedHumanAction('Initial')
         for suggestion_name, suggestion_content in optional_suggestions.items():
@@ -59,13 +64,22 @@ class BaseApp:
                 return ButtonClickedHumanAction(suggestion_name)
         return TextSentHumanAction(text)
 
-    def show_text(self, panel_name: PanelNames, text: str, is_html: bool = False):
+    def show_text(self, panel_name: PanelNames, text: str, is_html: bool = False,
+                  scroll_to_bottom: bool = False):
         pass
 
     def set_focus_on_panel(self, panel_name: PanelNames):
         pass
 
-    def advance_stage(self, stage: Stage):
+    def advance_stage(self, stage: Union[Stage, int, bool]):
+        """
+        Advances the stage.
+        stage:
+            Stage: the stage to advance to.
+            int: the index of the stage to advance to.
+            True: advance to the end (all stages are completed).
+            False: advance to the beginning (before the first stage).
+        """
         pass
 
     def send_product_of_stage(self, stage: Stage, product_text: str):
@@ -78,6 +92,8 @@ class BaseApp:
         self.step_runner.run_all_steps()
 
     def _get_all_steps(self):
+        if self.step_runner is None:
+            return []
         return self.step_runner.stages
 
     def _set_status(self, panel_name: PanelNames, position: int, status: str = ''):
@@ -91,9 +107,6 @@ class BaseApp:
         return self._panels_and_positions_to_headers[(panel_name, position)]
 
     def set_header(self, header: str):
-        pass
-
-    def request_continue(self):
         pass
 
 
@@ -147,6 +160,7 @@ class ConsoleApp(BaseApp):
         print_and_log(text or "<empty>", color=color)
         return text
 
-    def show_text(self, panel_name: PanelNames, text: str, is_html: bool = False):
+    def show_text(self, panel_name: PanelNames, text: str, is_html: bool = False,
+                  scroll_to_bottom: bool = False):
         # print_and_log(text)
         pass  # no need to print, user already sees all console messages.

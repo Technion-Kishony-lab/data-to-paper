@@ -22,6 +22,9 @@ class Replacer:
     def __str__(self):
         return self.format_text()
 
+    def __bool__(self):
+        return bool(self.text)
+
     def add_obj(self, obj):
         if self.objs is None:
             self.objs = obj

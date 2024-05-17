@@ -226,6 +226,6 @@ class ScientificStepsRunner(DataStepRunner, CheckLatexCompilation):
         self._app_send_product_of_stage(
             ScientificStage.COMPILE,
             f'<a href="file://{self.output_directory}/paper.pdf">Download the manuscript</a>')
-        self.advance_stage(ScientificStage.FINISHED)
+        self.advance_stage(True)
 
         return products

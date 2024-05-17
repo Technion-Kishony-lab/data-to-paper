@@ -1,16 +1,19 @@
 from dataclasses import dataclass, field
 from typing import Dict, List, Collection, Optional, Any
 
+from data_to_paper.env import PAUSE_AFTER_LITERATURE_SEARCH
+
 from data_to_paper.utils import dedent_triple_quote_str, word_count
 from data_to_paper.utils.nice_list import NiceDict, NiceList
 from data_to_paper.utils.print_to_file import print_and_log_red
 from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER, \
     SEMANTIC_SCHOLAR_EMBEDDING_SERVER_CALLER
 
+from data_to_paper.interactive import PanelNames
+
 from .request_python_value import PythonDictWithDefinedKeysReviewBackgroundProductsConverser
 from .literature_search import LiteratureSearch, QueryCitationCollectionProduct, \
     LiteratureSearchQueriesProduct
-from ..interactive import PanelNames
 
 
 @dataclass
@@ -61,7 +64,9 @@ class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
         of the "United Kingdom National Core Data (UK-NCD)", the queries could be:
         ```python
         {pretty_scopes_to_examples}
-        ```  
+        ```
+
+        Your response should be formatted as {your_response_should_be_formatted_as}  
         """)
 
     @property
@@ -110,7 +115,9 @@ class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
                 if word_count(query) > 10:
                     too_long_queries.append(query)
         if too_long_queries:
-            self._raise_self_response_error(dedent_triple_quote_str("""
+            self._raise_self_response_error(
+                title='# Too long queries',
+                error_message=dedent_triple_quote_str("""
                 Queries should be 5-10 word long.
 
                 The following queries are too long:
@@ -129,7 +136,7 @@ class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
         html = f'<h2>Querying Citations</h2>'
         html += f'<p>Searching "{server_name}" ' \
                 f'for papers related to our study in the following areas:</p>'
-        with self._app_with_set_panel_status(PanelNames.FEEDBACK, 'Querying citations...'):
+        with self._app_temporarily_set_panel_status(PanelNames.FEEDBACK, 'Querying citations...'):
             for scope, queries in scopes_to_list_of_queries.items():
                 queries_to_citations = {}
                 html += f'<h3>{scope.title()}-related queries:</h3>'
@@ -137,9 +144,10 @@ class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
                     citations = SEMANTIC_SCHOLAR_SERVER_CALLER.get_server_response(query,
                                                                                    rows=self.number_of_papers_per_query)
                     num_citations = len(citations)
-                    html += (f'<p><b style="color: #1E90FF;">Query:</b> "{query}". '
-                             f'Found: <b style="color: #1E90FF;">{num_citations} citations.</b></p>')
-                    self._app_send_prompt(PanelNames.FEEDBACK, html, provided_as_html=True)
+                    html += f'<p><b style="color: #1E90FF;">Query:</b> "{query}". '
+                    html += f'<br><b style="color: #1E90FF;">Found:</b> {num_citations} citations.</p>'
+                    self._app_send_prompt(PanelNames.FEEDBACK, html, provided_as_html=True,
+                                          scroll_to_bottom=True)
                     self.comment(f'\nQuerying Semantic Scholar. '
                                  f'Found {num_citations} / {self.number_of_papers_per_query} citations. '
                                  f'Query: "{query}".')
@@ -167,7 +175,7 @@ class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
                     "title": self.get_title(),
                     "abstract": self.get_abstract()})
 
-        self._app_request_continue()
+        self._app_request_panel_continue(PanelNames.FEEDBACK, sleep_for=PAUSE_AFTER_LITERATURE_SEARCH)
         return literature_search
 
     def _update_valid_result(self, valid_result: Any):

@@ -56,6 +56,7 @@ class NoIterTuple:
     def __getitem__(self, item):
         if isinstance(item, int):
             self._raise_or_register_if_called_from_user_script(RunIssue.from_current_tb(
+                category='Coding: good practices',
                 code_problem=CodeProblem.NonBreakingRuntimeIssue,
                 issue=f'Accessing the results of {self.created_by} by index can lead to coding mistakes.',
                 instructions=self._get_instructions()
@@ -64,6 +65,7 @@ class NoIterTuple:
 
     def __iter__(self):
         self._raise_or_register_if_called_from_user_script(RunIssue.from_current_tb(
+            category='Coding: good practices',
             code_problem=CodeProblem.NonBreakingRuntimeIssue,
             issue=f'Unpacking, or otherwise iterating over, the results of {self.created_by} '
                   f'can lead to coding mistakes.',
