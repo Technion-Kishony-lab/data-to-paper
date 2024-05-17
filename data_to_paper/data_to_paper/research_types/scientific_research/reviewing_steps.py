@@ -153,7 +153,9 @@ class GetMostSimilarCitations(ShowCitationProducts, PythonDictReviewBackgroundPr
             {citation.bibtex_id: citation for citation in available_citations}
         non_matching_ids = [key for key in response_value.keys() if key not in bibtex_ids_to_citations]
         if non_matching_ids:
-            self._raise_self_response_error(f'Invalid bibtex ids: {non_matching_ids}')
+            self._raise_self_response_error(
+                title='Invalid bibtex ids',
+                error_message=f'Invalid bibtex ids:\n{non_matching_ids}')
 
         # replace with correct citation titles
         response_value = type(response_value)({key: bibtex_ids_to_citations[key].title for key in response_value})
@@ -231,6 +233,11 @@ class NoveltyAssessmentReview(ShowCitationProducts, PythonDictWithDefinedKeysRev
         ```
         """)
 
+    your_response_should_be_formatted_as: str = dedent_triple_quote_str("""
+        a Python dictionary, like this:"
+        {'similarities': List[str], 'differences': List[str], 'choice': str, 'explanation': str}
+        """)
+
     product_type: Type[ValueProduct] = NoveltyAssessmentProduct
 
     def _check_response_value(self, response_value: Any) -> Any:
@@ -249,9 +256,9 @@ class NoveltyAssessmentReview(ShowCitationProducts, PythonDictWithDefinedKeysRev
         if errors:
             errors = '\n'.join(errors)
             self._raise_self_response_error(
-                f"Errors in response structure:\n{errors}\n"
-                f"Your response should be formatted as a Python dictionary, like this:\n"
-                "{'similarities': List[str], 'differences': List[str], 'choice': str, 'explanation': str}")
+                title='# Errors in response structure',
+                error_message=errors,
+            )
         return response_value
 
 
@@ -342,6 +349,8 @@ class HypothesesTestingPlanReviewGPT(PythonDictReviewBackgroundProductsConverser
         response_value = super()._check_response_value(response_value)
         if len(response_value) > self.max_hypothesis_count:
             self._raise_self_response_error(
+                title='Too many hypotheses',
+                error_message=
                 f'Please do not specify more than {self.max_hypothesis_count} hypotheses. '
                 f'Revise your response to return a maximum of {self.max_hypothesis_count} hypotheses, '
                 f'which should all build towards a single study goal.')
