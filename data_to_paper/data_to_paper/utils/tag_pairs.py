@@ -21,6 +21,12 @@ class TagPairs(NamedTuple):
         """
         return f'{self.left_tag}{text}{self.right_tag}'
 
+    def is_flanking(self) -> bool:
+        """
+        Check if the tag is flanking.
+        """
+        return self.right_tag is not None
+
 
 # String patterns used to wrap text for save and load. Use unique patterns, not likely to occur in conversation.
 SAVE_TAGS = TagPairs('START>>>>>\n', '\n<<<<<END\n')
