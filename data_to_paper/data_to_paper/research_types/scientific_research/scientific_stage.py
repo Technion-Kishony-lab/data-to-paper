@@ -18,7 +18,6 @@ class ScientificStage(Stage):
     WRITING_INTRODUCTION = "Introduction"
     WRITING_DISCUSSION = "Discussion"
     COMPILE = "Compile Paper"
-    FINISHED = "Completed"
 
 
 SECTION_NAMES_TO_WRITING_STAGES = {

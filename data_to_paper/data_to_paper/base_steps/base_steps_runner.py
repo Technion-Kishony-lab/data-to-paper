@@ -88,7 +88,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         You can close the app now.
         """)
 
-    def advance_stage(self, stage: Stage):
+    def advance_stage(self, stage: Union[Stage, bool]):
         """
         Advance the stage.
         """

@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 
 import colorama
 
@@ -71,7 +71,15 @@ class BaseApp:
     def set_focus_on_panel(self, panel_name: PanelNames):
         pass
 
-    def advance_stage(self, stage: Stage):
+    def advance_stage(self, stage: Union[Stage, int, bool]):
+        """
+        Advances the stage.
+        stage:
+            Stage: the stage to advance to.
+            int: the index of the stage to advance to.
+            True: advance to the end (all stages are completed).
+            False: advance to the beginning (before the first stage).
+        """
         pass
 
     def send_product_of_stage(self, stage: Stage, product_text: str):

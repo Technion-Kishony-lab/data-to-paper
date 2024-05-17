@@ -1,5 +1,5 @@
 from functools import partial
-from typing import Optional, List, Collection, Dict, Callable, Any
+from typing import Optional, List, Collection, Dict, Callable, Any, Union
 
 from PySide6.QtGui import QTextOption, QTextCursor
 from PySide6.QtWidgets import QMainWindow, QVBoxLayout, QLabel, QPushButton, QWidget, \
@@ -152,7 +152,7 @@ class Worker(QThread):
     request_text_signal = Signal(PanelNames, str, str, str, str, dict)
     show_text_signal = Signal(PanelNames, str, bool, bool)
     set_focus_on_panel_signal = Signal(PanelNames)
-    advance_stage_signal = Signal(Stage)
+    advance_stage_int_signal = Signal(int)
     send_product_of_stage_signal = Signal(Stage, str)
     set_status_signal = Signal(PanelNames, int, str)
     set_header_signal = Signal(str)
@@ -201,8 +201,8 @@ class Worker(QThread):
     def worker_set_focus_on_panel(self, panel_name: PanelNames):
         self.set_focus_on_panel_signal.emit(panel_name)
 
-    def worker_advance_stage(self, stage: Stage):
-        self.advance_stage_signal.emit(stage)
+    def worker_advance_stage_int(self, stage: int):
+        self.advance_stage_int_signal.emit(stage)
 
     def worker_send_product_of_stage(self, stage: Stage, product_text: str):
         self.send_product_of_stage_signal.emit(stage, product_text)
@@ -268,13 +268,10 @@ class StepsPanel(QWidget):
                 step.setStyleSheet(STEP_PANEL_BUTTON_STYLE.format(background_color="#909090", pressed_color="#707070"))
 
     def set_step(self, step_name: str):
-        self.current_step = list(self.labels_to_callbacks.keys()).index(step_name)
-        self.refresh()
+        self.set_step_by_index(list(self.labels_to_callbacks.keys()).index(step_name))
 
-    def advance_progress(self):
-        self.current_step += 1
-        if self.current_step >= len(self.step_widgets):
-            self.current_step = 0
+    def set_step_by_index(self, step_index: int):
+        self.current_step = step_index
         self.refresh()
 
 
@@ -579,7 +576,7 @@ class PysideApp(QMainWindow, BaseApp):
         self.worker.request_text_signal.connect(self.upon_request_text)
         self.worker.show_text_signal.connect(self.upon_show_text)
         self.worker.set_focus_on_panel_signal.connect(self.upon_set_focus_on_panel)
-        self.worker.advance_stage_signal.connect(self.upon_advance_stage)
+        self.worker.advance_stage_int_signal.connect(self.upon_advance_stage_int)
         self.worker.send_product_of_stage_signal.connect(self.upon_send_product_of_stage)
         self.worker.set_status_signal.connect(self.upon_set_status)
         self.worker.set_header_signal.connect(self.upon_set_header)
@@ -589,7 +586,6 @@ class PysideApp(QMainWindow, BaseApp):
         self.request_text = self.worker.worker_request_text
         self.show_text = self.worker.worker_show_text
         self.set_focus_on_panel = self.worker.worker_set_focus_on_panel
-        self.advance_stage = self.worker.worker_advance_stage
         self.send_product_of_stage = self.worker.worker_send_product_of_stage
         self._set_status = self.worker.worker_set_status
         self.set_header = self.worker.worker_set_header
@@ -613,6 +609,15 @@ class PysideApp(QMainWindow, BaseApp):
             condition = QWaitCondition()
             cls.instance = cls(mutex, condition)
         return cls.instance
+
+    def advance_stage(self, stage: Union[Stage, int, bool]):
+        if isinstance(stage, Stage):
+            stage = list(self._get_all_steps()).index(stage)
+        elif stage is True:
+            stage = len(self._get_all_steps())
+        elif stage is False:
+            stage = -1
+        self.worker.worker_advance_stage_int(stage)
 
     def start_worker(self, func_to_run=None):
         # Start the worker thread
@@ -707,8 +712,8 @@ class PysideApp(QMainWindow, BaseApp):
                 break
 
     @Slot(Stage)
-    def upon_advance_stage(self, stage: Stage):
-        self.step_panel.set_step(stage.value)
+    def upon_advance_stage_int(self, stage: int):
+        self.step_panel.set_step_by_index(stage)
 
     @Slot(Stage, str)
     def upon_send_product_of_stage(self, stage: Stage, product_text: str):

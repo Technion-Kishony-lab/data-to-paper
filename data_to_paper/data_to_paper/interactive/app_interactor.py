@@ -106,7 +106,7 @@ class AppInteractor:
                                   title=title,
                                   optional_suggestions=optional_suggestions)
 
-    def _app_advance_stage(self, stage: Stage):
+    def _app_advance_stage(self, stage: Union[Stage, int, bool]):
         if self.app is None:
             return
         self.app.advance_stage(stage)
