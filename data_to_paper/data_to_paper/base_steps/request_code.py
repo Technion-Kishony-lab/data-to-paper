@@ -174,7 +174,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
             """)),
     )
 
-    file_review_prompts: Iterable[Tuple[str, str]] = ()  # (wildcard_filename, prompt)
+    _index_of_code_review: int = 0
 
     @property
     def output_filename(self) -> str:
@@ -228,7 +228,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
             code_and_output, debugger = self._run_debugger(code_and_output.code)
             if code_and_output is None:
                 raise FailedCreatingProductException("Code debugging failed.")
-            if self.revision_round == self.max_code_revisions:
+            if self.revision_round == self.max_code_revisions and HUMAN_EDIT_CODE_REVIEW == False:  # noqa
                 break
             if not self._get_llm_review_and_human_review(code_and_output, debugger):
                 break
@@ -309,9 +309,9 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
 
         concern_issues = {issue: feedback for issue, (type_, feedback) in issues.items() if type_ != 'OK'}
 
-        llm_msg = '\n\n'.join(f'# {issue}\n{solution}' for issue, solution in concern_issues.items())
+        llm_msg = '\n\n'.join(f'## {issue}\n{solution}' for issue, solution in concern_issues.items())
         if llm_msg:
-            llm_msg += '\n\n# Other\nPlease fix any other issues that you may find.'
+            llm_msg += '\n\n## Other\nPlease fix any other issues that you may find.'
         else:
             llm_msg = termination_phrase
 
@@ -330,6 +330,8 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         prompt_to_append_at_end_of_response = \
             Replacer(debugger, debugger.prompt_to_append_at_end_of_response).format_text()
         for index, code_review_prompt in enumerate(self.code_review_prompts):
+            if index < self._index_of_code_review:
+                continue
             is_last_review = index == len(self.code_review_prompts) - 1
             content_files_to_contents = self._get_content_files_to_contents(
                 code_and_output, code_review_prompt.wildcard_filename, code_review_prompt.individually)
@@ -342,9 +344,9 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                 )
                 header = Replacer(self, code_review_prompt.get_header(), kwargs=replacing_kwargs).format_text()
                 formatted_code_review_prompt = \
-                    Replacer(self, '## Request ' + header + '\n' + code_review_prompt.prompt, kwargs=replacing_kwargs)
+                    Replacer(self, '## Request ' + header + '\n' + code_review_prompt.prompt, kwargs=replacing_kwargs).format_text()
                 self._app_send_prompt(PanelNames.FEEDBACK)
-                self._app_send_prompt(PanelNames.FEEDBACK, formatted_code_review_prompt,
+                self._app_send_prompt(PanelNames.FEEDBACK, formatted_code_review_prompt.replace('```latex', '```'),
                                       sleep_for=PAUSE_AT_PROMPT_FOR_LLM_FEEDBACK, from_md=True)
                 with self._app_temporarily_set_panel_status(PanelNames.FEEDBACK, f"Waiting for LLM {header}"):
                     issues_to_is_ok_and_feedback = RequestIssuesToSolutions.from_(
@@ -369,7 +371,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                             """),
                         optional_suggestions={'AI': llm_msg, 'Default': ''})
                 if llm_msg.strip() and llm_msg != termination_phrase:
-                    response = dedent_triple_quote_str("""
+                    response = '# ' + header + dedent_triple_quote_str("""\n
                         The code has some issues that need to be fixed:
 
                         {issues_to_solutions}
@@ -379,5 +381,5 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                                     prompt_to_append_at_end_of_response=prompt_to_append_at_end_of_response)
                     self.apply_append_user_message(response)
                     return True
-
+            self._index_of_code_review = index + 1
         return False

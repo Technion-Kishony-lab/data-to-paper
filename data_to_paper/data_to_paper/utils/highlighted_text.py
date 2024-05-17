@@ -121,7 +121,7 @@ def md_to_html(md):
 
 
 def text_to_red_html(text: str) -> str:
-    return """<span style="color: red; font-name: 'Courier';">""" + text_to_html(text) + '</span>'
+    return f"""<div class="code_error">{text}</div>"""
 
 
 def text_to_green_html(text: str) -> str:

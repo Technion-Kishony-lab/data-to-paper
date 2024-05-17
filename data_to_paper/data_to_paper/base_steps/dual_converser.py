@@ -219,9 +219,8 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
         self.apply_to_other_append_user_message(altered_self_response)
         message = self.apply_to_other_get_and_append_assistant_message()
         if self.respond_to_ambiguous_reviewer_termination is not None:
-            termination_phrase = format_value(self, self.termination_phrase)
             for attempt in range(self.max_reviewer_attempts):
-                is_termination = self._is_reviewer_response_terminating(message.content, termination_phrase)
+                is_termination = self._is_reviewer_response_terminating(message.content)
                 if is_termination is not None:
                     break
                 # The reviewer response is ambiguous
@@ -232,11 +231,13 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
                 message = self.apply_to_other_get_and_append_assistant_message()
         return message
 
-    def get_response_from_self_in_response_to_response_from_other(self, altered_other_response: str) -> Message:
+    def get_response_from_self_in_response_to_response_from_other(self, altered_other_response: str,
+                                                                  is_human_review: bool = False) -> Message:
         """
         Append response from other as user message to self conversation, and get response from assistant.
         """
-        self.apply_append_user_message(altered_other_response, sleep_for=PAUSE_AT_LLM_FEEDBACK)
+        self.apply_append_user_message(altered_other_response,
+                                       sleep_for=0 if is_human_review else PAUSE_AT_LLM_FEEDBACK)
         return self.apply_get_and_append_assistant_message()
 
     def _alter_self_response(self, response: str) -> str:
@@ -311,7 +312,8 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
         else:
             other_message = self.get_response_from_other_in_response_to_response_from_self(altered_self_response)
             other_response = other_message.content
-        if self.human_review and self.app:
+        is_human_review = self.human_review and self.app
+        if is_human_review:
             other_response = self._app_receive_text(PanelNames.FEEDBACK, '',
                                                     title='User feedback requested',
                                                     in_field_instructions='Give feedback on the product.\n'
@@ -328,7 +330,8 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
                                                sleep_for=not self.human_review and PAUSE_AT_LLM_FEEDBACK.val)
             return CycleStatus.APPROVED_BY_OTHER
 
-        self.get_response_from_self_in_response_to_response_from_other(altered_other_response)
+        self.get_response_from_self_in_response_to_response_from_other(altered_other_response,
+                                                                       is_human_review=is_human_review)
         return CycleStatus.NOT_APPROVED_BY_OTHER
 
 

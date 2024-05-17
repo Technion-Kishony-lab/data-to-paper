@@ -36,7 +36,7 @@ class EnforceContentOutputFileRequirement(TextContentOutputFileRequirement, Nume
         missing_headers = [header for header in self.headers_required_in_output if header not in content]
         if missing_headers:
             issues.append(RunIssue(
-                category='Output file content',
+                category='Problem in output file(s)',
                 item=filename,
                 issue=f'The output file "{filename}" should have the following headers: '
                       f'{NiceList(self.headers_required_in_output, wrap_with="`")}.\n'
@@ -407,7 +407,7 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         
         {code_review_notes}
         """)),
-        CodeReviewPrompt('output of "{filename}"', 'table_*.pkl', True, dedent_triple_quote_str("""
+        CodeReviewPrompt('content of "{filename}"', 'table_*.pkl', True, dedent_triple_quote_str("""
         I ran your code.
 
         Here is the content of the table '{filename}' that the code created for our scientific paper:

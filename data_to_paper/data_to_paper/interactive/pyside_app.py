@@ -27,6 +27,10 @@ CSS = '''
     font-family: Consolas, 'Courier New', monospace; font-weight: bold;
     color: #FF8C00;
 }
+.code_error {
+    color: red;
+    font-family: Consolas, 'Courier New', monospace;
+}
 .markdown {
     font-family: Arial, sans-serif;
     font-size: 14px;

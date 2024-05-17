@@ -517,11 +517,12 @@ class DebuggerConverser(BackgroundProductsConverser):
         message, comment = issues.get_message_and_comment(
             end_with=format_value(self, self.prompt_to_append_at_end_of_response))
         message += '\n\nREGENERATE' if action == "regenerate" else ''
-        self.apply_append_user_message(
-            content=message,
-            comment=self.iteration_str + ': ' + comment,
-            sleep_for=PAUSE_AT_RULE_BASED_FEEDBACK,
-        )
+        with self._app_temporarily_set_panel_status(PanelNames.FEEDBACK):
+            self.apply_append_user_message(
+                content=message,
+                comment=self.iteration_str + ': ' + comment,
+                sleep_for=PAUSE_AT_RULE_BASED_FEEDBACK,
+            )
 
         if action == "regen":
             # To regenerate, we delete the required pairs of assistant+user messages
