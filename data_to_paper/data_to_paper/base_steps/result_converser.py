@@ -12,12 +12,10 @@ from data_to_paper.conversation.stage import Stage
 from data_to_paper.env import PAUSE_AT_RULE_BASED_FEEDBACK
 from data_to_paper.exceptions import data_to_paperException
 from data_to_paper.interactive import PanelNames
-from data_to_paper.interactive.symbols import Symbols
 from data_to_paper.utils import format_text_with_code_blocks
 from data_to_paper.utils.mutable import Flag
 from data_to_paper.utils.print_to_file import print_and_log_red
-from data_to_paper.utils.replacer import Replacer, StrOrReplacer, format_value
-from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
+from data_to_paper.utils.replacer import StrOrReplacer, format_value
 
 
 class Rewind(Enum):
@@ -222,8 +220,8 @@ class ResultConverser(Converser):
             self._app_send_prompt(PanelNames.PRODUCT, html, provided_as_html=True)
 
     def _raise_self_response_error(self,
+                                   title: str,
                                    error_message: StrOrReplacer,
-                                   title: str = '',
                                    formatting_instructions: StrOrReplacer = None,
                                    missing_end: bool = False,
                                    rewind: Optional[Rewind] = None,
@@ -265,7 +263,6 @@ class ResultConverser(Converser):
                                 title=title, formatting_instructions=formatting_instructions,
                                 rewind=rewind, bump_model=bump_model,
                                 add_iterations=add_iterations)
-
 
     def _convert_response_error_to_error_message(self, response_error: SelfResponseError) -> str:
         """

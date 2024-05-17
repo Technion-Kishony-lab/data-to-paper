@@ -12,7 +12,7 @@ from data_to_paper.utils.nice_list import NiceDict
 from data_to_paper.utils.tag_pairs import TagPairs
 from data_to_paper.utils.check_type import validate_value_type, WrongTypeException
 from data_to_paper.utils.text_extractors import extract_text_between_most_flanking_tags
-from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes, dedent_triple_quote_str
+from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
 
 TYPES_TO_TAG_PAIRS: Dict[type, TagPairs] = {
     dict: TagPairs('{', '}'),
@@ -79,8 +79,7 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
         except ValueError:
             self._raise_self_response_error(
                 title='# Incorrect response format',
-                error_message=
-                f'Could not find a valid Python {self.type_name} in your response.',
+                error_message=f'Could not find a valid Python {self.type_name} in your response.',
                 missing_end=tags[0] in response and tags[1] not in response)
 
     def _check_extracted_text_and_update_valid_result(self, extracted_text: str):

@@ -70,7 +70,7 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
         Please suggest a research goal and an hypothesis that can be studied using only the provided dataset. 
         The goal and hypothesis should be interesting and novel.
         {goal_guidelines}
-        
+
         Your response should be formatted as {your_response_should_be_formatted_as}
         """)
     your_response_should_be_formatted_as: str = dedent_triple_quote_str("""
@@ -274,7 +274,7 @@ class ReGoalReviewGPT(GoalReviewGPT):
         please revise, or completely re-write, the research goal and hypothesis that we have so that they \t
         do not completely overlap existing literature.
         {goal_guidelines}
-        
+
         Your response should be formatted as {your_response_should_be_formatted_as}
         """)
 
@@ -349,8 +349,7 @@ class HypothesesTestingPlanReviewGPT(PythonDictReviewBackgroundProductsConverser
         response_value = super()._check_response_value(response_value)
         if len(response_value) > self.max_hypothesis_count:
             self._raise_self_response_error(
-                title='Too many hypotheses',
-                error_message=
+                '# Too many hypotheses',
                 f'Please do not specify more than {self.max_hypothesis_count} hypotheses. '
                 f'Revise your response to return a maximum of {self.max_hypothesis_count} hypotheses, '
                 f'which should all build towards a single study goal.')

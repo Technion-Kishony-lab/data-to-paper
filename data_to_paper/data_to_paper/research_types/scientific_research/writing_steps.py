@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass, field
-from typing import Tuple, List, Set, Optional, Iterable
+from typing import Tuple, List, Set, Iterable
 
 from data_to_paper.base_steps import LatexReviewBackgroundProductsConverser, \
     CheckReferencedNumericReviewBackgroundProductsConverser
@@ -197,7 +197,7 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
             self._raise_self_response_error(
                 title='# Forbidden phrases',
                 error_message='Do not include: {}'.format(
-                nicely_join(used_forbidden_phrases, wrap_with='"', separator=', ')))
+                    nicely_join(used_forbidden_phrases, wrap_with='"', separator=', ')))
 
     def _check_for_aborting_phrases(self, section: str):
         used_aborting_phrases = [
@@ -274,9 +274,11 @@ class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProd
                 self._raised_colon_error = True
                 self._raise_self_response_error(
                     title='# Colon in title',
-                    error_message=
-                    'Titles of manuscripts in {journal_name} typically do not have a colon. '
-                    'Can you think of a different title that clearly state a single message without using a colon?')
+                    error_message=dedent_triple_quote_str("""
+                        Titles of manuscripts in {journal_name} typically do not have a colon. '
+                        Can you think of a different title that clearly state a single message without using a colon?
+                        """)
+                )
         if section_name == 'abstract' and section.count('\n') > 2:
             self._raise_self_response_error(
                 title='# Abstract should be a single paragraph',
@@ -408,6 +410,18 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         - URLs, links or references.""")
 
     latex_instructions: str = ''
+    your_response_should_be_formatted_as: str = dedent_triple_quote_str("""
+        a triple-backtick "latex" block, like this:
+        ```latex
+        \\section{Methods}
+        \\subsection{Data Source}
+        <your latex-formatted description of the data source here>
+        \\subsection{Data Preprocessing}
+        <your latex-formatted description of the data preprocessing here>
+        \\subsection{Data Analysis}
+        <your latex-formatted description of the data analysis here>
+        ```
+        """)
 
     section_review_specific_instructions: str = "{section_specific_instructions}"
 
@@ -427,9 +441,11 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         if set(matches) != {'Data Source', 'Data Preprocessing', 'Data Analysis'}:
             self._raise_self_response_error(
                 title='# Allowed subsections',
-                error_message=
-                f'The Methods section should only have the following 3 subsections: '
-                f'Data Source, Data Preprocessing, Data Analysis.')
+                error_message=dedent_triple_quote_str(f"""
+                    The Methods section should only have the following 3 subsections: '
+                    Data Source, Data Preprocessing, Data Analysis.
+                    """)
+            )
         return super()._check_extracted_text_and_update_valid_result(extracted_text)
 
     def run_and_get_valid_result(self) -> list:
@@ -597,12 +613,11 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
             if table_label not in section:
                 self._raise_self_response_error(
                     title='# Missing Table reference',
-                    error_message=
-                    dedent_triple_quote_str(f"""
-                    The {section_name} section should specifically reference each of the Tables that we have.
-                    Please make sure we have a sentence addressing Table "{table_label}".
-                    The sentence should have a reference like this: "Table~\\ref{{{table_label}}}".
-                    """)
+                    error_message=dedent_triple_quote_str(f"""
+                        The {section_name} section should specifically reference each of the Tables that we have.
+                        Please make sure we have a sentence addressing Table "{table_label}".
+                        The sentence should have a reference like this: "Table~\\ref{{{table_label}}}".
+                        """)
                 )
         return result
 

@@ -65,7 +65,7 @@ class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
         ```python
         {pretty_scopes_to_examples}
         ```
-        
+
         Your response should be formatted as {your_response_should_be_formatted_as}  
         """)
 

@@ -1,7 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Tuple, Dict, Type, Any, Iterable, NamedTuple, Collection
+from typing import Optional, Tuple, Dict, Type, Any, NamedTuple, Collection
 
 from data_to_paper.env import SUPPORTED_PACKAGES, HUMAN_EDIT_CODE_REVIEW, PAUSE_AT_LLM_FEEDBACK, \
     PAUSE_AT_PROMPT_FOR_LLM_FEEDBACK
@@ -55,10 +55,10 @@ class RequestIssuesToSolutions(PythonDictReviewBackgroundProductsConverser):
         ("CONCERN", "<your concern>") or your assertion that this check is ok ("OK", "<your assertion>").""")
     formatting_instructions_for_feedback: str = dedent_triple_quote_str("""
         Please correct your response according to my feedback, and send it again.
-        
+
         Note that the different checks (dict keys) I have listed above are just examples.
         You should add/remove/modify checks to fit with the specifics of the code we are reviewing.
-        
+
         Remember, your response should be formatted as {your_response_should_be_formatted_as}
         """)
 
@@ -151,7 +151,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
             that may indicate that code improvements are needed).
 
             {code_review_formatting_instructions}
-            
+
             For example:
             ```python
             {
@@ -169,7 +169,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                     ("OK", "<Assertion description>"),
             }
             ```
-            
+
             {code_review_notes}
             """)),
     )
@@ -344,7 +344,8 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                 )
                 header = Replacer(self, code_review_prompt.get_header(), kwargs=replacing_kwargs).format_text()
                 formatted_code_review_prompt = \
-                    Replacer(self, '## Request ' + header + '\n' + code_review_prompt.prompt, kwargs=replacing_kwargs).format_text()
+                    Replacer(self, '## Request ' + header + '\n' + code_review_prompt.prompt,
+                             kwargs=replacing_kwargs).format_text()
                 self._app_send_prompt(PanelNames.FEEDBACK)
                 self._app_send_prompt(PanelNames.FEEDBACK, formatted_code_review_prompt,
                                       sleep_for=PAUSE_AT_PROMPT_FOR_LLM_FEEDBACK, from_md=True)

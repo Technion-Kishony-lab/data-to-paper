@@ -44,7 +44,7 @@ class RewriteSentenceWithCitations(PythonValueReviewBackgroundProductsConverser)
         Choose as many relevant citations as possible from the following citations:
 
         {citations}
-        
+
         Your response should be formatted as {your_response_should_be_formatted_as}
         """)
 
@@ -78,8 +78,8 @@ class RewriteSentenceWithCitations(PythonValueReviewBackgroundProductsConverser)
         if len(ids_not_in_options) > 0:
             self._raise_self_response_error(
                 title='# Invalid citations',
-                error_message=
-                f'You returned {ids_not_in_options}, which is not part of the allowed options: {self.citation_ids}.')
+                error_message=f'You returned {ids_not_in_options}, which is not part of the allowed options:\n'
+                              f'{self.citation_ids}.')
         return None  # this will get into the response_value, which we are not using.
 
     def _add_citations_in_options_and_return_citations_not_in_options(self, chosen_citation_ids: List[str]) -> Set[str]:
@@ -139,7 +139,7 @@ class AddCitationReviewGPT(PythonValueReviewBackgroundProductsConverser):
     mission_prompt: str = dedent_triple_quote_str("""
         Extract from the above section of a scientific paper all the factual sentences to which we need to \t
         add citations.
-        
+
         Your response should be formatted as {your_response_should_be_formatted_as}
 
         Identify *all* the sentences that you think we need to add citations to - you should include any sentence 
@@ -229,9 +229,8 @@ class AddCitationReviewGPT(PythonValueReviewBackgroundProductsConverser):
                 )
             self._raise_self_response_error(
                 title='# Some sentences not in the section',
-                error_message=
-                f'The following sentences that you returned are not precise extraction from the section:\n'
-                f'{sentences_not_in_section}.\n'
+                error_message=f'The following sentences are not precise extraction from the section:\n'
+                              f'{sentences_not_in_section}.\n'
             )
         return None  # this will get into the response_value, which we are not using.
 

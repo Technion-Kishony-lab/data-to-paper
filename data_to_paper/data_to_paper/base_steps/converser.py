@@ -6,11 +6,10 @@ from typing import Optional, Any, Union
 
 from data_to_paper import Message
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
-from data_to_paper.env import TEXT_WIDTH, REQUEST_CONTINUE_IN_PLAYBACK
+from data_to_paper.env import TEXT_WIDTH
 from data_to_paper.conversation import ConversationManager, GeneralMessageDesignation
 from data_to_paper.interactive import PanelNames
 from data_to_paper.interactive.app_interactor import AppInteractor
-from data_to_paper.servers.llm_call import are_more_responses_available
 from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils.copier import Copier
 from data_to_paper.utils.replacer import StrOrReplacer, format_value

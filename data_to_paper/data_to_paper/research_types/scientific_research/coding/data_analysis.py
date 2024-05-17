@@ -317,7 +317,7 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         mathematical or statistical flaws.
         I will need you to carefully check the Python code for possible flaws.
         {code_review_formatting_instructions}
-        
+
         For example:
         ```python
         {
@@ -327,13 +327,13 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
             "The analysis of <analysis name>": ("OK", "It is correct to ... "),
             "The analysis of <other analysis name>": ("CONCERN", "Forgot to include ..."),
             "The analysis of xxx vs yyy": ("CONCERN", "Different units were not standardized"),
-            
+
             # * CHECK FOR WRONG CALCULATIONS:
             # Go through each key calculation in the code and check for any mistakes.
             # For example:
             "mean_signal = np.mean(signal)": ("OK", "The mean is calculated correctly"),
             "sem_signal = np.std(signal)": ("CONCERN", "Forgot to divide by sqrt(n)"),  
-            
+
             # * CHECK FOR MATH TRIVIALITIES:
             # Check for any mathematically trivial assessments / statistical tests.
             # For example:
@@ -350,7 +350,7 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         The code runs without any obvious bugs, but I am worried that it may contain some flaws in the analysis. 
         I will need you to carefully check the Python code for possible issues.
         {code_review_formatting_instructions}
-        
+
         For example:
         ```python
         {
@@ -360,12 +360,12 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
             # Check the "{data_file_descriptions}" for any such missing values.
             # For example:
             "Missing values": ("OK", "We correctly dealt with missing values"),
-            
+
             # - Units. If applicable, did we correctly standardize numeric values with different units 
             # into same-unit values?
             # For example:
             "Standardizing units": ("CONCERN", "In the comparison of x and y, different units were not standardized"),
-            
+
             # - Data restriction. If applicable, are we restricting the analysis to the correct part of the data
             # (based on the {hypothesis_testing_plan})?
             # For example:
@@ -385,15 +385,15 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
             # Are we performing all needed preprocessing steps? Are we mistakenly performing any unneeded steps?
             # For example:
             "Preprocessing": ("CONCERN", "We have normalized all variables, but xxx should not be normalized"),
-        
+
             # * ANALYSIS:        
             # As applicable, check for any data analysis issues, including:
-            
+
             # - Each analysis is done on the relevant data.
             # For example:
             "Analysis on correct data": ("CONCERN", "We mistakenly performed the xxx analysis \t
         on the preprocessed data. This step should have been done on the original data"),
-            
+
             # - Choice and implementation of statistical tests.
             # For example:
             "Choice of statistical test": ("CONCERN", "We should have used ttt test instead of sss test, because ..."),
@@ -404,7 +404,7 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         {scipy_unpacking_comments}\t
         }
         ```
-        
+
         {code_review_notes}
         """)),
         CodeReviewPrompt('content of "{filename}"', 'table_*.pkl', True, dedent_triple_quote_str("""
@@ -416,7 +416,7 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
 
         Please review the table and return a list of point-by-point assessments. 
         {code_review_formatting_instructions}
-        
+
         For example:
         ```python
         {
@@ -434,14 +434,14 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
             # does it also report their measures of uncertainty (like p-value, CI, or STD, as applicable)?
             # For example:
             "Measures of uncertainty": ("CONCERN", "We should have included p-values for ..."),
-            
+
             # * MISSING DATA: 
             # Are we missing key variables, or important results, that we should calculate and report in the table?
             # For example:
             "Missing data": ("CONCERN", "To fit with our hypothesis testing plan, we should have included ..."), 
         }
         ```
-        
+
         {code_review_notes}
         """)),
         CodeReviewPrompt('all output files', '*', False, dedent_triple_quote_str("""
@@ -453,7 +453,7 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
 
         Please carefully review the code and these output files and return a point by point assessment.
         {code_review_formatting_instructions}:
-        
+
         for example:
         ```python
         {
@@ -461,13 +461,13 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
             # Does the code create and output all needed results to address our {hypothesis_testing_plan}?
             # For example:
             "Completeness of output": ("OK", "We should include the P-values for the test in table_?.pkl"),
-            
+
             # * CONSISTENCY ACROSS TABLES:
             # Are the tables consistent in terms of the variables included, the measures of uncertainty, etc?
             # For example:
-            "Consistency among tables": ("CONCERN", "In Table 1, we provide age in years, but in table_?.pkl, we provide \t
-        age in months"),
-        
+            "Consistency among tables": ("CONCERN", "In Table 1, we provide age in years, but in table_?.pkl, \t
+        we provide age in months"),
+
             # * MISSING DATA: 
             # Are we missing key variables in a given table? Are we missing measures of uncertainty 
             # (like p-value, CI, or STD, as applicable)?

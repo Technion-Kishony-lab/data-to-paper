@@ -80,7 +80,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         Please carefully check the Python code and the output for possible issues, and \t
         provide a point-by-point assessment. 
         {code_review_formatting_instructions}
-        
+
         For example:
         ```python
         {
@@ -98,7 +98,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
                 ("OK", "<Assertion description>"),
         }
         ```
-        
+
         {code_review_notes}
         """)),
     )

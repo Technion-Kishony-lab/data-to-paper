@@ -4,7 +4,7 @@ from typing import Optional, List, Collection, Dict, Callable, Any, Union
 from PySide6.QtGui import QTextOption, QTextCursor
 from PySide6.QtWidgets import QMainWindow, QVBoxLayout, QLabel, QPushButton, QWidget, \
     QHBoxLayout, QSplitter, QTextEdit, QTabWidget, QDialog, QSizePolicy
-from PySide6.QtCore import Qt, QEventLoop, QMutex, QWaitCondition, QThread, Signal, Slot
+from PySide6.QtCore import Qt, QMutex, QWaitCondition, QThread, Signal, Slot
 
 from pygments.formatters.html import HtmlFormatter
 
