@@ -615,8 +615,11 @@ class DebuggerConverser(BackgroundProductsConverser):
             if code_and_output is not None:
                 self._app_send_prompt(
                     PanelNames.FEEDBACK,
-                    f'## {Symbols.CHECK_SYMBOL} Code check successful\n' +
-                    "Code ran without issues and passed all rule-based checks",
+                    dedent_triple_quote_str(f"""
+                    ## {Symbols.CHECK_SYMBOL} Code check successful
+                    Code ran without issues and passed all rule-based checks.
+                    You can see code output in the Product panel.
+                    """),
                     from_md=True,
                     sleep_for=PAUSE_AT_RULE_BASED_FEEDBACK)
                 return code_and_output
