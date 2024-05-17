@@ -10,9 +10,17 @@ from data_to_paper.interactive.enum_types import PanelNames
 from data_to_paper.utils.highlighted_text import format_text_with_code_blocks
 
 long = "This is a very long sentence to test wrapping in different formats"
+block = f"""
+### Title
+a, b, c
+1, 2, 3
+aaaaa 0123
+iiiii 0123
+{long}
+"""
 
 example_test = f"""
-This is a regular text with a code block:
+This is a regular text.
 {long}
 
 We can **bold** and *italicize* text.
@@ -27,21 +35,22 @@ Can create a list with '*':
 * item 1: {long}
 * item 2: {long}
 
+This is my code:
 ```python
 print('Hello World!')
 # {long}
 ```
 
 # Header 1
-Test under header 1
+Text under header 1
 {long}
 
 ## Header 2
-Test under header 2
+Text under header 2
 {long}
 
 ### Header 3
-Test under header 3
+Text under header 3
 {long}
 
 #### Header 4
@@ -50,29 +59,31 @@ The space below this line
 Should be the same as the space below this line
 
 #### Header 4
-Test under header 4
+Text under header 4
 
 This is a an OUTPUT code block:
 ```output
-a, b, c
-1, 2, 3
-aaaaa 0123
-iiiii 0123
-{long}
+{block}
 ```
 
 This is a regular block:
 ```
-aaaaa 0123
-iiiii 0123
-Text inside a regular block
+{block}
+```
+
+This is a 'stupid' block:
+```stupid
+{block}
+```
+
+This is a 'md' block:
+```md
+{block}
 ```
 
 This is an error code block:
 ```error
-aaaaa 0123
-iiiii 0123
-{long}
+{block}
 ```
 
 We can also show latex:
@@ -89,10 +100,12 @@ And equations like this:
     E = mc^2
 \\end{{equation}}
 ```
-
 """
 
-html = format_text_with_code_blocks(example_test, is_html=True, from_md=True)
+
+def test_print_html():
+    html = format_text_with_code_blocks(example_test, is_html=True, from_md=True, do_not_format=['latex'])
+    print(html)
 
 
 # TODO: Need to make this into a real test
@@ -107,6 +120,7 @@ def test_pyside_app():
         # Show the processed text in the UI
         app.show_text(PanelNames.SYSTEM_PROMPT, "Hi " + text_input)
 
+    html = format_text_with_code_blocks(example_test, is_html=True, from_md=True, do_not_format=['latex'])
     with CHOSEN_APP.temporary_set('pyside'):
         q_application = get_or_create_q_application_if_app_is_pyside()
         app = PysideApp.get_instance()
