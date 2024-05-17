@@ -551,7 +551,7 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         \\hyperlink{Z3b}{0.072} (P-value: < \\hyperlink{Z3c}{1e-6}).
         ```
 
-        And are some examples of proper ways to calculate dependent values, using the \\num command:
+        And here are some examples of proper ways to calculate dependent values, using the \\num command:
         ```
         The difference in response was \\num{\\hyperlink{Z2a}{0.87} - \\hyperlink{Z1a}{0.65}, \t
         "Difference between responses with and without treatment"}.

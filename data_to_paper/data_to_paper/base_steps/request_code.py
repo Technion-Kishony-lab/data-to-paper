@@ -122,7 +122,10 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         ```
         """)  # set to None to not present code
 
-    code_review_formatting_instructions: str = RequestIssuesToSolutions.your_response_should_be_formatted_as
+    your_response_should_be_formatted_as: str = RequestIssuesToSolutions.your_response_should_be_formatted_as
+
+    code_review_formatting_instructions: str = \
+        'Your response should be formatted as {your_response_should_be_formatted_as}.'
 
     code_review_notes: str = dedent_triple_quote_str("""
         Notes:

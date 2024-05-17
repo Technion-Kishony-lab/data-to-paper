@@ -1,12 +1,17 @@
 from dataclasses import dataclass
+from functools import partial
 from typing import List
 
 import pytest
 
 from data_to_paper.base_steps import LatexReviewBackgroundProductsConverser
 from data_to_paper.servers.llm_call import OPENAI_SERVER_CALLER
+from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
 
 from .utils import TestProductsReviewGPT, check_wrong_and_right_responses
+
+
+wrap_latex = partial(wrap_text_with_triple_quotes, header='latex')
 
 
 @dataclass
@@ -101,10 +106,10 @@ def test_request_latex_alter_response_for_reviewer():
     assert len(requester.conversation) == 3
 
     message_to_reviewer = requester.other_conversation[-2].content
-    assert message_to_reviewer.startswith(first_draft)
+    assert message_to_reviewer.startswith(wrap_latex(first_draft))
 
     # Response is reposted as fresh:
-    assert requester.conversation[-1].content == correct_abstract
+    assert requester.conversation[-1].content == wrap_latex(correct_abstract)
 
 
 def test_request_latex_section_names():
@@ -133,7 +138,7 @@ def test_rename_close_citations():
                                                            )
     introduction = r'\section{Introduction}The ultimate introduction \cite{JONES2019, smith2020}.'
     with OPENAI_SERVER_CALLER.mock([
-            f'Here is the introduction:\n{introduction}'],
+            f'Here is the introduction:\n{wrap_latex(introduction)}'],
             record_more_if_needed=False):
 
         assert requester.run_and_get_valid_result() == \
@@ -144,9 +149,10 @@ def test_check_no_additional_sections():
     requester = TestLatexReviewBackgroundProductsConverser(section_names=['introduction'])
     introduction = r'\section{Introduction}The ultimate introduction.'
     methods = r'\section{Methods}The ultimate methods.'
+    introduction_and_methods = introduction + '\n' + methods
     with OPENAI_SERVER_CALLER.mock([
-            f'You requested introduction but i also wrote the methods:\n{introduction}\n{methods}',
-            f'Now only the introduction:\n{introduction}'],
+            f'You requested introduction but i also wrote the methods:\n{wrap_latex(introduction_and_methods)}',
+            f'Now only the introduction:\n{wrap_latex(introduction)}'],
             record_more_if_needed=False):
 
         assert requester.run_and_get_valid_result() == [introduction]
@@ -161,8 +167,8 @@ def test_check_for_floating_citations():
     introduction = r'\section{Introduction}The ultimate introduction JONES2019AB.'
     correct_introduction = introduction.replace(r'JONES2019AB', r'\cite{JONES2019AB}')
     with OPENAI_SERVER_CALLER.mock([
-            f'Here is the intro, but with floating citations:\n{introduction}',
-            f'Now the correct introduction:\n{correct_introduction}'],
+            f'Here is the intro, but with floating citations:\n{wrap_latex(introduction)}',
+            f'Now the correct introduction:\n{wrap_latex(correct_introduction)}'],
             record_more_if_needed=False):
 
         assert requester.run_and_get_valid_result() == [correct_introduction]
@@ -175,8 +181,8 @@ def test_usage_of_un_allowed_commands():
     introduction = r'\section{Introduction}The ultimate introduction \verb{}.'
     correct_introduction = introduction.replace(r' \verb{}', '')
     with OPENAI_SERVER_CALLER.mock([
-            f'Here is the intro, but with un-allowed command:\n{introduction}',
-            f'Now the correct introduction:\n{correct_introduction}'],
+            f'Here is the intro, but with un-allowed command:\n{wrap_latex(introduction)}',
+            f'Now the correct introduction:\n{wrap_latex(correct_introduction)}'],
             record_more_if_needed=False):
 
         assert requester.run_and_get_valid_result() == [correct_introduction]

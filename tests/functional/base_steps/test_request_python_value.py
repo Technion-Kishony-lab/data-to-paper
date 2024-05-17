@@ -67,7 +67,7 @@ def test_request_python_value(correct_python_value, value_type):
 
 @pytest.mark.parametrize('non_correct_python_value, correct_python_value, value_type, error_should_include', [
     (correct_dict_str_any_value.replace('}', ''), correct_dict_str_any_value, Dict[str, Any],
-     "flanked by `{` and `}`"),
+     "wrapped within a triple backtick"),
     (correct_dict_str_str_value.replace("'3'", "3"), correct_dict_str_str_value, Dict[str, str],
      "object within the dict values must be of type `str`"),
     (correct_dict_str_str_value.replace("'a'", "3"), correct_dict_str_str_value, Dict[str, str],
@@ -94,15 +94,15 @@ def test_request_python_value_with_error(
 @pytest.mark.parametrize('default_rewind, answers_contexts', [
     (Rewind.AS_FRESH, [
         (correct_list_str_value.replace("]", ""), []),
-        (correct_list_str_value.replace("]", ""), ['#0', 'flanked']),  # 'flanked' -> format error
-        (correct_list_str_value.replace("'c'", "5"), ['#0', 'flanked']),  # 'flanked' -> format error
+        (correct_list_str_value.replace("]", ""), ['#0', 'a valid Python']),  # 'a valid Python' -> format error
+        (correct_list_str_value.replace("'c'", "5"), ['#0', 'a valid Python']),  # 'a valid Python' -> format error
         (correct_list_str_value, ['python', '`str`']),  # 'python' -> reposted as fresh; `str` -> content error
     ]),
     (Rewind.AS_FRESH_CORRECTION, [
         (correct_list_str_value.replace("]", ""), []),
-        (correct_list_str_value.replace("]", ""), ['#0', 'flanked']),
-        (correct_list_str_value.replace("'c'", "5"), ['#0', 'flanked']),
-        (correct_list_str_value, ['#0', 'flanked', 'python', '`str`']),
+        (correct_list_str_value.replace("]", ""), ['#0', 'a valid Python']),
+        (correct_list_str_value.replace("'c'", "5"), ['#0', 'a valid Python']),
+        (correct_list_str_value, ['#0', 'a valid Python', 'python', '`str`']),
     ]),
 ])
 def test_request_python_error_messages(default_rewind, answers_contexts):
