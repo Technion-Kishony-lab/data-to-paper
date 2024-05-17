@@ -46,6 +46,7 @@ class DataframePreventAssignmentToAttrs(PreventAssignmentToAttrs):
 
     def _raise_exception(self, attr, value):
         raise RunIssue.from_current_tb(
+            category='Coding: good practices',
             issue=f"To avoid mistakes, please do not directly assign to '{attr}'.",
             code_problem=CodeProblem.NonBreakingRuntimeIssue,
             instructions=f'Use instead `df.rename({attr}=<mapping>, inplace=True)`',

@@ -90,7 +90,7 @@ def test_check_df_of_table_for_content_issues_with_repeated_value_in_prior_table
     df.iloc[1, 1] = 2 / 7
     issues = check_df_of_table_for_content_issues(df, 'table_1.pkl', prior_tables={'table_0.pkl': prior_table})
     assert len(issues) == 1
-    assert 'overlap' in issues[0].category
+    assert 'Overlapping' in issues[0].category
     assert 'table_0.pkl' in issues[0].issue
 
 

@@ -113,6 +113,7 @@ class DataAnalysisDebuggerConverser(DebuggerConverser):
                     break
         if not any_pvalues:
             issues.append(RunIssue(
+                category='Statistics: good practices',
                 issue='We are presenting results for a statistical-testing paper, but no p-values are reported in '
                       'any of the created files.',
                 instructions='Please revise the code to perform statistical tests and report p-values in the tables.',
@@ -128,7 +129,7 @@ class DataAnalysisDebuggerConverser(DebuggerConverser):
             table_header = code_and_output.get_code_header_for_file(table_file_name)
             if table_header not in code_and_output.code:
                 issues.append(RunIssue(
-                    category="Each saved table should have a header comment with the table name.\n",
+                    category="Code structure",
                     issue=f'Your code is missing a comment "{table_header}".',
                     instructions='Please make sure all saved tables have a header comment with the table name.\n'
                                  'If you are creating multiple tables in the same section of the code, '
@@ -143,6 +144,7 @@ class DataAnalysisDebuggerConverser(DebuggerConverser):
         for class_name, from_formula in self.class_and_from_formula:
             if class_name + '(' in code:
                 issues.append(RunIssue(
+                    category='Coding: good practices',
                     issue=f'You are using the "{class_name}" class. ',
                     instructions=dedent_triple_quote_str(f"""
                         You should use the "{from_formula}" function instead, so that the formula is clearly \t

@@ -215,6 +215,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         linenos_lines, msg = e.get_lineno_line_message()
         on_line = '\n'.join(f'On line {lineno}: {line}' for lineno, line in linenos_lines)
         return RunIssue(
+            category='Timeout',
             issue=f"I ran the code, but it just ran forever... Perhaps got stuck in too long calculations.\n"
                   f"{on_line}",
             instructions="Anything we can do to make it run faster?",
@@ -230,6 +231,7 @@ class DebuggerConverser(BackgroundProductsConverser):
             instructions = "Please REGENERATE!"
 
         return RunIssue(
+            category='Code extraction problem',
             issue="Your sent incomplete code.",
             instructions=instructions,
             comment='Code is incomplete',
@@ -243,6 +245,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         If the conversation already has this notification, we regenerate gpt response instead.
         """
         return RunIssue(
+            category='Code extraction problem',
             issue=str(e),
             comment='Failed extracting code from gpt response',
             end_with=self.required_headers_prompt,
@@ -274,6 +277,7 @@ class DebuggerConverser(BackgroundProductsConverser):
     def _get_issue_for_forbidden_import(self, error: CodeImportForbiddenModule, e: FailedRunningCode) -> RunIssue:
         module = error.module
         return RunIssue(
+            category='Importing packages',
             issue=f"Your code import the module `{module}`, which is not allowed.",
             instructions="Your code can only use these packages: {supported_packages}.",
             code_problem=CodeProblem.RuntimeError,
@@ -284,6 +288,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         required_strings_not_found = [s for s in self.headers_required_in_code if s.lower() not in code.lower()]
         if len(required_strings_not_found) > 0:
             issues.append(RunIssue(
+                category='Code structure',
                 issue=dedent_triple_quote_str("""
                 Your code must contain the following sections: 
                 {headers_required_in_code}.
@@ -306,6 +311,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         for phrase in self.un_allowed_phrases:
             if phrase in code:
                 issues.append(RunIssue(
+                    category='Un-allowed phrases in code',
                     issue=f"Your code uses `{phrase}`, which is not allowed.",
                     instructions=f"Please rewrite the complete code again without using `{phrase}`.",
                     comment=f'Code uses forbidden phrase.',
@@ -316,6 +322,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         for phrase in self.phrases_required_in_code:
             if phrase not in code:
                 issues.append(RunIssue(
+                    category='Missing/imperfect commands',
                     issue=f"Your code must explicitly use:\n`{phrase.strip()}`.",
                     comment=f'Code does not use required phrase.',
                     code_problem=CodeProblem.StaticCheck,
@@ -326,6 +333,7 @@ class DebuggerConverser(BackgroundProductsConverser):
     def _get_issue_for_forbidden_write(self, error: CodeWriteForbiddenFile, e: FailedRunningCode) -> RunIssue:
         file = error.file
         return RunIssue(
+            category='Wrong output files',
             issue=f'Your code writes to the file "{file}" which is not allowed.',
             instructions=self.description_of_allowed_output_files,
             code_problem=CodeProblem.RuntimeError,
@@ -334,6 +342,7 @@ class DebuggerConverser(BackgroundProductsConverser):
 
     def _get_issue_for_un_allowed_files_created(self, error: UnAllowedFilesCreated, e: FailedRunningCode) -> RunIssue:
         return RunIssue(
+            category='Wrong output files',
             issue=f"Your code creates the following files {error.un_allowed_files} which is not allowed.",
             instructions=self.description_of_allowed_output_files,
             code_problem=CodeProblem.RuntimeError,
@@ -345,6 +354,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         is_read_file_in_output_file_requirements = len(self.output_file_requirements.get_unmatched_files([file])) == 0
         if is_read_file_in_output_file_requirements:
             return RunIssue(
+                category='Wrong input file',
                 issue=f'Your code tries reading from the output file "{file}".',
                 instructions=dedent_triple_quote_str("""
                     The code can create and write to this output file, but should not read from it.
@@ -356,6 +366,7 @@ class DebuggerConverser(BackgroundProductsConverser):
             )
         else:
             return RunIssue(
+                category='Wrong input file',
                 issue=f'Your code reads from the file "{file}" which is not part of the dataset.',
                 instructions=dedent_triple_quote_str("""
                     We only have these files:
@@ -385,6 +396,7 @@ class DebuggerConverser(BackgroundProductsConverser):
                                                                      old_code: str) -> Optional[RunIssue]:
         if line_count(new_code) < line_count(old_code) * 0.9:
             return RunIssue(
+                category='New code instead of modifications',
                 issue="Your code does not seem to be a modification of the previous code.",
                 instructions="Please rewrite the complete code again, making sure that the new code is "
                              "a modification of the old code.",

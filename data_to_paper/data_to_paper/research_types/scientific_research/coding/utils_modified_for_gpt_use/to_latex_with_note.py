@@ -235,7 +235,7 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
                 pass
             else:
                 issues.append(RunIssue(
-                    category='Repetitive values in a column',
+                    category='Checking df: Repetitive values',
                     code_problem=CodeProblem.OutputFileContentLevelA,
                     item=filename,
                     issue=f'The column "{column_label}" has the same unique value for all rows.',
@@ -330,7 +330,7 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
     # Check that the rows are labeled:
     if index is False and df.shape[0] > 1 and df[columns[0]].dtype != 'object':
         issues.append(RunIssue(
-            category='Unlabelled rows in a table',
+            category='Checking df: Unlabelled rows',
             code_problem=CodeProblem.OutputFileDesignLevelA,
             item=filename,
             issue=f'The table has more than one row, but the rows are not labeled.',

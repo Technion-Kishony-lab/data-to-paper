@@ -90,6 +90,7 @@ class PValue(OperatorValue):
 
     def _raise_if_forbidden_func(self, method_name):
         raise RunIssue.from_current_tb(
+            category='Be careful with p-values',
             issue=self.error_message_on_forbidden_func.format(func_name=method_name, created_by=self.created_by),
             code_problem=CodeProblem.RuntimeError,
         )

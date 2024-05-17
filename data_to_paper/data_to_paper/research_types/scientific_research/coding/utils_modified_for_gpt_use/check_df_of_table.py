@@ -58,7 +58,7 @@ def check_df_has_only_numeric_str_bool_or_tuple_values(df: pd.DataFrame, filenam
     for value in df.values.flatten():
         if isinstance(value, (pd.Series, pd.DataFrame)):
             issues.append(RunIssue(
-                category='Table contents',
+                category='Checking df: wrong values',
                 item=filename,
                 issue=f"Something wierd in your dataframe. Iterating over df.values.flatten() "
                       f"returned a `{type(value).__name__}` object.",
@@ -70,7 +70,7 @@ def check_df_has_only_numeric_str_bool_or_tuple_values(df: pd.DataFrame, filenam
                              if not isinstance(value, (numbers.Number, str, bool, tuple, PValue))}
     if un_allowed_type_names:
         issues.append(RunIssue(
-            category='Table contents',
+            category='Checking df: wrong values',
             item=filename,
             issue=f"Your dataframe contains values of types {sorted(un_allowed_type_names)} which are not supported.",
             instructions=f"Please make sure the saved dataframes have only numeric, str, bool, or tuple values.",
@@ -89,7 +89,7 @@ def check_df_headers_are_int_str_or_bool(headers: Union[pd.MultiIndex, pd.Index]
     for header in headers:
         if not isinstance(header, (int, str, bool)):
             issues.append(RunIssue(
-                category='Table headers',
+                category='Checking df: wrong header',
                 item=filename,
                 issue=f"Your dataframe has a column header `{header}` of type `{type(header).__name__}` "
                       f"which is not supported.",
@@ -107,7 +107,7 @@ def check_df_index_is_a_range(df: pd.DataFrame, filename: str) -> RunIssues:
     index_is_range = [ind for ind in df.index] == list(range(df.shape[0]))
     if index_is_range:
         issues.append(RunIssue(
-            category='Index is just a numeric range',
+            category='Checking df: index',
             code_problem=CodeProblem.OutputFileDesignLevelA,
             item=filename,
             issue=f'The index of the table {filename} is just a range from 0 to {df.shape[0] - 1}.',
@@ -153,7 +153,7 @@ def check_df_for_repeated_values(df: pd.DataFrame, filename: str) -> RunIssues:
         duplicated_value_positions = ', '.join(duplicated_value_positions)
 
         issues.append(RunIssue(
-            category='Table contents should not overlap',
+            category='Checking df: Overlapping values',
             code_problem=CodeProblem.OutputFileContentLevelC,
             item=filename,
             issue=f'Note that the Table {filename} includes the same values in multiple cells.\n'
@@ -180,7 +180,7 @@ def check_df_for_repeated_values_in_prior_tables(df: pd.DataFrame, filename: str
         prior_table_values = [v for v in prior_table.values.flatten() if _is_non_integer_numeric(v)]
         if any(value in prior_table_values for value in df_values):
             issues.append(RunIssue(
-                category='Table contents should not overlap',
+                category='Checking df: Overlapping values',
                 code_problem=CodeProblem.OutputFileContentLevelC,
                 issue=f'Table "{filename}" includes values that overlap with values in table "{prior_name}".',
                 instructions=dedent_triple_quote_str("""
@@ -199,7 +199,7 @@ def check_df_is_describe(df: pd.DataFrame, filename: str) -> RunIssues:
     description_labels = ('mean', 'std', 'min', '25%', '50%', '75%', 'max')
     if set(description_labels).issubset(df.columns) or set(description_labels).issubset(df.index):
         issues.append(RunIssue(
-            category='Quantiles and min/max values should not be included in scientific tables',
+            category='Checking df: min/max',
             code_problem=CodeProblem.OutputFileContentLevelA,
             item=filename,
             issue=f'The table includes mean, std, as well as quantiles and min/max values.',
@@ -229,7 +229,7 @@ def check_df_for_nan_values(df: pd.DataFrame, filename: str) -> RunIssues:
         issue_text += f'\nHere is the `isnull` of the table:\n```\n{isnull.to_string()}\n```\n'
 
         issues.append(RunIssue(
-            category='NaN values were found in created tables',
+            category='Checking df: NaN values',
             item=filename,
             code_problem=CodeProblem.OutputFileContentLevelC,
             issue=issue_text,
@@ -250,7 +250,7 @@ def check_df_size(df: pd.DataFrame, filename: str) -> RunIssues:
 
     if df.shape[1] > MAX_COLUMNS:
         issues.append(RunIssue(
-            category='Too large table',
+            category='Checking df: too many columns',
             code_problem=CodeProblem.OutputFileContentLevelB,
             item=filename,
             issue=f'The table has {len(df.columns)} columns, which is way too many for a scientific table.',
@@ -260,7 +260,7 @@ def check_df_size(df: pd.DataFrame, filename: str) -> RunIssues:
 
     if df.shape[0] > MAX_ROWS:
         issues.append(RunIssue(
-            category='Too large table',
+            category='Checking df: too many rows',
             code_problem=CodeProblem.OutputFileContentLevelB,
             item=filename,
             issue=f'The table has {df.shape[0]} rows, which is way too many for a scientific table.',

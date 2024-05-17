@@ -186,7 +186,7 @@ class TrackDataFrames(RunContext):
             read_but_unsaved_filenames = dataframe_operations.get_read_filenames_from_ids(
                 dataframe_operations.get_read_changed_but_unsaved_ids())
             self.issues.append(RunIssue(
-                category='Any modified dataframe should be saved to a file',
+                category='Coding good practice: Any modified dataframe should be saved to a file',
                 issue=dedent_triple_quote_str(f"""
                     Your code modifies, but doesn't save, some of the dataframes:
                     {read_but_unsaved_filenames}.
