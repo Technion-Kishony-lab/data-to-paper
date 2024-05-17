@@ -346,7 +346,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                 formatted_code_review_prompt = \
                     Replacer(self, '## Request ' + header + '\n' + code_review_prompt.prompt, kwargs=replacing_kwargs).format_text()
                 self._app_send_prompt(PanelNames.FEEDBACK)
-                self._app_send_prompt(PanelNames.FEEDBACK, formatted_code_review_prompt.replace('```latex', '```'),
+                self._app_send_prompt(PanelNames.FEEDBACK, formatted_code_review_prompt,
                                       sleep_for=PAUSE_AT_PROMPT_FOR_LLM_FEEDBACK, from_md=True)
                 with self._app_temporarily_set_panel_status(PanelNames.FEEDBACK, f"Waiting for LLM {header}"):
                     issues_to_is_ok_and_feedback = RequestIssuesToSolutions.from_(

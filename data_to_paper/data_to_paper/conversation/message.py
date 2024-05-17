@@ -177,14 +177,18 @@ class Message:
 
         return content, is_incomplete_code
 
+    def _make_content_for_pretty(self, content: str, is_incomplete_block: bool):
+        return content
+
     def pretty_content(self, text_color: str = '', width: Optional[int] = None, is_html=False, with_header: bool = True
                        ) -> str:
         """
         Returns a pretty repr of just the message content.
         """
-        content, _ = self._get_triple_quote_formatted_content(with_header)
+        content, is_incomplete_code = self._get_triple_quote_formatted_content(with_header)
+        content = self._make_content_for_pretty(content, is_incomplete_code)
         return format_text_with_code_blocks(text=content, text_color=text_color, width=width, is_html=is_html,
-                                            from_md=None)
+                                            from_md=None, do_not_format=['latex'])
 
     def get_short_description(self, left: int = 85, right: int = -20, model: ModelEngine = None) -> str:
         return f'{self.role.name:>9} ({self.get_number_of_tokens(model):>4} tokens): ' \
@@ -248,13 +252,11 @@ class CodeMessage(Message):
             content = formatted_sections.to_text()
         return content, is_incomplete_code
 
-    def pretty_content(self, text_color: str = '', width: Optional[int] = None, is_html=False, with_header: bool = True
-                       ) -> str:
+    def _make_content_for_pretty(self, content: str, is_incomplete_block: bool):
         """
         We override this method to replace the code within the message with the diff.
         """
-        content, is_incomplete_code = self._get_triple_quote_formatted_content(with_header)
-        if self.extracted_code and not is_incomplete_code and self.previous_code:
+        if self.extracted_code and not is_incomplete_block and self.previous_code:
             diff = self.get_code_diff()
             if MINIMAL_COMPACTION_TO_SHOW_CODE_DIFF < line_count(self.extracted_code) - line_count(diff):
                 # if the code diff is substantially shorter than the code, we replace the code with the diff:
@@ -262,7 +264,7 @@ class CodeMessage(Message):
                     self.extracted_code,
                     "\n# FULL CODE SENT BY LLM IS SHOWN AS A DIFF WITH PREVIOUS CODE\n" + diff if diff
                     else "\n# LLM SENT THE SAME CODE AS BEFORE\n")
-        return format_text_with_code_blocks(content, text_color, width, is_html=is_html)
+        return content
 
 
 def create_message(role: Role, content: str, tag: str = '', agent: Optional[Agent] = None, ignore: bool = False,

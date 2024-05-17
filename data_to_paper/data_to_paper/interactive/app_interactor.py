@@ -54,7 +54,8 @@ class AppInteractor:
             return
         s = format_value(self, prompt)
         if not provided_as_html:
-            s = format_text_with_code_blocks(s, is_html=True, width=None, from_md=from_md)
+            do_not_format = ['latex'] if panel_name != PanelNames.PRODUCT else []
+            s = format_text_with_code_blocks(s, is_html=True, width=None, from_md=from_md, do_not_format=do_not_format)
         s = demote_html_headers(s, demote_headers_by)
         self.app.show_text(panel_name, s, is_html=True, scroll_to_bottom=scroll_to_bottom)
         if isinstance(sleep_for, Mutable):

@@ -10,6 +10,7 @@ from pygments.formatters import Terminal256Formatter
 from pygments.lexers import TextLexer
 from pygments.styles import get_style_by_name
 from pygments import highlight, token
+from typing import List
 
 from data_to_paper.latex.latex_to_html import convert_latex_to_html
 from data_to_paper.env import CHOSEN_APP
@@ -199,14 +200,19 @@ def is_text_md(text: str) -> bool:
 
 
 def format_text_with_code_blocks(text: str, text_color: str = '', from_md: Optional[bool] = None,
-                                 width: Optional[int] = 150, is_html: bool = False) -> str:
+                                 width: Optional[int] = 150, is_html: bool = False,
+                                 do_not_format: List[str] = None) -> str:
+    do_not_format = do_not_format or []
     s = ''
     formatted_sections = FormattedSections.from_text(text)
     for formatted_section in formatted_sections:
         label, section, _, = formatted_section.to_tuple()
-        formatter = TAGS_TO_FORMATTERS.get(label, BLOCK_FORMATTER)[is_html]
         is_section_md = (label == 'markdown' or label in POSSIBLE_MARKDOWN_LABELS
                          and (from_md or from_md is None and is_text_md(section)))
+        if label in do_not_format and is_html:
+            section = f'```{label}' + section + '```'
+            label = ''
+        formatter = TAGS_TO_FORMATTERS.get(label, BLOCK_FORMATTER)[is_html]
         if is_html:
             if formatter == text_to_html:
                 s += formatter(section, from_md=is_section_md)
