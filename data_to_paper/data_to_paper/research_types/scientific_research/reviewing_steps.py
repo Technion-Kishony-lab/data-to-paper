@@ -140,8 +140,10 @@ class GetMostSimilarCitations(ShowCitationProducts, PythonDictReviewBackgroundPr
 
         ```python
         {
-            "Smith2020TheAB": "A title of a paper most overlapping with our goal and hypothesis",
-            "Jones2021AssortedCD": "Another title of a paper that is similar to our goal and hypothesis",
+            "Smith2020TheAB": 
+                "A title of a paper most overlapping with our goal and hypothesis",
+            "Jones2021AssortedCD": 
+                "Another title of a paper that is similar to our goal and hypothesis",
         }
         ```
     """)
@@ -280,8 +282,9 @@ class ReGoalReviewGPT(GoalReviewGPT):
 
 
 @dataclass
-class HypothesesTestingPlanReviewGPT(PythonDictReviewBackgroundProductsConverser):
-    value_type: type = Dict[str, str]
+class HypothesesTestingPlanReviewGPT(PythonDictWithDefinedKeysReviewBackgroundProductsConverser):
+    value_type: type = Dict[str, Dict[str, str]]
+    requested_keys: Collection[str] = ('ISSUES', 'HYPOTHESES')
     max_valid_response_iterations: int = 4
     max_hypothesis_count: int = 3
     max_reviewing_rounds: int = 0  # 0 for no review cycles
@@ -289,54 +292,80 @@ class HypothesesTestingPlanReviewGPT(PythonDictReviewBackgroundProductsConverser
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions_no_headers',
                                                   'codes_and_outputs:data_exploration',
                                                   'research_goal')
+    your_response_should_be_formatted_as: str = dedent_triple_quote_str("""
+        a Python dictionary with the following structure:
+        ```python
+        {
+            'ISSUES': {
+                '<Issue>': '<Description of the issue and how it should be accounted for>',
+                '<Another issue>': '...',
+                # ...
+
+            'HYPOTHESES': {
+                '<Hypothesis>': '<Statistical test>',
+                '<another Hypothesis>': '...',
+                # ...
+        }
+        ```
+        """)
     conversation_name: str = 'Hypothesis Testing Plan'
     is_new_conversation: bool = None  # this will create "hyp_testing_plan_0", etc.
     goal_noun: str = 'hypothesis testing plan'
     goal_verb: str = 'write'
     mission_prompt: str = dedent_triple_quote_str("""
         We would like to test the specified hypotheses using the provided dataset.
+        We need to think of the relevant statistical issues and the most adequate statistical tests for each hypothesis.
 
-        Please follow these two steps:
+        Review the "{data_file_descriptions_no_headers}" and "{codes_and_outputs:data_exploration}" provided above, \t
+        and return your assessment as {your_response_should_be_formatted_as}
 
-        (1) Return a bullet-point review of relevant statistical issues.
-        Read the "{data_file_descriptions_no_headers}" and the "{codes_and_outputs:data_exploration}" provided above, \t
-        and then for each of the following generic \t
-        statistical issues determine if they are relevant for our case and whether they should be accounted for: 
-        * multiple comparisons.
-        * confounding variables (see available variables in the dataset that we can adjust for).
-        * dependencies between data points.
-        * missing data points.
-        * any other relevant statistical issues.
+        - "ISSUES":
+        The keys of this dictionary should briefly describe the statistical issues that we should account for.
+        The values should describe the issue and how it should be accounted for in the statistical tests.
+        For possible issues (keys), consider for example:
+        * Confounding variables (see available variables in the dataset that we can adjust for).
+        * Missing data points.
+        * Dependencies between data points.
+        * Multiple comparisons.
+        * Imbalanced data.
+        * Any other relevant statistical issues.
 
-        (2) Create a Python Dict[str, str], mapping each hypothesis (dict key) to the statistical test that \t
-        would be most adequate for testing it (dict value).
+        - Hypotheses.
         The keys of this dictionary should briefly describe each of our hypotheses.
-        The values of this dictionary should specify the most adequate statistical test for each hypothesis, \t
-        and describe how it should be performed while accounting for any issues you have outlined above as relevant.
+        The values of this dictionary \t 
+        should specify the most adequate statistical test for each hypothesis, \t
+        and describe how it should be performed while accounting for any issues you have outlined above.
 
         For each of our hypotheses, suggest a *single* statistical test.
         If there are several possible ways to test a given hypothesis, specify only *one* statistical test \t
         (the simplest one).
 
-        Your response for this part should be formatted as a Python dictionary, like this:
+        Example:
+
         ```python
         {
-            "xxx is associated with yyy and zzz":
-                "linear regression with xxx as the independent variable and \t
+            'ISSUES': {
+                'Missing data points': 'Based on the {codes_and_outputs:data_exploration}, \t
+        we should drop lines with missing data in ...',
+                'Confounding variables': 'We should adjust for ...',
+            },
+            'HYPOTHESES': {
+                "xxx is associated with yyy and zzz":
+                    "Linear regression with xxx as the independent variable and \t
         yyy and zzz as the dependent variables while adjusting for aaa, bbb, ccc",
-            "the association between xxx and yyy is moderated by zzz": 
-                "repeat the above linear regression, \t
+                "The association between xxx and yyy is moderated by zzz": 
+                    "Repeat the above linear regression, \t
         while adding the interaction term between yyy and zzz",
         }
         ```
 
-        These of course are just examples. Your actual response should be based on the goal and hypotheses that \t
-        we have specified above (see the "{research_goal}" above).
+        These of course are just examples. Your actual response should be based on the \t
+        "{research_goal}", "{data_file_descriptions_no_headers}", and "{codes_and_outputs:data_exploration}".
 
         Note how in the example shown the different hypotheses are connected to each other, building towards a single
         study goal.
 
-        Remember to return a valid Python dictionary Dict[str, str].
+        Remember to return a valid Python dictionary with the structure described above.
         """)
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.PlanReviewer
@@ -347,13 +376,22 @@ class HypothesesTestingPlanReviewGPT(PythonDictReviewBackgroundProductsConverser
         Strip "hypothesis x" from the keys of the response value.
         """
         response_value = super()._check_response_value(response_value)
-        if len(response_value) > self.max_hypothesis_count:
+        hypotheses = response_value['HYPOTHESES']
+
+        if len(hypotheses) > self.max_hypothesis_count:
             self._raise_self_response_error(
-                '# Too many hypotheses',
-                f'Please do not specify more than {self.max_hypothesis_count} hypotheses. '
-                f'Revise your response to return a maximum of {self.max_hypothesis_count} hypotheses, '
-                f'which should all build towards a single study goal.')
-        return type(response_value)(
+                title='# Too many hypotheses',
+                error_message=dedent_triple_quote_str(f"""
+                    Please do not specify more than {self.max_hypothesis_count} hypotheses.
+                    Revise your response to return a maximum of {self.max_hypothesis_count} hypotheses, \t
+                    which should all build towards a single study goal.
+                    """)
+            )
+
+        # remove "hypothesis x" from the keys (we don't want the hypotheses to be numbered)
+        hypotheses = type(hypotheses)(
             {re.sub(pattern=r'hypothesis \d+:|hypothesis:|hypothesis :',
                     repl='', string=k, flags=re.IGNORECASE).strip(): v
-             for k, v in response_value.items()})
+             for k, v in hypotheses.items()})
+        response_value['HYPOTHESES'] = hypotheses
+        return response_value

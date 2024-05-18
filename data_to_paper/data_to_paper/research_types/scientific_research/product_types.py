@@ -60,13 +60,21 @@ class NoveltyAssessmentProduct(ValueProduct):
 class HypothesisTestingPlanProduct(ValueProduct):
     name: str = 'Hypothesis Testing Plan'
     stage: ScientificStage = ScientificStage.PLAN
-    value: Dict[str, str] = None
+    value: Dict[str, Dict[str, str]] = None
 
     def _get_content_as_markdown(self, level: int, **kwargs):
         s = ''
-        for hypothesis, test in self.value.items():
-            s += f'{"#" * (level + 1)} Hypothesis:\n{hypothesis}\n'
-            s += f'{"#" * (level + 1)} Test:\n{test}\n\n'
+        issues = self.value['ISSUES']
+        hypotheses = self.value['HYPOTHESES']
+        s += f'{"#" * (level + 1)} Statistical considerations:\n'
+        for issue, description in issues.items():
+            s += f'{"#" * (level + 2)} {issue}:\n{description}\n'
+
+        s += '\n'
+        s += f'{"#" * (level + 1)} Hypotheses:\n'
+        for hypothesis, test in hypotheses.items():
+            s += f'{"#" * (level + 2)} Hypothesis:\n{hypothesis}\n'
+            s += f'{"#" * (level + 2)} Test:\n{test}\n\n'
         return s
 
 
