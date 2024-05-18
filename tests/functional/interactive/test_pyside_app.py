@@ -9,7 +9,7 @@ from data_to_paper.interactive.pyside_app import PysideApp
 from data_to_paper.interactive.enum_types import PanelNames
 from data_to_paper.utils.highlighted_text import format_text_with_code_blocks
 
-long = "This is a very long sentence to test wrapping in different formats"
+long = "This is a very long sentence to test wrapping and proper <b>escaping</b>"
 block = f"""
 ### Title
 a, b, c
@@ -27,6 +27,7 @@ We can **bold** and *italicize* text.
 
 It should properly escape html. For example, <b>bold</b> and <i>italic</i> should appear as unformatted html text.
 
+List formatting has been disabled:
 Can create a list with '-':
 - item 1: {long}
 - item 2: {long}
@@ -34,6 +35,16 @@ Can create a list with '-':
 Can create a list with '*':
 * item 1: {long}
 * item 2: {long}
+
+Should format `print('hi')` as monospace.
+
+`line 1`
+`line 2`
+
+`Line 1
+Line 2`
+
+and can do two codes `df1` and `df2` in the same line.
 
 This is my code:
 ```python

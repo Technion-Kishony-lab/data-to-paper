@@ -216,7 +216,7 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         * Restrict the data based on exclusion/inclusion criteria (to match study goal, if applicable).
         * Standardize numeric values with different units into same-unit values.
 
-        If no dataset preparations are needed, write below this header: \t
+        If no dataset preparations are needed, write below this header:
         `# No dataset preparations are needed.`
 
 
@@ -230,7 +230,7 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         Write here the code to create a descriptive statistics dataframe `df0` and save it using:
         `df0.to_pickle('table_0.pkl')`
 
-        If no descriptive statistics are needed, write: \t
+        If no descriptive statistics are needed, write:
         `# No descriptive statistics table is needed.`
 
 
@@ -240,7 +240,7 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         * Creating dummy variables for categorical variables.
         * Any other data preprocessing you deem relevant.
 
-        If no preprocessing is needed, write: \t
+        If no preprocessing is needed, write:
         `# No preprocessing is needed, because <your reasons here>.`
 
 
@@ -331,11 +331,13 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
             "The analysis of xxx vs yyy": ("CONCERN", "Different units were not standardized"),
 
             # * CHECK FOR WRONG CALCULATIONS:
-            # Explicitly list all key calculation in the code and check for any mistakes.
-            # You should directly cut and paste the key calculations from the code.           
+            # Explicitly list all key calculation in the code and look carefully for any mistakes.
+            # You should directly cut and paste the key calculations from the code, and carefully assess them.           
             # For example:
             "mean_signal = np.mean(signal)": ("OK", "The mean is calculated correctly"),
-            "sem_signal = np.std(signal)": ("CONCERN", "Forgot to divide by sqrt(n)"),  
+            "sem_signal = np.std(signal)": ("CONCERN", "Forgot to divide by sqrt(n)"),
+            "formula = 'y ~ a : b + c'": ("CONCERN", "The formula accounts for the interaction between a and b
+            but does not include their main effects"),  
 
             # * CHECK FOR MATH TRIVIALITIES:
             # Check for any mathematically trivial assessments / statistical tests.
