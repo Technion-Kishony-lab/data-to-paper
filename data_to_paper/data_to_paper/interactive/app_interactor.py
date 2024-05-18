@@ -31,7 +31,6 @@ class AppInteractor:
         panel_names = panel_name if isinstance(panel_name, Iterable) else [panel_name]
         for panel_name in panel_names:
             self.app.show_text(panel_name, '')
-            self._app_set_panel_header(panel_name, panel_name.value)
             self._app_set_panel_status(panel_name, '')
 
     def _app_request_panel_continue(self, panel_name: PanelNames, sleep_for: Union[None, float, bool] = 0):
@@ -87,7 +86,8 @@ class AppInteractor:
             sleep_for = None
         if not is_playback:
             sleep_for = 0
-        self._app_send_prompt(panel_name, content, from_md=True, demote_headers_by=1,
+        self._app_send_prompt(panel_name, content or "No human feedback provided",
+                              from_md=True, demote_headers_by=1,
                               sleep_for=sleep_for)
         return content
 

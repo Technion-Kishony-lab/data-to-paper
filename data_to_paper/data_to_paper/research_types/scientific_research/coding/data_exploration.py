@@ -38,7 +38,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         The output file should be formatted as follows:
 
-        ```output
+        ```
         # Data Size
         <Measure of the scale of our data (e.g., number of rows, number of columns)>
 

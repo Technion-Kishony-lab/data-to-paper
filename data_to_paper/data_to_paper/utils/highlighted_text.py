@@ -100,10 +100,11 @@ def md_to_html(md):
             html_line = f'<h{header_level}>{line[header_level + 1:]}</h{header_level}>'
             if html_lines and html_lines[-1] == '<br>':
                 html_lines.pop()
-        elif line.startswith('- '):
-            html_line = f'<li>- {line[2:]}</li>'
-        elif line.startswith('* '):
-            html_line = f'<li>* {line[2:]}</li>'
+        # TODO: The bullet formatting looks ugly. Disable it for now.
+        # elif line.startswith('- '):
+        #     html_line = f'<li>- {line[2:]}</li>'
+        # elif line.startswith('* '):
+        #     html_line = f'<li>* {line[2:]}</li>'
         elif not line.strip():
             html_line = '<br>'
         else:
