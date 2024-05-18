@@ -331,7 +331,8 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
             "The analysis of xxx vs yyy": ("CONCERN", "Different units were not standardized"),
 
             # * CHECK FOR WRONG CALCULATIONS:
-            # Go through each key calculation in the code and check for any mistakes.
+            # Explicitly list all key calculation in the code and check for any mistakes.
+            # You should directly cut and paste the key calculations from the code.           
             # For example:
             "mean_signal = np.mean(signal)": ("OK", "The mean is calculated correctly"),
             "sem_signal = np.std(signal)": ("CONCERN", "Forgot to divide by sqrt(n)"),  
