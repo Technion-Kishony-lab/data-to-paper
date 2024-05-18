@@ -116,12 +116,14 @@ class Converser(Copier, AppInteractor):
                                                expected_tokens_in_response: int = None,
                                                send_to_app: bool = True,
                                                **kwargs) -> Message:
-        with self._app_temporarily_set_panel_status(PanelNames.RESPONSE, 'Waiting for LLM Performer...'):
+        model_engine = model_engine or self.model_engine or ModelEngine.DEFAULT
+        with self._app_temporarily_set_panel_status(PanelNames.RESPONSE,
+                                                    f'Waiting for Performer LLM ({model_engine})...'):
             message = self.conversation_manager.get_and_append_assistant_message(
                 tag=tag,
                 comment=comment,
                 is_code=is_code, previous_code=previous_code,
-                model_engine=model_engine or self.model_engine,
+                model_engine=model_engine,
                 expected_tokens_in_response=expected_tokens_in_response,
                 hidden_messages=hidden_messages,
                 **{**self.llm_parameters, **kwargs})

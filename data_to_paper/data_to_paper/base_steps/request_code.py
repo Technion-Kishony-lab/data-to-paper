@@ -352,7 +352,8 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                 self._app_send_prompt(PanelNames.FEEDBACK)
                 self._app_send_prompt(PanelNames.FEEDBACK, formatted_code_review_prompt,
                                       sleep_for=PAUSE_AT_PROMPT_FOR_LLM_FEEDBACK, from_md=True)
-                with self._app_temporarily_set_panel_status(PanelNames.FEEDBACK, f"Waiting for LLM {header}"):
+                with self._app_temporarily_set_panel_status(PanelNames.FEEDBACK,
+                                                            f"Waiting for LLM {header} ({self.model_engine})"):
                     issues_to_is_ok_and_feedback = RequestIssuesToSolutions.from_(
                         self,
                         model_engine=self.model_engine,

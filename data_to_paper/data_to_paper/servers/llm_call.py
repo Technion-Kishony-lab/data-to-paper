@@ -61,13 +61,6 @@ class LLMResponse(SerializableValue):
     """
 
 
-def _get_actual_model_engine(model_engine: Optional[ModelEngine]) -> ModelEngine:
-    """
-    Return the actual model engine to use for the given model engine.
-    """
-    return model_engine or ModelEngine.DEFAULT
-
-
 class OpenaiSeverCaller(ListServerCaller):
     """
     Class to call OpenAI API.
@@ -182,7 +175,6 @@ def count_number_of_tokens_in_message(messages: Union[List[Message], str], model
     """
     Count number of tokens in message using tiktoken.
     """
-    model_engine = _get_actual_model_engine(model_engine)
     try:
         encoding = tiktoken.encoding_for_model(model_engine.value)
     except KeyError:
@@ -210,7 +202,6 @@ def try_get_llm_response(messages: List[Message],
     """
     if expected_tokens_in_response is None:
         expected_tokens_in_response = DEFAULT_EXPECTED_TOKENS_IN_RESPONSE
-    model_engine = _get_actual_model_engine(model_engine)
     tokens = count_number_of_tokens_in_message(messages, model_engine)
     if tokens + expected_tokens_in_response > model_engine.max_tokens:
         return TooManyTokensInMessageError(tokens, expected_tokens_in_response, model_engine)

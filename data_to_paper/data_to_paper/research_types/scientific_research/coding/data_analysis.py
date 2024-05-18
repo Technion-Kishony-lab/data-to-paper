@@ -410,7 +410,7 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
 
         {code_review_notes}
         """)),
-        CodeReviewPrompt('content of "{filename}"', 'table_*.pkl', True, dedent_triple_quote_str("""
+        CodeReviewPrompt('"{filename}"', 'table_*.pkl', True, dedent_triple_quote_str("""
         I ran your code.
 
         Here is the content of the table '{filename}' that the code created for our scientific paper:
@@ -447,7 +447,7 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
 
         {code_review_notes}
         """)),
-        CodeReviewPrompt('all output files', '*', False, dedent_triple_quote_str("""
+        CodeReviewPrompt('created files', '*', False, dedent_triple_quote_str("""
         I ran your code.
 
         Here is the content of the file(s) that the code created for our scientific paper:

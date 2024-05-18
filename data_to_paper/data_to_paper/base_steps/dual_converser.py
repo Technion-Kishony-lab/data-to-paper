@@ -11,6 +11,7 @@ from data_to_paper.interactive import PanelNames
 from data_to_paper.env import TEXT_WIDTH, CHOSEN_APP, PAUSE_AT_LLM_FEEDBACK
 from data_to_paper.run_gpt_code.code_utils import extract_content_of_triple_quote_block, FailedExtractingBlock, \
     IncompleteBlockFailedExtractingBlock
+from data_to_paper.servers.model_engine import ModelEngine
 
 from .converser import Converser
 from .result_converser import ResultConverser, Rewind
@@ -72,17 +73,19 @@ class DualConverserGPT(Converser):
     def apply_to_other_get_and_append_assistant_message(self, tag: Optional[StrOrReplacer] = None,
                                                         comment: Optional[StrOrReplacer] = None,
                                                         is_code: bool = False, previous_code: Optional[str] = None,
-                                                        model_engine: Optional[str] = None,
+                                                        model_engine: Optional[ModelEngine] = None,
                                                         hidden_messages: GeneralMessageDesignation = None,
                                                         expected_tokens_in_response: int = None,
                                                         **kwargs) -> Message:
-        with self._app_temporarily_set_panel_status(PanelNames.FEEDBACK, 'Waiting for LLM Reviewer...'):
+        model_engine = model_engine or self.model_engine or ModelEngine.DEFAULT
+        with self._app_temporarily_set_panel_status(PanelNames.FEEDBACK,
+                                                    f'Waiting for Reviewer LLM ({model_engine})...'):
             self._app_send_prompt(PanelNames.FEEDBACK)
             message = self.other_conversation_manager.get_and_append_assistant_message(
                 tag=tag,
                 comment=comment,
                 is_code=is_code, previous_code=previous_code,
-                model_engine=model_engine or self.model_engine,
+                model_engine=model_engine,
                 expected_tokens_in_response=expected_tokens_in_response,
                 hidden_messages=hidden_messages, **kwargs)
             return message
