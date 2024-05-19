@@ -449,7 +449,7 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
 
         {code_review_notes}
         """)),
-        CodeReviewPrompt('created files', '*', False, dedent_triple_quote_str("""
+        CodeReviewPrompt('all created files', '*', False, dedent_triple_quote_str("""
         I ran your code.
 
         Here is the content of the file(s) that the code created for our scientific paper:

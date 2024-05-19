@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from typing import Tuple, Dict, Any, Iterable, List, Collection, Type
 
 from data_to_paper.servers.model_engine import ModelEngine
-from data_to_paper.utils import dedent_triple_quote_str
+from data_to_paper.utils import dedent_triple_quote_str, word_count
 from data_to_paper.base_steps.result_converser import Rewind
 from data_to_paper.base_steps import BaseProductsQuotedReviewGPT, PythonDictReviewBackgroundProductsConverser, \
     PythonDictWithDefinedKeysReviewBackgroundProductsConverser
@@ -387,6 +387,27 @@ class HypothesesTestingPlanReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPr
                     which should all build towards a single study goal.
                     """)
             )
+
+        if not hypotheses:
+            self._raise_self_response_error(
+                title='# No hypotheses',
+                error_message='Please specify at least one hypothesis.'
+            )
+
+        # We want explicit hypotheses. Check that the hypotheses have at least 7 words:
+        for hypothesis, test in hypotheses.items():
+            if word_count(hypothesis) < 7:
+                self._raise_self_response_error(
+                    title='# Hypothesis too short',
+                    error_message=f'The hypothesis "{hypothesis}" is too short.\n'
+                                  f'Please provide a more explicit and specific hypothesis description.'
+                )
+            if word_count(test) < 12:
+                self._raise_self_response_error(
+                    title='# Hypothesis test too short',
+                    error_message=f'The test description "{test}" is too short.\n'
+                                  f'Please provide a more explicit and specific test description.'
+                )
 
         # remove "hypothesis x" from the keys (we don't want the hypotheses to be numbered)
         hypotheses = type(hypotheses)(

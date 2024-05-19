@@ -417,7 +417,7 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
     sentence_to_add_at_the_end_of_reviewer_response: str = dedent_triple_quote_str("""\n\n
         Please correct your response according to any points you find relevant and applicable in my feedback.
         Send back a complete rewrite of the {goal_noun}.
-        Your response should be formatted as {your_response_should_be_formatted_as}
+        Remember, your response should be formatted as {your_response_should_be_formatted_as}
         """)
 
     rewind_after_getting_a_valid_response: Optional[Rewind] = Rewind.AS_FRESH

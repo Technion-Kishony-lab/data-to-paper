@@ -6,7 +6,7 @@ from data_to_paper.utils.text_formatting import dedent_triple_quote_str
 
 import openai
 
-from typing import List, Union, Optional, Callable
+from typing import List, Union, Callable
 
 import tiktoken
 
@@ -175,6 +175,8 @@ def count_number_of_tokens_in_message(messages: Union[List[Message], str], model
     """
     Count number of tokens in message using tiktoken.
     """
+    if model_engine is None:
+        model_engine = ModelEngine.DEFAULT
     try:
         encoding = tiktoken.encoding_for_model(model_engine.value)
     except KeyError:
@@ -200,6 +202,8 @@ def try_get_llm_response(messages: List[Message],
     If getting a response is successful then return response string.
     If failed due to openai exception, return None.
     """
+    if model_engine is None:
+        model_engine = ModelEngine.DEFAULT
     if expected_tokens_in_response is None:
         expected_tokens_in_response = DEFAULT_EXPECTED_TOKENS_IN_RESPONSE
     tokens = count_number_of_tokens_in_message(messages, model_engine)
@@ -212,10 +216,12 @@ def try_get_llm_response(messages: List[Message],
                       should_log=False)
     try:
         action = OPENAI_SERVER_CALLER.get_server_response(messages, model_engine=model_engine, **kwargs)
-        if isinstance(action, HumanAction) and CHOSEN_APP == None:  # noqa (Mutable)
-            raise ValueError(f'Human action retrieved, instead of LLM response.\n'
-                             f'Runs recorded with human actions should be replayed with the same settings\n'
-                             f'(set CHOSEN_APP to value other than None)')
+        if isinstance(action, HumanAction):
+            err = 'Human action retrieved, instead of LLM response.'
+            if CHOSEN_APP == None:  # noqa (Mutable)
+                err += '\nRuns recorded without human actions should be replayed with the same settings\n' \
+                       '(set CHOSEN_APP to value other than None)'
+            raise ValueError(err)
         assert isinstance(action, LLMResponse)
         return action.value
     except openai.error.InvalidRequestError as e:

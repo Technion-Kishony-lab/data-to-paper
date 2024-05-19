@@ -122,7 +122,7 @@ class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgr
     formatting_instructions_for_feedback: str = dedent_triple_quote_str("""
         Please {goal_verb} the {goal_noun} again according to my feedback above.
 
-        Remember your response should be formatted as {your_response_should_be_formatted_as}
+        Remember, your response should be formatted as {your_response_should_be_formatted_as}
         """)
     rewind_after_getting_a_valid_response: Optional[Rewind] = Rewind.AS_FRESH
 

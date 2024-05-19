@@ -136,7 +136,7 @@ class ResultConverser(Converser):
     your_response_should_be_formatted_as: str = ""
 
     formatting_instructions_for_feedback: str = \
-        "Your response should be formatted as {your_response_should_be_formatted_as}"
+        "Remember, your response should be formatted as {your_response_should_be_formatted_as}"
 
     default_rewind_for_result_error: Rewind = Rewind.AS_FRESH
     # Can be any of the Rewind options. In particular:
