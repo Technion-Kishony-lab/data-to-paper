@@ -5,8 +5,8 @@ from data_to_paper.base_steps import LatexReviewBackgroundProductsConverser
 from data_to_paper.utils import dedent_triple_quote_str
 
 
-from cast import DemoAgent
-from products import DemoProducts
+from .cast import DemoAgent
+from .products import DemoProducts
 
 
 @dataclass

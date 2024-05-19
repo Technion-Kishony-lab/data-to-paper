@@ -1,7 +1,7 @@
 from data_to_paper.base_cast import Agent
 from data_to_paper.base_cast.types import Profile
 
-from env import THEME_NAME
+from .env import THEME_NAME
 
 # load theme:
 theme = THEME_NAME

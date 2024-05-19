@@ -1,18 +1,19 @@
 from dataclasses import dataclass, field
 from typing import Optional
 
-from data_to_paper.base_steps.base_steps_runner import BaseStepsRunner
+from data_to_paper.base_steps.base_steps_runner import DataStepRunner
 from data_to_paper.base_steps.request_products_from_user import DirectorProductGPT
-from cast import DemoAgent
-from coding_steps import DemoCodeProductsGPT
-from produce_pdf_step import ProduceDemoPaperPDF
-from products import DemoProducts
-from stage import DemoStages
-from writing_steps import WriteTitleAndAbstract
+
+from .cast import DemoAgent
+from .coding_steps import DemoCodeProductsGPT
+from .produce_pdf_step import ProduceDemoPaperPDF
+from .products import DemoProducts
+from .stage import DemoStages
+from .writing_steps import WriteTitleAndAbstract
 
 
 @dataclass
-class DemoStepsRunner(BaseStepsRunner):
+class DemoStepsRunner(DataStepRunner):
 
     cast = DemoAgent
     products: DemoProducts = field(default_factory=DemoProducts)

@@ -4,7 +4,7 @@ from typing import Dict
 from data_to_paper.base_steps import BaseLatexToPDF
 from data_to_paper.code_and_output_files.file_view_params import ContentViewPurpose
 
-from products import DemoProducts
+from .products import DemoProducts
 
 
 @dataclass

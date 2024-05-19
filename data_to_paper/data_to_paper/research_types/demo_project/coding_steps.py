@@ -2,15 +2,16 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, Tuple
 
+from data_to_paper.utils import dedent_triple_quote_str
+from data_to_paper.utils.nice_list import NiceList
+
 from data_to_paper.base_steps import BaseCodeProductsGPT
-from cast import DemoAgent
 from data_to_paper.code_and_output_files.output_file_requirements import TextContentOutputFileRequirement, \
     OutputFileRequirements
 from data_to_paper.servers.model_engine import ModelEngine
-from products import DemoProducts
 
-from data_to_paper.utils import dedent_triple_quote_str
-from data_to_paper.utils.nice_list import NiceList
+from .cast import DemoAgent
+from .products import DemoProducts
 
 
 @dataclass
