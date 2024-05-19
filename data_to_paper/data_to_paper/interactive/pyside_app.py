@@ -3,7 +3,7 @@ from typing import Optional, List, Collection, Dict, Callable, Any, Union
 
 from PySide6.QtGui import QTextOption, QTextCursor
 from PySide6.QtWidgets import QMainWindow, QVBoxLayout, QLabel, QPushButton, QWidget, \
-    QHBoxLayout, QSplitter, QTextEdit, QTabWidget, QDialog, QSizePolicy, QCheckBox
+    QHBoxLayout, QSplitter, QTextEdit, QTabWidget, QDialog, QSizePolicy, QCheckBox, QSpacerItem
 from PySide6.QtCore import Qt, QMutex, QWaitCondition, QThread, Signal, Slot
 
 from pygments.formatters.html import HtmlFormatter
@@ -522,7 +522,7 @@ class PysideApp(QMainWindow, BaseApp):
         self.step_panel = StepsPanel()
         left_side.addWidget(self.step_panel)
 
-        # Right side is a QHBoxLayout with a header on top and a splitter with the text panels below
+        # Right side is a QVBoxLayout with a header on top and a splitter with the text panels below
         right_side = QVBoxLayout()
         self.layout.addLayout(right_side)
 
@@ -531,23 +531,33 @@ class PysideApp(QMainWindow, BaseApp):
 
         # Header:
         self.header = QLabel()
-        # set as HTML to allow for text highlighting
         self.header.setTextFormat(Qt.TextFormat.RichText)
         self.header.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
         self.header.setStyleSheet("color: #005599; font-size: 24px; font-weight: bold;")
+
+        spacer = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
         header_and_checkbox.addWidget(self.header)
+        header_and_checkbox.addItem(spacer)
+
+        # Checkboxes:
+        check_boxes = QVBoxLayout()
+        header_and_checkbox.addLayout(check_boxes)
 
         # Bypass-continue checkbox:
         self.bypass_continue_checkbox = QCheckBox("Auto continue")
         self.bypass_continue_checkbox.setChecked(False)
-        # Hover message:
         self.bypass_continue_checkbox.setToolTip(
             "When unchecked, a user 'Continue' approval is required for each LLM iteration.\n"
             "When checked, the app only stops where explicit user choices are required.")
-        # align all the way to the right:
-        header_and_checkbox.addStretch()
+        check_boxes.addWidget(self.bypass_continue_checkbox)
 
-        header_and_checkbox.addWidget(self.bypass_continue_checkbox)
+        # Bypass-mission prompt checkbox:
+        self.bypass_mission_prompt_checkbox = QCheckBox("Auto mission prompt")
+        self.bypass_mission_prompt_checkbox.setChecked(False)
+        self.bypass_mission_prompt_checkbox.setToolTip(
+            "When unchecked, user can edit each mission prompt.\n"
+            "When checked, the default mission prompt is automatically used.")
+        check_boxes.addWidget(self.bypass_mission_prompt_checkbox)
 
         # Splitter with the text panels
         main_splitter = QSplitter(Qt.Orientation.Horizontal)
@@ -701,6 +711,9 @@ class PysideApp(QMainWindow, BaseApp):
         panel = self.panels[panel_name]
         if optional_suggestions is None:
             optional_suggestions = {}
+        if panel_name == PanelNames.MISSION_PROMPT and self.bypass_mission_prompt_checkbox.isChecked():
+            self.send_text_signal.emit(panel_name, initial_text)
+            return
         panel.edit_text(initial_text, title, instructions, in_field_instructions, list(optional_suggestions.values()))
 
     @Slot(PanelNames)
