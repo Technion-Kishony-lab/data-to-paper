@@ -3,7 +3,7 @@ from typing import Optional, List, Collection, Dict, Callable, Any, Union
 
 from PySide6.QtGui import QTextOption, QTextCursor
 from PySide6.QtWidgets import QMainWindow, QVBoxLayout, QLabel, QPushButton, QWidget, \
-    QHBoxLayout, QSplitter, QTextEdit, QTabWidget, QDialog, QSizePolicy
+    QHBoxLayout, QSplitter, QTextEdit, QTabWidget, QDialog, QSizePolicy, QCheckBox
 from PySide6.QtCore import Qt, QMutex, QWaitCondition, QThread, Signal, Slot
 
 from pygments.formatters.html import HtmlFormatter
@@ -526,14 +526,28 @@ class PysideApp(QMainWindow, BaseApp):
         right_side = QVBoxLayout()
         self.layout.addLayout(right_side)
 
-        # Header (html)
+        header_and_checkbox = QHBoxLayout()
+        right_side.addLayout(header_and_checkbox)
+
+        # Header:
         self.header = QLabel()
         # set as HTML to allow for text highlighting
         self.header.setTextFormat(Qt.TextFormat.RichText)
         self.header.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
-
         self.header.setStyleSheet("color: #005599; font-size: 24px; font-weight: bold;")
-        right_side.addWidget(self.header)
+        header_and_checkbox.addWidget(self.header)
+
+        # Bypass-continue checkbox:
+        self.bypass_continue_checkbox = QCheckBox("Auto continue")
+        self.bypass_continue_checkbox.setChecked(False)
+        # Hover message:
+        self.bypass_continue_checkbox.setToolTip(
+            "When unchecked, a user 'Continue' approval is required for each LLM iteration.\n"
+            "When checked, the app only stops where explicit user choices are required.")
+        # align all the way to the right:
+        header_and_checkbox.addStretch()
+
+        header_and_checkbox.addWidget(self.bypass_continue_checkbox)
 
         # Splitter with the text panels
         main_splitter = QSplitter(Qt.Orientation.Horizontal)
@@ -672,8 +686,11 @@ class PysideApp(QMainWindow, BaseApp):
 
     @Slot(PanelNames)
     def upon_request_panel_continue(self, panel_name: PanelNames):
-        panel = self.panels[panel_name]
-        panel.wait_for_continue()
+        if self.bypass_continue_checkbox.isChecked():
+            self.send_panel_continue_signal.emit(panel_name)
+        else:
+            panel = self.panels[panel_name]
+            panel.wait_for_continue()
 
     @Slot(PanelNames, str, str, dict)
     def upon_request_text(self, panel_name: PanelNames, initial_text: str = '',
