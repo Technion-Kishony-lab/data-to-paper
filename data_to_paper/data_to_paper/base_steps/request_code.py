@@ -300,18 +300,15 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
 
     @staticmethod
     def _convert_issues_to_messages(issues: Dict[str, Tuple[str, str]],
-                                    termination_phrase: str) -> Tuple[str, str]:
+                                    termination_phrase: str, header: str) -> Tuple[str, str]:
         """
         Convert the issues to:
         - llm_msg: a string with the issues that are problems to send to the LLM
         - app_msg: a string with all the issues to present in the app
         """
 
-        def _get_sign(type_: str) -> str:
-            return Symbols.CHECK_SYMBOL if type_ == 'OK' else Symbols.CROSS_SYMBOL
-
         concern_issues = {issue: feedback for issue, (type_, feedback) in issues.items() if type_ != 'OK'}
-
+        is_all_ok = True if not concern_issues else False if len(concern_issues) == len(issues) else None
         llm_msg = '\n\n'.join(f'## {issue}\n{solution}' for issue, solution in concern_issues.items())
         if llm_msg:
             llm_msg += '\n\n## Other\nPlease fix any other issues that you may find.'
@@ -320,9 +317,11 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
 
         if issues:
             app_msg = '\n'.join(
-                f'### {_get_sign(type_)} {issue}\n{feedback}' for issue, (type_, feedback) in issues.items())
+                f'### {Symbols.get_is_ok_symbol(type_ == "OK")} {issue}\n{feedback}'
+                for issue, (type_, feedback) in issues.items())
         else:
             app_msg = f'### {termination_phrase}'
+        app_msg = f'## {Symbols.get_is_ok_symbol(is_all_ok)} {header}\n{app_msg}'
         return llm_msg, app_msg
 
     def _get_llm_review_and_human_review(self, code_and_output: CodeAndOutput, debugger: DebuggerConverser) -> bool:
@@ -363,9 +362,8 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                     ).run_and_get_valid_result(with_review=False)
                 termination_phrase = f'{header}: no issues found.'
                 llm_msg, app_msg = \
-                    self._convert_issues_to_messages(issues_to_is_ok_and_feedback, termination_phrase)
-                self._app_send_prompt(PanelNames.FEEDBACK, f'## LLM {header}\n{app_msg}',
-                                      sleep_for=PAUSE_AT_LLM_FEEDBACK, from_md=True)
+                    self._convert_issues_to_messages(issues_to_is_ok_and_feedback, termination_phrase, header)
+                self._app_send_prompt(PanelNames.FEEDBACK, app_msg, sleep_for=PAUSE_AT_LLM_FEEDBACK, from_md=True)
                 if self.app and (HUMAN_EDIT_CODE_REVIEW or (HUMAN_EDIT_CODE_REVIEW is None and is_last_review)):
                     llm_msg = self._app_receive_text(
                         PanelNames.FEEDBACK, '',
