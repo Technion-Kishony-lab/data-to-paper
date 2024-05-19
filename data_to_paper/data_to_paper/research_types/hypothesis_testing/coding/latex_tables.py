@@ -12,17 +12,17 @@ from data_to_paper.code_and_output_files.ref_numeric_values import HypertargetFo
 from data_to_paper.code_and_output_files.referencable_text import BaseReferenceableText, convert_str_to_latex_label, \
     NumericReferenceableText
 from data_to_paper.latex.tables import get_table_caption
-from data_to_paper.research_types.scientific_research.cast import ScientificAgent
-from data_to_paper.research_types.scientific_research.coding.base_code_conversers import BaseCreateTablesCodeProductsGPT
-from data_to_paper.research_types.scientific_research.coding.original_utils.to_latex_with_note import \
+from data_to_paper.research_types.hypothesis_testing.cast import ScientificAgent
+from data_to_paper.research_types.hypothesis_testing.coding.base_code_conversers import BaseCreateTablesCodeProductsGPT
+from data_to_paper.research_types.hypothesis_testing.coding.original_utils.to_latex_with_note import \
     get_html_from_latex_table, get_latex_table_without_html_comment
-from data_to_paper.research_types.scientific_research.coding.utils import get_additional_contexts
-from data_to_paper.research_types.scientific_research.coding.utils_modified_for_gpt_use.to_latex_with_note import \
+from data_to_paper.research_types.hypothesis_testing.coding.utils import get_additional_contexts
+from data_to_paper.research_types.hypothesis_testing.coding.utils_modified_for_gpt_use.to_latex_with_note import \
     TABLE_COMMENT_HEADER
-from data_to_paper.research_types.scientific_research.coding.utils_modified_for_gpt_use.to_pickle import \
+from data_to_paper.research_types.hypothesis_testing.coding.utils_modified_for_gpt_use.to_pickle import \
     get_read_pickle_attr_replacer
-from data_to_paper.research_types.scientific_research.scientific_products import HypertargetPrefix
-from data_to_paper.research_types.scientific_research.coding.latex_table_debugger import LatexTablesDebuggerConverser
+from data_to_paper.research_types.hypothesis_testing.scientific_products import HypertargetPrefix
+from data_to_paper.research_types.hypothesis_testing.coding.latex_table_debugger import LatexTablesDebuggerConverser
 from data_to_paper.run_gpt_code.overrides.attr_replacers import PreventAssignmentToAttrs, PreventCalling, AttrReplacer
 from data_to_paper.run_gpt_code.overrides.pvalue import PValue, OnStr
 from data_to_paper.run_gpt_code.run_contexts import ProvideData

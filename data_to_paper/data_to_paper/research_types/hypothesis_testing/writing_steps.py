@@ -7,10 +7,10 @@ from data_to_paper.base_steps import LatexReviewBackgroundProductsConverser, \
 from data_to_paper.base_steps.exceptions import FailedCreatingProductException
 from data_to_paper.base_steps.literature_search import GET_LITERATURE_SEARCH_FOR_PRINT
 from data_to_paper.latex.tables import get_table_label
-from data_to_paper.research_types.scientific_research.cast import ScientificAgent
-from data_to_paper.research_types.scientific_research.scientific_products import ScientificProducts
+from data_to_paper.research_types.hypothesis_testing.cast import ScientificAgent
+from data_to_paper.research_types.hypothesis_testing.scientific_products import ScientificProducts
 from data_to_paper.servers.model_engine import ModelEngine
-from data_to_paper.research_types.scientific_research.model_engines import get_model_engine_for_class
+from data_to_paper.research_types.hypothesis_testing.model_engines import get_model_engine_for_class
 from data_to_paper.servers.custom_types import Citation
 
 from data_to_paper.utils import dedent_triple_quote_str

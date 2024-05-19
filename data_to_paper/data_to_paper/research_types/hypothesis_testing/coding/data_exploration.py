@@ -3,11 +3,11 @@ from typing import Tuple, Optional, Dict, Any, Collection
 
 from data_to_paper.base_steps.request_code import CodeReviewPrompt
 from data_to_paper.code_and_output_files.output_file_requirements import OutputFileRequirements
-from data_to_paper.research_types.scientific_research.cast import ScientificAgent
-from data_to_paper.research_types.scientific_research.coding.base_code_conversers import BaseScientificCodeProductsGPT
-from data_to_paper.research_types.scientific_research.coding.data_analysis import EnforceContentOutputFileRequirement
-from data_to_paper.research_types.scientific_research.coding.utils import get_additional_contexts
-from data_to_paper.research_types.scientific_research.model_engines import get_model_engine_for_class
+from data_to_paper.research_types.hypothesis_testing.cast import ScientificAgent
+from data_to_paper.research_types.hypothesis_testing.coding.base_code_conversers import BaseScientificCodeProductsGPT
+from data_to_paper.research_types.hypothesis_testing.coding.data_analysis import EnforceContentOutputFileRequirement
+from data_to_paper.research_types.hypothesis_testing.coding.utils import get_additional_contexts
+from data_to_paper.research_types.hypothesis_testing.model_engines import get_model_engine_for_class
 from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
 

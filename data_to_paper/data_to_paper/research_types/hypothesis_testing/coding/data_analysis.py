@@ -8,12 +8,12 @@ from data_to_paper.base_steps.request_code import CodeReviewPrompt
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.code_and_output_files.output_file_requirements import TextContentOutputFileRequirement, \
     NumericTextContentOutputFileRequirement, OutputFileRequirements, PickleContentOutputFileRequirement
-from data_to_paper.research_types.scientific_research.coding.base_code_conversers import \
+from data_to_paper.research_types.hypothesis_testing.coding.base_code_conversers import \
     BaseScientificCodeProductsGPT, BaseCreateTablesCodeProductsGPT
-from data_to_paper.research_types.scientific_research.coding.utils import get_additional_contexts
-from data_to_paper.research_types.scientific_research.coding.utils_modified_for_gpt_use.to_pickle import \
+from data_to_paper.research_types.hypothesis_testing.coding.utils import get_additional_contexts
+from data_to_paper.research_types.hypothesis_testing.coding.utils_modified_for_gpt_use.to_pickle import \
     get_dataframe_to_pickle_attr_replacer, get_pickle_dump_attr_replacer
-from data_to_paper.research_types.scientific_research.scientific_products import HypertargetPrefix
+from data_to_paper.research_types.hypothesis_testing.scientific_products import HypertargetPrefix
 from data_to_paper.run_gpt_code.overrides.dataframes.df_methods import STR_FLOAT_FORMAT
 from data_to_paper.run_gpt_code.overrides.dataframes.utils import to_string_with_iterables
 from data_to_paper.run_gpt_code.overrides.pvalue import is_containing_p_value

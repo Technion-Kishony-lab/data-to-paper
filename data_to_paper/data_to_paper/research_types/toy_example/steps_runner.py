@@ -13,7 +13,7 @@ from .writing_steps import WriteTitleAndAbstract
 
 
 @dataclass
-class DemoStepsRunner(DataStepRunner):
+class ToyStepsRunner(DataStepRunner):
     PROJECT_PARAMETERS_FILENAME = 'data_to_paper-toy-example.json'
     name = 'Demo Project'
     cast = DemoAgent

@@ -2,8 +2,8 @@ from dataclasses import dataclass
 from typing import Tuple, Collection, Optional
 
 from data_to_paper.base_steps import BaseLiteratureSearchReviewGPT
-from data_to_paper.research_types.scientific_research.cast import ScientificAgent
-from data_to_paper.research_types.scientific_research.scientific_products import ScientificProducts
+from data_to_paper.research_types.hypothesis_testing.cast import ScientificAgent
+from data_to_paper.research_types.hypothesis_testing.scientific_products import ScientificProducts
 
 
 @dataclass

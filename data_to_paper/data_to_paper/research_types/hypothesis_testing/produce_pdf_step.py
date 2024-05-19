@@ -4,7 +4,7 @@ from typing import Dict, List, Tuple
 from data_to_paper.base_steps import BaseLatexToPDF
 from data_to_paper.code_and_output_files.file_view_params import ContentViewPurpose
 from data_to_paper.latex.latex_to_pdf import evaluate_latex_num_command
-from data_to_paper.research_types.scientific_research.scientific_products import ScientificProducts
+from data_to_paper.research_types.hypothesis_testing.scientific_products import ScientificProducts
 from data_to_paper.code_and_output_files.ref_numeric_values import ReferencedValue
 from data_to_paper.code_and_output_files.referencable_text import ListReferenceableText
 from data_to_paper.servers.custom_types import Citation

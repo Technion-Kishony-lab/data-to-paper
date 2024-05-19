@@ -3,11 +3,11 @@ import pytest
 from _pytest.fixtures import fixture
 from _pytest.python_api import raises
 
-from data_to_paper.research_types.scientific_research.coding.utils_modified_for_gpt_use. \
+from data_to_paper.research_types.hypothesis_testing.coding.utils_modified_for_gpt_use. \
     check_df_of_table import check_df_of_table_for_content_issues
-from data_to_paper.research_types.scientific_research.coding. \
+from data_to_paper.research_types.hypothesis_testing.coding. \
     utils_modified_for_gpt_use.to_latex_with_note import _check_for_table_style_issues
-from data_to_paper.research_types.scientific_research.coding.\
+from data_to_paper.research_types.hypothesis_testing.coding.\
     utils_modified_for_gpt_use.to_pickle import get_dataframe_to_pickle_attr_replacer
 from data_to_paper.run_gpt_code.overrides.pvalue import PValue, is_p_value
 from data_to_paper.run_gpt_code.run_issues import RunIssue

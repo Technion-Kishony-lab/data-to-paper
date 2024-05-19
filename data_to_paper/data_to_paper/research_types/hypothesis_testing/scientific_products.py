@@ -12,10 +12,10 @@ from data_to_paper.latex import extract_latex_section_from_response
 from data_to_paper.latex.latex_to_pdf import evaluate_latex_num_command
 from data_to_paper.latex.tables import add_tables_to_paper_section, get_table_caption
 
-from data_to_paper.research_types.scientific_research.cast import ScientificAgent
-from data_to_paper.research_types.scientific_research.product_types import HypothesisTestingPlanProduct, \
+from data_to_paper.research_types.hypothesis_testing.cast import ScientificAgent
+from data_to_paper.research_types.hypothesis_testing.product_types import HypothesisTestingPlanProduct, \
     NoveltyAssessmentProduct, GoalAndHypothesisProduct, MostSimilarPapersProduct, NoveltySummaryProduct
-from data_to_paper.research_types.scientific_research.scientific_stage import ScientificStage, \
+from data_to_paper.research_types.hypothesis_testing.scientific_stage import ScientificStage, \
     SECTION_NAMES_TO_WRITING_STAGES
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 

@@ -6,7 +6,7 @@ from data_to_paper.base_cast.types import Profile
 from .env import THEME_NAME
 
 # load theme:
-theme = importlib.import_module(f'data_to_paper.research_types.scientific_research.themes.{THEME_NAME}')
+theme = importlib.import_module(f'data_to_paper.research_types.hypothesis_testing.themes.{THEME_NAME}')
 
 
 class ScientificAgent(Agent):

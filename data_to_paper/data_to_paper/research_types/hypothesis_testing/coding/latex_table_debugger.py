@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Tuple, List, Type
 
 from data_to_paper.base_steps import DebuggerConverser
-from data_to_paper.research_types.scientific_research.scientific_products import ScientificProducts
+from data_to_paper.research_types.hypothesis_testing.scientific_products import ScientificProducts
 from data_to_paper.run_gpt_code.code_runner import CodeRunner
 
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
@@ -18,7 +18,7 @@ class UtilsCodeRunner(CodeRunner):
         modified_code, lines_added = super()._modify_code(code)
         modified_code = code.replace(
             'from my_utils',
-            'from data_to_paper.research_types.scientific_research.coding.utils_modified_for_gpt_use')
+            'from data_to_paper.research_types.hypothesis_testing.coding.utils_modified_for_gpt_use')
         return modified_code, lines_added
 
 

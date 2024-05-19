@@ -35,7 +35,7 @@ SECTIONS_TO_WRITING_CLASS = [
 
 
 @dataclass
-class ScientificStepsRunner(DataStepRunner, CheckLatexCompilation):
+class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
     PROJECT_PARAMETERS_FILENAME = 'data-to-paper-hypothesis-testing.json'
     DEFAULT_PROJECT_PARAMETERS = DataStepRunner.DEFAULT_PROJECT_PARAMETERS | dict(
         research_goal=None,

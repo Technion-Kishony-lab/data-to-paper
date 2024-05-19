@@ -1,11 +1,11 @@
 from pathlib import Path
 
 from data_to_paper.base_products import DataFileDescriptions, DataFileDescription
-from run_steps import DemoStepsRunner
+from steps_runner import ToyStepsRunner
 
 THIS_FOLDER = Path(__file__).parent
 
-DemoStepsRunner(
+ToyStepsRunner(
     data_file_descriptions=DataFileDescriptions(
         [DataFileDescription(file_path='number.txt', description="This file contains a large int, n.")],
         data_folder=THIS_FOLDER / 'data'),

@@ -5,9 +5,9 @@ from typing import Tuple, Optional, Dict
 from data_to_paper.base_steps import BaseCodeProductsGPT
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
-from data_to_paper.research_types.scientific_research.cast import ScientificAgent
-from data_to_paper.research_types.scientific_research.model_engines import get_model_engine_for_class
-from data_to_paper.research_types.scientific_research.scientific_products import ScientificProducts, get_code_name, \
+from data_to_paper.research_types.hypothesis_testing.cast import ScientificAgent
+from data_to_paper.research_types.hypothesis_testing.model_engines import get_model_engine_for_class
+from data_to_paper.research_types.hypothesis_testing.scientific_products import ScientificProducts, get_code_name, \
     get_code_agent
 from data_to_paper.run_gpt_code.overrides.contexts import OverrideStatisticsPackages
 from data_to_paper.run_gpt_code.overrides.scipy.override_scipy import ScipyPValueOverride

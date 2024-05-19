@@ -1,13 +1,12 @@
 # ============================================== #
 # Main script for running data-to-paper projects #
 # ============================================== #
-
-from data_to_paper.research_types.scientific_research.steps_runner import ScientificStepsRunner
+from data_to_paper.research_types.hypothesis_testing.steps_runner import HypothesisTestingStepsRunner
 from data_to_paper.run.run_all_steps import set_project_and_run
 
-# Currently using ScientificStepsRunner.
+# Currently using HypothesisTestingStepsRunner.
 # Other type of research projects can be implemented by creating a new StepsRunner class.
-steps_runner_cls = ScientificStepsRunner
+steps_runner_cls = HypothesisTestingStepsRunner
 
 # Directory where the project is located. Can be None to choose interactively (if using PySide app).
 # Can be an abs path, or a relative path from `data_to_paper/projects`.
