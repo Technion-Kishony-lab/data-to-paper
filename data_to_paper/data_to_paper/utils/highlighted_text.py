@@ -209,7 +209,9 @@ TAGS_TO_FORMATTERS: Dict[Optional[str], Tuple[Callable, Callable]] = {
     'header': (_light_colored_block_no_tags, partial(get_pre_html_format, color='#FF0000', font_size=12)),
     'latex': (_light_colored_block, convert_latex_to_html),
     'error': (partial(_light_colored_block_no_tags, color=colorama.Fore.RED),
-              partial(text_to_html, css_class="runtime_error"))
+              partial(text_to_html, css_class="runtime_error")),
+    'system': (_light_colored_block_no_tags, NotImplemented),
+    'comment': (_light_colored_block_no_tags, NotImplemented),
 }
 
 

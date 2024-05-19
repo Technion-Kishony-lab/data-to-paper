@@ -86,6 +86,7 @@ class Converser(Copier, AppInteractor):
     def _upon_conversation_initiation(self):
         self._print_conversation_header()
         self._app_clear_panels()
+        self._app_set_focus_on_panel(PanelNames.RESPONSE)  # The Prompt panel might stay empty for a while.
 
     def initialize_conversation_if_needed(self):
         if self.conversation is None:

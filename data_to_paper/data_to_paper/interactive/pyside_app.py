@@ -264,7 +264,7 @@ class StepsPanel(QWidget):
     def refresh(self):
         for i, step in enumerate(self.step_widgets):
             if i == self.current_step:
-                step.setStyleSheet(STEP_PANEL_BUTTON_STYLE.format(background_color="#FFA500", pressed_color="#FF8C00"))
+                step.setStyleSheet(STEP_PANEL_BUTTON_STYLE.format(background_color="#005599", pressed_color="#003377"))
             elif i < self.current_step:
                 step.setStyleSheet(STEP_PANEL_BUTTON_STYLE.format(background_color="#008000", pressed_color="#006400"))
             else:
@@ -396,9 +396,9 @@ class EditableTextPanel(Panel):
     def _set_plain_text(self, text: str):
         self.text_edit.setPlainText(text)
         if MAKE_IT_UGLY_IN_MAC_BUT_MORE_CONSISTENT_ACROSS_OS:
-            self.text_edit.setStyleSheet("color: orange; font-size: 14px; background-color: " + BACKGROUND_COLOR + ";")
+            self.text_edit.setStyleSheet("color: #005599; font-size: 14px; background-color: " + BACKGROUND_COLOR + ";")
         else:
-            self.text_edit.setStyleSheet("color: orange; font-size: 14px; font-family: Arial;")
+            self.text_edit.setStyleSheet("color: #005599; font-size: 14px; font-family: Arial, sans-serif;")
 
     def _set_html_text(self, text: str):
         # add the CSS to the HTML
