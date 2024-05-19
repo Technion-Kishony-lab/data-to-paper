@@ -101,23 +101,35 @@ class StartDialog(QDialog):
         self.steps_runner_cls = steps_runner_cls
         self.current_config = {}
         self.is_locked = False
-        self.setWindowTitle(f"data-to-paper: Set and Run Project ({steps_runner_cls.name})")
-        self.resize(1000, 1000)
 
-        self.setStyleSheet(style_sheet)
+        self._set_style()
 
         self.layout = QVBoxLayout(self)
+        self.layout.addLayout(self._get_project_name_layout())
+        self.layout.addLayout(self._get_general_description_layout())
+        self.layout.addLayout(self._add_file_layout())
+        self.layout.addLayout(self._add_research_goal_layout())
+        self.layout.addLayout(self._add_start_exist_buttons_layout())
+        self._initialize(project_directory)
 
-        # Top bar layout for close button
-        top_bar_layout = QHBoxLayout()
-        spacer = QWidget()
-        spacer.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
-        top_bar_layout.addWidget(spacer)
-        self.layout.addLayout(top_bar_layout)
+    def _set_style(self):
+        self.setWindowTitle(f"data-to-paper: Set and Run Project ({self.steps_runner_cls.name})")
+        self.resize(1000, 1000)
+        self.setStyleSheet(style_sheet)
 
-        # Project name input
+    def _initialize(self, project_directory: Optional[Path]):
+        self._clear_all()
+        if project_directory:
+            try:
+                self.open_project(project_directory)
+            except FileNotFoundError:
+                self._clear_all()
+                QMessageBox.warning(self, "Invalid Directory",
+                                    f"The app was started with an invalid project directory:\n{project_directory}.\n"
+                                    f"Please select a valid project directory.")
+
+    def _get_project_name_layout(self):
         project_name_layout = QHBoxLayout()
-        self.layout.addLayout(project_name_layout)
         self.project_folder_header = QLabel("Project:")
         project_name_layout.addWidget(self.project_folder_header)
         self.project_folder_label = QLabel()
@@ -132,27 +144,29 @@ class StartDialog(QDialog):
         self.new_button = QPushButton("New")
         self.new_button.clicked.connect(self._clear_all)
         project_name_layout.addWidget(self.new_button)
+        return project_name_layout
 
-        # General description input with info label
+    def _get_general_description_layout(self):
         general_desc_layout = QVBoxLayout()
-        self.layout.addLayout(general_desc_layout)
         general_desc_layout.addWidget(QLabel("Dataset description:"))
         self.general_description_edit = PlainTextPasteTextEdit()
         self.general_description_edit.setPlaceholderText("Describe the dataset, its origin, content, purpose, etc.")
         self.general_description_edit.setStyleSheet(text_box_style)
         general_desc_layout.addWidget(self.general_description_edit)
+        return general_desc_layout
 
-        # File inputs and descriptions
+    def _add_file_layout(self):
+        full_files_layout = QVBoxLayout()
         self.files_layout = QVBoxLayout()
-        self.layout.addLayout(self.files_layout)
+        full_files_layout.addLayout(self.files_layout)
         self.add_file_button = QPushButton("Add Another File")
         self.add_file_button.clicked.connect(self.add_data_file)
-        # Set fixed width to prevent button from expanding and center it in the layout
-        self.add_file_button.setFixedWidth(200)
-        self.layout.addWidget(self.add_file_button, alignment=Qt.AlignHCenter)
+        self.add_file_button.setFixedWidth(200)  # prevent button from expanding
+        full_files_layout.addWidget(self.add_file_button, alignment=Qt.AlignHCenter)  # center it in the layout
         self.add_data_file()
+        return full_files_layout
 
-        # Research goal input with info label
+    def _add_research_goal_layout(self):
         research_goal_layout = QVBoxLayout()
         self.layout.addLayout(research_goal_layout)
         research_goal_layout.addWidget(QLabel("Research goal:"))
@@ -161,11 +175,10 @@ class StartDialog(QDialog):
         self.goal_edit.setPlaceholderText(
             "Optionally specify the research goal, or leave blank for autonomous goal setting.")
         research_goal_layout.addWidget(self.goal_edit)
+        return research_goal_layout
 
-        # Buttons tray:
+    def _add_start_exist_buttons_layout(self):
         buttons_tray = QHBoxLayout()
-        self.layout.addLayout(buttons_tray)
-
         start_button = QPushButton("Save and Start")
         start_button.clicked.connect(self.on_start_clicked)
         buttons_tray.addWidget(start_button)
@@ -173,16 +186,7 @@ class StartDialog(QDialog):
         close_button = QPushButton("Exit")
         close_button.clicked.connect(self.close_app)
         buttons_tray.addWidget(close_button)
-
-        self._clear_all()
-        if project_directory:
-            try:
-                self.open_project(project_directory)
-            except FileNotFoundError:
-                self._clear_all()
-                QMessageBox.warning(self, "Invalid Directory",
-                                    f"The app was started with an invalid project directory:\n{project_directory}.\n"
-                                    f"Please select a valid project directory.")
+        return buttons_tray
 
     def _delete_all_data_file_widgets(self):
         while self.files_layout.count():
