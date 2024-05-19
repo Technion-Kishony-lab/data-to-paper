@@ -112,9 +112,14 @@ def md_to_html(md):
         html_lines.append(html_line)
     md = '\n'.join(html_lines)
 
-    # Convert bold and italic
+    # Convert bold:
     md = re.sub(pattern=r'\*\*(.*?)\*\*', repl=r'<b>\1</b>', string=md)
+
+    # Convert italics:
     md = re.sub(pattern=r'\*(.*?)\*', repl=r'<i>\1</i>', string=md)
+
+    # Convert code, flanked by backticks:
+    md = re.sub(pattern=r'`([^`]+)`', repl=r'<span class="codeline">\1</span>', string=md)
     return md
 
 

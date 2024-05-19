@@ -39,6 +39,9 @@ CSS = '''
     white-space: normal; /* Overrides pre to allow wrapping */
     margin-bottom: 0.5em;
 }
+.codeline {
+    font-family: Consolas, 'Courier New', monospace;
+}
 h1 {
     color: #0066cc;
     font-size: 18px;
