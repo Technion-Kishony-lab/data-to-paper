@@ -101,7 +101,7 @@ class StartDialog(QDialog):
         self.steps_runner_cls = steps_runner_cls
         self.current_config = {}
         self.is_locked = False
-        self.setWindowTitle("data-to-paper: Set and Run Project")
+        self.setWindowTitle(f"data-to-paper: Set and Run Project ({steps_runner_cls.name})")
         self.resize(1000, 1000)
 
         self.setStyleSheet(style_sheet)
@@ -305,7 +305,7 @@ class StartDialog(QDialog):
         search_in = str(BASE_PROJECT_DIRECTORY) if project_directory is None else str(project_directory)
         file_path, _ = QFileDialog.getOpenFileName(
             self, "Select a data file", search_in,
-            "CSV Files (*.csv);;Excel Files (*.xlsx, *.xls);;ZIP Files (*.zip);;All Files (*)")
+            "CSV Files (*.csv);;TEXT Files (*.txt);;Excel Files (*.xlsx, *.xls);;ZIP Files (*.zip);;All Files (*)")
         if file_path:
             file_path = file_path.replace('.zip', '')
             file_path = self._convert_abs_data_file_path_to_abs_or_rel(file_path)

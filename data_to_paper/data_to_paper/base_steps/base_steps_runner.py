@@ -40,6 +40,8 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
 
     PROJECT_PARAMETERS_FILENAME = 'data-to-paper.json'
     DEFAULT_PROJECT_PARAMETERS = dict()
+
+    name = None
     project_parameters: dict = field(default_factory=DEFAULT_PROJECT_PARAMETERS.copy)
     project_directory: Path = None
     temp_folder_to_run_in: Path = FOLDER_FOR_RUN

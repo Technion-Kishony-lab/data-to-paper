@@ -36,6 +36,7 @@ SECTIONS_TO_WRITING_CLASS = [
 
 @dataclass
 class ScientificStepsRunner(DataStepRunner, CheckLatexCompilation):
+    PROJECT_PARAMETERS_FILENAME = 'data-to-paper-hypothesis-testing.json'
     DEFAULT_PROJECT_PARAMETERS = DataStepRunner.DEFAULT_PROJECT_PARAMETERS | dict(
         research_goal=None,
         should_do_data_exploration=True,
@@ -46,6 +47,8 @@ class ScientificStepsRunner(DataStepRunner, CheckLatexCompilation):
         excluded_citation_titles=[],
         max_goal_refinement_iterations=3,
     )
+
+    name = 'Hypothesis Testing Research'
 
     cast = ScientificAgent
     products: ScientificProducts = field(default_factory=ScientificProducts)

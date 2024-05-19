@@ -14,7 +14,8 @@ from .writing_steps import WriteTitleAndAbstract
 
 @dataclass
 class DemoStepsRunner(DataStepRunner):
-
+    PROJECT_PARAMETERS_FILENAME = 'data_to_paper-toy-example.json'
+    name = 'Demo Project'
     cast = DemoAgent
     products: DemoProducts = field(default_factory=DemoProducts)
     research_goal: Optional[str] = None
