@@ -10,7 +10,7 @@ steps_runner_cls = HypothesisTestingStepsRunner
 
 # Directory where the project is located. Can be None to choose interactively (if using PySide app).
 # Can be an abs path, or a relative path from `data_to_paper/projects`.
-project_directory = 'diabetes/diabetes_open_goal'
+project_directory = None  # set to None to choose interactively
 
 # Folder where the run will be saved. This will be created inside the project directory.
 # If the folder already exists, it will be replayed.

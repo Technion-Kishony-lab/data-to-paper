@@ -85,13 +85,101 @@ def create_info_label(tooltip_text):
     return info_label
 
 
-class FileDialogProperties(NamedTuple):
-    label: QLabel
-    path: QLineEdit
-    is_binary: QCheckBox
-    browse: QPushButton
-    delete: QPushButton
-    description: QTextEdit
+class FileDialog(QWidget):
+    def __init__(self, abs_project_directory: Optional[Path], file_number: int, file_path='', is_binary=False,
+                 description=''):
+        super().__init__()
+        self.abs_project_directory = abs_project_directory
+
+        file_input_widget = QFrame()  # Create a QFrame for encapsulating the file input widget
+        file_input_widget.setFrameShape(QFrame.Box)
+        file_input_widget.setFrameShadow(QFrame.Plain)
+        layout = QVBoxLayout(file_input_widget)  # Maintain horizontal layout
+        layout.setContentsMargins(0, 0, 0, 0)
+
+        file_path_tray = QHBoxLayout()
+
+        description_info = create_info_label(
+            "Add a data file by clicking the 'Browse' button.\n"
+            "Provide a description of the file, including the type of data and attribute names.")
+        file_path_tray.addWidget(description_info)
+
+        file_label_widget = QLabel(f"File #{file_number}:")
+        file_path_tray.addWidget(file_label_widget)
+        self.file_label_widget = file_label_widget
+
+        file_path_widget = QLineEdit()
+        file_path_widget.setReadOnly(True)
+        file_path_widget.setStyleSheet(text_box_style)
+        file_path_widget.setText(file_path)
+        file_path_tray.addWidget(file_path_widget)
+        self.file_path_widget = file_path_widget
+
+        is_binary_checkbox = QCheckBox("Binary")
+        is_binary_checkbox.setChecked(is_binary)
+        file_path_tray.addWidget(is_binary_checkbox)
+        self.is_binary_checkbox = is_binary_checkbox
+
+        browse_button = QPushButton("Browse")
+        browse_button.clicked.connect(self.browse_data_files)
+        file_path_tray.addWidget(browse_button)
+        self.browse_button = browse_button
+
+        remove_button = QPushButton("Delete")
+        file_path_tray.addWidget(remove_button)
+        self.remove_button = remove_button
+
+        layout.addLayout(file_path_tray)
+
+        description_edit = PlainTextPasteTextEdit()
+        description_edit.setPlaceholderText("Enter file description here...")
+        description_edit.setStyleSheet(text_box_style)
+        description_edit.setPlainText(description)
+        layout.addWidget(description_edit)
+        self.description_edit = description_edit
+
+        # Set frame shape and add spacing around the frame
+        self.setLayout(layout)
+
+    def disable(self, disable: bool):
+        self.file_path_widget.setDisabled(disable)
+        self.is_binary_checkbox.setDisabled(disable)
+        self.browse_button.setDisabled(disable)
+        self.remove_button.setDisabled(disable)
+        self.description_edit.setReadOnly(disable)
+
+    def browse_data_files(self):
+        search_in = str(BASE_PROJECT_DIRECTORY) if self.abs_project_directory is None \
+            else str(self.abs_project_directory)
+        file_path, _ = QFileDialog.getOpenFileName(
+            self, "Select a data file", search_in,
+            "CSV Files (*.csv);;TEXT Files (*.txt);;Excel Files (*.xlsx, *.xls);;ZIP Files (*.zip);;All Files (*)")
+        if file_path:
+            file_path = file_path.replace('.zip', '')
+            file_path = self._convert_abs_data_file_path_to_abs_or_rel(file_path)
+            self.file_path_widget.setText(file_path)
+            ext = file_path.split('.')[-1]
+            is_binary = '.' + ext not in TEXT_EXTS
+            self.is_binary_checkbox.setChecked(is_binary)
+
+    def _convert_abs_data_file_path_to_abs_or_rel(self, data_file_path: str) -> str:
+        if not data_file_path:
+            return ''
+        data_file_path = Path(data_file_path)
+        if self.abs_project_directory is not None:
+            try:
+                data_file_path = get_relative_path(self.abs_project_directory, data_file_path)
+            except ValueError:
+                pass
+        return str(data_file_path)
+
+    def _convert_abs_or_rel_data_file_path_to_abs(self, data_file_path: str) -> str:
+        if not data_file_path:
+            return ''
+        data_file_path = Path(data_file_path)
+        if not data_file_path.is_absolute() and self.abs_project_directory is not None:
+            data_file_path = self.abs_project_directory / data_file_path
+        return str(data_file_path)
 
 
 class StartDialog(QDialog):
@@ -227,74 +315,20 @@ class StartDialog(QDialog):
 
     """Data files input"""
 
-    def _get_widgets_from_file_widget(self, file_widget) -> FileDialogProperties:
-        layout = file_widget.layout()
-        file_path_tray = layout.itemAt(0)
-        label = file_path_tray.itemAt(1).widget()
-        file_edit = file_path_tray.itemAt(2).widget()
-        is_binary_checkbox = file_path_tray.itemAt(3).widget()
-        browse_button = file_path_tray.itemAt(4).widget()
-        delete_button = file_path_tray.itemAt(5).widget()
-        description_edit = layout.itemAt(1).widget()
-        return \
-            FileDialogProperties(label, file_edit, is_binary_checkbox, browse_button, delete_button, description_edit)
-
-    def _get_all_data_file_widgets(self) -> List[FileDialogProperties]:
+    def _get_all_data_file_widgets(self) -> List[FileDialog]:
         file_widgets = []
         for i in range(self.files_layout.count()):
             file_widget = self.files_layout.itemAt(i).widget()
-            if file_widget and file_widget.layout():
-                file_widgets.append(self._get_widgets_from_file_widget(file_widget))
+            if isinstance(file_widget, FileDialog):
+                file_widgets.append(file_widget)
         return file_widgets
 
     def add_data_file(self, file_path='', is_binary=False, description=''):
-        file_input_widget = QFrame()  # Create a QFrame for encapsulating the file input widget
-        file_input_layout = QVBoxLayout(file_input_widget)  # Maintain horizontal layout
-
-        # Dynamic label for file input
-        file_path_tray = QHBoxLayout()
-
-        description_info = create_info_label(
-            "Add a data file by clicking the 'Browse' button.\n"
-            "Provide a description of the file, including the type of data and attribute names.")
-        file_path_tray.addWidget(description_info)
-
-        file_count = self.files_layout.count()  # This counts current file inputs
-        file_label = QLabel(f"File #{file_count + 1}:")
-        file_path_tray.addWidget(file_label)
-
-        file_edit = QLineEdit()
-        file_edit.setReadOnly(True)
-        file_edit.setStyleSheet(text_box_style)
-        file_edit.setText(file_path)
-        file_path_tray.addWidget(file_edit)
-
-        is_binary_checkbox = QCheckBox("Binary")
-        is_binary_checkbox.setChecked(is_binary)
-        file_path_tray.addWidget(is_binary_checkbox)
-
-        browse_button = QPushButton("Browse")
-        browse_button.clicked.connect(partial(self.browse_data_files, file_edit, is_binary_checkbox))
-        file_path_tray.addWidget(browse_button)
-
-        remove_button = QPushButton("Delete")
-        remove_button.clicked.connect(partial(self._remove_data_file, file_input_widget))
-        file_path_tray.addWidget(remove_button)
-
-        file_input_layout.addLayout(file_path_tray)
-
-        description_edit = PlainTextPasteTextEdit()
-        description_edit.setPlaceholderText("Enter file description here...")
-        description_edit.setStyleSheet(text_box_style)
-        description_edit.setPlainText(description)
-        file_input_layout.addWidget(description_edit)
-
-        # Set frame shape and add spacing around the frame
-        file_input_widget.setFrameShape(QFrame.Box)
-        file_input_widget.setFrameShadow(QFrame.Plain)
-        file_input_layout.setContentsMargins(5, 5, 5, 5)
-
-        self.files_layout.addWidget(file_input_widget)
+        new_file_widget = FileDialog(self._get_absolute_project_directory(),
+                                               self.files_layout.count() + 1,
+                                               file_path, is_binary, description)
+        self.files_layout.addWidget(new_file_widget)
+        new_file_widget.remove_button.clicked.connect(partial(self._remove_data_file, new_file_widget))
 
     def _remove_data_file(self, widget):
         widget.destroyed.connect(self._update_data_file_labels)
@@ -302,42 +336,7 @@ class StartDialog(QDialog):
 
     def _update_data_file_labels(self):
         for index, file_widget in enumerate(self._get_all_data_file_widgets()):
-            file_widget.label.setText(f"File #{index + 1}:")
-
-    def browse_data_files(self, file_edit, is_binary_checkbox):
-        project_directory = self._get_absolute_project_directory()
-        search_in = str(BASE_PROJECT_DIRECTORY) if project_directory is None else str(project_directory)
-        file_path, _ = QFileDialog.getOpenFileName(
-            self, "Select a data file", search_in,
-            "CSV Files (*.csv);;TEXT Files (*.txt);;Excel Files (*.xlsx, *.xls);;ZIP Files (*.zip);;All Files (*)")
-        if file_path:
-            file_path = file_path.replace('.zip', '')
-            file_path = self._convert_abs_data_file_path_to_abs_or_rel(file_path)
-            file_edit.setText(file_path)
-            ext = file_path.split('.')[-1]
-            is_binary = '.' + ext not in TEXT_EXTS
-            is_binary_checkbox.setChecked(is_binary)
-
-    def _convert_abs_data_file_path_to_abs_or_rel(self, data_file_path: str) -> str:
-        if not data_file_path:
-            return ''
-        project_directory = self._get_absolute_project_directory()
-        data_file_path = Path(data_file_path)
-        if project_directory is not None:
-            try:
-                data_file_path = get_relative_path(project_directory, data_file_path)
-            except ValueError:
-                pass
-        return str(data_file_path)
-
-    def _convert_abs_or_rel_data_file_path_to_abs(self, data_file_path: str) -> str:
-        if not data_file_path:
-            return ''
-        project_directory = self._get_absolute_project_directory()
-        data_file_path = Path(data_file_path)
-        if not data_file_path.is_absolute() and project_directory is not None:
-            data_file_path = project_directory / data_file_path
-        return str(data_file_path)
+            file_widget.file_label_widget.setText(f"File #{index + 1}:")
 
     """Save project"""
 
@@ -441,8 +440,8 @@ class StartDialog(QDialog):
     def _set_project_directory(self, project_directory: Optional[Path]):
         # first, get all the data file abs paths:
         data_file_widgets = self._get_all_data_file_widgets()
-        abs_data_file_paths = [self._convert_abs_or_rel_data_file_path_to_abs(file_widget.path.text())
-                               for file_widget in data_file_widgets]
+        # abs_data_file_paths = [self._convert_abs_or_rel_data_file_path_to_abs(file_widget.path.text())
+        #                        for file_widget in data_file_widgets]
         if project_directory is None:
             self.project_folder_label.setText('Untitled')
         else:
@@ -451,8 +450,9 @@ class StartDialog(QDialog):
             except ValueError:
                 pass
             self.project_folder_label.setText(str(project_directory))
-            for abs_data_file_path, file_widget in zip(abs_data_file_paths, data_file_widgets):
-                file_widget.path.setText(self._convert_abs_data_file_path_to_abs_or_rel(abs_data_file_path))
+            # for abs_data_file_path, file_widget in zip(abs_data_file_paths, data_file_widgets):
+            #     pass
+            #     # file_widget.path.setText(self._convert_abs_data_file_path_to_abs_or_rel(abs_data_file_path))
 
     def _get_absolute_project_directory(self):
         project_directory = self.project_folder_label.text()
