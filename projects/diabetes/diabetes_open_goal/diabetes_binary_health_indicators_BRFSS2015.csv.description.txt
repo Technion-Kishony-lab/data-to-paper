@@ -10,7 +10,7 @@ The columns in the dataset are:
 #5 `BMI`: (int, numerical) Body Mass Index
 #6 `Smoker`: (int, bool) (0=no, 1=yes)
 #7 `Stroke`: (int, bool) Stroke (0=no, 1=yes)
-#8 `HeartDiseaseorAttack': (int, bool) coronary heart disease (CHD) or myocardial infarction (MI), (0=no, 1=yes)
+#8 `HeartDiseaseorAttack`: (int, bool) coronary heart disease (CHD) or myocardial infarction (MI), (0=no, 1=yes)
 #9 `PhysActivity`: (int, bool) Physical Activity in past 30 days (0=no, 1=yes)
 #10 `Fruits`: (int, bool) Consume one fruit or more each day (0=no, 1=yes)
 #11 `Veggies`: (int, bool) Consume one Vegetable or more each day (0=no, 1=yes)
