@@ -231,6 +231,14 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
             with open(project_directory / cls.PROJECT_PARAMETERS_FILENAME, 'w') as file:
                 json.dump(project_parameters, file, indent=4)
 
+    @classmethod
+    def check_files_exist(cls, project_directory: Path, project_parameters: dict):
+        """
+        Check that we have all the files needed for the run.
+        raise FileNotFoundError if a file is missing.
+        """
+        return
+
     def _update_project_parameters(self):
         """
         Get the project parameters from the project directory.
@@ -274,7 +282,7 @@ class DataStepRunner(BaseStepsRunner):
 
     @classmethod
     def create_project_directory_from_project_parameters(cls, project_directory: Path, project_parameters: dict,
-                                                         raise_on_missing_files: bool = False, **kwargs):
+                                                         **kwargs):
         """
         Create the project directory from the project parameters.
         """
@@ -285,8 +293,18 @@ class DataStepRunner(BaseStepsRunner):
         CreateDataFileDescriptions(project_directory=project_directory,
                                    data_files_str_paths=project_parameters['data_filenames'],
                                    ).create_file_descriptions(general_description=general_description,
-                                                              data_file_descriptions=data_file_descriptions,
-                                                              raise_on_missing_files=raise_on_missing_files)
+                                                              data_file_descriptions=data_file_descriptions)
+
+    @classmethod
+    def check_files_exist(cls, project_directory: Path, project_parameters: dict):
+        """
+        Check that the files exist.
+        """
+        super().check_files_exist(project_directory, project_parameters)
+        CreateDataFileDescriptions(
+            project_directory=project_directory,
+            data_files_str_paths=project_parameters['data_filenames'],
+        ).check_files_exist()
 
     def _read_data_file_descriptions(self):
         """

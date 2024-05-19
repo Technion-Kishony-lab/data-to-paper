@@ -176,7 +176,13 @@ class StartDialog(QDialog):
 
         self._clear_all()
         if project_directory:
-            self.open_project(project_directory)
+            try:
+                self.open_project(project_directory)
+            except FileNotFoundError:
+                self._clear_all()
+                QMessageBox.warning(self, "Invalid Directory",
+                                    f"The app was started with an invalid project directory:\n{project_directory}.\n"
+                                    f"Please select a valid project directory.")
 
     def _delete_all_data_file_widgets(self):
         while self.files_layout.count():
@@ -353,24 +359,39 @@ class StartDialog(QDialog):
             return
         return project_directory
 
-    def save_project(self):
+    def save_project(self) -> bool:
         if not self._check_project():
-            return
+            return False
         if not self._get_absolute_project_directory():
             project_directory = self._browse_for_new_project_directory()
             if not project_directory:
-                return
+                return False
             self._set_project_directory(project_directory)
         self._save_project()
+        return True
 
-    def _save_project(self, raise_on_missing_files=False):
+    def _save_project(self):
         if self.is_locked:
             return
         project_directory, config = self.get_project_parameters()
         self.steps_runner_cls.create_project_directory_from_project_parameters(
-            project_directory, config, raise_on_missing_files=raise_on_missing_files)
+            project_directory, config)
+
+    def _check_data_files_exist(self) -> bool:
+        project_directory, config = self.get_project_parameters()
+        try:
+            self.steps_runner_cls.check_files_exist(project_directory, config)
+        except FileNotFoundError as e:
+            QMessageBox.warning(self, "Missing Files",
+                                f"Cannot start the project:\n{e}")
+            return False
+        return True
 
     """Open project"""
+
+    @property
+    def project_file_name(self):
+        return self.steps_runner_cls.PROJECT_PARAMETERS_FILENAME
 
     def open_project(self, project_directory: Optional[Path] = None):
         if project_directory is None:
@@ -399,18 +420,17 @@ class StartDialog(QDialog):
         #                                                      str(BASE_PROJECT_DIRECTORY))
         project_directory = QFileDialog.getOpenFileName(
             self, "Select a data file", str(BASE_PROJECT_DIRECTORY),
-            "data-to-paper.json (data-to-paper.json);;All Files (*)")[0]
+            f"{self.project_file_name} ({self.project_file_name});;All Files (*)")[0]
 
         if not project_directory:
             return  # user cancelled
         project_directory = Path(project_directory).parent
 
         # check that the project directory contains the project parameters file:
-        filename = self.steps_runner_cls.PROJECT_PARAMETERS_FILENAME
-        if not (project_directory / filename).exists():
+        if not (project_directory / self.project_file_name).exists():
             QMessageBox.warning(self, "Invalid Directory",
                                 "The selected directory is not a valid project directory. "
-                                f"Please select a directory, containing '{filename}'.")
+                                f"Please select a directory, containing '{self.project_file_name}'.")
             return
         return project_directory
 
@@ -462,11 +482,9 @@ class StartDialog(QDialog):
     def on_start_clicked(self):
         if not self._check_project():
             return
-        try:
-            self._save_project(raise_on_missing_files=True)
-        except FileNotFoundError as e:
-            QMessageBox.warning(self, "Missing Files",
-                                f"Error saving project:\n{e}")
+        if not self.save_project():
+            return
+        if not self._check_data_files_exist():
             return
         self.accept()
 
