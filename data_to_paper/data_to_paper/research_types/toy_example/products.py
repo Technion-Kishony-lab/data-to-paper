@@ -23,46 +23,32 @@ class DemoProducts(Products):
             **super()._get_generators(),
 
             'data_file_descriptions': NameDescriptionStageGenerator(
-                'Input file',
-                'Input Files\n\n{}',
+                'Data File Descriptions',
+                '{}',
                 DemoStages.DATA,
                 lambda: self.data_file_descriptions,
             ),
 
             'research_goal': NameDescriptionStageGenerator(
                 'Research Goal',
-                'Here is our Research Goal\n\n{}',
+                '{}',
                 DemoStages.GOAL,
                 lambda: self.research_goal,
             ),
 
-            'code': NameDescriptionStageGenerator(
-                'Prime-Finding Code',
-                'Here is our Python code to find the largest prime below the given number:\n```python\n{}\n```\n',
-                DemoStages.CODE,
-                lambda: self.code_and_output.code,
-            ),
-
-            'output': NameDescriptionStageGenerator(
-                'Output of the code',
-                'Here is the output of our code:\n```output\n{}\n```\n',
-                DemoStages.CODE,
-                lambda: self.code_and_output.created_files.get_single_output()
-            ),
-
             'code_and_output': NameDescriptionStageGenerator(
                 'Code and Output',
-                '{code_description}\n\n{output_description}',
+                '{description}',
                 DemoStages.CODE,
                 lambda: {
-                    'code_description': self.get_description("code"),
-                    'output_description': self.get_description("output")},
+                    'description': self.code_and_output.to_text(with_header=False)},
             ),
 
-            'paper_sections': NameDescriptionStageGenerator(
-                'Paper Sections',
-                'Here are the paper sections:\n```output\n{paper}\n```\n',
+            'title_and_abstract': NameDescriptionStageGenerator(
+                'Title and Abstract',
+                "```latex\n{}\n\n{}```",
                 DemoStages.WRITING,
-                lambda: {'paper': self.paper_sections},
+                lambda: (self.paper_sections['title'],
+                         self.paper_sections['abstract']),
             ),
         }

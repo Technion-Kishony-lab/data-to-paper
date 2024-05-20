@@ -44,12 +44,17 @@ class WriteTitleAndAbstract(LatexReviewBackgroundProductsConverser):
 
         While making it funny, please make sure to specifically relate to the specific numerical results that we have.
 
-        {latex_instructions}
+        Your response should be formatted as {your_response_should_be_formatted_as}
         """)
 
-    latex_instructions: str = dedent_triple_quote_str("""
-        Write in tex format including the \\title{} and \\begin{abstract} ... \\end{abstract} commands, \t
-        and any math or symbols that needs tex escapes.
+    your_response_should_be_formatted_as: str = dedent_triple_quote_str("""
+        a triple-backtick block of latex text, like this:
+        ```latex
+        \\title{<Your title here>}
+        \\begin{abstract}
+        <Your abstract here>
+        \\end{abstract}
+        ```
         """)
 
     other_system_prompt: str = dedent_triple_quote_str("""
@@ -57,13 +62,13 @@ class WriteTitleAndAbstract(LatexReviewBackgroundProductsConverser):
         Your job is to provide constructive bullet-point feedback. 
         If you feel that the writing does not need further improvements, you should reply only with:
         "{termination_phrase}".
-    """)
+        """)
 
     sentence_to_add_at_the_end_of_reviewer_response: str = dedent_triple_quote_str("""\n\n
         Please correct your response according to any points in my feedback that you find relevant and applicable.
         Send back a complete rewrite of the {pretty_section_names}.
         Make sure to send the full corrected {pretty_section_names}, not just the parts that were revised.
-    """)
+        """)
 
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
         Please provide a bullet-point list of constructive feedback on the above {pretty_section_names} \t
@@ -74,7 +79,7 @@ class WriteTitleAndAbstract(LatexReviewBackgroundProductsConverser):
         If you find any inconsistencies or discrepancies, please mention them explicitly in your feedback.
 
         You should only provide feedback on the {pretty_section_names}. Do not provide feedback on other sections \t
-        or other parts of the paper, like tables or Python code, provided above.
+        or other parts of the paper, like code output or Python code, provided above.
 
         If you don't see any flaws, respond solely with "{termination_phrase}".
 

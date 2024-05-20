@@ -1,5 +1,4 @@
-from data_to_paper.interactive.base_app_startup import DataFilesStartDialog, TextEditWithHeader, MultiFileWidget, \
-    SingleFileWidget
+from data_to_paper.interactive.base_app_startup import DataFilesStartDialog, TextEditWithHeader, SingleFileWidget
 
 
 class ToyStartDialog(DataFilesStartDialog):

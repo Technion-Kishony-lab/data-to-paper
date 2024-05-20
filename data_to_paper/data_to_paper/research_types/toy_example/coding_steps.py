@@ -35,16 +35,15 @@ class DemoCodeProductsGPT(BaseCodeProductsGPT):
         return Path(self.products.data_file_descriptions.data_folder)
 
     output_file_requirements: OutputFileRequirements = \
-        OutputFileRequirements([TextContentOutputFileRequirement('prime_number.txt')])
+        OutputFileRequirements([TextContentOutputFileRequirement('output.txt')])
 
     supported_packages: Tuple[str, ...] = ('numpy', )
 
     mission_prompt: str = dedent_triple_quote_str("""
-        Please write a short Python code for finding the largest number below our chosen max number.
+        Please write a short Python code for the goal above.
 
         Your code should create an output text file named "{output_filename}", which should \t
-        contain the following text:
-        "The largest prime number below xxx is yyy".
+        contain the results of your analysis.
 
         If needed, you can use the following packages which are already installed:
         {supported_packages}

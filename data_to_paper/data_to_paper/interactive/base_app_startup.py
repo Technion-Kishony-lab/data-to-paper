@@ -423,7 +423,7 @@ class BaseStartDialog(QDialog):
     """Save project"""
 
     def _check_project(self) -> bool:
-        config = self._convert_widgets_to_config()
+        # config = self._convert_widgets_to_config()
         return True
 
     def _browse_for_new_project_directory(self) -> Optional[Path]:
