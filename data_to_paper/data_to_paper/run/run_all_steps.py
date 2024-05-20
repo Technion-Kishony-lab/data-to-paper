@@ -5,7 +5,7 @@ from pathlib import Path
 
 from data_to_paper.base_steps import BaseStepsRunner
 from data_to_paper.env import CHOSEN_APP
-from data_to_paper.interactive.app_startup import interactively_create_project_folder, BASE_PROJECT_DIRECTORY
+from data_to_paper.interactive.base_app_startup import interactively_create_project_folder, BASE_PROJECT_DIRECTORY
 from data_to_paper.interactive.get_app import create_app
 
 

@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from typing import Tuple, Type, List, Union
 
 from data_to_paper.base_steps import DirectorProductGPT, CheckLatexCompilation, DataStepRunner
+from .app_startup import HypothesisTestingStartDialog
 
 from .cast import ScientificAgent
 from .coding.after_coding import RequestCodeExplanation, RequestCodeProducts
@@ -48,6 +49,7 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
         max_goal_refinement_iterations=3,
     )
 
+    APP_STARTUP_CLS = HypothesisTestingStartDialog
     name = 'Hypothesis Testing Research'
 
     cast = ScientificAgent

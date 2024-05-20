@@ -1,3 +1,4 @@
+from __future__ import annotations
 import sys
 from functools import partial
 from pathlib import Path
@@ -8,9 +9,13 @@ from PySide6.QtWidgets import QApplication, QDialog, QVBoxLayout, QLabel, QLineE
     QMessageBox, QTextEdit, QWidget, QHBoxLayout, QSizePolicy, QFrame, QCheckBox
 
 from data_to_paper.base_products.file_descriptions import TEXT_EXTS
-from data_to_paper.base_steps import BaseStepsRunner
 from data_to_paper.env import BASE_FOLDER
 from data_to_paper.interactive.get_app import get_or_create_q_application_if_app_is_pyside
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from data_to_paper.base_steps import BaseStepsRunner
+
 
 BASE_PROJECT_DIRECTORY = BASE_FOLDER / 'projects'
 
@@ -559,33 +564,12 @@ class DataFilesStartDialog(BaseStartDialog):
         self._get_date_files_widget().set_project_directory(project_directory)
 
 
-class StartDialog(DataFilesStartDialog):
-    def _create_widgets(self):
-        return {
-            'general_description': TextEditWithHeader(
-                "Dataset description", "Describe the dataset, its origin, content, purpose, etc."),
-            'files_widget': MultiFileWidget(),
-            'research_goal': TextEditWithHeader(
-                "Research Goal", "Specify the research goal, or leave blank for autonomous goal setting."),
-        }
-
-    def _convert_config_to_widgets(self, config):
-        self.widgets['general_description'].setPlainText(config.get('general_description', ''))
-        self.widgets['research_goal'].setPlainText(config.get('research_goal', '') or '')
-        super()._convert_config_to_widgets(config)
-
-    def _convert_widgets_to_config(self) -> dict:
-        config = self.current_config
-        config['general_description'] = self.widgets['general_description'].toPlainText() or None
-        config['research_goal'] = self.widgets['research_goal'].toPlainText() or None
-        config = super()._convert_widgets_to_config()
-        return config
-
-
 def interactively_create_project_folder(steps_runner_cls: Type[BaseStepsRunner],
                                         project_directory: Optional[Path] = None) -> Tuple[Path, dict]:
     get_or_create_q_application_if_app_is_pyside()
-    start_dialog = StartDialog(steps_runner_cls=steps_runner_cls, project_directory=project_directory)
+    start_dialog = steps_runner_cls.APP_STARTUP_CLS(
+        steps_runner_cls=steps_runner_cls,
+        project_directory=project_directory)
     if start_dialog.exec() == QDialog.Accepted:  # noqa
         pass
     else:
