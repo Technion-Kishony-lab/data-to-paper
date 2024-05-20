@@ -290,6 +290,23 @@ class MultiFileWidget(QWidget):
             self.add_file()
 
 
+class SingleFileWidget(MultiFileWidget):
+    """
+    Allows only one file.
+    Do not show the 'Add Another File' button.
+    Do not allow removing the file.
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.add_file_button.hide()
+
+    def add_file(self, abs_file_path='', is_binary=False, description=''):
+        if self.files_layout.count() > 0:
+            return
+        super().add_file(abs_file_path, is_binary, description)
+        self.get_all_file_widgets()[0].remove_button.hide()
+
+
 class TextEditWithHeader(QWidget):
     def __init__(self, title: str, help_text: str = '', text: str = '', ):
         super().__init__()

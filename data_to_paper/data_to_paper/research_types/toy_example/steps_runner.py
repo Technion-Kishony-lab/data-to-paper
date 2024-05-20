@@ -3,6 +3,7 @@ from typing import Optional
 
 from data_to_paper.base_steps.base_steps_runner import DataStepRunner
 from data_to_paper.base_steps.request_products_from_user import DirectorProductGPT
+from .app_startup import ToyStartDialog
 
 from .cast import DemoAgent
 from .coding_steps import DemoCodeProductsGPT
@@ -15,6 +16,10 @@ from .writing_steps import WriteTitleAndAbstract
 @dataclass
 class ToyStepsRunner(DataStepRunner):
     PROJECT_PARAMETERS_FILENAME = 'data_to_paper-toy-example.json'
+    DEFAULT_PROJECT_PARAMETERS = DataStepRunner.DEFAULT_PROJECT_PARAMETERS | dict(
+        research_goal=None
+    )
+    APP_STARTUP_CLS = ToyStartDialog
     name = 'Demo Project'
     cast = DemoAgent
     products: DemoProducts = field(default_factory=DemoProducts)
