@@ -311,7 +311,7 @@ class TextEditWithHeader(QWidget):
         self.text_edit.setReadOnly(disable)
 
 
-class StartDialog(QDialog):
+class BaseStartDialog(QDialog):
     def __init__(self, steps_runner_cls: Type[BaseStepsRunner] = None,
                  project_directory: Optional[Path] = None):
         super().__init__()
@@ -331,13 +331,7 @@ class StartDialog(QDialog):
         self._initialize(project_directory)
 
     def _create_widgets(self):
-        return {
-            'general_description': TextEditWithHeader(
-                "Dataset description", "Describe the dataset, its origin, content, purpose, etc."),
-            'files_widget': MultiFileWidget(),
-            'research_goal': TextEditWithHeader(
-                "Research Goal", "Specify the research goal, or leave blank for autonomous goal setting."),
-        }
+        return {}
 
     def _set_style(self):
         self.setWindowTitle(f"data-to-paper: Set and Run Project ({self.steps_runner_cls.name})")
@@ -407,7 +401,7 @@ class StartDialog(QDialog):
     """Save project"""
 
     def _check_project(self) -> bool:
-        project_name, config = self._convert_widgets_to_config()
+        config = self._convert_widgets_to_config()
         return True
 
     def _browse_for_new_project_directory(self) -> Optional[Path]:
@@ -441,14 +435,14 @@ class StartDialog(QDialog):
     def _save_project(self):
         if self.is_locked:
             return
-        project_directory, config = self._convert_widgets_to_config()
+        config = self._convert_widgets_to_config()
         self.steps_runner_cls.create_project_directory_from_project_parameters(
-            project_directory, config)
+            self._abs_project_directory, config)
 
     def _check_data_files_exist(self) -> bool:
-        project_directory, config = self._convert_widgets_to_config()
+        config = self._convert_widgets_to_config()
         try:
-            self.steps_runner_cls.check_files_exist(project_directory, config)
+            self.steps_runner_cls.check_files_exist(self._abs_project_directory, config)
         except FileNotFoundError as e:
             QMessageBox.warning(self, "Missing Files",
                                 f"Cannot start the project:\n{e}")
@@ -476,15 +470,7 @@ class StartDialog(QDialog):
         self._lock_project_for_editing(disable=run_folder.exists())
 
     def _convert_config_to_widgets(self, config):
-        self.widgets['general_description'].setPlainText(config.get('general_description', ''))
-        self.widgets['research_goal'].setPlainText(config.get('research_goal', '') or '')
-        files_widget = self.widgets['files_widget']
-        files_widget.clear(num_files=0)
-        for file_path, is_binary, description in zip(
-                config.get('data_filenames', []),
-                config.get('data_files_is_binary', []),
-                config.get('data_file_descriptions', [])):
-            files_widget.add_file(file_path, is_binary, description)
+        pass
 
     def _browse_for_existing_project_directory(self) -> Optional[Path]:
         project_directory = QFileDialog.getOpenFileName(
@@ -513,26 +499,15 @@ class StartDialog(QDialog):
             except ValueError:
                 pass
             self.project_folder_label.setText(str(project_directory))
-        self.widgets['files_widget'].set_project_directory(project_directory)
 
     """Start project"""
 
-    def _convert_widgets_to_config(self) -> Tuple[Path, dict]:
+    def _convert_widgets_to_config(self) -> dict:
         config = self.current_config
-        config['general_description'] = self.widgets['general_description'].toPlainText() or None
-        data_filenames = []
-        data_file_descriptions = []
-        data_files_is_binary = []
-        for file_widget in self.widgets['files_widget'].get_all_file_widgets():
-            if file_widget.path:
-                data_filenames.append(file_widget.path)
-                data_file_descriptions.append(file_widget.description)
-                data_files_is_binary.append(file_widget.is_binary)
-        config['data_filenames'] = data_filenames
-        config['data_files_is_binary'] = data_files_is_binary
-        config['data_file_descriptions'] = data_file_descriptions
-        config['research_goal'] = self.widgets['research_goal'].toPlainText() or None
-        return self._abs_project_directory, config
+        return config
+
+    def get_project_parameters(self):
+        return self._abs_project_directory, self._convert_widgets_to_config()
 
     def on_start_clicked(self):
         if not self._check_project():
@@ -544,6 +519,69 @@ class StartDialog(QDialog):
         self.accept()
 
 
+class DataFilesStartDialog(BaseStartDialog):
+
+    def _get_date_files_widget(self):
+        return self.widgets['files_widget']
+
+    def _create_widgets(self):
+        return {
+            'files_widget': MultiFileWidget(),
+        }
+
+    def _convert_config_to_widgets(self, config):
+        files_widget = self._get_date_files_widget()
+        files_widget.clear(num_files=0)
+        for file_path, is_binary, description in zip(
+                config.get('data_filenames', []),
+                config.get('data_files_is_binary', []),
+                config.get('data_file_descriptions', [])):
+            files_widget.add_file(file_path, is_binary, description)
+        super()._convert_config_to_widgets(config)
+
+    def _convert_widgets_to_config(self) -> dict:
+        config = super()._convert_widgets_to_config()
+        data_filenames = []
+        data_file_descriptions = []
+        data_files_is_binary = []
+        for file_widget in self._get_date_files_widget().get_all_file_widgets():
+            if file_widget.path:
+                data_filenames.append(file_widget.path)
+                data_file_descriptions.append(file_widget.description)
+                data_files_is_binary.append(file_widget.is_binary)
+        config['data_filenames'] = data_filenames
+        config['data_files_is_binary'] = data_files_is_binary
+        config['data_file_descriptions'] = data_file_descriptions
+        return config
+
+    def _set_project_directory(self, project_directory: Optional[Path]):
+        super()._set_project_directory(project_directory)
+        self._get_date_files_widget().set_project_directory(project_directory)
+
+
+class StartDialog(DataFilesStartDialog):
+    def _create_widgets(self):
+        return {
+            'general_description': TextEditWithHeader(
+                "Dataset description", "Describe the dataset, its origin, content, purpose, etc."),
+            'files_widget': MultiFileWidget(),
+            'research_goal': TextEditWithHeader(
+                "Research Goal", "Specify the research goal, or leave blank for autonomous goal setting."),
+        }
+
+    def _convert_config_to_widgets(self, config):
+        self.widgets['general_description'].setPlainText(config.get('general_description', ''))
+        self.widgets['research_goal'].setPlainText(config.get('research_goal', '') or '')
+        super()._convert_config_to_widgets(config)
+
+    def _convert_widgets_to_config(self) -> dict:
+        config = self.current_config
+        config['general_description'] = self.widgets['general_description'].toPlainText() or None
+        config['research_goal'] = self.widgets['research_goal'].toPlainText() or None
+        config = super()._convert_widgets_to_config()
+        return config
+
+
 def interactively_create_project_folder(steps_runner_cls: Type[BaseStepsRunner],
                                         project_directory: Optional[Path] = None) -> Tuple[Path, dict]:
     get_or_create_q_application_if_app_is_pyside()
@@ -552,4 +590,4 @@ def interactively_create_project_folder(steps_runner_cls: Type[BaseStepsRunner],
         pass
     else:
         sys.exit(0)
-    return start_dialog._convert_widgets_to_config()
+    return start_dialog.get_project_parameters()
