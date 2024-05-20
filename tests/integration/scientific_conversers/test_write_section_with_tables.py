@@ -1,6 +1,6 @@
 from _pytest.fixtures import fixture
 
-from data_to_paper.research_types.scientific_research.scientific_products import ScientificProducts
+from data_to_paper.research_types.hypothesis_testing.scientific_products import ScientificProducts
 
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 

@@ -1,0 +1,11 @@
+{
+    "data_filenames": [
+        "../data/diabetes_binary_health_indicators_BRFSS2015.csv"
+    ],
+    "data_files_is_binary": [
+        false
+    ],
+    "research_goal": null,
+    "should_do_data_exploration": true,
+    "project_specific_goal_guidelines": "* Avoid goals and hypotheses that involve ethic issues like sociodemographic (Income, Education, etc.) and psychological (Mental Health) variables. \nNote though that you can, and should, still use these as confounding variables if needed.\n"
+}

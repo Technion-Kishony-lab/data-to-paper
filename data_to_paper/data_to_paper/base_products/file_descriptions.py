@@ -276,16 +276,17 @@ class CreateDataFileDescriptions:
             general_description=self._read_general_description(),
         )
 
-    def create_file_descriptions(self, general_description: str, data_file_descriptions: List[str],
-                                 raise_on_missing_files: bool = False):
+    def create_file_descriptions(self, general_description: str, data_file_descriptions: List[str]):
         """
         Create the file descriptions.
         """
         (self.project_directory / self.GENERAL_DESCRIPTION_FILENAME).write_text(general_description)
         for j, data_file_str_path in enumerate(self.data_files_str_paths):
-            # check that the data file exists
+            self._get_description_file_path(data_file_str_path).write_text(data_file_descriptions[j])
+
+    def check_files_exist(self):
+        for data_file_str_path in self.data_files_str_paths:
             data_file_path = self._convert_data_file_path_str_to_path(data_file_str_path)
             data_file_path_zip = data_file_path.with_name(data_file_path.name + '.zip')
-            if raise_on_missing_files and not data_file_path.exists() and not data_file_path_zip.exists():
+            if not data_file_path.exists() and not data_file_path_zip.exists():
                 raise FileNotFoundError(f"Data file {data_file_path} not found.")
-            self._get_description_file_path(data_file_str_path).write_text(data_file_descriptions[j])
