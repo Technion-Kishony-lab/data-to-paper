@@ -31,8 +31,6 @@ COLORS_TO_LIGHT_COLORS = {
 
 style = get_style_by_name("monokai")
 terminal_formatter = Terminal256Formatter(style=style)
-html_formatter = HtmlFormatter(style=style, cssclass='text_highlight')
-html_textblock_formatter = HtmlFormatter(style=style, cssclass='textblock_highlight')
 
 if CHOSEN_APP == 'pyside':
     html_code_formatter = HtmlFormatter(style=style)

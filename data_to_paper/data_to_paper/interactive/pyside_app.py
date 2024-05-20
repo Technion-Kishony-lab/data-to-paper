@@ -16,16 +16,7 @@ from data_to_paper.interactive.utils import open_file_on_os
 
 MAKE_IT_UGLY_IN_MAC_BUT_MORE_CONSISTENT_ACROSS_OS = True
 
-# orange color: #FFA500
-# slightly darker orange: #FF8C00
-
 CSS = '''
-.text_highlight, .text_highlight span {
-    color: #FFA500;
-}
-.textblock_highlight {
-    font-family: Consolas, 'Courier New', monospace; font-size: 14px;
-}
 .runtime_error {
     color: red;
     font-family: Consolas, 'Courier New', monospace; font-size: 14px;
@@ -62,11 +53,9 @@ li {
 }
 '''
 
-# three colors that go nicely together for h1, h2, h3:
-# #0077cc, #0099cc, #00bbcc
-
-# perhaps more distinct colors for h1, h2, h3:
-# #0077cc, #0099cc, #00bbcc
+PANEL_HEADER_COLOR = "#0077cc"  # dark blue
+CURRENT_STEP_COLOR = '#005599'  # darker blue
+SUBMIT_BUTTON_COLOR = '#008000'  # dark green
 
 BACKGROUND_COLOR = "#151515"
 APP_BACKGROUND_COLOR = "#303030"
@@ -264,9 +253,11 @@ class StepsPanel(QWidget):
     def refresh(self):
         for i, step in enumerate(self.step_widgets):
             if i == self.current_step:
-                step.setStyleSheet(STEP_PANEL_BUTTON_STYLE.format(background_color="#005599", pressed_color="#003377"))
+                step.setStyleSheet(STEP_PANEL_BUTTON_STYLE.format(background_color=CURRENT_STEP_COLOR,
+                                                                  pressed_color="#003377"))
             elif i < self.current_step:
-                step.setStyleSheet(STEP_PANEL_BUTTON_STYLE.format(background_color="#008000", pressed_color="#006400"))
+                step.setStyleSheet(STEP_PANEL_BUTTON_STYLE.format(background_color=SUBMIT_BUTTON_COLOR,
+                                                                  pressed_color="#006400"))
             else:
                 step.setStyleSheet(STEP_PANEL_BUTTON_STYLE.format(background_color="#909090", pressed_color="#707070"))
 
@@ -294,7 +285,7 @@ class Panel(QWidget):
         label = QLabel(header)
         label.setFixedHeight(_get_label_height(label))
         self.header_label = label
-        self.header_label.setStyleSheet("color: #0077cc; font-size: 16px; font-weight: bold;")
+        self.header_label.setStyleSheet(f"color: {PANEL_HEADER_COLOR}; font-size: 16px; font-weight: bold;")
         header_tray.addWidget(label)
 
         self.header_right = header_right
@@ -324,6 +315,15 @@ class Panel(QWidget):
         pass
 
 
+qedit_style = """
+QTextEdit {
+    color: red;  /* Color for the actual text */
+    background-color: """ + BACKGROUND_COLOR + """;
+    font-size: 14px;
+}
+"""
+
+
 class EditableTextPanel(Panel):
     def __init__(self, header: str, header_right: Optional[str] = None,
                  suggestion_button_names: Optional[Collection[str]] = None):
@@ -337,7 +337,7 @@ class EditableTextPanel(Panel):
         self.text_edit = QTextEdit()
         self.text_edit.setWordWrapMode(QTextOption.WrapMode.WrapAtWordBoundaryOrAnywhere)
         # self.text_edit.setFontPointSize(14)
-        self.text_edit.setStyleSheet("background-color: " + BACKGROUND_COLOR + ";")
+        self.text_edit.setStyleSheet(qedit_style)
 
         self.text_edit.setReadOnly(True)
         self.layout.addWidget(self.text_edit)
@@ -359,7 +359,8 @@ class EditableTextPanel(Panel):
         self.buttons_tray.addWidget(self.continue_button)
 
         self.submit_button = QPushButton("Submit")
-        self.submit_button.setStyleSheet('QPushButton {background-color: #008000; color:' + BACKGROUND_COLOR + ';}')
+        self.submit_button.setStyleSheet('QPushButton {background-color: ' + SUBMIT_BUTTON_COLOR + '; color:'
+                                         + BACKGROUND_COLOR + ';}')
         self.submit_button.clicked.connect(self.on_submit)
         self.buttons_tray.addWidget(self.submit_button)
 
@@ -395,18 +396,10 @@ class EditableTextPanel(Panel):
 
     def _set_plain_text(self, text: str):
         self.text_edit.setPlainText(text)
-        if MAKE_IT_UGLY_IN_MAC_BUT_MORE_CONSISTENT_ACROSS_OS:
-            self.text_edit.setStyleSheet("color: #005599; font-size: 14px; background-color: " + BACKGROUND_COLOR + ";")
-        else:
-            self.text_edit.setStyleSheet("color: #005599; font-size: 14px; font-family: Arial, sans-serif;")
 
     def _set_html_text(self, text: str):
         # add the CSS to the HTML
         self.text_edit.setHtml(f'<style>{CSS}</style>{text}')
-        if MAKE_IT_UGLY_IN_MAC_BUT_MORE_CONSISTENT_ACROSS_OS:
-            self.text_edit.setStyleSheet("color: white; background-color: " + BACKGROUND_COLOR + ";")
-        else:
-            self.text_edit.setStyleSheet("color: white;")
 
     def set_text(self, text: str, is_html: bool = False):
         self.text_edit.setReadOnly(True)
@@ -533,7 +526,7 @@ class PysideApp(QMainWindow, BaseApp):
         self.header = QLabel()
         self.header.setTextFormat(Qt.TextFormat.RichText)
         self.header.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
-        self.header.setStyleSheet("color: #005599; font-size: 24px; font-weight: bold;")
+        self.header.setStyleSheet(f"color: {CURRENT_STEP_COLOR}; font-size: 24px; font-weight: bold;")
 
         spacer = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
         header_and_checkbox.addWidget(self.header)
