@@ -34,14 +34,14 @@ from data_to_paper.run.run_all_steps import set_project_and_run
 # Here are some examples of how to set the variables above:
 
 # Example toy project:
-steps_runner_cls = ToyStepsRunner
-project_directory = 'toy_example/prime_numbers'
-run_folder = 'run_002'
+# steps_runner_cls = ToyStepsRunner
+# project_directory = 'toy_example/prime_numbers'
+# run_folder = 'run_002'
 
 # Hypothesis testing - interactive setup:
-# steps_runner_cls = HypothesisTestingStepsRunner
-# project_directory = None
-# run_folder = 'run_001'
+steps_runner_cls = HypothesisTestingStepsRunner
+project_directory = None
+run_folder = 'run_001'
 
 # Hypothesis testing - diabetes project:
 # steps_runner_cls = HypothesisTestingStepsRunner
