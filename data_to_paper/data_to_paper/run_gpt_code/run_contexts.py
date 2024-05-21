@@ -79,7 +79,7 @@ class PreventFileOpen(SingletonRegisteredRunContext):
     def open_wrapper(self, *args, **kwargs):
         file_name = args[0] if len(args) > 0 else kwargs.get('file', None)
         open_mode = args[1] if len(args) > 1 else kwargs.get('mode', 'r')
-        is_opening_for_writing = open_mode in ['w', 'a', 'x', 'wb']
+        is_opening_for_writing = open_mode in ['w', 'a', 'x', 'w+b', 'a+b', 'x+b', 'wb', 'ab', 'xb']
         if is_opening_for_writing:
             if not self.is_allowed_write_file(file_name):
                 raise CodeWriteForbiddenFile(file=file_name)
