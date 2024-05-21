@@ -152,8 +152,12 @@ class FileWidget(QWidget):
         self.set_file_path(file_path)
 
     @property
-    def path(self) -> str:
+    def abs_path(self) -> str:
         return self._abs_file_path
+
+    @property
+    def abs_or_rel_path(self) -> str:
+        return self._convert_abs_file_path_to_abs_or_rel(self._abs_file_path)
 
     @property
     def is_binary(self) -> bool:
@@ -567,8 +571,8 @@ class DataFilesStartDialog(BaseStartDialog):
         data_file_descriptions = []
         data_files_is_binary = []
         for file_widget in self._get_date_files_widget().get_all_file_widgets():
-            if file_widget.path:
-                data_filenames.append(file_widget.path)
+            if file_widget.abs_path:
+                data_filenames.append(file_widget.abs_or_rel_path)
                 data_file_descriptions.append(file_widget.description)
                 data_files_is_binary.append(file_widget.is_binary)
         config['data_filenames'] = data_filenames
