@@ -21,7 +21,7 @@ def run_all_steps(step_runner: BaseStepsRunner):
 
 def set_project_and_run(steps_runner_cls: Type[BaseStepsRunner],
                         project_directory: Optional[Union[Path, str]] = None,
-                        run_folder: str = 'run_001'):
+                        run_name: str = 'run_001'):
     if isinstance(project_directory, str):
         project_directory = Path(project_directory)
     if project_directory is not None and not project_directory.is_absolute():
@@ -35,6 +35,6 @@ def set_project_and_run(steps_runner_cls: Type[BaseStepsRunner],
             raise ValueError("You must provide a project directory when not using the interactive app")
     step_runner = steps_runner_cls(
         project_directory=project_directory,
-        output_directory=project_directory / 'runs' / run_folder,
+        output_directory=project_directory / 'runs' / run_name,
     )
     run_all_steps(step_runner=step_runner)
