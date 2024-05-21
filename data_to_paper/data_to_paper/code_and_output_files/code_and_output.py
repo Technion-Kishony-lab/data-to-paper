@@ -1,18 +1,17 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-
 from typing import Optional, Any, TYPE_CHECKING, Dict
 
 from data_to_paper.base_products import DataFileDescriptions
 from data_to_paper.code_and_output_files.file_view_params import ContentView, ContentViewPurpose
+from data_to_paper.code_and_output_files.output_file_requirements import OutputFileRequirementsWithContent
 from data_to_paper.code_and_output_files.ref_numeric_values import HypertargetFormat, HypertargetPosition, \
     ReferencedValue
 from data_to_paper.code_and_output_files.referencable_text import convert_str_to_latex_label
-from data_to_paper.latex.clean_latex import wrap_as_latex_code_output, replace_special_latex_chars
+from data_to_paper.latex.clean_latex import wrap_as_latex_code_output, replace_special_latex_chars, \
+    replace_non_utf8_chars
 from data_to_paper.run_gpt_code.base_run_contexts import RunContext
-
-from data_to_paper.code_and_output_files.output_file_requirements import OutputFileRequirementsWithContent
 from data_to_paper.utils import format_text_with_code_blocks
 from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
 
@@ -97,6 +96,7 @@ class CodeAndOutput:
                 header = f'\\hyperlink{{{self._get_label_for_file(filename)}}}{{{header}}}'
                 s += f'\n\n\\subsubsection*{{{header}}}'
                 s += '\n\n' + wrap_as_latex_code_output(content)
+        s = replace_non_utf8_chars(s)
         return s
 
     def to_text(self, with_header: bool = True):
