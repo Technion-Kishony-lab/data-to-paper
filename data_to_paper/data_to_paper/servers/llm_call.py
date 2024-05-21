@@ -61,7 +61,7 @@ class LLMResponse(SerializableValue):
     """
 
 
-class OpenaiSeverCaller(ListServerCaller):
+class OpenaiServerCaller(ListServerCaller):
     """
     Class to call OpenAI API.
     """
@@ -113,7 +113,7 @@ class OpenaiSeverCaller(ListServerCaller):
             # human action:
             return model_engine(messages, **kwargs)
         if CHOSEN_APP == 'console' or CHOSEN_APP == None:  # noqa (Mutable)
-            OpenaiSeverCaller._check_before_spending_money(messages, model_engine)
+            OpenaiServerCaller._check_before_spending_money(messages, model_engine)
         print_and_log_red('Calling the LLM-API for real.', should_log=False)
 
         api_key, api_base_url = LLM_MODELS_TO_API_KEYS_AND_BASE_URL[model_engine] \
@@ -146,7 +146,7 @@ class OpenaiSeverCaller(ListServerCaller):
             raise Exception(f'Failed to get response from OPENAI after {MAX_NUM_LLM_ATTEMPTS} attempts.')
 
         content = response['choices'][0]['message']['content']
-        OpenaiSeverCaller._check_after_spending_money(content, messages, model_engine)
+        OpenaiServerCaller._check_after_spending_money(content, messages, model_engine)
         return LLMResponse(content)
 
     @staticmethod
@@ -168,7 +168,7 @@ class OpenaiSeverCaller(ListServerCaller):
             return LLMResponse(serialized_record)
 
 
-OPENAI_SERVER_CALLER = OpenaiSeverCaller()
+OPENAI_SERVER_CALLER = OpenaiServerCaller()
 
 
 def count_number_of_tokens_in_message(messages: Union[List[Message], str], model_engine: ModelEngine) -> int:
