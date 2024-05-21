@@ -1,2 +1,0 @@
-Reports of side effects, followed by vaccination with the "Pfizer BioNTech (BNT162b2) COVID-19 vaccine" vaccine, in Israel.
-This dataset was curated by the Israeli Ministry of Health during the years of COVID-19 pandemic and represents data from patients belonging to all the healthcare providers in Israel.
