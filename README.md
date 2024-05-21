@@ -17,8 +17,7 @@ research while maintaining, and even enhancing, key scientific values, such as t
 and while allowing scientist to oversee and direct the process 
 [see also: [living guidelines](https://www.nature.com/articles/d41586-023-03266-1)].
 
-
-https://github.com/Technion-Kishony-lab/data-to-paper/assets/65530510/73dca9b5-3117-490a-9578-345789889189
+https://github.com/Technion-Kishony-lab/data-to-paper/assets/31969897/0f3acf7a-a775-43bd-a79c-6877f780f2d4
 
 
 ### Reference
