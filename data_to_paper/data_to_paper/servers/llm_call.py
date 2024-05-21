@@ -10,7 +10,7 @@ from typing import List, Union, Callable
 
 import tiktoken
 
-from data_to_paper.env import LLM_MODELS_TO_API_KEYS_AND_BASE_URL, CHOSEN_APP
+from data_to_paper.env import LLM_MODELS_TO_API_KEYS_AND_BASE_URL, CHOSEN_APP, FAKE_REQUEST_HUMAN_RESPONSE_ON_PLAYBACK
 from data_to_paper.utils.print_to_file import print_and_log_red, print_and_log
 from data_to_paper.exceptions import TerminateException
 from data_to_paper.utils.serialize import SerializableValue, deserialize_serializable_value
@@ -238,7 +238,9 @@ def get_human_response(app: BaseApp, **kwargs) -> HumanAction:
     Allow the user to edit a message and return the edited message.
     Return None if the user did not change the message.
     """
-    # app.request_action(**kwargs)  # Uncomment this line for video recording of run playbacks
+    is_playback = are_more_responses_available()
+    if FAKE_REQUEST_HUMAN_RESPONSE_ON_PLAYBACK and is_playback:
+        app.request_action(**kwargs)
     response = OPENAI_SERVER_CALLER.get_server_response(
         [], model_engine=lambda messages, **k: app.request_action(**k), **kwargs)
     if isinstance(response, LLMResponse) and CHOSEN_APP != None:  # noqa (Mutable)

@@ -60,6 +60,7 @@ PAUSE_AT_LLM_FEEDBACK = Mutable(None)
 PAUSE_AT_PROMPT_FOR_LLM_FEEDBACK = Mutable(None)
 PAUSE_AFTER_LITERATURE_SEARCH = Mutable(None)
 REQUEST_CONTINUE_IN_PLAYBACK = Flag(True)
+FAKE_REQUEST_HUMAN_RESPONSE_ON_PLAYBACK = Flag(False)  # For video recording
 
 # Human interactions:
 # CHOSEN_APP:
