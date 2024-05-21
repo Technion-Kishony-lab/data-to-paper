@@ -1,6 +1,8 @@
 ## data-to-paper: AI-driven research from data to human-verifiable research papers
 
-<img src="https://github.com/Technion-Kishony-lab/data-to-paper/blob/main/data_to_paper_icon.gif?raw=true" width="400" align="right">
+<picture>
+<img src="https://github.com/Technion-Kishony-lab/data-to-paper/blob/main/data_to_paper_icon.gif" width="350" align="right">
+</picture>
 
 [*data-to-paper*](https://arxiv.org/abs/2404.17605) is a framework for systematically navigating the power of AI to perform complete end-to-end 
 scientific research, starting from raw data and concluding with comprehensive, transparent, and human-verifiable 
