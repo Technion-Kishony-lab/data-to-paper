@@ -14,7 +14,7 @@ from data_to_paper.interactive.enum_types import PanelNames
 from data_to_paper.interactive.get_app import get_or_create_q_application_if_app_is_pyside
 from data_to_paper.interactive.utils import open_file_on_os
 
-MAKE_IT_UGLY_IN_MAC_BUT_MORE_CONSISTENT_ACROSS_OS = False
+MAKE_IT_UGLY_IN_MAC_BUT_MORE_CONSISTENT_ACROSS_OS = True
 
 # orange color: #FFA500
 # slightly darker orange: #FF8C00
