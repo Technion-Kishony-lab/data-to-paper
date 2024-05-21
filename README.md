@@ -17,6 +17,8 @@ research while maintaining, and even enhancing, key scientific values, such as t
 and while allowing scientist to oversee and direct the process 
 [see also: [living guidelines](https://www.nature.com/articles/d41586-023-03266-1)].
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
+
 https://github.com/Technion-Kishony-lab/data-to-paper/assets/31969897/0f3acf7a-a775-43bd-a79c-6877f780f2d4
 
 
