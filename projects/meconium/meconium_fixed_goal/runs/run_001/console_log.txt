@@ -9889,3 +9889,23 @@ latex \section{Discussion}  Our study endeavored to assess the immediate health 
 [36m[20] SURROGATE {Performer} -> "Writing: Discussion"  : 
 latex \section{Discussion}  Our study endeavored to assess the immediate health outcomes of [...] changes is thereby strongly recommended.[0m
 
+----- COMPLETED RUN ------
+## Completed
+This *data-to-paper* research cycle is now completed.
+The manuscript is ready. 
+
+The created manuscript and all other output files are saved in:
+/home/talifargan/git_projects/data-to-paper/projects/meconium/meconium_fixed_goal/runs/run_001
+
+You can click "Compile Paper" stage button to open the manuscript.
+
+Please check the created manuscript rigorously and carefully.
+
+
+*Remember that the process is not error-free and the responsibility for the final manuscript remains with you.*
+
+
+You can close the app now.
+
+----------------------------
+

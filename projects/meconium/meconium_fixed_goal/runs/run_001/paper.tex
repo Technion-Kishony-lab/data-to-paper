@@ -1,0 +1,768 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{fancyvrb}
+\usepackage{color}
+\usepackage{listings}
+\usepackage{sectsty}
+\sectionfont{\Large}
+\subsectionfont{\normalsize}
+\subsubsectionfont{\normalsize}
+
+% Default fixed font does not support bold face
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{12} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{12}  % for normal
+
+% Custom colors
+\usepackage{color}
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+\definecolor{cyan}{rgb}{0.0,0.6,0.6}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+
+% Python style for highlighting
+\newcommand\pythonstyle{\lstset{
+language=Python,
+basicstyle=\ttfamily\footnotesize,
+morekeywords={self, import, as, from, if, for, while},              % Add keywords here
+keywordstyle=\color{deepblue},
+stringstyle=\color{deepred},
+commentstyle=\color{cyan},
+breaklines=true,
+escapeinside={(*@}{@*)},            % Define escape delimiters
+postbreak=\mbox{\textcolor{deepgreen}{$\hookrightarrow$}\space},
+showstringspaces=false
+}}
+
+
+% Python environment
+\lstnewenvironment{python}[1][]
+{
+\pythonstyle
+\lstset{#1}
+}
+{}
+
+% Python for external files
+\newcommand\pythonexternal[2][]{{
+\pythonstyle
+\lstinputlisting[#1]{#2}}}
+
+% Python for inline
+\newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
+
+
+% Code output style for highlighting
+\newcommand\outputstyle{\lstset{
+    language=,
+    basicstyle=\ttfamily\footnotesize\color{gray},
+    breaklines=true,
+    showstringspaces=false,
+    escapeinside={(*@}{@*)},            % Define escape delimiters
+}}
+
+% Code output environment
+\lstnewenvironment{codeoutput}[1][]
+{
+    \outputstyle
+    \lstset{#1}
+}
+{}
+
+
+\title{Post-2015 NRP Guidelines Preserve Neonatal Health in Meconium-Stained Deliveries}
+\author{data-to-paper}
+\begin{document}
+\maketitle
+\begin{abstract}
+Neonatal resuscitation practices shape immediate and long-term health outcomes for newborns with meconium-stained amniotic fluid. In response to a paradigm shift in the Neonatal Resuscitation Program (NRP) guidelines in 2015, which recommended selective instead of mandatory endotracheal suctioning for these newborns, this study probes the subsequent impact on neonatal clinical outcomes. Addressing the gap in evidence concerning the efficacy of these new guidelines, a retrospective single-center analysis was conducted with data drawn from 223 neonate cases admitted to the Neonatal Intensive Care Unit (NICU) both prior to and following the modification of the guidelines. The assessment foregrounds APGAR scores at 1 and 5 minutes as principal health indicators, with no marked differences observed post-guideline implementation, affirming stability in neonatal health status despite modified resuscitation methods. Our analysis unveiled a significant diminution in endotracheal suction and meconium extraction, yet no change was detected in the application of positive pressure ventilation or in APGAR scores, which assuage concerns over the altered guidelines. The data suggest that less aggressive initial interventions commensurate with the new guidelines do not compromise neonatal outcomes. With the limitations of being a single-center study and the restriction to short-term outcomes, this research underscores the need for ongoing reassessment of clinical protocols as an avenue for improved health outcomes. It paves the way for future multicentric and longitudinal research to corroborate these findings and enhance policy standardization in neonatal care.
+\end{abstract}
+\section*{Introduction}
+
+The resuscitation of newborns with meconium-stained amniotic fluid (MSAF) is a pivotal predictor of neonatal health outcomes \cite{Fischer2011APS, Kapoor2020NeonatalR}. Historically, endotracheal suction was mandated; however, the 2015 revision of NRP guidelines advocated for selective intervention strategies based on the neonate's initial response \cite{Wyckoff2015Part1N}. Despite this evolution, the literature has not adequately examined the impact of these revised resuscitation practices on short-term neonatal outcomes \cite{Alemu2019PrevalenceAA}.
+
+Prior research has delineated the risk factors for neonatal complications and the longitudinal development of resuscitation protocols. Nonetheless, these studies do not directly address the clinical outcomes in the crucial early moments post-birth signified by standard health measures such as APGAR scores \cite{Fischer2011APS}. This evidentiary void highlights the need for analyses that connect the dots between guideline modifications and potential changes in neonatal clinical assessments.
+
+To bridge this gap, we utilized a detailed dataset that encompasses NICU therapies and clinical outcomes for infants exposed to MSAF before and after the implementation of the 2015 guidelines \cite{Stevenson2019ADO}. This study examines the associations between the practices of endotracheal suctioning, the administration of positive pressure ventilation, and the resulting health assessments indicated by APGAR scores after the guideline changes. These assessments allow for an inquiry into whether the modification of invasive procedures reflects in the immediate health condition of neonates—a critical index of newborn well-being \cite{Crews2021ClinicalPI, Singh2014TheIO}.
+
+\section*{Results}
+
+To elucidate the impact of the guideline amendment in \hyperlink{S0a}{2015} on APGAR scores and the perceived severity of neonatal conditions upon admission, as reflected by the SNAPPE II score, we evaluated mean values pre and post-guideline modification. Mean 1-minute APGAR scores of \hyperlink{A1b}{4.34} and \hyperlink{A1c}{3.99}, and 5-minute scores of \hyperlink{A2b}{7.40} and \hyperlink{A2c}{7.14} were documented before and after \hyperlink{S0a}{2015}, respectively, as detailed in Table \ref{table:change_in_policy_impact}. SNAPPE II scores remained consistent with mean values of \hyperlink{A3a}{18.40} for both groups. Standard deviations for 1-minute APGAR scores were \hyperlink{A4b}{1.98} pre and \hyperlink{A4c}{2.28} post-\hyperlink{S0a}{2015}, and for 5-minute APGAR scores were \hyperlink{A5b}{1.47} and \hyperlink{A5c}{1.93}, acknowledging an increase in variability.
+
+% This latex table was generated from: `table_0.pkl`
+\begin{table}[h]
+\caption{\protect\hyperlink{file-table-0-pkl}{Mean and Standard deviation of APGAR scores and SNAPPE II score, stratified by guidelines change}}
+\label{table:change_in_policy_impact}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrr}
+\toprule
+Group: \raisebox{2ex}{\hypertarget{A0a}{}}0= Pre \raisebox{2ex}{\hypertarget{A0b}{}}2015, \raisebox{2ex}{\hypertarget{A0c}{}}1= Post \raisebox{2ex}{\hypertarget{A0d}{}}2015 & \raisebox{2ex}{\hypertarget{A0e}{}}0 & \raisebox{2ex}{\hypertarget{A0f}{}}1 \\
+\midrule
+\textbf{Mean of \raisebox{2ex}{\hypertarget{A1a}{}}1 min APGAR} & \raisebox{2ex}{\hypertarget{A1b}{}}4.34 & \raisebox{2ex}{\hypertarget{A1c}{}}3.99 \\
+\textbf{Mean of \raisebox{2ex}{\hypertarget{A2a}{}}5 min APGAR} & \raisebox{2ex}{\hypertarget{A2b}{}}7.4 & \raisebox{2ex}{\hypertarget{A2c}{}}7.14 \\
+\textbf{Mean of SNAPPE II} & \raisebox{2ex}{\hypertarget{A3a}{}}18.4 & \raisebox{2ex}{\hypertarget{A3b}{}}18.4 \\
+\textbf{SD of \raisebox{2ex}{\hypertarget{A4a}{}}1 min APGAR} & \raisebox{2ex}{\hypertarget{A4b}{}}1.98 & \raisebox{2ex}{\hypertarget{A4c}{}}2.28 \\
+\textbf{SD of \raisebox{2ex}{\hypertarget{A5a}{}}5 min APGAR} & \raisebox{2ex}{\hypertarget{A5b}{}}1.47 & \raisebox{2ex}{\hypertarget{A5c}{}}1.93 \\
+\textbf{SD of SNAPPE II} & \raisebox{2ex}{\hypertarget{A6a}{}}14.6 & \raisebox{2ex}{\hypertarget{A6b}{}}14.3 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{\raisebox{2ex}{\hypertarget{A7a}{}}0}: Before guidelines change
+\item \textbf{\raisebox{2ex}{\hypertarget{A8a}{}}1}: After guidelines change
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+Chi-square tests were employed to examine the association between the post-\hyperlink{S0a}{2015} policy and neonatal treatments rendered. The implementation of the modified guidelines correlated significantly with a reduction in endotracheal suction, indicated by a chi-sq statistic of \hyperlink{B1a}{50.5} and a p-value of less than \hyperlink{B1b}{$10^{-6}$}, as shown in Table \ref{table:association_tests}. Similarly, the occurrence of meconium recovery dropped significantly, demonstrated by a chi-sq statistic of \hyperlink{B2a}{21.2} and p-value of \hyperlink{B2b}{$4.19\ 10^{-6}$}. Nevertheless, for Positive Pressure Ventilation (PPV), the chi-sq result of \hyperlink{B0a}{0.82} and p-value of \hyperlink{B0b}{0.365} signified no notable association.
+
+% This latex table was generated from: `table_1.pkl`
+\begin{table}[h]
+\caption{\protect\hyperlink{file-table-1-pkl}{Association between treatments and change in policy using Chi-square test}}
+\label{table:association_tests}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrl}
+\toprule
+ & Chi-sq stat & p-value \\
+Treatment &  &  \\
+\midrule
+\textbf{PPV} & \raisebox{2ex}{\hypertarget{B0a}{}}0.82 & \raisebox{2ex}{\hypertarget{B0b}{}}0.365 \\
+\textbf{Endotracheal suction} & \raisebox{2ex}{\hypertarget{B1a}{}}50.5 & $<$\raisebox{2ex}{\hypertarget{B1b}{}}$10^{-6}$ \\
+\textbf{Meconium recovered} & \raisebox{2ex}{\hypertarget{B2a}{}}21.2 & \raisebox{2ex}{\hypertarget{B2b}{}}$4.19\ 10^{-6}$ \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{PPV}: Positive Pressure Ventilation performed?
+1: Yes, \raisebox{2ex}{\hypertarget{B3a}{}}0: No
+\item \textbf{Endotracheal suction}: Endotracheal suctioning performed?
+1: Yes, \raisebox{2ex}{\hypertarget{B4a}{}}0: No
+\item \textbf{Meconium recovered}: Was Meconium recovered?
+1: Yes, \raisebox{2ex}{\hypertarget{B5a}{}}0: No
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+Differential APGAR score outcomes between pre and post policy intervention groups were analyzed using independent t-tests. The investigation, contained within Table \ref{table:difference_tests}, displayed no evident deviation for both 1-minute (T-statistic: \hyperlink{C0a}{1.23}, p-value: \hyperlink{C0b}{0.22}) and 5-minute APGAR scores (T-statistic: \hyperlink{C1a}{1.14}, p-value: \hyperlink{C1b}{0.257}).
+
+% This latex table was generated from: `table_2.pkl`
+\begin{table}[h]
+\caption{\protect\hyperlink{file-table-2-pkl}{Difference in APGAR scores between pre and post intervention groups using independent t-test}}
+\label{table:difference_tests}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrl}
+\toprule
+ & T statistic & p-value \\
+Outcome &  &  \\
+\midrule
+\textbf{APGAR1} & \raisebox{2ex}{\hypertarget{C0a}{}}1.23 & \raisebox{2ex}{\hypertarget{C0b}{}}0.22 \\
+\textbf{APGAR5} & \raisebox{2ex}{\hypertarget{C1a}{}}1.14 & \raisebox{2ex}{\hypertarget{C1b}{}}0.257 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{APGAR1}: \raisebox{2ex}{\hypertarget{C2a}{}}1 minute APGAR score: a standard measure of a newborn infant's acclimatization to extrauterine life
+\item \textbf{APGAR5}: \raisebox{2ex}{\hypertarget{C3a}{}}5 minutes APGAR score: a standard measure of a newborn infant's progress in adapting to extrauterine life
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+Overall, the shift in guidelines made in \hyperlink{S0a}{2015}, specifically the transition from mandatory to selective endotracheal suction, has not negatively impacted the immediate postpartum clinical assessment, as indicated by the stability of mean APGAR scores and consistent SNAPPE II scores. The total population size of neonates included in this analysis encapsulates \hyperlink{R0a}{223} individual observations.
+
+\section*{Discussion}
+
+Our study endeavored to assess the immediate health outcomes of neonates exposed to meconium-stained amniotic fluid (MSAF) following the 2015 amendment to the NRP guidelines \cite{Wyckoff2015Part1N}. This policy change signified a shift from the previously mandatory endotracheal suction toward a more selective approach based on the neonate's initial response \cite{Fischer2011APS, Kapoor2020NeonatalR}.
+
+We conducted a single-center retrospective evaluation of 223 neonate cases, segregating them into pre-implementation (117) and post-implementation (106) groups of the revised guidelines. We identified a statistically significant association between the policy change and a reduction in invasive procedures, namely endotracheal suction and meconium extraction. The application of positive pressure ventilation, however, remained unaffected, reinforcing the trend toward selective, less aggressive interventions \cite{Hoffman2016ImpactOH}. These results are aligned with research, such as the study by Singh et al \cite{Singh2014TheIO}, that underscore stable neonatal health indicators — i.e., APGAR and SNAPPE II scores — despite substantial changes in resuscitation procedures.
+
+However, the limitations of our study ought to be considered while interpreting these results. The single-center retrospective design provides preliminary insights requiring multicentric replication for further validation. Our study focused exclusively on short-term health outcomes, enabling future research to explore possible long-term impacts. Potential biases, including selection bias inherent to single-center studies and limitations linked to retroactive reviews, may have influenced the study's findings.
+
+Research ramifications dictated by our findings suggest conducting future multicentric studies encompassing a broader regional footprint and delving into long-term impacts resultant from the 2015 NRP guidelines. Such an approach would offer comprehensive insights into the implications of the new resuscitation guidelines across geographic and temporal spectrums.
+
+In conclusion, our study findings support the efficacy of the revised NRP guidelines, indicating stable immediate post-birth neonatal health outcomes despite the recommendation of less invasive procedures in the presence of meconium-stained amniotic fluid. With stable APGAR scores post policy change, our results substantiate the 2015 guidelines' shift towards less invasive, selective approaches in neonate resuscitation. This study underscores these recent transformations in neonate management, fortifying our evolving understanding of neonatal care and inviting robust evaluation of ongoing policy amendments to safeguard neonatal health outcomes. Future research to corroborate these findings across a broader population sample and to delve into potential long-term implications underlying these policy changes is thereby strongly recommended.
+
+\section*{Methods}
+
+\subsection*{Data Source}
+The dataset analyzed in this study was obtained from a single-center retrospective review of neonatal cases. These cases involved delivery through meconium-stained amniotic fluid of varying consistency, with the infants being of gestational ages ranging from 35 to 42 weeks. All neonates included in the study were admitted to the center's neonatal intensive care unit (NICU), with exclusion criteria being the presence of major congenital malformations or anomalies identified at birth. The dataset allowed for a comparison between neonatal treatments and clinical outcomes before and after the 2015 policy change in the Neonatal Resuscitation Program (NRP) guidelines, encompassing a total of 223 cases—117 from the pre-implementation phase and 106 following the policy change.
+
+\subsection*{Data Preprocessing}
+Upon initial examination of the data, it was determined that no preprocessing was necessary since the dataset was already in a state conducive to analysis. Consequently, we did not apply additional data cleaning, normalization, imputation of missing values, or transformation procedures prior to the evaluation of the data.
+
+\subsection*{Data Analysis}
+The analysis began by calculating descriptive statistics to provide an overview of neonatal health indicators, specifically APGAR scores determined at 1 and 5 minutes post-delivery, as well as SNAPPE-II (Score for Neonatal Acute Physiology-Perinatal Extension-II) scores. These indicators were stratified by the timing of policy implementation, giving mean and standard deviation values before and after the policy change. 
+
+Subsequently, we probed for associations between neonatal treatments and the change in policy using the chi-square test. The treatments of interest included positive pressure ventilation, whether endotracheal suction was performed, and whether meconium was recovered. These tests sought to identify variations in the application of treatments correlated with the policy shift, highlighting the potential impact of updated guidelines on clinical practices.
+
+Finally, the independent t-test was employed to investigate differences in the APGAR scores between neonate groups before and after the intervention. This test aimed to determine if the guideline changes influenced immediate neonatal health outcomes as assessed by APGAR scoring, providing a statistical basis for evaluating the policy's effectiveness.
+
+Upon completion of the analyses, results were prepared for reporting, ensuring a coherent picture was presented of the current findings within the context of the policy change.\subsection*{Code Availability}
+
+Custom code used to perform the data preprocessing and analysis, as well as the raw code outputs, are provided in Supplementary Methods.
+
+
+\bibliographystyle{unsrt}
+\bibliography{citations}
+
+
+\clearpage
+\appendix
+
+\section{Data Description} \label{sec:data_description} Here is the data description, as provided by the user:
+
+\begin{codeoutput}
+\#\# General Description
+(*@\raisebox{2ex}{\hypertarget{S}{}}@*)A change in Neonatal Resuscitation Program (NRP) guidelines occurred in (*@\raisebox{2ex}{\hypertarget{S0a}{}}@*)2015:
+
+Pre-2015: Intubation and endotracheal suction was mandatory for all meconium-stained non-vigorous infants
+Post-2015: Intubation and endotracheal suction was no longer mandatory; preference for less aggressive interventions based on response to initial resuscitation.
+
+This single-center retrospective study compared Neonatal Intensive Care Unit (NICU) therapies and clinical outcomes of non-vigorous newborns for (*@\raisebox{2ex}{\hypertarget{S1a}{}}@*)117 deliveries pre-guideline implementation versus (*@\raisebox{2ex}{\hypertarget{S1b}{}}@*)106 deliveries post-guideline implementation.
+
+Inclusion criteria included: birth through Meconium-Stained Amniotic Fluid (MSAF) of any consistency, gestational age of (*@\raisebox{2ex}{\hypertarget{S2a}{}}@*)35--42 weeks, and admission to the institutions NICU. Infants were excluded if there were major congenital malformations/anomalies present at birth.
+
+\#\# Data Files
+The dataset consists of 1 data file:
+
+\#\#\# "meconium\_nicu\_dataset\_preprocessed\_short.csv"
+(*@\raisebox{2ex}{\hypertarget{T}{}}@*)The dataset contains (*@\raisebox{2ex}{\hypertarget{T0a}{}}@*)44 columns:
+
+`PrePost` ((*@\raisebox{2ex}{\hypertarget{T1a}{}}@*)0=Pre, (*@\raisebox{2ex}{\hypertarget{T1b}{}}@*)1=Post) Delivery pre or post the new (*@\raisebox{2ex}{\hypertarget{T1c}{}}@*)2015 policy
+`AGE` (int, in years) Maternal age
+`GRAVIDA` (int) Gravidity
+`PARA` (int) Parity
+`HypertensiveDisorders` ((*@\raisebox{2ex}{\hypertarget{T2a}{}}@*)1=Yes, (*@\raisebox{2ex}{\hypertarget{T2b}{}}@*)0=No) Gestational hypertensive disorder
+`MaternalDiabetes`	((*@\raisebox{2ex}{\hypertarget{T3a}{}}@*)1=Yes, (*@\raisebox{2ex}{\hypertarget{T3b}{}}@*)0=No) Gestational diabetes
+`ModeDelivery` (Categorical) "VAGINAL" or "CS" (C. Section)
+`FetalDistress` ((*@\raisebox{2ex}{\hypertarget{T4a}{}}@*)1=Yes, (*@\raisebox{2ex}{\hypertarget{T4b}{}}@*)0=No)
+`ProlongedRupture` ((*@\raisebox{2ex}{\hypertarget{T5a}{}}@*)1=Yes, (*@\raisebox{2ex}{\hypertarget{T5b}{}}@*)0=No) Prolonged Rupture of Membranes
+`Chorioamnionitis` ((*@\raisebox{2ex}{\hypertarget{T6a}{}}@*)1=Yes, (*@\raisebox{2ex}{\hypertarget{T6b}{}}@*)0=No)
+`Sepsis` (Categorical) Neonatal blood culture ("NO CULTURES", "NEG CULTURES", "POS CULTURES")
+`GestationalAge` (float, numerical). in weeks.
+`Gender` (Categorical) "M"/ "F"
+`BirthWeight` (float, in KG)
+`APGAR1` (int, (*@\raisebox{2ex}{\hypertarget{T7a}{}}@*)1-10) (*@\raisebox{2ex}{\hypertarget{T7b}{}}@*)1 minute APGAR score
+`APGAR5` (int, (*@\raisebox{2ex}{\hypertarget{T8a}{}}@*)1-10) (*@\raisebox{2ex}{\hypertarget{T8b}{}}@*)5 minute APGAR score
+`MeconiumConsistency` (categorical) "THICK" / "THIN"
+`PPV` ((*@\raisebox{2ex}{\hypertarget{T9a}{}}@*)1=Yes, (*@\raisebox{2ex}{\hypertarget{T9b}{}}@*)0=No) Positive Pressure Ventilation
+`EndotrachealSuction` ((*@\raisebox{2ex}{\hypertarget{T10a}{}}@*)1=Yes, (*@\raisebox{2ex}{\hypertarget{T10b}{}}@*)0=No) Whether endotracheal suctioning was performed
+`MeconiumRecovered` ((*@\raisebox{2ex}{\hypertarget{T11a}{}}@*)1=Yes, (*@\raisebox{2ex}{\hypertarget{T11b}{}}@*)0=No)
+`CardiopulmonaryResuscitation` ((*@\raisebox{2ex}{\hypertarget{T12a}{}}@*)1=Yes, (*@\raisebox{2ex}{\hypertarget{T12b}{}}@*)0=No)
+`ReasonAdmission` (categorical) Neonate ICU admission reason. ("OTHER", "RESP" or "CHORIOAMNIONITIS")
+`RespiratoryReasonAdmission` ((*@\raisebox{2ex}{\hypertarget{T13a}{}}@*)1=Yes, (*@\raisebox{2ex}{\hypertarget{T13b}{}}@*)0=No)
+`RespiratoryDistressSyndrome` ((*@\raisebox{2ex}{\hypertarget{T14a}{}}@*)1=Yes, (*@\raisebox{2ex}{\hypertarget{T14b}{}}@*)0=No)
+`TransientTachypnea` ((*@\raisebox{2ex}{\hypertarget{T15a}{}}@*)1=Yes, (*@\raisebox{2ex}{\hypertarget{T15b}{}}@*)0=No)
+`MeconiumAspirationSyndrome` ((*@\raisebox{2ex}{\hypertarget{T16a}{}}@*)1=Yes, (*@\raisebox{2ex}{\hypertarget{T16b}{}}@*)0=No)
+`OxygenTherapy` ((*@\raisebox{2ex}{\hypertarget{T17a}{}}@*)1=Yes, (*@\raisebox{2ex}{\hypertarget{T17b}{}}@*)0=No)
+`MechanicalVentilation` ((*@\raisebox{2ex}{\hypertarget{T18a}{}}@*)1=Yes, (*@\raisebox{2ex}{\hypertarget{T18b}{}}@*)0=No)
+`Surfactant` ((*@\raisebox{2ex}{\hypertarget{T19a}{}}@*)1=Yes, (*@\raisebox{2ex}{\hypertarget{T19b}{}}@*)0=No) Surfactant inactivation
+`Pneumothorax` ((*@\raisebox{2ex}{\hypertarget{T20a}{}}@*)1=Yes, (*@\raisebox{2ex}{\hypertarget{T20b}{}}@*)0=No)
+`AntibioticsDuration` (float, in days) Neonate treatment duration
+`Breastfeeding` ((*@\raisebox{2ex}{\hypertarget{T21a}{}}@*)1=Yes, (*@\raisebox{2ex}{\hypertarget{T21b}{}}@*)0=No) Breastfed at NICU
+`LengthStay` (float, in days) Length of stay at NICU
+`SNAPPE\_II\_SCORE` (int) (*@\raisebox{2ex}{\hypertarget{T22a}{}}@*)0--20 (mild), (*@\raisebox{2ex}{\hypertarget{T22b}{}}@*)21--40 (moderate), (*@\raisebox{2ex}{\hypertarget{T22c}{}}@*)41- (severe)
+
+
+
+\end{codeoutput}
+
+\section{Data Exploration}
+\subsection{{Code}}
+The Data Exploration was carried out using the following custom code:
+
+\begin{python}
+
+import pandas as pd
+import numpy as np
+
+# Loading the Dataset
+df = pd.read_csv("meconium_nicu_dataset_preprocessed_short.csv")
+
+# Open text file
+(*@\raisebox{2ex}{\hypertarget{code-Data Exploration-data-exploration-txt}{}}@*)with open("data_exploration.txt", "w") as file:
+
+    # Data Size
+    file.write("# Data Size\n")
+    file.write("Number of rows: "+ str(df.shape[0])+ "\n")
+    file.write("Number of columns: "+ str(df.shape[1]) + "\n")
+    
+    # Summary Statistics
+    file.write("\n# Summary Statistics\n")
+    file.write(df.describe(include="all").transpose().to_string())
+
+    # Categorical Variables
+    categorical_cols = df.select_dtypes(include=['object']).columns.tolist()
+    file.write("\n# Categorical Variables\n")
+    for col in categorical_cols:
+        top_freq = df[col].value_counts().idxmax()
+        file.write(f'Column: {col} | Most common value: {top_freq}\n')
+
+    # Missing Values
+    file.write("\n# Missing Values\n")
+    file.write(df.isnull().sum().to_string())
+
+    # Checking if any special numeric values are used for unknown/undefined entries, as described in the "Description of the Dataset"
+    # No such numeric values are described in the dataset description for this case, so this section is Not Applicable in this case
+    file.write("\n# Special Numeric Values Representing Unknown/Undefined\n")
+    file.write("# Not Applicable\n")
+
+    file.close()
+
+\end{python}
+
+\subsection{Code Description}
+
+The provided code performs data exploration on the dataset "meconium\_nicu\_dataset\_preprocessed\_short.csv". 
+
+First, the code loads the dataset into a pandas DataFrame.
+
+Then, the code writes various information into the "data\_exploration.txt" file:
+
+1. Data Size: This section includes the number of rows and columns in the dataset.
+
+2. Summary Statistics: This section provides descriptive statistics for each column in the dataset. It includes count, unique values, top frequency value, and other summary statistics such as mean, standard deviation, minimum, and maximum values for numeric columns.
+
+3. Categorical Variables: This section identifies the categorical variables in the dataset and provides the most common value for each categorical column.
+
+4. Missing Values: This section lists the number of missing values in each column of the dataset.
+
+5. Special Numeric Values Representing Unknown/Undefined: This section checks if there are any special numeric values used in the dataset to represent unknown or undefined entries. Since no such values are mentioned in the dataset description, this section indicates that it is not applicable.
+
+By writing this information to the "data\_exploration.txt" file, the code provides a comprehensive overview of the dataset, including its size, summary statistics, presence of missing values, and information about categorical variables.
+
+\subsection{Code Output}\hypertarget{file-data-exploration-txt}{}
+
+\subsubsection*{\hyperlink{code-Data Exploration-data-exploration-txt}{data\_exploration.txt}}
+
+\begin{codeoutput}
+\# Data Size
+Number of rows: 223
+Number of columns: 34
+
+\# Summary Statistics
+                              count  unique           top  freq    mean    std  min   25\%  50\%  75\%  max
+PrePost                         223     NaN           NaN   NaN  0.4753 0.5005    0     0    0    1    1
+AGE                             223     NaN           NaN   NaN   29.72  5.559   16    26   30   34   47
+GRAVIDA                         223     NaN           NaN   NaN       2  1.433    1     1    1    2   10
+PARA                            223     NaN           NaN   NaN   1.422 0.9163    0     1    1    2    9
+HypertensiveDisorders           223     NaN           NaN   NaN 0.02691 0.1622    0     0    0    0    1
+MaternalDiabetes                223     NaN           NaN   NaN  0.1166 0.3217    0     0    0    0    1
+ModeDelivery                    223       2       VAGINAL   132     NaN    NaN  NaN   NaN  NaN  NaN  NaN
+FetalDistress                   223     NaN           NaN   NaN  0.3408  0.475    0     0    0    1    1
+ProlongedRupture                222     NaN           NaN   NaN  0.1847 0.3889    0     0    0    0    1
+Chorioamnionitis                222     NaN           NaN   NaN  0.5676 0.4965    0     0    1    1    1
+Sepsis                          223       3  NEG CULTURES   140     NaN    NaN  NaN   NaN  NaN  NaN  NaN
+GestationalAge                  223     NaN           NaN   NaN   39.67  1.305   36 39.05 40.1 40.5   42
+Gender                          223       2             M   130     NaN    NaN  NaN   NaN  NaN  NaN  NaN
+BirthWeight                     223     NaN           NaN   NaN   3.442 0.4935 1.94 3.165 3.44 3.81 4.63
+APGAR1                          223     NaN           NaN   NaN   4.175  2.133    0     2    4    6    7
+APGAR5                          223     NaN           NaN   NaN   7.278  1.707    0     7    8    8    9
+MeconiumConsistency             223       2         THICK   127     NaN    NaN  NaN   NaN  NaN  NaN  NaN
+PPV                             223     NaN           NaN   NaN   0.722  0.449    0     0    1    1    1
+EndotrachealSuction             223     NaN           NaN   NaN  0.3901 0.4889    0     0    0    1    1
+MeconiumRecovered               223     NaN           NaN   NaN   0.148 0.3559    0     0    0    0    1
+CardiopulmonaryResuscitation    223     NaN           NaN   NaN 0.03139 0.1748    0     0    0    0    1
+ReasonAdmission                 223       3          RESP   138     NaN    NaN  NaN   NaN  NaN  NaN  NaN
+RespiratoryReasonAdmission      223     NaN           NaN   NaN  0.6188 0.4868    0     0    1    1    1
+RespiratoryDistressSyndrome     223     NaN           NaN   NaN 0.09865 0.2989    0     0    0    0    1
+TransientTachypnea              223     NaN           NaN   NaN  0.3049 0.4614    0     0    0    1    1
+MeconiumAspirationSyndrome      223     NaN           NaN   NaN  0.2018 0.4022    0     0    0    0    1
+OxygenTherapy                   223     NaN           NaN   NaN  0.4439  0.498    0     0    0    1    1
+MechanicalVentilation           223     NaN           NaN   NaN  0.1839 0.3882    0     0    0    0    1
+Surfactant                      223     NaN           NaN   NaN 0.02691 0.1622    0     0    0    0    1
+Pneumothorax                    223     NaN           NaN   NaN  0.1345  0.342    0     0    0    0    1
+AntibioticsDuration             223     NaN           NaN   NaN   2.769  3.273    0   1.5    2    3   21
+Breastfeeding                   223     NaN           NaN   NaN  0.6771 0.4686    0     0    1    1    1
+LengthStay                      223     NaN           NaN   NaN   7.731  7.462    2     4    5    8   56
+SNAPPE\_II\_SCORE                 222     NaN           NaN   NaN   18.44  14.45    0  8.25   18 24.5   78
+\# Categorical Variables
+Column: ModeDelivery \textbar{} Most common value: VAGINAL
+Column: Sepsis \textbar{} Most common value: NEG CULTURES
+Column: Gender \textbar{} Most common value: M
+Column: MeconiumConsistency \textbar{} Most common value: THICK
+Column: ReasonAdmission \textbar{} Most common value: RESP
+
+\# Missing Values
+PrePost                         0
+AGE                             0
+GRAVIDA                         0
+PARA                            0
+HypertensiveDisorders           0
+MaternalDiabetes                0
+ModeDelivery                    0
+FetalDistress                   0
+ProlongedRupture                1
+Chorioamnionitis                1
+Sepsis                          0
+GestationalAge                  0
+Gender                          0
+BirthWeight                     0
+APGAR1                          0
+APGAR5                          0
+MeconiumConsistency             0
+PPV                             0
+EndotrachealSuction             0
+MeconiumRecovered               0
+CardiopulmonaryResuscitation    0
+ReasonAdmission                 0
+RespiratoryReasonAdmission      0
+RespiratoryDistressSyndrome     0
+TransientTachypnea              0
+MeconiumAspirationSyndrome      0
+OxygenTherapy                   0
+MechanicalVentilation           0
+Surfactant                      0
+Pneumothorax                    0
+AntibioticsDuration             0
+Breastfeeding                   0
+LengthStay                      0
+SNAPPE\_II\_SCORE                 1
+\# Special Numeric Values Representing Unknown/Undefined
+\# Not Applicable
+\end{codeoutput}
+
+\section{Data Analysis}
+\subsection{{Code}}
+The Data Analysis was carried out using the following custom code:
+
+\begin{python}
+
+# IMPORT
+import pandas as pd
+import pickle
+from scipy.stats import chi2_contingency
+from scipy.stats import ttest_ind
+
+# LOAD DATA
+data = pd.read_csv("meconium_nicu_dataset_preprocessed_short.csv")
+
+# DATASET PREPARATIONS
+# No dataset preparations are needed.
+
+# DESCRIPTIVE STATISTICS
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-0-pkl}{}}@*)## Table 0: "Mean and Std dev of APGAR scores and SNAPPE_II_SCORE stratified by pre and post policy"
+columns = ['APGAR1', 'APGAR5', 'SNAPPE_II_SCORE']
+grouped_data = data.groupby('PrePost')[columns]
+mean = grouped_data.mean().add_suffix('_mean').round(2)
+std = grouped_data.std().add_suffix('_std').round(2)
+df0 = pd.concat([mean, std], axis=1, sort=False)
+df0.index.rename("Group: 0= Pre 2015, 1= Post 2015", inplace=True)
+df0.index = df0.index.astype(str) 
+
+df0.to_pickle('table_0.pkl')
+
+# PREPROCESSING
+# No preprocessing is needed because our data are already suitable for the analysis.
+
+# ANALYSIS
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-1-pkl}{}}@*)## Table 1: "Association between treatments and change in policy using Chi-square test"
+treatment_columns = ['PPV', 'EndotrachealSuction', 'MeconiumRecovered']
+chisq_results = []
+for column in treatment_columns:
+    contingency = pd.crosstab(data['PrePost'], data[column])
+    result = chi2_contingency(contingency)
+    chisq_results.append({'Treatment': column, 'Chi2': result.statistic, 'p_value': result.pvalue})
+df1 = pd.DataFrame(chisq_results)
+df1 = df1.set_index('Treatment').round(2)
+df1.to_pickle('table_1.pkl')
+
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-2-pkl}{}}@*)## Table 2: "Difference in APGAR scores between pre and post intervention groups using independent t-test"
+outcome_columns = ['APGAR1', 'APGAR5']
+groups = [data.loc[data['PrePost'] == 0], data.loc[data['PrePost'] == 1]]
+ttest_results = []
+for column in outcome_columns:
+    result = ttest_ind(groups[0][column], groups[1][column], nan_policy='omit')
+    ttest_results.append({'Outcome': column, 'T_statistic': result.statistic, 'p_value': result.pvalue})
+df2 = pd.DataFrame(ttest_results)
+df2 = df2.set_index('Outcome').round(2)
+df2.to_pickle('table_2.pkl')
+
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-additional-results-pkl}{}}@*)# SAVE ADDITIONAL RESULTS
+additional_results = {
+    'Total number of observations': len(data),
+}
+with open('additional_results.pkl', 'wb') as f:
+    pickle.dump(additional_results, f)
+
+\end{python}
+
+\subsection{Code Description}
+
+The purpose of this code is to perform data analysis on a dataset related to the Neonatal Resuscitation Program (NRP) guidelines. The dataset consists of information about non-vigorous newborns and their clinical outcomes pre- and post- implementation of the new NRP guidelines in 2015. 
+
+The code starts by loading the dataset and then proceeds with descriptive statistics and data preparations. 
+
+For descriptive statistics, the code computes the mean and standard deviation of the APGAR scores (APGAR1 and APGAR5) and the SNAPPE\_II\_SCORE, stratified by pre- and post-policy groups. The results are stored in "table\_0.pkl".
+
+Next, the code performs an analysis on the association between treatments (PPV, EndotrachealSuction, MeconiumRecovered) and the change in policy using the Chi-square test. It calculates the chi-square statistic and p-value for each treatment and stores the results in "table\_1.pkl".
+
+The code also investigates the difference in APGAR scores (APGAR1 and APGAR5) between the pre- and post-intervention groups using an independent t-test. It computes the t-statistic and p-value for each outcome and stores the results in "table\_2.pkl".
+
+Additionally, the code saves some additional results in the "additional\_results.pkl" file. This includes the total number of observations in the dataset.
+
+Overall, this code provides insights into the effects of the NRP guideline change on neonatal treatments and outcomes by conducting statistical analyses on the dataset.
+
+\subsection{Code Output}\hypertarget{file-table-0-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-table-0-pkl}{table\_0.pkl}}
+
+\begin{codeoutput}
+                                  APGAR1\_mean  APGAR5\_mean  SNAPPE\_II\_SCORE\_mean  APGAR1\_std  APGAR5\_std  SNAPPE\_II\_SCORE\_std
+Group: 0= Pre 2015, 1= Post 2015                                                                                             
+0                                        4.34          7.4                 18.44        1.98        1.47                14.63
+1                                        3.99         7.14                 18.43        2.28        1.93                14.33
+\end{codeoutput}\hypertarget{file-table-1-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-table-1-pkl}{table\_1.pkl}}
+
+\begin{codeoutput}
+                     Chi2   p\_value
+Treatment                          
+PPV                  0.82     0.365
+EndotrachealSuction 50.52  1.18e-12
+MeconiumRecovered   21.18  4.19e-06
+\end{codeoutput}\hypertarget{file-table-2-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-table-2-pkl}{table\_2.pkl}}
+
+\begin{codeoutput}
+         T\_statistic p\_value
+Outcome                     
+APGAR1          1.23    0.22
+APGAR5          1.14   0.257
+\end{codeoutput}\hypertarget{file-additional-results-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-additional-results-pkl}{additional\_results.pkl}}
+
+\begin{codeoutput}
+{
+    'Total number of observations': (*@\raisebox{2ex}{\hypertarget{R0a}{}}@*)223,
+}
+\end{codeoutput}
+
+\section{LaTeX Table Design}
+\subsection{{Code}}
+The LaTeX Table Design was carried out using the following custom code:
+
+\begin{python}
+
+# IMPORT
+import pandas as pd
+from my_utils import to_latex_with_note, is_str_in_df, split_mapping, AbbrToNameDef
+
+# PREPARATION FOR ALL TABLES
+shared_mapping: AbbrToNameDef = {
+    'std': ('Standard deviation (SD)', None),
+    'mean': ('Mean', None),
+    'Chi2': ('Chi-sq stat', None), 
+    'p_value': ('p-value', None),
+    'T_statistic': ('T statistic', None),
+    'APGAR1': (None, '1 minute APGAR score: a standard measure of a newborn infants acclimatization to extrauterine life'),
+    'APGAR5': (None, '5 minutes APGAR score: a standard measure of a newborn infants progress in adapting to extrauterine life'),
+    'SNAPPE_II_SCORE': ('SNAPPE II score', 'The Score for Neonatal Acute Physiology with Perinatal Extension II'),
+    'PPV': ('PPV', 'Positive Pressure Ventilation performed?\n1: Yes, 0: No'),
+    'EndotrachealSuction': ('Endotracheal suction', 'Endotracheal suctioning performed?\n1: Yes, 0: No'),
+    'MeconiumRecovered': ('Meconium recovered', 'Was Meconium recovered?\n1: Yes, 0: No')
+}
+
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-0-tex}{}}@*)# TABLE 0
+df0 = pd.read_pickle('table_0.pkl')
+
+df0 = df0.T # Transpose the dataframe
+
+# RENAME ROWS AND COLUMNS
+mapping0 = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df0, k)) 
+mapping0 |= {
+    'APGAR1_mean': ('Mean of 1 min APGAR', None),
+    'APGAR1_std': ('SD of 1 min APGAR', None),
+    'APGAR5_mean': ('Mean of 5 min APGAR', None),
+    'APGAR5_std': ('SD of 5 min APGAR', None),
+    'SNAPPE_II_SCORE_mean': ('Mean of SNAPPE II', None),
+    'SNAPPE_II_SCORE_std': ('SD of SNAPPE II', None),
+}
+
+abbrs_to_names0, legend0 = split_mapping(mapping0)
+df0 = df0.rename(index=abbrs_to_names0)
+
+legend0.update({
+    '0': 'Before guidelines change',
+    '1': 'After guidelines change'
+})
+
+# SAVE AS LATEX
+to_latex_with_note(
+    df0, 'table_0.tex', 
+    caption="Mean and Standard deviation of APGAR scores and SNAPPE II score, stratified by guidelines change", 
+    label='table:change_in_policy_impact', 
+    legend=legend0)
+
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-1-tex}{}}@*)# TABLE 1
+df1 = pd.read_pickle('table_1.pkl')
+
+# RENAME ROWS AND COLUMNS
+mapping1 = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df1, k)) 
+
+abbrs_to_names1, legend1 = split_mapping(mapping1)
+df1 = df1.rename(columns=abbrs_to_names1, index=abbrs_to_names1)
+
+# SAVE AS LATEX
+to_latex_with_note(
+    df1, 'table_1.tex', 
+    caption="Association between treatments and change in policy using Chi-square test", 
+    label='table:association_tests', 
+    legend=legend1)
+
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-2-tex}{}}@*)# TABLE 2
+df2 = pd.read_pickle('table_2.pkl')
+
+# RENAME ROWS AND COLUMNS
+mapping2 = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df2, k))
+
+abbrs_to_names2, legend2 = split_mapping(mapping2)
+df2 = df2.rename(columns=abbrs_to_names2)
+
+# SAVE AS LATEX
+to_latex_with_note(
+    df2, 'table_2.tex', 
+    caption="Difference in APGAR scores between pre and post intervention groups using independent t-test", 
+    label='table:difference_tests', 
+    legend=legend2)
+
+
+\end{python}
+
+\subsection{Provided Code}
+The code above is using the following provided functions:
+
+\begin{python}
+def to_latex_with_note(df, filename: str, caption: str, label: str, note: str = None, legend: Dict[str, str] = None, **kwargs):
+    """
+    Converts a DataFrame to a LaTeX table with optional note and legend added below the table.
+
+    Parameters:
+    - df, filename, caption, label: as in `df.to_latex`.
+    - note (optional): Additional note below the table.
+    - legend (optional): Dictionary mapping abbreviations to full names.
+    - **kwargs: Additional arguments for `df.to_latex`.
+    """
+
+def is_str_in_df(df: pd.DataFrame, s: str):
+    return any(s in level for level in getattr(df.index, 'levels', [df.index]) + getattr(df.columns, 'levels', [df.columns]))
+
+AbbrToNameDef = Dict[Any, Tuple[Optional[str], Optional[str]]]
+
+def split_mapping(abbrs_to_names_and_definitions: AbbrToNameDef):
+    abbrs_to_names = {abbr: name for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if name is not None}
+    names_to_definitions = {name or abbr: definition for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if definition is not None}
+    return abbrs_to_names, names_to_definitions
+
+\end{python}
+
+
+
+\subsection{Code Output}
+
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-0-tex}{table\_0.tex}}
+
+\begin{codeoutput}
+\% This latex table was generated from: `table\_0.pkl`
+\begin{table}[h]
+\caption{Mean and Standard deviation of APGAR scores and SNAPPE II score, stratified by guidelines change}
+\label{table:change\_in\_policy\_impact}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{\%
+\begin{tabular}{lrr}
+\toprule
+Group: 0= Pre 2015, 1= Post 2015 \& 0 \& 1 \\
+\midrule
+\textbf{Mean of 1 min APGAR} \& 4.34 \& 3.99 \\
+\textbf{Mean of 5 min APGAR} \& 7.4 \& 7.14 \\
+\textbf{Mean of SNAPPE II} \& 18.4 \& 18.4 \\
+\textbf{SD of 1 min APGAR} \& 1.98 \& 2.28 \\
+\textbf{SD of 5 min APGAR} \& 1.47 \& 1.93 \\
+\textbf{SD of SNAPPE II} \& 14.6 \& 14.3 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{0}: Before guidelines change
+\item \textbf{1}: After guidelines change
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+\end{codeoutput}
+
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-1-tex}{table\_1.tex}}
+
+\begin{codeoutput}
+\% This latex table was generated from: `table\_1.pkl`
+\begin{table}[h]
+\caption{Association between treatments and change in policy using Chi-square test}
+\label{table:association\_tests}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{\%
+\begin{tabular}{lrl}
+\toprule
+ \& Chi-sq stat \& p-value \\
+Treatment \&  \&  \\
+\midrule
+\textbf{PPV} \& 0.82 \& 0.365 \\
+\textbf{Endotracheal suction} \& 50.5 \& \$$<$\$1e-06 \\
+\textbf{Meconium recovered} \& 21.2 \& 4.19e-06 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{PPV}: Positive Pressure Ventilation performed?
+1: Yes, 0: No
+\item \textbf{Endotracheal suction}: Endotracheal suctioning performed?
+1: Yes, 0: No
+\item \textbf{Meconium recovered}: Was Meconium recovered?
+1: Yes, 0: No
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+\end{codeoutput}
+
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-2-tex}{table\_2.tex}}
+
+\begin{codeoutput}
+\% This latex table was generated from: `table\_2.pkl`
+\begin{table}[h]
+\caption{Difference in APGAR scores between pre and post intervention groups using independent t-test}
+\label{table:difference\_tests}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{\%
+\begin{tabular}{lrl}
+\toprule
+ \& T statistic \& p-value \\
+Outcome \&  \&  \\
+\midrule
+\textbf{APGAR1} \& 1.23 \& 0.22 \\
+\textbf{APGAR5} \& 1.14 \& 0.257 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{APGAR1}: 1 minute APGAR score: a standard measure of a newborn infant's acclimatization to extrauterine life
+\item \textbf{APGAR5}: 5 minutes APGAR score: a standard measure of a newborn infant's progress in adapting to extrauterine life
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+\end{codeoutput}
+
+\end{document}
