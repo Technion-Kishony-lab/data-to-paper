@@ -1,0 +1,17 @@
+## Statistical considerations:
+### Confounding variables:
+We should account for potential confounding variables, such as maternal age, gravidity, parity, gestational age, and other relevant variables that may impact neonatal treatment and outcomes. These variables can be included as covariates in the statistical tests.
+### Multiple comparisons:
+Since we are testing multiple hypotheses, we need to adjust for multiple comparisons. We can use Bonferroni correction or another appropriate method to control the familywise error rate.
+
+## Hypotheses:
+### Hypothesis:
+Change in treatment policy lead to change in treatments
+### Test:
+To test this hypothesis, we can perform a chi-square test of independence to compare the distribution of treatments (e.g., PPV, endotracheal suction, meconium recovered) between the pre-guideline and post-guideline groups.
+
+### Hypothesis:
+The change in treatment policy improved neonatal outcome
+### Test:
+To test this hypothesis, we can compare neonatal outcomes (e.g., duration of stay, APGAR scores) between the pre-guideline and post-guideline groups using appropriate statistical tests. For continuous outcomes, we can use t-tests or Mann-Whitney U test if the distribution is not normal. For categorical outcomes, we can use chi-square test or Fisher's exact test if any expected cell count is less than 5.
+

@@ -1,0 +1,6 @@
+Research goal:
+Examining the impact of guideline change on neonatal treatment and outcomes.
+
+Hypothesis:
+- Change in treatment policy lead to change in treatments.
+- The change in treatment policy improved neonatal outcome, measured by duration of stay, apgar scores, etc.
