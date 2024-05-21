@@ -64,8 +64,8 @@ RUN_PARAMETERS = {
     'default': [HypothesisTestingStepsRunner, None],
 
     # Specific demo datasets
-    'diabetes': [HypothesisTestingStepsRunner, 'diabetes/diabetes_open_goal'],
-    'nrp_nicu': [HypothesisTestingStepsRunner, 'nrp_nicu/nrp_nicu_fixed_goal'],
+    'diabetes': [HypothesisTestingStepsRunner, 'diabetes/open_goal'],
+    'nrp_nicu': [HypothesisTestingStepsRunner, 'nrp_nicu/fixed_goal'],
 
     # Toy example of a two-step research process:
     'toy': [ToyStepsRunner, 'toy_example/prime_numbers'],
