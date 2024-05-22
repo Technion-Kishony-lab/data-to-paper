@@ -10,10 +10,8 @@ To run a project, use one of these syntaxes:
 
 2. To a run a project with one of the example datasets:
     `python run.py <project_name>`
-    Or,
-    `python run.py --project <project_name>`
     where <project_name> is one of:
-        - default: Hypothesis testing - interactive setup (same as without the --project argument)
+        - default: Hypothesis testing - interactive setup (same as running without a project name)
         - diabetes: Hypothesis testing - diabetes dataset with an open research goal
         - nrp_nicu: Hypothesis testing - NRP NICU dataset with a predefined research goal
         - toy: Toy example of a simple two-step research process
