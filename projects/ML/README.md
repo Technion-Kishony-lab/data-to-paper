@@ -4,7 +4,7 @@ A dataset of pediatric patients, which received mechanical ventilation after und
 ### Source
 Dataset and research goal are based on:
 
-**Shim J,Ryu K,Lee SH,Cho E,Lee S,Ahn JH (2021)** <br>
+**Shim J, Ryu K, Lee SH, Cho E,Lee S, Ahn JH (2021)** <br>
 "Machine learning model for predicting the optimal depth of tracheal tube insertion in pediatric patients: A retrospective cohort study",
 *PLoS One 2021 * 16(9): [e0257069](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0257069)
 
