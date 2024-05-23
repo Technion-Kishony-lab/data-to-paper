@@ -1,0 +1,27 @@
+This json file provides a sparse representation of the interaction matrix between members of the 115th US Congress on Twitter.
+Downloaded from: `https://snap.stanford.edu/data/congress-twitter`
+
+The file is a json dictionary with the following keys:
+
+`outList`: list of lists such that outList[j] is a list of all nodes i engaged by j (P[i,j] > 0).
+`outWeight`: The corresponding weights, P[i,j], for the connections in outList
+
+Example file (for a network of n=4 nodes):
+```json
+{
+"outList": [[1, 2], [0, 2, 3], [], [2]],
+"outWeight": [[0.2, 0.1], [0.1, 0.2, 0.1], [], [0.2]],
+"usernameList": ["user0", "user1", "user2", "user3"]
+}
+```
+
+IMPORTANT NOTE: The network uses a sparse matrix representation, storing only non-zero entries.
+Namely, for a given node j:
+
+- `len(outList[j])`: Out-degree of node j (number of members engaged by j).
+
+- `sum(outWeight[j])`: Total engagement of member j with other members (the fraction of all Tweets of member j that are engaging with Congress members).
+
+- `sum(outWeight[j]) / (n - 1)`: Average engagement of member j with all other members (excluding self-engagement).
+
+- `mean(outWeight[j])`: Average engagement of member j with only those members with whom j engages at all. Note: this is NOT the average engagement of member j with all members, which is provided by the sum instead.
