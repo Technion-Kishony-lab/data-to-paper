@@ -75,7 +75,7 @@ Try out: `python run.py diabetes`
 * **Social Network (open goal).** A directed graph of Twitter interactions among the 117th Congress members
   ([Fink et al](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10493874/)). Here is an [example Paper](https://github.com/rkishony/data-to-paper-supplementary/blob/main/Supplementary%20Data-chained%20Manuscripts/Supplementary%20Data-chained%20Manuscript%20B.pdf) created by data-to paper.
 
-  Branch: `examples/congress_social_network`
+Try out: `python run.py social_network`
 
 
 * **Treatment Policy (fixed-goal).** A dataset on treatment and outcomes of non-vigorous infants admitted to the Neonatal Intensive Care Unit (NICU), before and after a change to treatment guidelines was implemented
@@ -86,7 +86,15 @@ Try out: `python run.py npr_nicu`
 * **Treatment Optimization (fixed-goal).** A dataset of pediatric patients, which received mechanical ventilation after undergoing surgery, including an x-ray-based determination of the optimal tracheal tube intubation depth and a set of personalized patient attributes to be used in machine learning and formula-based models to predict this optimal depth
   ([Shim et al](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0257069)). Here is an [example Paper](https://github.com/rkishony/data-to-paper-supplementary/blob/main/Supplementary%20Data-chained%20Manuscripts/Supplementary%20Data-chained%20Manuscript%20D.pdf) created by data-to paper.
 
-  Branch: `examples/tube_levels`
+We defined three levels of difficulty for the research question for this paper.  
+1. **easy**: Compare two ML methods for predicting optimal intubation depth  
+Try out: `python run.py ML_easy`  
+  
+2. **medium**: Compare one ML method and one formula-based method for predicting optimal intubation depth  
+Try out: `python run.py ML_medium`  
+ 
+3. **hard**: Compare 4 ML methods with 3 formula-based methods for predicting optimal intubation depth  
+Try out: `python run.py ML_hard`
 
 ### Contributing
 We invite people to try out **data-to-paper** with their own data and are eager for feedback and suggestions.
