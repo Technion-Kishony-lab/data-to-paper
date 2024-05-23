@@ -1,134 +1,19 @@
 from functools import partial
 from typing import Optional, List, Collection, Dict, Callable, Any, Union
 
+from PySide6.QtCore import Qt, QMutex, QWaitCondition, QThread, Signal, Slot
 from PySide6.QtGui import QTextOption, QTextCursor
 from PySide6.QtWidgets import QMainWindow, QVBoxLayout, QLabel, QPushButton, QWidget, \
     QHBoxLayout, QSplitter, QTextEdit, QTabWidget, QDialog, QSizePolicy, QCheckBox, QSpacerItem
-from PySide6.QtCore import Qt, QMutex, QWaitCondition, QThread, Signal, Slot
-
-from pygments.formatters.html import HtmlFormatter
 
 from data_to_paper.conversation.stage import Stage
 from data_to_paper.interactive.base_app import BaseApp
 from data_to_paper.interactive.enum_types import PanelNames
 from data_to_paper.interactive.get_app import get_or_create_q_application_if_app_is_pyside
+from data_to_paper.interactive.styles import CURRENT_STEP_COLOR, SUBMIT_BUTTON_COLOR, PANEL_HEADER_COLOR, QEDIT_STYLE, \
+    STEP_PANEL_BUTTON_STYLE, BACKGROUND_COLOR, CSS, APP_STYLE, TABS_STYLE, HTMLPOPUP_STYLE, \
+    MAIN_SPLITTER_STYLE, QCHECKBOX_STYLE
 from data_to_paper.interactive.utils import open_file_on_os
-
-MAKE_IT_UGLY_IN_MAC_BUT_MORE_CONSISTENT_ACROSS_OS = True
-
-CSS = '''
-.runtime_error {
-    color: red;
-    font-family: Consolas, 'Courier New', monospace; font-size: 14px;
-}
-.markdown {
-    font-family: Arial, sans-serif;
-    font-size: 14px;
-    color: white;
-    overflow-wrap: break-word; /* Allows the words to break and wrap onto the next line */
-    word-wrap: break-word; /* Older syntax, similar to overflow-wrap */
-    white-space: normal; /* Overrides pre to allow wrapping */
-    margin-bottom: 0.5em;
-}
-.codeline {
-    font-family: Consolas, 'Courier New', monospace;
-}
-h1 {
-    color: #0066cc;
-    font-size: 18px;
-}
-h2 {
-    color: #0099cc;
-    font-size: 16px;
-}
-h3 {
-    color: #00cccc;
-    font-size: 14px;
-}
-li {
-    margin-left: 20px;
-    padding-left: 0;
-    list-style-type: disc;
-    margin-bottom: 0.5em;
-}
-'''
-
-PANEL_HEADER_COLOR = "#0077cc"  # dark blue
-CURRENT_STEP_COLOR = '#005599'  # darker blue
-SUBMIT_BUTTON_COLOR = '#008000'  # dark green
-
-BACKGROUND_COLOR = "#151515"
-APP_BACKGROUND_COLOR = "#303030"
-
-formatter = HtmlFormatter(style="monokai")
-css = formatter.get_style_defs('.highlight')
-additional_css = ".highlight, .highlight pre { background: " + BACKGROUND_COLOR + "; }"
-
-# combine the CSS with the additional CSS:
-CSS += css + additional_css
-
-
-APP_STYLE = """
-QMainWindow {
-   background-color: black;
-}
-QScrollBar:vertical {
-   border: 1px solid #999999;
-   background: black;
-   width: 10px;  # Adjust width for the vertical scrollbar
-   margin: 0px 0px 0px 0px;
-}
-QScrollBar::handle:vertical {
-   min-height: 10px;
-   background-color: gray;  # Handle color
-}
-QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
-   background: none;  # Remove the arrows at the ends
-}
-QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
-   background: none;
-}
-QScrollBar:horizontal {
-   border: 1px solid #999999;
-   background: black;
-   height: 10px;  # Adjust height for the horizontal scrollbar
-   margin: 0px 0px 0px 0px;
-}
-QScrollBar::handle:horizontal {
-   min-width: 10px;
-   background-color: gray;  # Handle color
-}
-QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
-   background: none;  # Remove the arrows at the ends
-}
-QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {
-   background: none;
-}
-""".replace('black', APP_BACKGROUND_COLOR)
-
-TABS_STYLE = """
-QTabWidget::pane { /* The tab widget frame */
-    border-top: 2px solid #202020;
-}
-
-QTabBar::tab {
-    background-color: #303030;
-    color: white;
-    border: 2px solid #505050; /* Visible borders around tabs */
-    border-bottom-color: #303030; /* Same as background to merge with the tab pane */
-    padding: 5px; /* Spacing within the tabs */
-}
-
-QTabBar::tab:selected {
-    background-color: #505050;
-    border-color: #606060; /* Slightly lighter border to highlight the selected tab */
-    border-bottom-color: #505050; /* Merge with the tab pane */
-}
-
-QTabBar::tab:hover {
-    background-color: #404040; /* Slightly lighter to indicate hover state */
-}
-"""
 
 
 def _get_label_height(label: QLabel) -> int:
@@ -220,17 +105,6 @@ class Worker(QThread):
         self.mutex.unlock()
 
 
-STEP_PANEL_BUTTON_STYLE = """
-QPushButton {{
-    background-color: {background_color};
-    border-radius: 5px;
-}}
-QPushButton:pressed {{
-    background-color: {pressed_color};
-}}
-"""
-
-
 class StepsPanel(QWidget):
     def __init__(self):
         super().__init__()
@@ -315,15 +189,6 @@ class Panel(QWidget):
         pass
 
 
-qedit_style = """
-QTextEdit {
-    color: red;  /* Color for the actual text */
-    background-color: """ + BACKGROUND_COLOR + """;
-    font-size: 14px;
-}
-"""
-
-
 class EditableTextPanel(Panel):
     def __init__(self, header: str, header_right: Optional[str] = None,
                  suggestion_button_names: Optional[Collection[str]] = None):
@@ -337,7 +202,7 @@ class EditableTextPanel(Panel):
         self.text_edit = QTextEdit()
         self.text_edit.setWordWrapMode(QTextOption.WrapMode.WrapAtWordBoundaryOrAnywhere)
         # self.text_edit.setFontPointSize(14)
-        self.text_edit.setStyleSheet(qedit_style)
+        self.text_edit.setStyleSheet(QEDIT_STYLE)
 
         self.text_edit.setReadOnly(True)
         self.layout.addWidget(self.text_edit)
@@ -372,8 +237,7 @@ class EditableTextPanel(Panel):
             self.suggestion_buttons.append(button)
         self._set_buttons_visibility(False)
 
-        if MAKE_IT_UGLY_IN_MAC_BUT_MORE_CONSISTENT_ACROSS_OS:
-            self.setStyleSheet("color: white;")
+        # self.setStyleSheet("color: white;")
 
     def _set_buttons_visibility(self, visible: bool):
         self.submit_button.setVisible(visible)
@@ -466,15 +330,12 @@ class HtmlPopup(QDialog):
         layout.addWidget(label)
 
         # QPushButton to close the dialog
-        close_button = QPushButton("Close")
-        if MAKE_IT_UGLY_IN_MAC_BUT_MORE_CONSISTENT_ACROSS_OS:
-            close_button.setStyleSheet('QPushButton {background-color: #E3E0DA; color:' + BACKGROUND_COLOR + ';}')
-        close_button.clicked.connect(self.close)
-        layout.addWidget(close_button)
+        self.close_button = QPushButton("Close")
+        self.close_button.clicked.connect(self.close)
+        layout.addWidget(self.close_button)
 
         self.setLayout(layout)
-        if MAKE_IT_UGLY_IN_MAC_BUT_MORE_CONSISTENT_ACROSS_OS:
-            self.setStyleSheet("background-color: " + BACKGROUND_COLOR + ";")
+        self.setStyleSheet(HTMLPOPUP_STYLE)
         self.resize(800, 600)
 
 
@@ -496,8 +357,8 @@ class PysideApp(QMainWindow, BaseApp):
         self.popups = set()
 
         self.panels = {
-            PanelNames.SYSTEM_PROMPT: EditableTextPanel("System Prompt", "", ("Default", )),
-            PanelNames.MISSION_PROMPT: EditableTextPanel("Mission Prompt", "", ("Default", )),
+            PanelNames.SYSTEM_PROMPT: EditableTextPanel("System Prompt", "", ("Default",)),
+            PanelNames.MISSION_PROMPT: EditableTextPanel("Mission Prompt", "", ("Default",)),
             PanelNames.RESPONSE: EditableTextPanel("Response", "", ()),
             PanelNames.PRODUCT: EditableTextPanel("Product", "", ()),
             PanelNames.FEEDBACK: EditableTextPanel("Feedback", "", ("AI Review", "No comments")),
@@ -542,6 +403,7 @@ class PysideApp(QMainWindow, BaseApp):
         self.bypass_continue_checkbox.setToolTip(
             "When unchecked, a user 'Continue' approval is required for each LLM iteration.\n"
             "When checked, the app only stops where explicit user choices are required.")
+        self.bypass_continue_checkbox.setStyleSheet(QCHECKBOX_STYLE)
         check_boxes.addWidget(self.bypass_continue_checkbox)
 
         # Bypass-mission prompt checkbox:
@@ -550,6 +412,7 @@ class PysideApp(QMainWindow, BaseApp):
         self.bypass_mission_prompt_checkbox.setToolTip(
             "When unchecked, user can edit each mission prompt.\n"
             "When checked, the default mission prompt is automatically used.")
+        self.bypass_mission_prompt_checkbox.setStyleSheet(QCHECKBOX_STYLE)
         check_boxes.addWidget(self.bypass_mission_prompt_checkbox)
 
         # Splitter with the text panels
@@ -562,10 +425,7 @@ class PysideApp(QMainWindow, BaseApp):
         # Add the panels to the splitters (the top-right panel is a tab widget)
         self.tabs = create_tabs({'Response': self.panels[PanelNames.RESPONSE],
                                  'Product': self.panels[PanelNames.PRODUCT]})
-        if MAKE_IT_UGLY_IN_MAC_BUT_MORE_CONSISTENT_ACROSS_OS:
-            self.tabs.setStyleSheet(TABS_STYLE)
-        else:
-            self.tabs.setStyleSheet("QTabBar::tab { color: white; }")
+        self.tabs.setStyleSheet(TABS_STYLE)
         left_splitter.addWidget(self.panels[PanelNames.SYSTEM_PROMPT])
         left_splitter.addWidget(self.panels[PanelNames.MISSION_PROMPT])
         right_splitter.addWidget(self.tabs)
@@ -573,14 +433,7 @@ class PysideApp(QMainWindow, BaseApp):
         left_splitter.setSizes([100, 500])
         right_side.setStretchFactor(main_splitter, 1)
 
-        if MAKE_IT_UGLY_IN_MAC_BUT_MORE_CONSISTENT_ACROSS_OS:
-            main_splitter.setStyleSheet("""
-                QSplitter::handle {
-                    width: 1px;
-                    background-color: #202020;
-                }
-            """)
-
+        main_splitter.setStyleSheet(MAIN_SPLITTER_STYLE)
         right_side.addWidget(main_splitter)
 
         self.layout.addLayout(right_side)
