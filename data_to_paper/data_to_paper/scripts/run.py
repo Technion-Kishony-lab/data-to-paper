@@ -13,7 +13,11 @@ To run a project, use one of these syntaxes:
     where <project_name> is one of:
         - default: Hypothesis testing - interactive setup (same as running without a project name)
         - diabetes: Hypothesis testing - diabetes dataset with an open research goal
+        - social_network: Hypothesis testing - social network dataset with an open research goal
         - nrp_nicu: Hypothesis testing - NRP NICU dataset with a predefined research goal
+        - ML_easy: ML Treatment Optimization dataset with a predefined research goal (easy)
+        - ML_medium: ML Treatment Optimization dataset with a predefined research goal (medium)
+        - ML_hard: ML Treatment Optimization dataset with a predefined research goal (difficult)
         - toy: Toy example of a simple two-step research process
 
 3. Run a custom project:
@@ -64,6 +68,11 @@ RUN_PARAMETERS = {
     # Specific demo datasets
     'diabetes': [HypothesisTestingStepsRunner, 'diabetes/open_goal'],
     'nrp_nicu': [HypothesisTestingStepsRunner, 'nrp_nicu/fixed_goal'],
+    'network': [HypothesisTestingStepsRunner, 'social/open_goal'],
+    'ML_hard': [HypothesisTestingStepsRunner, 'ML/fixed_goal_hard'],
+    'ML_medium': [HypothesisTestingStepsRunner, 'ML/fixed_goal_medium'],
+    'ML_easy': [HypothesisTestingStepsRunner, 'ML/fixed_goal_easy'],
+    'social_network': [HypothesisTestingStepsRunner, 'social/open_goal'],
 
     # Toy example of a two-step research process:
     'toy': [ToyStepsRunner, 'toy_example/prime_numbers'],
