@@ -7,5 +7,5 @@
     ],
     "research_goal": null,
     "should_do_data_exploration": true,
-    "project_specific_goal_guidelines": "* Avoid choosing politically sided goals. ' \\\n            'For example, do NOT choose a goal like \"Democrats are more/less engaged than Republicans\"\\n\\n"
+    "project_specific_goal_guidelines": "* Avoid choosing politically sided goals. \nFor example, do NOT choose a goal like \"Democrats are more/less engaged than Republicans\"\n"
 }
