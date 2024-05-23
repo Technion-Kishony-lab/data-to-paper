@@ -20,6 +20,9 @@ setup(
         'Programming Language :: Python',
         'Operating System :: OS Independent',
     ],
+    scripts=[
+        'data_to_paper/scripts/run.py',
+    ],
     name="data_to_paper",
     version='0.1.0',
     python_requires='>=3.9',

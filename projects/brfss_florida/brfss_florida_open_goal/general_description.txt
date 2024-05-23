@@ -1,3 +1,0 @@
-The dataset includes demographic variables and diabetes and prediabetes related factors as extracted from the Behavioral Risk Factor Surveillance System 2019 (BRFSS, 2019) in Florida state (state 12 in the BRFSS).
-The original BRFSS, from which this dataset is derived, is a health-related telephone survey that is collected annually by the CDC.
-Each year, the survey collects responses from over 400,000 Americans on health-related risk behaviors, chronic health conditions, and the use of preventative services. These features are either questions directly asked of participants, or calculated variables based on individual participant responses.

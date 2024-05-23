@@ -492,8 +492,9 @@ class BaseStartDialog(QDialog):
                                                                                      add_default_parameters=False)
         self.current_config = config
         self._convert_config_to_widgets(config)
-        run_folder = project_directory / 'runs'
-        self._lock_project_for_editing(disable=run_folder.exists())
+        runs_folder = project_directory / 'runs'
+        is_previous_runs = runs_folder.exists() and list(runs_folder.iterdir())
+        self._lock_project_for_editing(disable=is_previous_runs)
 
     def _convert_config_to_widgets(self, config):
         pass

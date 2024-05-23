@@ -51,7 +51,7 @@ See [INSTALL.md](INSTALL.md) for installation instructions.
 ### How to run
 1. Install data-to-paper ([INSTALL](INSTALL.md)).
 2. Run data-to-paper:
-      ```python data_to_paper/data_to_paper/run/run.py```
+      `python data_to_paper/data_to_paper/run/run.py`
 3. This will open a startup dialog that will allow you to specify your own project, 
 or to reproduce example projects (`data-to-paper/projects`) 
 4. Click "Start" to start the run, with human overseeing and feedback.
@@ -65,11 +65,12 @@ https://github.com/Technion-Kishony-lab/data-to-paper/assets/65530510/878865a7-4
 
 We ran **data-to-paper** on the following test cases:
 
-* **Health Indicators (open goal).** A clean unweighted subset of CDC’s Behavioral Risk Factor Surveillance System (BRFSS) 2015 annual dataset 
+* **Health Indicators (open goal).** A clean unweighted subset of 
+CDC’s Behavioral Risk Factor Surveillance System (BRFSS) 2015 annual dataset 
   ([Kaggle](https://www.kaggle.com/datasets/alexteboul/diabetes-health-indicators-dataset)). Here is an [example Paper](https://github.com/rkishony/data-to-paper-supplementary/blob/main/Supplementary%20Data-chained%20Manuscripts/Supplementary%20Data-chained%20Manuscript%20A.pdf) created by data-to paper.
- 
-  Branch: `examples/diabetes`
-  
+
+Try out: `python run.py diabetes`
+
 
 * **Social Network (open goal).** A directed graph of Twitter interactions among the 117th Congress members
   ([Fink et al](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10493874/)). Here is an [example Paper](https://github.com/rkishony/data-to-paper-supplementary/blob/main/Supplementary%20Data-chained%20Manuscripts/Supplementary%20Data-chained%20Manuscript%20B.pdf) created by data-to paper.
@@ -80,8 +81,7 @@ We ran **data-to-paper** on the following test cases:
 * **Treatment Policy (fixed-goal).** A dataset on treatment and outcomes of non-vigorous infants admitted to the Neonatal Intensive Care Unit (NICU), before and after a change to treatment guidelines was implemented
   ([Saint-Fleur et al](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0289945)). Here is an [example Paper](https://github.com/rkishony/data-to-paper-supplementary/blob/main/Supplementary%20Data-chained%20Manuscripts/Supplementary%20Data-chained%20Manuscript%20C.pdf) created by data-to paper.
 
-  Branch: `examples/nicu`
-
+Try out: `python run.py npr_nicu`
 
 * **Treatment Optimization (fixed-goal).** A dataset of pediatric patients, which received mechanical ventilation after undergoing surgery, including an x-ray-based determination of the optimal tracheal tube intubation depth and a set of personalized patient attributes to be used in machine learning and formula-based models to predict this optimal depth
   ([Shim et al](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0257069)). Here is an [example Paper](https://github.com/rkishony/data-to-paper-supplementary/blob/main/Supplementary%20Data-chained%20Manuscripts/Supplementary%20Data-chained%20Manuscript%20D.pdf) created by data-to paper.
