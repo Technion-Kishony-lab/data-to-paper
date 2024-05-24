@@ -18,6 +18,14 @@ CSS = '''
     white-space: normal; /* Overrides pre to allow wrapping */
     margin-bottom: 0.5em;
 }
+.tripled_quote {
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    color: #c0c0c0;
+    overflow-wrap: break-word; /* Allows the words to break and wrap onto the next line */
+    word-wrap: break-word; /* Older syntax, similar to overflow-wrap */
+    white-space: normal; /* Overrides pre to allow wrapping */
+}
 .codeline {
     font-family: Consolas, 'Courier New', monospace;
 }

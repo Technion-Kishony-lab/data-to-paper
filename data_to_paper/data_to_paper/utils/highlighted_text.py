@@ -187,7 +187,7 @@ def get_pre_html_format(text,
 def _block_to_html(text: str, label: Optional[str], with_tags: bool = True, **kwargs) -> str:
     if with_tags and label is not None:
         text = wrap_text_with_triple_quotes(text, label)
-    return get_pre_html_format(text, **kwargs)
+    return text_to_html(text, css_class='tripled_quote')
 
 
 def identity(text) -> str:
