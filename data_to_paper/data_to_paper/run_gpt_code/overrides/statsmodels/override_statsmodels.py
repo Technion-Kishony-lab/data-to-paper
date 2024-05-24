@@ -4,9 +4,9 @@ from typing import Iterable, Callable
 from dataclasses import dataclass
 
 from data_to_paper.env import TRACK_P_VALUES
-from ..attr_replacers import SystematicMethodReplacerContext, SystematicFuncReplacerContext, AttrReplacer
-from ..pvalue import convert_to_p_value, PValue, TrackPValueCreationFuncs
+from ...attr_replacers import SystematicMethodReplacerContext, SystematicFuncReplacerContext, AttrReplacer
 from ...run_issues import CodeProblem, RunIssue
+from ..pvalue import convert_to_p_value, PValue, TrackPValueCreationFuncs
 
 MULTITEST_FUNCS_AND_PVAL_INDEXES = [
     ('multipletests', 1),

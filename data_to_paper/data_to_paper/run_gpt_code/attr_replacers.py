@@ -8,9 +8,9 @@ import inspect
 
 from typing import Callable, Iterable, Any, Optional, Tuple, Dict, Union
 
-from ..base_run_contexts import RegisteredRunContext
-from ..exceptions import CodeUsesForbiddenFunctions
-from ..run_issues import CodeProblem, RunIssue
+from .base_run_contexts import RegisteredRunContext
+from .exceptions import CodeUsesForbiddenFunctions
+from .run_issues import CodeProblem, RunIssue
 
 
 def _carefully_get_members(module):

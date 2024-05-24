@@ -16,7 +16,7 @@ from data_to_paper.utils.file_utils import run_in_directory
 from data_to_paper.utils.types import ListBasedSet
 
 from .base_run_contexts import RunContext
-from .overrides.attr_replacers import PreventCalling
+from .attr_replacers import PreventCalling
 from .run_contexts import PreventFileOpen, PreventImport, WarningHandler, IssueCollector, \
     TrackCreatedFiles
 

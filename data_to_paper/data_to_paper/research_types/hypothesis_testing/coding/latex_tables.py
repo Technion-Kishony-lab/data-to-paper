@@ -23,7 +23,7 @@ from data_to_paper.research_types.hypothesis_testing.coding.utils_modified_for_g
     get_read_pickle_attr_replacer
 from data_to_paper.research_types.hypothesis_testing.scientific_products import HypertargetPrefix
 from data_to_paper.research_types.hypothesis_testing.coding.latex_table_debugger import LatexTablesDebuggerConverser
-from data_to_paper.run_gpt_code.overrides.attr_replacers import PreventAssignmentToAttrs, PreventCalling, AttrReplacer
+from data_to_paper.run_gpt_code.attr_replacers import PreventAssignmentToAttrs, PreventCalling, AttrReplacer
 from data_to_paper.run_gpt_code.overrides.pvalue import PValue, OnStr
 from data_to_paper.run_gpt_code.run_contexts import ProvideData
 from data_to_paper.run_gpt_code.run_issues import RunIssue, CodeProblem

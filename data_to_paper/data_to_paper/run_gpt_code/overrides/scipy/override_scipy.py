@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from typing import Iterable, Dict, Optional
 
 from data_to_paper.env import TRACK_P_VALUES
-from data_to_paper.run_gpt_code.overrides.attr_replacers import SystematicFuncReplacerContext
+from data_to_paper.run_gpt_code.attr_replacers import SystematicFuncReplacerContext
 
 from ..pvalue import convert_to_p_value, TrackPValueCreationFuncs
 from ..types import is_namedtuple, NoIterTuple

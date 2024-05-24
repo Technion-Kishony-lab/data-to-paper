@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import Iterable
 
 from data_to_paper.run_gpt_code.base_run_contexts import MultiRunContext
-from data_to_paper.run_gpt_code.overrides.attr_replacers import SystematicMethodReplacerContext, \
+from data_to_paper.run_gpt_code.attr_replacers import SystematicMethodReplacerContext, \
     PreventAssignmentToAttrs
 from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue
 from data_to_paper.utils import dedent_triple_quote_str
