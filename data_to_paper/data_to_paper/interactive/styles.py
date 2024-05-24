@@ -4,6 +4,14 @@ from pygments.formatters.html import HtmlFormatter
 
 ICON_PATH = os.path.join(os.path.dirname(__file__) + '/icons/')
 
+# Colors:
+CURRENT_STEP_COLOR = '#005599'  # darker blue
+PANEL_HEADER_COLOR = CURRENT_STEP_COLOR  # "#0077cc"  # dark blue
+EDIT_TEXT_COLOR = "#0077cc"  # light gray
+SUBMIT_BUTTON_COLOR = '#008000'  # dark green
+BACKGROUND_COLOR = "#151515"
+APP_BACKGROUND_COLOR = "#303030"
+
 CSS = '''
 .runtime_error {
     color: red;
@@ -49,74 +57,12 @@ li {
 }
 '''
 
-PANEL_HEADER_COLOR = "#0077cc"  # dark blue
-CURRENT_STEP_COLOR = '#005599'  # darker blue
-SUBMIT_BUTTON_COLOR = '#008000'  # dark green
-
-BACKGROUND_COLOR = "#151515"
-APP_BACKGROUND_COLOR = "#303030"
-
 formatter = HtmlFormatter(style="monokai")
 css = formatter.get_style_defs('.highlight')
 additional_css = ".highlight, .highlight pre { background: " + BACKGROUND_COLOR + "; }"
 
 # combine the CSS with the additional CSS:
 CSS += css + additional_css
-
-# SCROLLBAR_STYLE = """
-# QScrollBar:horizontal {
-#     border: none;
-#     background: #f0f0f0;
-#     height: 12px;
-#     margin: 0px 0px 0px 0px;
-#     border-radius: 6px;
-# }
-#
-# QScrollBar::handle:horizontal {
-#     background: #a0a0a0;
-#     min-width: 20px;
-#     border-radius: 6px;
-# }
-#
-# QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
-#     border: none;
-#     background: none;
-#     width: 0px;
-#     height: 0px;
-# }
-#
-# QScrollBar:vertical {
-#     border: none;
-#     background: #f0f0f0;
-#     width: 12px;
-#     margin: 0px 0px 0px 0px;
-#     border-radius: 6px;
-# }
-#
-# QScrollBar::handle:vertical {
-#     background: #a0a0a0;
-#     min-height: 20px;
-#     border-radius: 6px;
-# }
-#
-# QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
-#     border: none;
-#     background: none;
-#     width: 0px;
-#     height: 0px;
-# }
-#
-# QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical,
-# QScrollBar::left-arrow:horizontal, QScrollBar::right-arrow:horizontal {
-#     background: none;
-#     border: none;
-# }
-#
-# QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical,
-# QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {
-#     background: none;
-# }
-# """
 
 SCROLLBAR_STYLE = """
 QScrollBar:horizontal {
@@ -203,14 +149,13 @@ QTabBar::tab:hover {
 }
 """
 
-
-QEDIT_STYLE = """
+QEDIT_STYLE = r"""
 QTextEdit {
-    color: red;  /* Color for the actual text */
-    background-color: """ + BACKGROUND_COLOR + """;
+    color: {color};
+    background-color: {background_color};
     font-size: 14px;
 }
-"""
+""".replace('{color}', EDIT_TEXT_COLOR).replace('{background_color}', BACKGROUND_COLOR)
 
 HTMLPOPUP_STYLE = """
 * {
@@ -240,21 +185,17 @@ QSplitter::handle {
 """
 
 QCHECKBOX_STYLE = """
-QCheckBox {
-    color: rgb(255,255,255); /* Text color */
-}
-
 QCheckBox::indicator {
     width: 15px;
     height: 15px;
 }
 
 QCheckBox::indicator:unchecked {
-    border: 1px solid white;
+    border: 1px solid #a0a0a0;
 }
 
 QCheckBox::indicator:checked {
-    border: 1px solid white;
+    border: 1px solid #a0a0a0;
     image: url(""" + ICON_PATH + """checkmark.png);
 }
 """
