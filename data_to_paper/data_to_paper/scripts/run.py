@@ -68,11 +68,10 @@ RUN_PARAMETERS = {
     # Specific demo datasets
     'diabetes': [HypothesisTestingStepsRunner, 'diabetes/open_goal'],
     'nrp_nicu': [HypothesisTestingStepsRunner, 'nrp_nicu/fixed_goal'],
-    'network': [HypothesisTestingStepsRunner, 'social/open_goal'],
     'ML_hard': [HypothesisTestingStepsRunner, 'ML/fixed_goal_hard'],
     'ML_medium': [HypothesisTestingStepsRunner, 'ML/fixed_goal_medium'],
     'ML_easy': [HypothesisTestingStepsRunner, 'ML/fixed_goal_easy'],
-    'social_network': [HypothesisTestingStepsRunner, 'social/open_goal'],
+    'social_network': [HypothesisTestingStepsRunner, 'social_network/open_goal'],
 
     # Toy example of a two-step research process:
     'toy': [ToyStepsRunner, 'toy_example/prime_numbers'],
