@@ -17,8 +17,8 @@ from data_to_paper.research_types.hypothesis_testing.coding.base_code_conversers
 from data_to_paper.research_types.hypothesis_testing.coding.original_utils.add_html_to_latex import \
     get_html_from_latex, get_latex_without_html_comment
 from data_to_paper.research_types.hypothesis_testing.coding.utils import get_additional_contexts
-from data_to_paper.research_types.hypothesis_testing.coding.utils_modified_for_gpt_use.to_latex_with_note import \
-    TABLE_COMMENT_HEADER
+from data_to_paper.research_types.hypothesis_testing.coding.utils_modified_for_gpt_use.label_latex_source import \
+    extract_source_filename_from_latex
 from data_to_paper.research_types.hypothesis_testing.coding.utils_modified_for_gpt_use.to_pickle import \
     get_read_pickle_attr_replacer
 from data_to_paper.research_types.hypothesis_testing.scientific_products import HypertargetPrefix
@@ -78,13 +78,10 @@ class TexTableContentOutputFileRequirement(TextContentOutputFileRequirement):
             result = super().get_referencable_text(content, filename, num_file, content_view)
         if content_view == ContentViewPurpose.FINAL_INLINE:
             text = result.text
-            first_line = text.split('\n')[0]
-            if first_line.startswith(TABLE_COMMENT_HEADER):
+            pickle_filename = extract_source_filename_from_latex(text)
+            if pickle_filename:
                 # we add a hyperlink to the table caption
-                # extract the filename between `:
-                pickle_filename = first_line.split('`')[1]
                 pickle_filename = convert_str_to_latex_label(pickle_filename, 'file')
-                # get the caption:
                 caption = get_table_caption(text)
                 new_caption = f'\\protect\\hyperlink{{{pickle_filename}}}{{{caption}}}'
                 text = text.replace(caption, new_caption)

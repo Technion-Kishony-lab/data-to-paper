@@ -13,14 +13,13 @@ from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue, RunIssu
 from data_to_paper.utils.dataframe import extract_df_row_labels, extract_df_column_labels, extract_df_axes_labels
 
 from .check_df_of_table import check_df_headers_are_int_str_or_bool, check_df_of_table_for_content_issues
+from .label_latex_source import wrap_source_filename_as_latex_comment
 
 from ..original_utils import to_latex_with_note
 
 KNOWN_ABBREVIATIONS = ('std', 'BMI', 'P>|z|', 'P-value', 'Std.', 'Std', 'Err.', 'Avg.', 'Coef.', 'SD', 'SE', 'CI')
 
 P_VALUE_STRINGS = ('P>|z|', 'P-value', 'P>|t|', 'P>|F|')
-
-TABLE_COMMENT_HEADER = '% This latex table was generated from: '
 
 
 def _find_longest_str_in_list(lst: Iterable[Union[str, Any]]) -> Optional[str]:
@@ -94,7 +93,7 @@ def _to_latex_with_note(df: pd.DataFrame, filename: str, caption: str = None, la
                             for context in RegisteredRunContext.get_all_runtime_instances()
                             if context.name == 'ReadPickleAttrReplacer'), None)
     if pickle_filename:
-        comment = TABLE_COMMENT_HEADER + f'`{pickle_filename}`'
+        comment = wrap_source_filename_as_latex_comment(pickle_filename)
     else:
         comment = None
 
