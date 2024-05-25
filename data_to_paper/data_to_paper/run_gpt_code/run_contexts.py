@@ -48,7 +48,7 @@ class IssueCollector(SingletonRegisteredRunContext):
 
 @dataclass
 class PreventFileOpen(SingletonRegisteredRunContext):
-    SYSTEM_FILES = ['templates/latex_table.tpl', 'templates/latex_longtable.tpl']
+    SYSTEM_FILES = ['templates/latex_table.tpl', 'templates/latex_longtable.tpl', 'ttf/DejaVuSans.ttf']
     SYSTEM_FOLDERS = \
         [r'C:\Windows', r'C:\Program Files', r'C:\Program Files (x86)'] if os.name == 'nt' \
         else ['/usr', '/etc', '/bin', '/sbin', '/sys', '/dev', '/var', '/opt', '/proc']

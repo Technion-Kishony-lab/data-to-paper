@@ -143,7 +143,11 @@ def test_run_code_forbidden_import(forbidden_import, module_name):
         import numpy as np
         {}
         """).format(forbidden_import)
-    error = RunCode().run(code)[4]
+    if 'matplotlib' in module_name:
+        run_code = RunCode(forbidden_imports=('matplotlib', ))
+    else:
+        run_code = RunCode()
+    error = run_code.run(code)[4]
     assert isinstance(error, FailedRunningCode)
     assert isinstance(error.exception, CodeImportForbiddenModule)
     assert error.exception.module == module_name
