@@ -31,8 +31,6 @@ COLORS_TO_LIGHT_COLORS = {
 
 style = get_style_by_name("monokai")
 terminal_formatter = Terminal256Formatter(style=style)
-html_formatter = HtmlFormatter(style=style, cssclass='text_highlight')
-html_textblock_formatter = HtmlFormatter(style=style, cssclass='textblock_highlight')
 
 if CHOSEN_APP == 'pyside':
     html_code_formatter = HtmlFormatter(style=style)
@@ -189,7 +187,7 @@ def get_pre_html_format(text,
 def _block_to_html(text: str, label: Optional[str], with_tags: bool = True, **kwargs) -> str:
     if with_tags and label is not None:
         text = wrap_text_with_triple_quotes(text, label)
-    return get_pre_html_format(text, **kwargs)
+    return text_to_html(text, css_class='tripled_quote')
 
 
 def identity(text) -> str:
