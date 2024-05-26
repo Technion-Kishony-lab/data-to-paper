@@ -139,7 +139,8 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
             """
 
         def to_figure_with_note(df, filename: str, caption: str, label: str,
-                                note: str = None, legend: Dict[str, str] = None, **kwargs):
+                                note: str = None, legend: Dict[str, str] = None, 
+                                p_value: Optional[str] = None, **kwargs):
             """
             Saves a DataFrame to a LaTeX figure with caption and optional legend added below the figure.
             Uses `df.plot` to plot the DataFrame.
@@ -147,7 +148,8 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
             Parameters:
             - df, filename, caption, label: as in `df.to_latex`.
             - legend (optional): Dictionary mapping abbreviations to full names.
-            - **kwargs: Additional arguments for `df.plot`.
+            - p_value (optional): Column name of p-values to plot as stars.
+            - **kwargs: arguments for `df.plot`, such as `x`, `y`, `kind`, etc.
             """
 
         def is_str_in_df(df: pd.DataFrame, s: str):
@@ -193,7 +195,7 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
         If different df share several common labels, then you can build a `shared_mapping`, \t
         from which you can extract the relevant labels for each table/figure.
 
-        Overall, the code must have the following structure:
+        Overall, the code must have the following structure (### are my instructions, not part of the code):
 
         ```python
         # IMPORT
@@ -201,7 +203,7 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
         from my_utils import to_latex_with_note, to_figure_with_note, is_str_in_df, split_mapping, AbbrToNameDef
 
         # PREPARATION FOR ALL TABLES AND FIGURES
-        # <As applicable, define a shared mapping for labels that are common to all df. For example:>
+        ### As applicable, define a shared mapping for labels that are common to all df. For example:
         shared_mapping: AbbrToNameDef = {
             'AvgAge': ('Avg. Age', 'Average age, years'),
             'BT': ('Body Temperature', '1: Normal, 2: High, 3: Very High'),
@@ -209,21 +211,21 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
             'MRSA': ('MRSA', 'Infected with Methicillin-resistant Staphylococcus aureus, 1: Yes, 0: No'),
             ...: (..., ...),
         }
-        # <This is of course just an example.> 
-        # <Consult with the "{data_file_descriptions}" and the "{codes:data_analysis}"> 
-        # for choosing the actual labels and their proper scientific names and definitions.>
+        ### This is of course just an example. 
+        ### Consult with the "{data_file_descriptions}" and the "{codes:data_analysis}" 
+        ### for choosing the actual labels and their proper scientific names and definitions.
 
-        # DF {first_df_number}
+        # DF {first_df_number}: <short header>
         df{first_df_number} = pd.read_pickle('df_{first_df_number}.pkl')
 
         # Format values:
-        # <Rename technical values to scientifically-suitable values. For example:>
+        ### If not needed, write '# Not Applicable' under the '# Format values:' header.
+        ### Rename technical values to scientifically-suitable values. For example:
         df{first_df_number}['MRSA'] = df{first_df_number}['MRSA'].apply(lambda x: 'Yes' if x == 1 else 'No')
-        # <If not needed, write '# Not Applicable'>
 
         # Rename rows and columns:
-        # <Rename any abbreviated or not self-explanatory df labels to scientifically-suitable names.>
-        # <Use the `shared_mapping` if applicable. For example:>
+        ### Rename any abbreviated or not self-explanatory df labels to scientifically-suitable names.
+        ### Use the `shared_mapping` if applicable. For example:
         mapping{first_df_number} = dict((k, v) for k, v in shared_mapping.items() \t
         if is_str_in_df(df{first_df_number}, k)) 
         mapping{first_df_number} |= {
@@ -252,10 +254,14 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
             caption="<choose a caption suitable for a figure in a scientific paper. Can be a multi-line caption>", 
             label='<figure:xxx>',
             note="<If needed, add a note to provide any additional information that is not captured in the caption>",
-            legend=legend{first_df_number})
+            legend=legend{first_df_number},
+            p_value='PV',
+            kind='bar',
+            y='coef',
+            yerr='CI')
 
         # DF <?>
-        # <etc, all 'df_?.pkl' files>
+        ### <etc, all 'df_?.pkl' files>
         ```
 
         Avoid the following:
