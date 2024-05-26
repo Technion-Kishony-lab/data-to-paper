@@ -45,8 +45,8 @@ class CSVLexer(RegexLexer):
 
     tokens = {
         'root': [
-            (r'\b[0-9]+\b', token.Number.Integer),
-            (r'\b[0-9]*\.[0-9]+\b', token.Number.Float),
+            # Matches integers, floats, and numbers in scientific notation with optional leading +/-
+            (r'[-+]?\b[0-9]+(\.[0-9]*)?([eE][-+]?[0-9]+)?\b', token.Number.Float),
             (r'0[oO]?[0-7]+', token.Number.Oct),  # Octal literals
             (r'0[xX][a-fA-F0-9]+', token.Number.Hex),  # Hexadecimal literals
             (r'\b[0-9]+[jJ]\b', token.Number),  # Complex numbers
