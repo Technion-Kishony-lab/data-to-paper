@@ -1,15 +1,43 @@
 from dataclasses import dataclass, field
-from typing import Tuple, Optional, Dict, Any, Collection
+from typing import Tuple, Optional, Dict, Any, Collection, List
 
 from data_to_paper.base_steps.request_code import CodeReviewPrompt
-from data_to_paper.code_and_output_files.output_file_requirements import OutputFileRequirements
+from data_to_paper.code_and_output_files.output_file_requirements import OutputFileRequirements, \
+    TextContentOutputFileRequirement, NumericTextContentOutputFileRequirement
 from data_to_paper.research_types.hypothesis_testing.cast import ScientificAgent
 from data_to_paper.research_types.hypothesis_testing.coding.base_code_conversers import BaseScientificCodeProductsGPT
-from data_to_paper.research_types.hypothesis_testing.coding.data_analysis import EnforceContentOutputFileRequirement
 from data_to_paper.research_types.hypothesis_testing.coding.utils import get_additional_contexts
 from data_to_paper.research_types.hypothesis_testing.model_engines import get_model_engine_for_class
+from data_to_paper.run_gpt_code.run_issues import RunIssue, CodeProblem
 from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
+from data_to_paper.utils.nice_list import NiceList
+
+
+@dataclass(frozen=True)
+class EnforceContentOutputFileRequirement(TextContentOutputFileRequirement, NumericTextContentOutputFileRequirement):
+    should_keep_file: bool = False
+    headers_required_in_output: Tuple[str, ...] = \
+        ('# Data Size', '# Summary Statistics', '# Categorical Variables', '# Missing Values')
+
+    def get_issues_for_output_file_content(self, filename: str, content: str) -> List[RunIssue]:
+        issues = super().get_issues_for_output_file_content(filename, content)
+        if issues:
+            return issues
+
+        missing_headers = [header for header in self.headers_required_in_output if header not in content]
+        if missing_headers:
+            issues.append(RunIssue(
+                category='Problem in output file(s)',
+                item=filename,
+                issue=f'The output file "{filename}" should have the following headers: '
+                      f'{NiceList(self.headers_required_in_output, wrap_with="`")}.\n'
+                      f'But, these headers are missing: '
+                      f'{NiceList(missing_headers, wrap_with="`")}.',
+                code_problem=CodeProblem.OutputFileContentLevelA,
+            ))
+
+        return issues
 
 
 @dataclass

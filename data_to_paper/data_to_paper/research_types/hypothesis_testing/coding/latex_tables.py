@@ -271,8 +271,7 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
             'ReadPickleAttrReplacer': get_read_pickle_attr_replacer(),
             'PValueMessage': AttrReplacer(
                 obj_import_str=PValue, attr='error_message_on_forbidden_func',
-                wrapper="Calling `{func_name}` on a PValue object is forbidden.\n "
-                        "Please use `format_p_value` instead."
+                wrapper="Calling `{func_name}` on a PValue object is forbidden."
             ),
             'ProvideData': ProvideData(
                 data={'compile_to_pdf_func': partial(self._get_static_latex_compilation_func(), is_table=True)}

@@ -178,8 +178,8 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
                                   **kwargs) -> RunIssues:
     assert 'columns' not in kwargs, "assumes columns is None"
     columns = df.columns
-    caption = kwargs.get('caption', None)
-    label = kwargs.get('label', None)
+    caption: Optional[str] = kwargs.get('caption', None)
+    label: Optional[str] = kwargs.get('label', None)
     index = kwargs.get('index', True)
     legend = {} if legend is None else legend
 

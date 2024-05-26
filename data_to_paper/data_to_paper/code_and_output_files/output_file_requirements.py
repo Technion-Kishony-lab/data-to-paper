@@ -166,7 +166,7 @@ class NumericTextContentOutputFileRequirement(BaseContentOutputFileRequirement):
 
 class OutputFileRequirements(Tuple[OutputFileRequirement]):
 
-    def get_all_allowed_created_filenames(self) -> Tuple[str]:
+    def get_all_allowed_created_filenames(self) -> Tuple[str, ...]:
         return tuple(requirement.filename for requirement in self)
 
     def get_single_content_file(self) -> Optional[str]:

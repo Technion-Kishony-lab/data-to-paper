@@ -22,32 +22,6 @@ from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList, NiceDict
 
 
-@dataclass(frozen=True)
-class EnforceContentOutputFileRequirement(TextContentOutputFileRequirement, NumericTextContentOutputFileRequirement):
-    should_keep_file: bool = False
-    headers_required_in_output: Tuple[str, ...] = \
-        ('# Data Size', '# Summary Statistics', '# Categorical Variables', '# Missing Values')
-
-    def get_issues_for_output_file_content(self, filename: str, content: str) -> List[RunIssue]:
-        issues = super().get_issues_for_output_file_content(filename, content)
-        if issues:
-            return issues
-
-        missing_headers = [header for header in self.headers_required_in_output if header not in content]
-        if missing_headers:
-            issues.append(RunIssue(
-                category='Problem in output file(s)',
-                item=filename,
-                issue=f'The output file "{filename}" should have the following headers: '
-                      f'{NiceList(self.headers_required_in_output, wrap_with="`")}.\n'
-                      f'But, these headers are missing: '
-                      f'{NiceList(missing_headers, wrap_with="`")}.',
-                code_problem=CodeProblem.OutputFileContentLevelA,
-            ))
-
-        return issues
-
-
 class DataFramePickleContentOutputFileRequirement(PickleContentOutputFileRequirement):
 
     def _to_str(self, content: DataFrame) -> str:

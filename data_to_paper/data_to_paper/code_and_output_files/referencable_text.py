@@ -30,7 +30,7 @@ def _num_to_letters(num: int) -> str:
 
 def convert_str_to_latex_label(text: str, prefix: str = 'label') -> str:
     """
-    Convert str, like filename, into valid latex hypertaget label
+    Convert str, like filename, into valid latex hypertarget label
     """
     return f'{prefix}-{text.replace(".", "-").replace("_", "-")}'
 
