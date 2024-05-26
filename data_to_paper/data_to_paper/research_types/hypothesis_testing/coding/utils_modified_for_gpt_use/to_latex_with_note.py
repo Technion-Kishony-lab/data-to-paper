@@ -20,6 +20,7 @@ from .check_df_of_table import check_df_headers_are_int_str_or_bool, check_df_of
 from .label_latex_source import wrap_source_filename_as_latex_comment
 
 from ..original_utils import to_latex_with_note
+from ..original_utils.to_latex_with_note import raise_on_wrong_params_for_to_latex_with_note
 
 
 def _find_longest_str_in_list(lst: Iterable[Union[str, Any]]) -> Optional[str]:
@@ -60,25 +61,9 @@ def _to_latex_with_note(df: pd.DataFrame, filename: str, caption: str = None, la
     Replacement of to_latex_with_note to be used by LLM-writen code.
     Same as to_latex_with_note, but also checks for issues.
     """
-    if not isinstance(df, pd.DataFrame):
-        raise ValueError(f'Expected `df` to be a pandas.DataFrame, got {type(df)}')
-
+    raise_on_wrong_params_for_to_latex_with_note(df, filename, caption=caption, label=label, note=note, legend=legend,)
     if not isinstance(filename, str):
         raise ValueError(f'Expected `filename` to be a string, got {type(filename)}')
-
-    if not filename.endswith('.tex'):
-        raise ValueError(f'Expected `filename` to end with .tex, got {filename}')
-
-    if not isinstance(note, str) and note is not None:
-        raise ValueError(f'Expected `note` to be a string or None, got {type(note)}')
-
-    if isinstance(legend, dict):
-        if not all(isinstance(key, str) for key in legend.keys()):
-            raise ValueError(f'Expected `legend` keys to be strings, got {legend.keys()}')
-        if not all(isinstance(value, str) for value in legend.values()):
-            raise ValueError(f'Expected `legend` values to be strings, got {legend.values()}')
-    elif legend is not None:
-        raise ValueError(f'Expected legend to be a dict or None, got {type(legend)}')
 
     if columns is not None:
         df = df[columns]

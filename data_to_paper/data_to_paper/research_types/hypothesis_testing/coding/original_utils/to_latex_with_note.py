@@ -47,6 +47,55 @@ HTML_TABLE_WITH_LABEL_AND_CAPTION = r"""
 """
 
 
+def raise_on_wrong_params_for_to_latex_with_note(df: pd.DataFrame, filename: Optional[str], caption: str = None,
+                                                 label: str = None,
+                                                 note: str = None,
+                                                 legend: Dict[str, str] = None,
+                                                 is_wide: bool = True,
+                                                 float_num_digits: int = 4,
+                                                 pvalue_on_str: Optional[OnStr] = None,
+                                                 comment: str = None,
+                                                 append_html: bool = True,
+                                                 **kwargs):
+    if not isinstance(df, pd.DataFrame):
+        raise ValueError(f'Expected `df` to be a pandas.DataFrame, got {type(df)}')
+
+    if filename is not None:
+        if not isinstance(filename, str):
+            raise ValueError(f'Expected `filename` to be a string, got {type(filename)}')
+        if not filename.endswith('.tex'):
+            raise ValueError(f'Expected `filename` to end with .tex, got {filename}')
+
+    if not isinstance(caption, str) and caption is not None:
+        raise ValueError(f'Expected `caption` to be a string or None, got {type(caption)}')
+
+    if not isinstance(label, str) and label is not None:
+        raise ValueError(f'Expected `label` to be a string or None, got {type(label)}')
+
+    if not isinstance(note, str) and note is not None:
+        raise ValueError(f'Expected `note` to be a string or None, got {type(note)}')
+
+    if isinstance(legend, dict):
+        if not all(isinstance(key, str) for key in legend.keys()):
+            raise ValueError(f'Expected `legend` keys to be strings, got {legend.keys()}')
+        if not all(isinstance(value, str) for value in legend.values()):
+            raise ValueError(f'Expected `legend` values to be strings, got {legend.values()}')
+    elif legend is not None:
+        raise ValueError(f'Expected legend to be a dict or None, got {type(legend)}')
+
+    if not isinstance(is_wide, bool):
+        raise ValueError(f'Expected `is_wide` to be a bool, got {type(is_wide)}')
+
+    if not isinstance(float_num_digits, int):
+        raise ValueError(f'Expected `float_num_digits` to be an int, got {type(float_num_digits)}')
+
+    if not isinstance(comment, str) and comment is not None:
+        raise ValueError(f'Expected `comment` to be a string or None, got {type(comment)}')
+
+    if not isinstance(append_html, bool):
+        raise ValueError(f'Expected `append_html` to be a bool, got {type(append_html)}')
+
+
 def to_latex_with_note(df: pd.DataFrame, filename: Optional[str], caption: str = None, label: str = None,
                        note: str = None,
                        legend: Dict[str, str] = None,
@@ -60,6 +109,11 @@ def to_latex_with_note(df: pd.DataFrame, filename: Optional[str], caption: str =
     Create a latex table with a note.
     Same as df.to_latex, but with a note and legend.
     """
+
+    raise_on_wrong_params_for_to_latex_with_note(
+        df, filename, caption, label, note, legend, is_wide, float_num_digits, pvalue_on_str, comment,
+        append_html, **kwargs)
+
     with OnStrPValue(pvalue_on_str):
         regular_latex_table = df.to_latex(None, caption=None, label=None, multirow=False, multicolumn=False, **kwargs)
 
