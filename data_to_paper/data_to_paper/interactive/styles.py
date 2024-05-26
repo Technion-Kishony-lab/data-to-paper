@@ -185,6 +185,10 @@ QSplitter::handle {
 """
 
 QCHECKBOX_STYLE = """
+QCheckBox {
+    color: white;
+}
+
 QCheckBox::indicator {
     width: 15px;
     height: 15px;
