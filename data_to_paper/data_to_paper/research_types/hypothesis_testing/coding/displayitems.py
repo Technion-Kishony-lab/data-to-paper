@@ -113,7 +113,7 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
         '# PREPARATION FOR ALL TABLES AND FIGURES',
     )
     phrases_required_in_code: Tuple[str, ...] = \
-        ('\nfrom my_utils import to_latex_with_note, to_figure_with_note, is_str_in_df, split_mapping, AbbrToNameDef', )
+        ('\nfrom my_utils import to_figure_with_note, is_str_in_df, split_mapping, AbbrToNameDef', )
     attrs_to_send_to_debugger: Tuple[str, ...] = \
         BaseCreateTablesCodeProductsGPT.attrs_to_send_to_debugger + ('phrases_required_in_code',)
     user_agent: ScientificAgent = ScientificAgent.InterpretationReviewer
@@ -126,18 +126,6 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
         [tex_file_requirement, png_file_requirement])
 
     provided_code: str = dedent_triple_quote_str('''
-        def to_latex_with_note(df, filename: str, caption: str, label: str,
-                               note: str = None, legend: Dict[str, str] = None, **kwargs):
-            """
-            Saves a DataFrame as a LaTeX table with optional note and legend added below the table.
-
-            Parameters:
-            - df, filename, caption, label: as in `df.to_latex`.
-            - note (optional): Additional note below the table.
-            - legend (optional): Dictionary mapping abbreviations to full names.
-            - **kwargs: Additional arguments for `df.to_latex`.
-            """
-
         def to_figure_with_note(df, filename: str, caption: str, label: str,
                                 note: str = None, legend: Dict[str, str] = None, 
                                 p_value: Optional[str] = None, **kwargs):
@@ -200,7 +188,7 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
         ```python
         # IMPORT
         import pandas as pd
-        from my_utils import to_latex_with_note, to_figure_with_note, is_str_in_df, split_mapping, AbbrToNameDef
+        from my_utils import to_figure_with_note, is_str_in_df, split_mapping, AbbrToNameDef
 
         # PREPARATION FOR ALL TABLES AND FIGURES
         ### As applicable, define a shared mapping for labels that are common to all df. For example:
@@ -236,17 +224,6 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
         abbrs_to_names{first_df_number}, legend{first_df_number} = split_mapping(mapping{first_df_number})
         df{first_df_number} = df{first_df_number}.rename(columns=abbrs_to_names{first_df_number}, \t
         index=abbrs_to_names{first_df_number})
-        
-        # <Choose whether it is more appropriate to present the data as a table or a figure.>
-        # <Use either `to_latex_with_note` or `to_figure_with_note`> 
-
-        # Creat latex table:
-        to_latex_with_note(
-            df{first_df_number}, 'df_{first_df_number}.tex',
-            caption="<choose a caption suitable for a table in a scientific paper>", 
-            label='<table:xxx>',
-            note="<If needed, add a note to provide any additional information that is not captured in the caption>",
-            legend=legend{first_df_number})
         
         # Create latex figure:
         to_figure_with_note(
