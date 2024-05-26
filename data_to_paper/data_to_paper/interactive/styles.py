@@ -7,7 +7,7 @@ ICON_PATH = os.path.join(os.path.dirname(__file__) + '/icons/')
 # Colors:
 CURRENT_STEP_COLOR = '#005599'  # darker blue
 PANEL_HEADER_COLOR = CURRENT_STEP_COLOR  # "#0077cc"  # dark blue
-EDIT_TEXT_COLOR = "#0077cc"  # light gray
+EDIT_TEXT_COLOR = "#a5bccc"  # light gray
 SUBMIT_BUTTON_COLOR = '#008000'  # dark green
 BACKGROUND_COLOR = "#151515"
 APP_BACKGROUND_COLOR = "#303030"
