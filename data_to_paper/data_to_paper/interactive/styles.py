@@ -7,7 +7,7 @@ ICON_PATH = os.path.join(os.path.dirname(__file__) + '/icons/')
 # Colors:
 CURRENT_STEP_COLOR = '#005599'  # darker blue
 PANEL_HEADER_COLOR = CURRENT_STEP_COLOR  # "#0077cc"  # dark blue
-EDIT_TEXT_COLOR = "#a5bccc"  # light gray
+EDIT_TEXT_COLOR = "#20b0ff"  # light gray
 SUBMIT_BUTTON_COLOR = '#008000'  # dark green
 BACKGROUND_COLOR = "#151515"
 APP_BACKGROUND_COLOR = "#303030"
@@ -151,6 +151,8 @@ QTabBar::tab:hover {
 
 QEDIT_STYLE = r"""
 QTextEdit {
+    font-family: Arial, sans-serif;
+    font-size: 14px;
     color: {color};
     background-color: {background_color};
     font-size: 14px;
