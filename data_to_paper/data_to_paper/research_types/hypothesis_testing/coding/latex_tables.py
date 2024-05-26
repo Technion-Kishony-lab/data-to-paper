@@ -107,10 +107,10 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
     code_and_output_cls: Type[CodeAndOutput] = CreateLatexTablesCodeAndOutput
     headers_required_in_code: Tuple[str, ...] = (
         '# IMPORT',
-        '# PREPARATION FOR ALL TABLES',
+        '# PREPARATION FOR ALL TABLES AND FIGURES',
     )
     phrases_required_in_code: Tuple[str, ...] = \
-        ('\nfrom my_utils import to_latex_with_note, is_str_in_df, split_mapping, AbbrToNameDef', )
+        ('\nfrom my_utils import to_latex_with_note, to_figure_with_note, is_str_in_df, split_mapping, AbbrToNameDef', )
     attrs_to_send_to_debugger: Tuple[str, ...] = \
         BaseCreateTablesCodeProductsGPT.attrs_to_send_to_debugger + ('phrases_required_in_code',)
     user_agent: ScientificAgent = ScientificAgent.InterpretationReviewer
@@ -135,6 +135,18 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
             - **kwargs: Additional arguments for `df.to_latex`.
             """
 
+        def to_figure_with_note(df, filename: str, caption: str, label: str, \t
+        legend: Dict[str, str] = None, **kwargs):
+            """
+            Converts a DataFrame to a LaTeX figure with caption and optional legend added below the figure.
+            Uses `df.plot` to plot the DataFrame.
+
+            Parameters:
+            - df, filename, caption, label: as in `df.to_latex`.
+            - legend (optional): Dictionary mapping abbreviations to full names.
+            - **kwargs: Additional arguments for `df.plot`.
+            """
+
         def is_str_in_df(df: pd.DataFrame, s: str):
             return any(s in level for level in getattr(df.index, 'levels', [df.index]) + \t
         getattr(df.columns, 'levels', [df.columns]))
@@ -151,9 +163,9 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
 
     mission_prompt: str = dedent_triple_quote_str('''
         Please write a Python code to convert and re-style the "table_?.pkl" dataframes created \t
-        by our "{codes:data_analysis}" into latex tables suitable for our scientific paper.
+        by our "{codes:data_analysis}" into latex tables and figures suitable for our scientific paper.
 
-        Your code should use the following 3 custom functions provided for import from `my_utils`: 
+        Your code should use the following 4 custom functions provided for import from `my_utils`: 
 
         ```python
         {provided_code}
@@ -165,40 +177,40 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
         or technical, or that is otherwise not self-explanatory.
 
         * Provide legend definitions: You should provide a full definition for any name (or new name) \t
-        that satisfies any of the following: 
+        in the df that satisfies any of the following: 
         - Remains abbreviated, or not self-explanatory, even after renaming.
         - Is an ordinal/categorical variable that requires clarification of the meaning of each of its possible values.
         - Contains unclear notation, like '*' or ':'
         - Represents a numeric variable that has units, that need to be specified.        
 
-        To avoid re-naming mistakes, you should define for each table a dictionary, \t
+        To avoid re-naming mistakes, you should define for each df a dictionary, \t
         `mapping: AbbrToNameDef`, which maps any original \t
         column and row names that are abbreviated or not self-explanatory to an optional new name, \t
         and an optional definition.
-        If different tables share several common labels, then you can build a `shared_mapping`, \t
-        from which you can extract the relevant labels for each table.
+        If different df share several common labels, then you can build a `shared_mapping`, \t
+        from which you can extract the relevant labels for each table/figure.
 
         Overall, the code must have the following structure:
 
         ```python
         # IMPORT
         import pandas as pd
-        from my_utils import to_latex_with_note, is_str_in_df, split_mapping, AbbrToNameDef
+        from my_utils import to_latex_with_note, to_figure_with_note, is_str_in_df, split_mapping, AbbrToNameDef
 
-        # PREPARATION FOR ALL TABLES
-        # <As applicable, define a shared mapping for labels that are common to all tables. For example:>
+        # PREPARATION FOR ALL TABLES AND FIGURES
+        # <As applicable, define a shared mapping for labels that are common to all df. For example:>
         shared_mapping: AbbrToNameDef = {
             'AvgAge': ('Avg. Age', 'Average age, years'),
             'BT': ('Body Temperature', '1: Normal, 2: High, 3: Very High'),
             'W': ('Weight', 'Participant weight, kg'),
-            'MRSA': (None, 'Infected with Methicillin-resistant Staphylococcus aureus, 1: Yes, 0: No'),
+            'MRSA': ('MRSA', 'Infected with Methicillin-resistant Staphylococcus aureus, 1: Yes, 0: No'),
             ...: (..., ...),
         }
-        # <This is of course just an example. Consult with the "{data_file_descriptions}" \t
-        and the "{codes:data_analysis}" for choosing the labels and their proper scientific names \t
-        and definitions.>
+        # <This is of course just an example.> 
+        # <Consult with the "{data_file_descriptions}" and the "{codes:data_analysis}"> 
+        # for choosing the labels and their proper scientific names and definitions.>
 
-        # TABLE {first_table_number}:
+        # DF {first_table_number}:
         df{first_table_number} = pd.read_pickle('table_{first_table_number}.pkl')
 
         # FORMAT VALUES <include this sub-section only as applicable>
@@ -206,27 +218,36 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
         df{first_table_number}['MRSA'] = df{first_table_number}['MRSA'].apply(lambda x: 'Yes' if x == 1 else 'No')
 
         # RENAME ROWS AND COLUMNS <include this sub-section only as applicable>
-        # <Rename any abbreviated or not self-explanatory table labels to scientifically-suitable names.>
+        # <Rename any abbreviated or not self-explanatory df labels to scientifically-suitable names.>
         # <Use the `shared_mapping` if applicable. For example:>
         mapping{first_table_number} = dict((k, v) for k, v in shared_mapping.items() \t
         if is_str_in_df(df{first_table_number}, k)) 
         mapping{first_table_number} |= {
             'PV': ('P-value', None),
-            'CI': (None, '95% Confidence Interval'),
+            'CI': ('CI', '95% Confidence Interval'),
             'Sex_Age': ('Age * Sex', 'Interaction term between Age and Sex'),
         }
         abbrs_to_names{first_table_number}, legend{first_table_number} = split_mapping(mapping{first_table_number})
         df{first_table_number} = df{first_table_number}.rename(columns=abbrs_to_names{first_table_number}, \t
         index=abbrs_to_names{first_table_number})
+        
+        # <Choose whether it is more appropriate to present the data as a table or a figure.>
+        # <Use either `to_latex_with_note` or `to_figure_with_note`> 
 
         # SAVE AS LATEX:
         to_latex_with_note(
-            df{first_table_number}, 'table_{first_table_number}.tex',
+            df{first_table_number}, 'df_{first_table_number}.tex',
             caption="<choose a caption suitable for a table in a scientific paper>", 
             label='table:<chosen table label>',
             note="<If needed, add a note to provide any additional information that is not captured in the caption>",
             legend=legend{first_table_number})
-
+        
+        # SAVE AS FIGURE:
+        to_figure_with_note(
+            df{first_table_number}, 'df_{first_table_number}.tex',
+            caption="<choose a caption suitable for a figure in a scientific paper. Can be a multi-line caption>", 
+            label='fig:<chosen figure label>',
+            legend=legend{first_table_number})
 
         # TABLE <?>:
         # <etc, all 'table_?.pkl' files>
@@ -234,7 +255,7 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
 
         Avoid the following:
         Do not provide a sketch or pseudocode; write a complete runnable code including all '# HEADERS' sections.
-        Do not create any graphics, figures or any plots.
+        Do not explicitly create any graphics or tables; use the provided functions.
         Do not send any presumed output examples.
         ''')
 
@@ -248,7 +269,7 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
     def __post_init__(self):
         super().__post_init__()
         k = len('table_')
-        self.headers_required_in_code += tuple(f'# TABLE {file_name[k]}'
+        self.headers_required_in_code += tuple(f'# DF {file_name[k]}'
                                                for file_name in self.products.get_created_df_tables())
 
     def _get_additional_contexts(self) -> Optional[Dict[str, Any]]:
