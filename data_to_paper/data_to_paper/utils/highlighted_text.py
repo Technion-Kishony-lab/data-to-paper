@@ -194,11 +194,12 @@ def identity(text) -> str:
     return text
 
 
-BLOCK_FORMATTER = (_light_colored_block, _block_to_html)
+NORMAL_FORMATTERS = (_colored_block, text_to_html)
+BLOCK_FORMATTERS = (_light_colored_block, _block_to_html)
 
 TAGS_TO_FORMATTERS: Dict[Optional[str], Tuple[Callable, Callable]] = {
-    None: (_colored_block, text_to_html),
-    '': BLOCK_FORMATTER,
+    None: NORMAL_FORMATTERS,
+    '': BLOCK_FORMATTERS,
     'markdown': (_light_colored_block, partial(text_to_html, from_md=True, label=None)),
     'md': (_light_colored_block, partial(text_to_html, from_md=True, label=None)),
     'python': (python_to_highlighted_text, python_to_highlighted_html),
@@ -226,11 +227,15 @@ def format_text_with_code_blocks(text: str, text_color: str = '', from_md: Optio
     s = ''
     formatted_sections = FormattedSections.from_text(text)
     for formatted_section in formatted_sections:
-        label, section, _, = formatted_section.to_tuple()
-        if label in do_not_format:
-            formatters = BLOCK_FORMATTER
+        label, section, is_complete = formatted_section.to_tuple()
+        if not is_complete:
+            formatters = NORMAL_FORMATTERS
+            section = formatted_section.to_text()
         else:
-            formatters = TAGS_TO_FORMATTERS.get(label, BLOCK_FORMATTER)
+            if label in do_not_format:
+                formatters = BLOCK_FORMATTERS
+            else:
+                formatters = TAGS_TO_FORMATTERS.get(label, BLOCK_FORMATTERS)
         formatter = formatters[is_html]
         if is_html:
             if formatter == text_to_html:
