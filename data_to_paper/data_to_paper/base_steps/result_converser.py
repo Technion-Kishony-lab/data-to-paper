@@ -203,8 +203,9 @@ class ResultConverser(Converser):
         """
         Update the valid result.
         Should be called when we have a result that is "usable".
-        Typically, the method is called
-        "usable" often, but not always, require passing all rule-based checks.
+        Typically, the method is called after passing all rule-based checks.
+        But can also be called when we have a result that passed key rules but not others so is "good enough"
+        to be declared as "valid". It will be used in case the improvement iteration count is reached.
         """
         valid_result = self._convert_valid_result_to_product(valid_result)
         if isinstance(valid_result, Product):

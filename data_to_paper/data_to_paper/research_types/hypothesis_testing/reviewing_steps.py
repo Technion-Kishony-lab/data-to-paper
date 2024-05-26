@@ -376,6 +376,10 @@ class HypothesesTestingPlanReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPr
         Strip "hypothesis x" from the keys of the response value.
         """
         response_value = super()._check_response_value(response_value)
+        
+        # what we have is "usable" at this point:
+        self._update_valid_result(response_value)
+
         hypotheses = response_value['HYPOTHESES']
 
         if len(hypotheses) > self.max_hypothesis_count:
