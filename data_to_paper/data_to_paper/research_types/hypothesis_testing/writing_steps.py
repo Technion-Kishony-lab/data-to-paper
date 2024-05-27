@@ -6,7 +6,7 @@ from data_to_paper.base_steps import LatexReviewBackgroundProductsConverser, \
     CheckReferencedNumericReviewBackgroundProductsConverser
 from data_to_paper.base_steps.exceptions import FailedCreatingProductException
 from data_to_paper.base_steps.literature_search import GET_LITERATURE_SEARCH_FOR_PRINT
-from data_to_paper.latex.tables import get_table_label
+from data_to_paper.latex.tables import get_displayitem_label
 from data_to_paper.research_types.hypothesis_testing.cast import ScientificAgent
 from data_to_paper.research_types.hypothesis_testing.scientific_products import ScientificProducts
 from data_to_paper.servers.model_engine import ModelEngine
@@ -60,7 +60,7 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
     model_engine: ModelEngine = \
         field(default_factory=lambda: get_model_engine_for_class(SectionWriterReviewBackgroundProductsConverser))
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions_no_headers', 'research_goal',
-                                                  'codes:data_analysis', 'latex_tables', 'additional_results',
+                                                  'codes:data_analysis', 'latex_displayitems', 'additional_results',
                                                   'title_and_abstract')
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = None
     should_remove_citations_from_section: bool = True
@@ -232,7 +232,7 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
 class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
     goal_noun: str = 'title and abstract for a research paper'
     background_product_fields: Tuple[str] = ('general_dataset_description',
-                                             'codes:data_analysis', 'latex_tables', 'additional_results')
+                                             'codes:data_analysis', 'latex_displayitems', 'additional_results')
     max_reviewing_rounds: int = 1
     conversation_name: str = 'Writing: Title and Abstract (first draft)'
 
@@ -473,11 +473,11 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
 
     background_product_fields: Tuple[str, ...] = \
         ('title_and_abstract', 'data_file_descriptions_no_headers_linked', 'codes:data_analysis',
-         'latex_tables_linked', 'additional_results_linked')
+         'latex_displayitems_linked', 'additional_results_linked')
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = \
-        ('data_file_descriptions_no_headers_linked', 'latex_tables_linked', 'additional_results_linked')
+        ('data_file_descriptions_no_headers_linked', 'latex_displayitems_linked', 'additional_results_linked')
     self_products_to_other_products: Tuple[Tuple[str, str]] = (
-        ('latex_tables_linked', 'latex_tables'),
+        ('latex_displayitems_linked', 'latex_displayitems'),
         ('additional_results_linked', 'additional_results'),
         ('data_file_descriptions_no_headers_linked', 'data_file_descriptions_no_headers'),
     )
@@ -513,7 +513,7 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         * Numeric values:
 
         - Sources: 
-        You can extract numeric values from the above provided sources: "{latex_tables_linked}", \t
+        You can extract numeric values from the above provided sources: "{latex_displayitems_linked}", \t
         "{additional_results_linked}", and "{data_file_descriptions_no_headers_linked}".
         All numeric values in these sources have a \\hypertarget with a unique label. 
 
@@ -603,20 +603,20 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         for dependent values.
     """)
 
-    def _get_table_labels(self, section_name: str) -> List[str]:
-        return [get_table_label(table) for table in self.products.get_latex_tables()[section_name]]
+    def _get_displayitem_labels(self, section_name: str) -> List[str]:
+        return [get_displayitem_label(table) for table in self.products.get_latex_displayitems()[section_name]]
 
     def _check_and_refine_section(self, section: str, section_name: str) -> str:
         result = super()._check_and_refine_section(section, section_name)
-        table_labels = self._get_table_labels(section_name)
-        for table_label in table_labels:
-            if table_label not in section:
+        displayitems_labels = self._get_displayitem_labels(section_name)
+        for displayitem_label in displayitems_labels:
+            if displayitem_label not in section:
                 self._raise_self_response_error(
                     title='# Missing Table reference',
                     error_message=dedent_triple_quote_str(f"""
                         The {section_name} section should specifically reference each of the Tables that we have.
-                        Please make sure we have a sentence addressing Table "{table_label}".
-                        The sentence should have a reference like this: "Table~\\ref{{{table_label}}}".
+                        Please make sure we have a sentence addressing Table "{displayitem_label}".
+                        The sentence should have a reference like this: "Table~\\ref{{{displayitem_label}}}".
                         """)
                 )
         return result

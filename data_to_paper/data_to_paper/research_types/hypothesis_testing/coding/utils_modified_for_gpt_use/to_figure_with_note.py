@@ -12,12 +12,12 @@ from data_to_paper.run_gpt_code.run_contexts import ProvideData, IssueCollector
 from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue, RunIssues
 from data_to_paper.utils.dataframe import extract_df_axes_labels
 from .check_df_formatting import check_for_repetitive_value_in_column, checks_that_rows_are_labelled, \
-    check_for_unallowed_characters, check_for_unexplained_abbreviations, \
-    check_legend_does_not_include_labels_that_are_not_in_table, check_table_label, check_table_caption, \
+    check_for_unallowed_characters, check_for_un_legend_abbreviations, \
+    check_legend_does_not_include_labels_that_are_not_in_df, check_displayitem_label, check_displayitem_caption, \
     check_note_different_than_caption
 
-from .check_df_of_table import check_df_headers_are_int_str_or_bool, check_df_of_table_for_content_issues
-from .label_latex_source import wrap_source_filename_as_latex_comment
+from .check_df_of_table import check_df_headers_are_int_str_or_bool, check_output_df_for_content_issues
+from .label_latex_source import embed_source_filename_as_comment_in_latex_displayitem
 
 from ..original_utils import to_figure_with_note
 from ..original_utils.to_latex_with_note import raise_on_wrong_params_for_to_latex_with_note
@@ -42,7 +42,7 @@ def _to_figure_with_note(df: pd.DataFrame, filename: str, caption: str = None, l
                             for context in RegisteredRunContext.get_all_runtime_instances()
                             if context.name == 'ReadPickleAttrReplacer'), None)
     if pickle_filename:
-        comment = wrap_source_filename_as_latex_comment(pickle_filename)
+        comment = embed_source_filename_as_comment_in_latex_displayitem(pickle_filename)
     else:
         comment = None
 
@@ -61,7 +61,7 @@ def _check_for_figure_style_issues(df: pd.DataFrame, filename: str, *args,
     label: Optional[str] = kwargs.get('label', None)
     legend = {} if legend is None else legend
 
-    issues = check_df_of_table_for_content_issues(df, filename)
+    issues = check_output_df_for_content_issues(df, filename)
     if issues:
         return issues
 
@@ -82,10 +82,10 @@ def _check_for_figure_style_issues(df: pd.DataFrame, filename: str, *args,
         return issues
 
     # Check caption/label
-    issues.extend(check_table_label(df, filename, label=label))
-    issues.extend(check_table_caption(df, filename, text=caption, item_name='caption'))
+    issues.extend(check_displayitem_label(df, filename, label=label))
+    issues.extend(check_displayitem_caption(df, filename, text=caption, item_name='caption'))
     if note is not None:
-        issues.extend(check_table_caption(df, filename, text=note, item_name='note'))
+        issues.extend(check_displayitem_caption(df, filename, text=note, item_name='note'))
         issues.extend(check_note_different_than_caption(df, filename, note=note, caption=caption))
     if issues:
         return issues
@@ -96,8 +96,8 @@ def _check_for_figure_style_issues(df: pd.DataFrame, filename: str, *args,
         return issues
 
     # Check that any abbreviated row/column labels are explained in the legend
-    issues.extend(check_for_unexplained_abbreviations(df, filename, legend=legend, is_narrow=e < 0.8))
+    issues.extend(check_for_un_legend_abbreviations(df, filename, legend=legend, is_narrow=e < 0.8))
 
     # Check that the legend does not include any labels that are not in the table
-    issues.extend(check_legend_does_not_include_labels_that_are_not_in_table(df, filename, legend=legend))
+    issues.extend(check_legend_does_not_include_labels_that_are_not_in_df(df, filename, legend=legend))
     return issues

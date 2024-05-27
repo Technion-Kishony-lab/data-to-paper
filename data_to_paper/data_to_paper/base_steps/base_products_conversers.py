@@ -251,7 +251,7 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
 
         IMPORTANT NOTE:
         If we need to include a numeric value that was not calculated or is not explicitly given in the \t
-        Tables or "{additional_results}", \t
+        Display Items or "{additional_results}", \t
         and cannot be derived from them, \t
         then indicate `[unknown]` instead of the numeric value. 
 
@@ -358,8 +358,8 @@ class CheckReferencedNumericReviewBackgroundProductsConverser(CheckExtractionRev
         that match the \\hypertarget references in the provided sources above.
 
         IMPORTANT NOTE:
-        If we need to include a numeric value that is not explicitly provided in the Tables and other results above, \t
-        and cannot be derived from them, then indicate `[unknown]` instead of the numeric value. 
+        If we need to include a numeric value that is not explicitly provided in the Display Items and other results \t
+        above, and cannot be derived from them, then indicate `[unknown]` instead of the numeric value. 
 
         For example:
         'The p-value of the regression coefficient of the treatment was [unknown].'

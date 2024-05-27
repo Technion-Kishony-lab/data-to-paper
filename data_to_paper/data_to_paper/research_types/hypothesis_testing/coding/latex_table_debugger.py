@@ -28,13 +28,13 @@ class LatexTablesDebuggerConverser(DebuggerConverser):
     code_runner_cls: Type[CodeRunner] = UtilsCodeRunner
 
     def _get_issues_for_created_output_files(self, code_and_output: CodeAndOutput, contexts) -> List[RunIssue]:
-        num_created_pkl_table_files = self.products.get_number_of_created_df_tables()
-        created_tex_table_files = code_and_output.created_files.get_created_content_files()
-        if len(created_tex_table_files) < num_created_pkl_table_files:
+        num_created_pkl_df_files = self.products.get_number_of_created_dfs()
+        created_tex_files = code_and_output.created_files.get_created_content_files()
+        if len(created_tex_files) < num_created_pkl_df_files:
             return [RunIssue(
                 category='Missing output files',
-                issue=f"We have {num_created_pkl_table_files} table_?.pkl files, but only "
-                      f"{len(created_tex_table_files)} tex files were created.",
+                issue=f"We have {num_created_pkl_df_files} df_?.pkl files, but only "
+                      f"{len(created_tex_files)} tex files were created.",
                 instructions=f"Please create a tex file for each table.",
                 code_problem=CodeProblem.OutputFileContentLevelA,
             )]

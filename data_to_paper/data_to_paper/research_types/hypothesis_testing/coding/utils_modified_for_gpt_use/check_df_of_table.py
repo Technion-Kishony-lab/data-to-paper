@@ -124,14 +124,14 @@ def check_df_index_is_a_range(df: pd.DataFrame, filename: str) -> RunIssues:
 
 def check_df_filename(filename: str) -> RunIssues:
     """
-    Check if the filename of the table is in the format `table_<number>.pkl`.
+    Check if the filename of the table is in the format `df_<number>.pkl`.
     """
     issues = RunIssues()
-    if not re.match(pattern=r'^table_(\d+).pkl$', string=filename):
+    if not re.match(pattern=r'^df_(\d+).pkl$', string=filename):
         issues.append(RunIssue.from_current_tb(
             category='Table filename',
             code_problem=CodeProblem.OutputFileContentLevelA,
-            issue=f'The filename of the table should be in the format `table_<number>.pkl`, '
+            issue=f'The filename of the table should be in the format `df_<number>.pkl`, '
                   f'but got {filename}.',
         ))
     return issues
@@ -167,8 +167,8 @@ def check_df_for_repeated_values(df: pd.DataFrame, filename: str) -> RunIssues:
     return issues
 
 
-def check_df_for_repeated_values_in_prior_tables(df: pd.DataFrame, filename: str,
-                                                 prior_tables: Dict[str, pd.DataFrame]) -> RunIssues:
+def check_df_for_repeated_values_in_prior_dfs(df: pd.DataFrame, filename: str,
+                                              prior_tables: Dict[str, pd.DataFrame]) -> RunIssues:
     """
     Check if the table numeric values overlap with values in prior tables
     """
@@ -270,9 +270,9 @@ def check_df_size(df: pd.DataFrame, filename: str) -> RunIssues:
     return issues
 
 
-def check_df_of_table_for_content_issues(df: pd.DataFrame, filename: str,
-                                         prior_tables: Dict[str, pd.DataFrame] = None) -> RunIssues:
-    prior_tables = prior_tables or {}
+def check_output_df_for_content_issues(df: pd.DataFrame, filename: str,
+                                       prior_dfs: Dict[str, pd.DataFrame] = None) -> RunIssues:
+    prior_dfs = prior_dfs or {}
     issues = RunIssues()
 
     # Check if the table has only numeric, str, bool, or tuple values
@@ -291,19 +291,19 @@ def check_df_of_table_for_content_issues(df: pd.DataFrame, filename: str,
     #  especially in df.describe() of small datasets.
 
     # Check if the table numeric values overlap with values in prior tables
-    issues.extend(check_df_for_repeated_values_in_prior_tables(df, filename, prior_tables))
+    issues.extend(check_df_for_repeated_values_in_prior_dfs(df, filename, prior_dfs))
     if issues:
         return issues
 
-    # Check if the table is a df.describe() table
+    # Check if the df is a df.describe() table
     issues.extend(check_df_is_describe(df, filename))
     if issues:
         return issues
 
-    # Check if the table has NaN values or PValue with value of nan
+    # Check if the df has NaN values or PValue with value of nan
     issues.extend(check_df_for_nan_values(df, filename))
 
-    # Check if the table has too many columns or rows
+    # Check if the df has too many columns or rows
     issues.extend(check_df_size(df, filename))
 
     return issues

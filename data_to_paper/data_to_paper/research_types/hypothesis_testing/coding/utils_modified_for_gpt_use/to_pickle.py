@@ -8,7 +8,7 @@ from data_to_paper.run_gpt_code.attr_replacers import AttrReplacer
 from data_to_paper.run_gpt_code.overrides.pvalue import PValue
 from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue
 
-from .check_df_of_table import check_df_of_table_for_content_issues, check_df_filename
+from .check_df_of_table import check_output_df_for_content_issues, check_df_filename
 
 
 def _dataframe_to_pickle_with_checks(df: pd.DataFrame, path: str, *args,
@@ -35,10 +35,10 @@ def _dataframe_to_pickle_with_checks(df: pd.DataFrame, path: str, *args,
     if not isinstance(path, str):
         raise RunIssue.from_current_tb(
             category='Use of `to_pickle`',
-            issue="Please use `to_pickle(filename)` with a filename as a string argument in the format 'table_x'",
+            issue="Please use `to_pickle(filename)` with a filename as a string argument in the format 'df_?'",
             code_problem=CodeProblem.RuntimeError,
         )
-    context_manager.issues.extend(check_df_of_table_for_content_issues(df, path, prior_tables=prior_tables))
+    context_manager.issues.extend(check_output_df_for_content_issues(df, path, prior_dfs=prior_tables))
     context_manager.issues.extend(check_df_filename(path))
     with RegisteredRunContext.temporarily_disable_all(), PValue.BEHAVE_NORMALLY.temporary_set(True):
         original_func(df, path)

@@ -4,7 +4,7 @@ from pytest import fixture
 from pytest import raises
 
 from data_to_paper.research_types.hypothesis_testing.coding.utils_modified_for_gpt_use. \
-    check_df_of_table import check_df_of_table_for_content_issues
+    check_df_of_table import check_output_df_for_content_issues
 from data_to_paper.research_types.hypothesis_testing.coding. \
     utils_modified_for_gpt_use.to_latex_with_note import _check_for_table_style_issues
 from data_to_paper.research_types.hypothesis_testing.coding.\
@@ -54,13 +54,13 @@ def test_check_for_table_style_issues_runs_ok_on_df_with_list():
 
 
 def test_check_df_of_table_for_content_issues_runs_ok(df):
-    issues = check_df_of_table_for_content_issues(df, 'table_1.pkl', prior_tables={})
+    issues = check_output_df_for_content_issues(df, 'table_1.pkl', prior_dfs={})
     assert not issues
 
 
 def test_check_df_of_table_for_content_issues_raises_on_nan(df):
     df.iloc[0, 1] = float('nan')
-    issues = check_df_of_table_for_content_issues(df, 'table_1.pkl', prior_tables={})
+    issues = check_output_df_for_content_issues(df, 'table_1.pkl', prior_dfs={})
     assert len(issues) == 1
     assert 'NaN' in issues[0].category
     assert 'has a NaN value' in issues[0].issue
@@ -68,7 +68,7 @@ def test_check_df_of_table_for_content_issues_raises_on_nan(df):
 
 def test_check_df_of_table_for_content_issues_raises_on_p_value_of_nan(df):
     df.iloc[0, 1] = PValue(float('nan'))
-    issues = check_df_of_table_for_content_issues(df, 'table_1.pkl', prior_tables={})
+    issues = check_output_df_for_content_issues(df, 'table_1.pkl', prior_dfs={})
     assert len(issues) == 1
     assert 'NaN' in issues[0].category
     assert 'has a NaN value' in issues[0].issue
@@ -78,7 +78,7 @@ def test_check_df_of_table_for_content_issues_raises_on_p_value_of_nan(df):
 def test_check_df_of_table_for_content_issues_with_repeated_value(df):
     df.iloc[0, 0] = 2 / 7
     df.iloc[1, 1] = 2 / 7
-    issues = check_df_of_table_for_content_issues(df, 'table_1.pkl', prior_tables={})
+    issues = check_output_df_for_content_issues(df, 'table_1.pkl', prior_dfs={})
     assert len(issues) == 1
     assert 'overlap' in issues[0].category
     assert '(0, 0), (1, 1)' in issues[0].issue
@@ -88,7 +88,7 @@ def test_check_df_of_table_for_content_issues_with_repeated_value_in_prior_table
     prior_table = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]}, index=['x', 'y', 'z'])
     prior_table.iloc[0, 0] = 2 / 7
     df.iloc[1, 1] = 2 / 7
-    issues = check_df_of_table_for_content_issues(df, 'table_1.pkl', prior_tables={'table_0.pkl': prior_table})
+    issues = check_output_df_for_content_issues(df, 'table_1.pkl', prior_dfs={'table_0.pkl': prior_table})
     assert len(issues) == 1
     assert 'Overlapping' in issues[0].category
     assert 'table_0.pkl' in issues[0].issue
@@ -96,6 +96,6 @@ def test_check_df_of_table_for_content_issues_with_repeated_value_in_prior_table
 
 def test_check_df_of_table_for_header_issues(df):
     df.columns = [('a', 'b'), 'x']
-    issues = check_df_of_table_for_content_issues(df, 'table_1.pkl', prior_tables={})
+    issues = check_output_df_for_content_issues(df, 'table_1.pkl', prior_dfs={})
     assert len(issues) == 1
     assert 'tuple' in issues[0].issue

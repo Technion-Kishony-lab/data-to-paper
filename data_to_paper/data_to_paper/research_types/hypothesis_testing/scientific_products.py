@@ -10,7 +10,7 @@ from data_to_paper.code_and_output_files.referencable_text import hypertarget_if
 from data_to_paper.conversation.stage import Stage
 from data_to_paper.latex import extract_latex_section_from_response
 from data_to_paper.latex.latex_to_pdf import evaluate_latex_num_command
-from data_to_paper.latex.tables import add_tables_to_paper_section, get_table_caption
+from data_to_paper.latex.tables import add_displayitems_to_paper_section, get_displayitem_caption
 
 from data_to_paper.research_types.hypothesis_testing.cast import ScientificAgent
 from data_to_paper.research_types.hypothesis_testing.product_types import HypothesisTestingPlanProduct, \
@@ -29,7 +29,7 @@ CODE_STEPS_TO_STAGES_NAMES_AGENTS: Dict[str, Tuple[Stage, str, ScientificAgent]]
     'data_exploration': (ScientificStage.EXPLORATION, 'Data Exploration', ScientificAgent.DataExplorer),
     # 'data_preprocessing': (ScientificStage.PREPROCESSING, 'Data Preprocessing', ScientificAgent.DataPreprocessor),
     'data_analysis': (ScientificStage.CODE, 'Data Analysis', ScientificAgent.Debugger),
-    'data_to_latex': (ScientificStage.TABLES, 'LaTeX Table Design', ScientificAgent.InterpretationReviewer),
+    'data_to_latex': (ScientificStage.DISPLAYITEMS, 'LaTeX Table Design', ScientificAgent.InterpretationReviewer),
 }
 
 
@@ -115,14 +115,14 @@ class ScientificProducts(Products):
     paper_sections_and_optional_citations: Dict[str, Union[str, Tuple[str, Set[Citation]]]] = \
         field(default_factory=MemoryDict)
 
-    def get_created_df_tables(self) -> List[str]:
+    def get_created_dfs(self) -> List[str]:
         return [file for file in self.codes_and_outputs['data_analysis'].created_files.get_created_content_files()
-                if file.startswith('table_')]
+                if file.startswith('df_')]
 
-    def get_number_of_created_df_tables(self) -> int:
-        return len(self.get_created_df_tables())
+    def get_number_of_created_dfs(self) -> int:
+        return len(self.get_created_dfs())
 
-    def get_latex_tables(self, content_view: ContentView = None) -> Dict[str, List[str]]:
+    def get_latex_displayitems(self, content_view: ContentView = None) -> Dict[str, List[str]]:
         """
         Return the tables.
         """
@@ -136,7 +136,7 @@ class ScientificProducts(Products):
         """
         Return the tables from all sections.
         """
-        return [table for tables in self.get_latex_tables(content_view).values() for table in tables]
+        return [table for tables in self.get_latex_displayitems(content_view).values() for table in tables]
 
     @property
     def all_file_descriptions(self) -> DataFileDescriptions:
@@ -212,9 +212,9 @@ class ScientificProducts(Products):
         """
         Return the paper sections with tables inserted at the right places.
         """
-        latex_tables = self.get_latex_tables(content_view)
-        return {section_name: section if section_name not in latex_tables
-                else add_tables_to_paper_section(section, latex_tables[section_name])
+        latex_displayitems = self.get_latex_displayitems(content_view)
+        return {section_name: section if section_name not in latex_displayitems
+                else add_displayitems_to_paper_section(section, latex_displayitems[section_name])
                 for section_name, section in self.get_paper_sections_without_citations().items()}
 
     def get_title(self) -> str:
@@ -434,24 +434,24 @@ class ScientificProducts(Products):
                                       },
             ),
 
-            'latex_tables': NameDescriptionStageGenerator(
-                'Tables of the Paper',
-                'Here are the tables created by our data analysis code '
-                '(a latex representation of the table_?.pkl dataframes):\n\n{}',
-                ScientificStage.TABLES,
+            'latex_displayitems': NameDescriptionStageGenerator(
+                'Displayitems of the Paper',
+                'Here are the displayitems created by our data analysis code '
+                '(figure/table latex representations of the df_?.pkl dataframes):\n\n{}',
+                ScientificStage.DISPLAYITEMS,
                 lambda: None if not self.get_all_latex_tables(ContentViewPurpose.PRODUCT) else
-                '\n\n'.join([f'- "{get_table_caption(table)}":\n\n'
+                '\n\n'.join([f'- "{get_displayitem_caption(table)}":\n\n'
                              f'```latex\n{table}\n```'
                              for table in self.get_all_latex_tables(ContentViewPurpose.PRODUCT)]),
             ),
 
-            'latex_tables_linked': NameDescriptionStageGenerator(
-                'Tables of the Paper with hypertargets',
-                'Here are the tables created by our data analysis code '
-                '(a latex representation of the table_?.pkl dataframes, with hypertargets):\n\n{}',
-                ScientificStage.TABLES,
+            'latex_displayitems_linked': NameDescriptionStageGenerator(
+                'Displayitems of the Paper with hypertargets',
+                'Here are the displayitems created by our data analysis code '
+                '(figure/table latex representations of the df_?.pkl dataframes, with hypertargets):\n\n{}',
+                ScientificStage.DISPLAYITEMS,
                 lambda: None if not self.get_all_latex_tables(ContentViewPurpose.HYPERTARGET_PRODUCT) else
-                '\n\n'.join([f'- "{get_table_caption(table)}":\n\n'
+                '\n\n'.join([f'- "{get_displayitem_caption(table)}":\n\n'
                              f'```latex\n{table}\n```'
                              for table in self.get_all_latex_tables(ContentViewPurpose.HYPERTARGET_PRODUCT)]),
             ),

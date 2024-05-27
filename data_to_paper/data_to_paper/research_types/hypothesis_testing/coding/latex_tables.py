@@ -11,14 +11,14 @@ from data_to_paper.code_and_output_files.output_file_requirements import TextCon
 from data_to_paper.code_and_output_files.ref_numeric_values import HypertargetFormat, HypertargetPosition
 from data_to_paper.code_and_output_files.referencable_text import BaseReferenceableText, convert_str_to_latex_label, \
     NumericReferenceableText
-from data_to_paper.latex.tables import get_table_caption
+from data_to_paper.latex.tables import get_displayitem_caption
 from data_to_paper.research_types.hypothesis_testing.cast import ScientificAgent
 from data_to_paper.research_types.hypothesis_testing.coding.base_code_conversers import BaseCreateTablesCodeProductsGPT
 from data_to_paper.research_types.hypothesis_testing.coding.original_utils.add_html_to_latex import \
     get_html_from_latex, get_latex_without_html_comment
 from data_to_paper.research_types.hypothesis_testing.coding.utils import get_additional_contexts
 from data_to_paper.research_types.hypothesis_testing.coding.utils_modified_for_gpt_use.label_latex_source import \
-    extract_source_filename_from_latex
+    extract_source_filename_from_latex_displayitem
 from data_to_paper.research_types.hypothesis_testing.coding.utils_modified_for_gpt_use.to_pickle import \
     get_read_pickle_attr_replacer
 from data_to_paper.research_types.hypothesis_testing.scientific_products import HypertargetPrefix
@@ -31,11 +31,11 @@ from data_to_paper.utils import dedent_triple_quote_str
 
 
 @dataclass
-class CreateLatexTablesCodeAndOutput(CodeAndOutput):
+class CreateLatexDisplayitemsCodeAndOutput(CodeAndOutput):
     def get_code_header_for_file(self, filename: str) -> Optional[str]:
-        # 'table_*.tex' -> '# TABLE *'
-        if filename.startswith('table_') and filename.endswith('.tex'):
-            return f'# TABLE {filename[6:-4]}'
+        # 'df_*.tex' -> '# DF *'
+        if filename.startswith('df_') and filename.endswith('.tex'):
+            return f'# DF {filename[3:-4]}'
         return None
 
 
@@ -78,11 +78,11 @@ class TexTableContentOutputFileRequirement(TextContentOutputFileRequirement):
             result = super().get_referencable_text(content, filename, num_file, content_view)
         if content_view == ContentViewPurpose.FINAL_INLINE:
             text = result.text
-            pickle_filename = extract_source_filename_from_latex(text)
+            pickle_filename = extract_source_filename_from_latex_displayitem(text)
             if pickle_filename:
                 # we add a hyperlink to the table caption
                 pickle_filename = convert_str_to_latex_label(pickle_filename, 'file')
-                caption = get_table_caption(text)
+                caption = get_displayitem_caption(text)
                 new_caption = f'\\protect\\hyperlink{{{pickle_filename}}}{{{caption}}}'
                 text = text.replace(caption, new_caption)
             result.text = text
@@ -104,7 +104,7 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
     code_step: str = 'data_to_latex'
     tolerance_for_too_wide_in_pts: Optional[float] = 25.
     debugger_cls: Type[DebuggerConverser] = LatexTablesDebuggerConverser
-    code_and_output_cls: Type[CodeAndOutput] = CreateLatexTablesCodeAndOutput
+    code_and_output_cls: Type[CodeAndOutput] = CreateLatexDisplayitemsCodeAndOutput
     headers_required_in_code: Tuple[str, ...] = (
         '# IMPORT',
         '# PREPARATION FOR ALL TABLES AND FIGURES',
@@ -116,17 +116,17 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
     user_agent: ScientificAgent = ScientificAgent.InterpretationReviewer
     background_product_fields: Tuple[str, ...] = \
         ('data_file_descriptions', 'research_goal', 'codes:data_preprocessing', 'codes:data_analysis',
-         'created_files_content:data_analysis:table_?.pkl')
+         'created_files_content:data_analysis:df_?.pkl')
     allow_data_files_from_sections: Tuple[Optional[str]] = ('data_analysis', )
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'my_utils')
     output_file_requirements: OutputFileRequirements = OutputFileRequirements(
         [tex_file_requirement])
 
     provided_code: str = dedent_triple_quote_str('''
-        def to_latex_with_note(df, filename: str, caption: str, label: str, \t
-        note: str = None, legend: Dict[str, str] = None, **kwargs):
+        def to_latex_with_note(df, filename: str, caption: str, label: str,
+                               note: str = None, legend: Dict[str, str] = None, **kwargs):
             """
-            Converts a DataFrame to a LaTeX table with optional note and legend added below the table.
+            Saves a DataFrame as a LaTeX table with optional note and legend added below the table.
 
             Parameters:
             - df, filename, caption, label: as in `df.to_latex`.
@@ -135,10 +135,10 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
             - **kwargs: Additional arguments for `df.to_latex`.
             """
 
-        def to_figure_with_note(df, filename: str, caption: str, label: str, \t
-        legend: Dict[str, str] = None, **kwargs):
+        def to_figure_with_note(df, filename: str, caption: str, label: str,
+                                note: str = None, legend: Dict[str, str] = None, **kwargs):
             """
-            Converts a DataFrame to a LaTeX figure with caption and optional legend added below the figure.
+            Saves a DataFrame to a LaTeX figure with caption and optional legend added below the figure.
             Uses `df.plot` to plot the DataFrame.
 
             Parameters:
@@ -162,8 +162,8 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
         ''')
 
     mission_prompt: str = dedent_triple_quote_str('''
-        Please write a Python code to convert and re-style the "table_?.pkl" dataframes created \t
-        by our "{codes:data_analysis}" into latex tables and figures suitable for our scientific paper.
+        Please write a Python code to convert and re-style the "df_?.pkl" dataframes created \t
+        by our "{codes:data_analysis}" into latex tables/figures suitable for our scientific paper.
 
         Your code should use the following 4 custom functions provided for import from `my_utils`: 
 
@@ -208,49 +208,51 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
         }
         # <This is of course just an example.> 
         # <Consult with the "{data_file_descriptions}" and the "{codes:data_analysis}"> 
-        # for choosing the labels and their proper scientific names and definitions.>
+        # for choosing the actual labels and their proper scientific names and definitions.>
 
-        # DF {first_table_number}:
-        df{first_table_number} = pd.read_pickle('table_{first_table_number}.pkl')
+        # DF {first_df_number}
+        df{first_df_number} = pd.read_pickle('df_{first_df_number}.pkl')
 
-        # FORMAT VALUES <include this sub-section only as applicable>
+        # Format values:
         # <Rename technical values to scientifically-suitable values. For example:>
-        df{first_table_number}['MRSA'] = df{first_table_number}['MRSA'].apply(lambda x: 'Yes' if x == 1 else 'No')
+        df{first_df_number}['MRSA'] = df{first_df_number}['MRSA'].apply(lambda x: 'Yes' if x == 1 else 'No')
+        # <If not needed, write '# Not Applicable'>
 
-        # RENAME ROWS AND COLUMNS <include this sub-section only as applicable>
+        # Rename rows and columns:
         # <Rename any abbreviated or not self-explanatory df labels to scientifically-suitable names.>
         # <Use the `shared_mapping` if applicable. For example:>
-        mapping{first_table_number} = dict((k, v) for k, v in shared_mapping.items() \t
-        if is_str_in_df(df{first_table_number}, k)) 
-        mapping{first_table_number} |= {
+        mapping{first_df_number} = dict((k, v) for k, v in shared_mapping.items() \t
+        if is_str_in_df(df{first_df_number}, k)) 
+        mapping{first_df_number} |= {
             'PV': ('P-value', None),
             'CI': ('CI', '95% Confidence Interval'),
             'Sex_Age': ('Age * Sex', 'Interaction term between Age and Sex'),
         }
-        abbrs_to_names{first_table_number}, legend{first_table_number} = split_mapping(mapping{first_table_number})
-        df{first_table_number} = df{first_table_number}.rename(columns=abbrs_to_names{first_table_number}, \t
-        index=abbrs_to_names{first_table_number})
+        abbrs_to_names{first_df_number}, legend{first_df_number} = split_mapping(mapping{first_df_number})
+        df{first_df_number} = df{first_df_number}.rename(columns=abbrs_to_names{first_df_number}, \t
+        index=abbrs_to_names{first_df_number})
         
         # <Choose whether it is more appropriate to present the data as a table or a figure.>
         # <Use either `to_latex_with_note` or `to_figure_with_note`> 
 
-        # SAVE AS LATEX:
+        # Creat latex table:
         to_latex_with_note(
-            df{first_table_number}, 'df_{first_table_number}.tex',
+            df{first_df_number}, 'df_{first_df_number}.tex',
             caption="<choose a caption suitable for a table in a scientific paper>", 
-            label='table:<chosen table label>',
+            label='<table:xxx>',
             note="<If needed, add a note to provide any additional information that is not captured in the caption>",
-            legend=legend{first_table_number})
+            legend=legend{first_df_number})
         
-        # SAVE AS FIGURE:
+        # Create latex figure:
         to_figure_with_note(
-            df{first_table_number}, 'df_{first_table_number}.tex',
+            df{first_df_number}, 'df_{first_df_number}.tex',
             caption="<choose a caption suitable for a figure in a scientific paper. Can be a multi-line caption>", 
-            label='fig:<chosen figure label>',
-            legend=legend{first_table_number})
+            label='<figure:xxx>',
+            note="<If needed, add a note to provide any additional information that is not captured in the caption>",
+            legend=legend{first_df_number})
 
-        # TABLE <?>:
-        # <etc, all 'table_?.pkl' files>
+        # DF <?>
+        # <etc, all 'df_?.pkl' files>
         ```
 
         Avoid the following:
@@ -262,15 +264,15 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
     code_review_prompts: Collection[CodeReviewPrompt] = ()
 
     @property
-    def first_table_number(self):
-        k = len('table_')
-        return self.products.get_created_df_tables()[0][k]
+    def first_df_number(self):
+        k = len('df_')
+        return self.products.get_created_dfs()[0][k]
 
     def __post_init__(self):
         super().__post_init__()
-        k = len('table_')
+        k = len('df_')
         self.headers_required_in_code += tuple(f'# DF {file_name[k]}'
-                                               for file_name in self.products.get_created_df_tables())
+                                               for file_name in self.products.get_created_dfs())
 
     def _get_additional_contexts(self) -> Optional[Dict[str, Any]]:
         return get_additional_contexts(

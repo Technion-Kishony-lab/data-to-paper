@@ -1,21 +1,21 @@
 from typing import Optional
 
-TABLE_COMMENT_HEADER = '% This latex table was generated from: '
+DISPLAYITEM_COMMENT_HEADER = '% This latex displayitem was generated from: '
 
 
-def extract_source_filename_from_latex(latex: str) -> Optional[str]:
+def extract_source_filename_from_latex_displayitem(latex: str) -> Optional[str]:
     """
-    Extract the source filename from a latex table.
+    Extract the source filename from a latex table/figure.
     """
     first_line = latex.split('\n')[0]
-    if not first_line.startswith(TABLE_COMMENT_HEADER):
+    if not first_line.startswith(DISPLAYITEM_COMMENT_HEADER):
         return None
     filename = first_line.split('`')[1]
     return filename
 
 
-def wrap_source_filename_as_latex_comment(filename: str) -> str:
+def embed_source_filename_as_comment_in_latex_displayitem(filename: str) -> str:
     """
-    Add the source filename to a latex table.
+    Add the source filename to a latex table/figure.
     """
-    return TABLE_COMMENT_HEADER + f'`{filename}`\n'
+    return DISPLAYITEM_COMMENT_HEADER + f'`{filename}`\n'

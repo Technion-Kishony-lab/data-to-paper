@@ -149,7 +149,7 @@ class LatexDocument:
     author: str = 'data-to-paper'
     packages: List[str] = field(default_factory=lambda: list(DEFAULT_PACKAGES))
 
-    allow_table_tilde: bool = False
+    allow_displayitem_tilde: bool = False
 
     def _style_section(self, section: str) -> str:
         if not self.section_numbering:
@@ -167,8 +167,11 @@ class LatexDocument:
         else:
             section = section.replace(r'\subsubsection*{', r'\subsubsection{')
 
-        if not self.allow_table_tilde:
-            section = section.replace(r'Table\textasciitilde', r'Table ').replace(r'Table \textasciitilde', r'Table ')
+        if not self.allow_displayitem_tilde:
+            section = section.replace(r'Table\textasciitilde', r'Table ')
+            section = section.replace(r'Table \textasciitilde', r'Table ')
+            section = section.replace(r'Figure\textasciitilde', r'Figure ')
+            section = section.replace(r'Figure \textasciitilde', r'Figure ')
 
         section = evaluate_latex_num_command(section)[0]
 

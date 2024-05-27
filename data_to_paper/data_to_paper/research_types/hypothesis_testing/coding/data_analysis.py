@@ -39,9 +39,9 @@ class DictPickleContentOutputFileRequirement(PickleContentOutputFileRequirement,
 @dataclass
 class DataAnalysisCodeAndOutput(CodeAndOutput):
     def get_code_header_for_file(self, filename: str) -> Optional[str]:
-        # 'table_*.pkl' -> '# Table *'
-        if filename.startswith('table_') and filename.endswith('.pkl'):
-            return f'## Table {filename[6:-4]}'
+        # 'df_*.pkl' -> '# DF *'
+        if filename.startswith('df_') and filename.endswith('.pkl'):
+            return f'## DF {filename[3:-4]}'
         # 'additional_results.pkl' -> '# Additional Results'
         if filename == 'additional_results.pkl':
             return '# SAVE ADDITIONAL RESULTS'
@@ -95,16 +95,16 @@ class DataAnalysisDebuggerConverser(DebuggerConverser):
             ))
         if issues:
             return issues
-        return self._get_issues_for_table_comments(code_and_output, contexts)
+        return self._get_issues_for_df_comments(code_and_output, contexts)
 
-    def _get_issues_for_table_comments(self, code_and_output: CodeAndOutput, contexts) -> List[RunIssue]:
+    def _get_issues_for_df_comments(self, code_and_output: CodeAndOutput, contexts) -> List[RunIssue]:
         issues = []
-        for table_file_name in code_and_output.created_files.get_created_content_files(match_filename='table_*.pkl'):
-            table_header = code_and_output.get_code_header_for_file(table_file_name)
-            if table_header not in code_and_output.code:
+        for df_file_name in code_and_output.created_files.get_created_content_files(match_filename='df_*.pkl'):
+            df_header = code_and_output.get_code_header_for_file(df_file_name)
+            if df_header not in code_and_output.code:
                 issues.append(RunIssue(
                     category="Code structure",
-                    issue=f'Your code is missing a comment "{table_header}".',
+                    issue=f'Your code is missing a comment "{df_header}".',
                     instructions='Please make sure all saved tables have a header comment with the table name.\n'
                                  'If you are creating multiple tables in the same section of the code, '
                                  'you should precede this section with a separate comment for each of the tables.',
@@ -159,7 +159,7 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'statsmodels', 'sklearn', 'pickle')
 
     output_file_requirements: OutputFileRequirements = OutputFileRequirements(
-        [DataFramePickleContentOutputFileRequirement('table_?.pkl', 1),
+        [DataFramePickleContentOutputFileRequirement('df_?.pkl', 1),
          DictPickleContentOutputFileRequirement('additional_results.pkl', 1,
                                                 hypertarget_prefixes=HypertargetPrefix.ADDITIONAL_RESULTS.value)
          ])
@@ -200,9 +200,9 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         the research paper and create a relevant table.
 
         For example:
-        `## Table 0: "Descriptive statistics of height and age stratified by sex"`
+        `## DF 0: "Descriptive statistics of height and age stratified by sex"`
         Write here the code to create a descriptive statistics dataframe `df0` and save it using:
-        `df0.to_pickle('table_0.pkl')`
+        `df0.to_pickle('df_0.pkl')`
 
         If no descriptive statistics are needed, write:
         `# No descriptive statistics table is needed.`
@@ -227,8 +227,8 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         [a] Write a comment with a suggested table's caption. 
         Choose a caption that clearly describes the table's content and its purpose.
         For example:
-        `## Table 1: "Test of association between age and risk of death, accounting for sex and race"`
-        Avoid generic captions such as `## Table 1: "Results of analysis"`.
+        `## DF 1: "Test of association between age and risk of death, accounting for sex and race"`
+        Avoid generic captions such as `## DF 1: "Results of analysis"`.
 
         [b] Perform analysis
         - Perform appropriate analysis and/or statistical tests (see above our "{hypothesis_testing_plan}").
@@ -253,11 +253,11 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         Overall, the section should have the following structure:
 
         `# ANALYSIS`
-        `## Table 1: <your chosen table name here>`
-        Write here the code to analyze the data and create a dataframe df1 for the table 1
-        `df1.to_pickle('table_1.pkl')`
+        `## DF 1: <your chosen table name here>`
+        Write here the code to analyze the data and create a dataframe df1 for table 1
+        `df1.to_pickle('df_1.pkl')`
 
-        `## Table 2: <your chosen table name here>`
+        `## DF 2: <your chosen table name here>`
         etc, up to 3 tables.
 
 
@@ -386,7 +386,7 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
 
         {code_review_notes}
         """)),
-        CodeReviewPrompt('"{filename}"', 'table_*.pkl', True, dedent_triple_quote_str("""
+        CodeReviewPrompt('"{filename}"', 'df_*.pkl', True, dedent_triple_quote_str("""
         I ran your code.
 
         Here is the content of the table '{filename}' that the code created for our scientific paper:
@@ -439,19 +439,19 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
             # * COMPLETENESS OF TABLES:
             # Does the code create and output all needed results to address our {hypothesis_testing_plan}?
             # For example:
-            "Completeness of output": ("OK", "We should include the P-values for the test in table_?.pkl"),
+            "Completeness of output": ("OK", "We should include the P-values for the test in df_?.pkl"),
 
             # * CONSISTENCY ACROSS TABLES:
             # Are the tables consistent in terms of the variables included, the measures of uncertainty, etc?
             # For example:
-            "Consistency among tables": ("CONCERN", "In Table 1, we provide age in years, but in table_?.pkl, \t
+            "Consistency among tables": ("CONCERN", "In df_1.pkl, we provide age in years, but in df_2.pkl, \t
         we provide age in months"),
 
             # * MISSING DATA: 
             # Are we missing key variables in a given table? Are we missing measures of uncertainty 
             # (like p-value, CI, or STD, as applicable)?
             # For example:
-            "Missing data": ("CONCERN", "We have to add the variable 'xxx' to table_?.pkl"),
+            "Missing data": ("CONCERN", "We have to add the variable 'xxx' to df_?.pkl"),
             "Measures of uncertainty": ("CONCERN", "We should have included p-values for ..."),
 
         {missing_tables_comments}
@@ -472,19 +472,19 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         }
 
     @staticmethod
-    def _get_table_comments_for_code_and_output(code_and_output: CodeAndOutput) -> str:
-        tables = code_and_output.created_files.get_created_content_files_to_contents(
-            match_filename='table_*.pkl')
-        num_tables = len(tables)
-        # is_descriptive_table = 'table_0.pkl' in tables
-        if num_tables == 0:
+    def _get_df_comments_for_code_and_output(code_and_output: CodeAndOutput) -> str:
+        dfs = code_and_output.created_files.get_created_content_files_to_contents(
+            match_filename='df_*.pkl')
+        num_dfs = len(dfs)
+        # is_descriptive_df = 'df_0.pkl' in dfs
+        if num_dfs == 0:
             return dedent_triple_quote_str("""
                 # * MISSING TABLES:
                 # Note that the code does not create any tables.
                 # Research papers typically have 2 or more tables. \t
                 # Please suggest which tables to create and additional analysis needed.
                 "Missing tables": ("CONCERN", "I suggest creating tables for ...")""", indent=4)
-        if num_tables == 1:
+        if num_dfs == 1:
             return dedent_triple_quote_str("""
                 # * MISSING TABLES:
                 # The code only creates 1 table.
@@ -492,7 +492,7 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
                 # Are you sure all relevant tables are created? Can you suggest any additional analysis leading \t
                 to additional tables?
                 "Missing tables": ("CONCERN", "I suggest creating an extra table for showing ...")""", indent=4)
-        if num_tables == 2:
+        if num_dfs == 2:
             return dedent_triple_quote_str("""
                 # * MISSING TABLES:
                 # Considering our research goal and hypothesis testing plan,
@@ -502,7 +502,7 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
 
     def _get_specific_attrs_for_code_and_output(self, code_and_output: CodeAndOutput) -> Dict[str, str]:
         comments = super()._get_specific_attrs_for_code_and_output(code_and_output)
-        comments['missing_tables_comments'] = self._get_table_comments_for_code_and_output(code_and_output)
+        comments['missing_tables_comments'] = self._get_df_comments_for_code_and_output(code_and_output)
         return comments
 
     @property
