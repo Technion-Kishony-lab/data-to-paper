@@ -10,6 +10,7 @@ from data_to_paper.research_types.hypothesis_testing.coding.original_utils.add_h
     convert_to_latex_comment
 from data_to_paper.research_types.hypothesis_testing.coding.original_utils.note_and_legend import \
     convert_note_and_legend_to_latex, convert_note_and_legend_to_html
+from data_to_paper.run_gpt_code.overrides.dataframes.df_methods import STR_FLOAT_FORMAT
 from data_to_paper.run_gpt_code.overrides.dataframes.utils import to_string_with_iterables
 from data_to_paper.run_gpt_code.overrides.pvalue import OnStrPValue, OnStr
 
@@ -137,6 +138,40 @@ def df_plot_with_pvalue(df, x=None, y=None, kind='line', ax: Optional[plt.Axes] 
                         ha='center', va='bottom')
 
 
+def get_description_of_plot_creation(df, fig_filename, kwargs, float_num_digits=4) -> str:
+    """
+    Get a description of how the plot was created.
+    This is what the LLM will get. This is essentially how the LLM "sees" the figure.
+    More sophisticated implementations can be added in the future.
+    """
+    with OnStrPValue(OnStr.SMALLER_THAN):
+        df_str = to_string_with_iterables(df, float_format=STR_FLOAT_FORMAT)
+
+    ci_x = kwargs.pop('x_ci', None)
+    ci_y = kwargs.pop('y_ci', None)
+    p_value_x = kwargs.pop('x_p_value', None)
+    p_value_y = kwargs.pop('y_p_value', None)
+
+    s = '\n'
+    s += f'This latex figure presents "{fig_filename}" which was created from the following df:\n\n'
+    s += df_str
+    s += '\n\n'
+    s += f'To create the figure, this df was plotted with the following command:\n\n'
+    s += f'df.plot(**{kwargs})'
+    if ci_x:
+        s += f'\n\nConfidence intervals for x-values were then plotted based on column: {repr(ci_x)}.'
+    if ci_y:
+        s += f'\n\nConfidence intervals for y-values were then plotted based on column: {repr(ci_y)}.'
+    if p_value_x:
+        s += f'\n\nP-values for x-values were taken from column: {repr(p_value_x)}.'
+    if p_value_y:
+        s += f'\n\nP-values for y-values were taken from column: {repr(p_value_y)}.'
+    if p_value_x or p_value_y:
+        s += f'\n\nThese p-values were presented above the data points as stars:\n'
+        s += PValueToStars().get_conversion_legend_text()
+    return s
+
+
 def to_figure_with_note(df: pd.DataFrame, filename: Optional[str],
                         caption: str = None,
                         label: str = None,
@@ -171,16 +206,8 @@ def to_figure_with_note(df: pd.DataFrame, filename: Optional[str],
     latex = get_figure_and_caption_as_latex(fig_filename, caption_and_legend, label)
     html = get_figure_and_caption_as_html(fig_filename, caption_and_legend_html)
 
-    # add the dataframes to the latex as a comment
-    with OnStrPValue(pvalue_on_str):
-        df_str = to_string_with_iterables(df, float_format=f'.{float_num_digits}f' if float_num_digits else None)
-    s = ''
-    s += f'This figure was created from the following df:\n\n'
-    s += df_str
-    s += '\n\n'
-    s += f'This df was plotted with the following command:\n\n'
-    s += f'df.plot(**{kwargs})'
-    latex += convert_to_latex_comment(s)
+    latex += convert_to_latex_comment(
+        get_description_of_plot_creation(df, fig_filename, kwargs, float_num_digits=float_num_digits))
 
     if comment:
         latex = comment + '\n' + latex
@@ -200,13 +227,13 @@ def get_figure_and_caption_as_latex(filename: str, caption: str, label: str) -> 
     """
     caption = process_latex_text_and_math(caption)
     latex = f"""
-        \\begin{{figure}}[htbp]
-        \\centering
-        \\includegraphics[width=0.8\\textwidth]{{{filename}}}
-        \\caption{{{caption}}}
-        \\label{{{label}}}
-        \\end{{figure}}
-    """
+\\begin{{figure}}[htbp]
+\\centering
+\\includegraphics[width=0.8\\textwidth]{{{filename}}}
+\\caption{{{caption}}}
+\\label{{{label}}}
+\\end{{figure}}
+"""
     return latex
 
 
