@@ -14,17 +14,59 @@ from data_to_paper.run_gpt_code.overrides.dataframes.utils import to_string_with
 from data_to_paper.run_gpt_code.overrides.pvalue import OnStrPValue, OnStr
 
 
-def convert_p_value_to_stars(p_value: float, levels: Collection[float] = (0.01, 0.001, 0.0001)) -> str:
+def get_xy_coordinates_of_df_plot(df, x=None, y=None, kind='line'):
     """
-    Convert a p-value to stars, or 'NS'.
+    Plots the DataFrame and retrieves x and y coordinates for each data point using numerical indices.
     """
-    if p_value < levels[2]:
-        return '***'
-    if p_value < levels[1]:
-        return '**'
-    if p_value < levels[0]:
-        return '*'
-    return 'NS'
+    # Create the plot
+    ax = df.plot(x=x, y=y, kind=kind, legend=False)
+
+    coords = {}
+    if kind == 'bar':
+        # Handle bar plots
+        for col_index, container in enumerate(ax.containers):
+            coords[col_index] = {}
+            for rect, row_index in zip(container, range(len(df))):
+                coords[col_index][row_index] = (rect.get_x() + rect.get_width() / 2, rect.get_height())
+    else:
+        # Handle line and other plots
+        for line, col_index in zip(ax.lines, range(len(df.columns))):
+            coords[col_index] = {}
+            for x_val, y_val, row_index in zip(line.get_xdata(), line.get_ydata(), range(len(df))):
+                coords[col_index][row_index] = (x_val, y_val)
+
+    plt.close()  # Close the plot to avoid display
+    return coords
+
+
+class PValueToStars:
+    default_levels = (0.01, 0.001, 0.0001)
+
+    def __init__(self, p_value: Optional[float] = None, levels: Tuple[float] = None):
+        self.p_value = p_value
+        self.levels = levels or self.default_levels
+
+    def __str__(self):
+        return self.convert_to_stars()
+
+    def convert_to_stars(self):
+        p_value = self.p_value
+        levels = self.levels
+        if p_value < levels[2]:
+            return '***'
+        if p_value < levels[1]:
+            return '**'
+        if p_value < levels[0]:
+            return '*'
+        return 'NS'
+
+    def get_conversion_legend_text(self) -> str:
+        #  NS p >= 0.01, * p < 0.01, ** p < 0.001, *** p < 0.0001
+        levels = self.levels
+        legend = [f'NS p >= {levels[0]}']
+        for i, level in enumerate(levels):
+            legend.append(f'{(i + 1) * "*"} p < {level}')
+        return ', '.join(legend)
 
 
 def _convert_err_and_ci_to_err(df: pd.DataFrame, xy: Optional[str],
@@ -70,6 +112,8 @@ def df_plot_with_pvalue(df, x=None, y=None, kind='line', ax: Optional[plt.Axes] 
     xerr = _convert_err_and_ci_to_err(df, x, 'x', xerr, x_ci)
     yerr = _convert_err_and_ci_to_err(df, y, 'y', yerr, y_ci)
     df.plot(x=x, y=y, kind=kind, ax=ax, xerr=xerr, yerr=yerr, **kwargs)
+    coords = get_xy_coordinates_of_df_plot(df, x=x, y=y, kind=kind)
+
     if x_p_value is None and y_p_value is None:
         return
     elif x_p_value is not None and y_p_value is not None:
@@ -85,18 +129,12 @@ def df_plot_with_pvalue(df, x=None, y=None, kind='line', ax: Optional[plt.Axes] 
         y_p_values = df[y_p_value]
         if yerr is None:
             raise ValueError('The yerr or y_ci argument must be provided when plotting y_p_value.')
-        if kind in ['line', 'scatter']:
-            if x is None:
-                raise ValueError('The x argument must be provided when plotting lines or scatter plots.')
-            if y is None:
-                raise ValueError('The y argument must be provided when plotting lines or scatter plots.')
-            for i, (x_val, y_val) in enumerate(zip(df[x], df[y])):
-                ax.text(x_val, y_val + yerr[i, 1], convert_p_value_to_stars(y_p_values[i]))
-        elif kind == 'bar':
-            for i, (x_val, y_val) in enumerate(zip(df.index, df[y])):
-                ax.text(x_val, y_val + yerr[i, 1], convert_p_value_to_stars(y_p_values[i]))
-        else:
-            raise ValueError(f'The kind "{kind}" is not supported when plotting p-values.')
+
+        for col_index, index_data in coords.items():
+            for row_index, (x, y) in index_data.items():
+                # TODO: need to take care of bars with negative values, in which case the text should be below the bar
+                ax.text(x, y + yerr[1, row_index], PValueToStars(y_p_values[row_index]).convert_to_stars(),
+                        ha='center', va='bottom')
 
 
 def to_figure_with_note(df: pd.DataFrame, filename: Optional[str],
