@@ -20,6 +20,7 @@ text_5 = 'hello [world [inner]], what is your [name'
     (text_1, '[', ']', True, '[1, 2, 3, [4], 5]'),
     (text_2, '\\title{', '}', False, '\\textbf{this is some title in bold}'),
     (text_2, '\\title{', '}', True, '\\title{\\textbf{this is some title in bold}}'),
+    (text_2, '\\start{', '}', True, '\\start{abstract}'),
     (text_2, '\\start{abstract}', '\\end{abstract}', False, ' this is also the abstract '),
     (text_1, '[', None, False, '1, 2, 3, [4], 5] of numbers and lists'),
     (text_1, '[', None, True, '[1, 2, 3, [4], 5] of numbers and lists'),
