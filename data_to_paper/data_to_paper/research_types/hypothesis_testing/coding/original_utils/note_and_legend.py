@@ -15,7 +15,7 @@ def convert_note_and_glossary_to_latex(df, note: str, glossary: Dict[str, str], 
     if glossary:
         axes_labels = extract_df_axes_labels(df, index=index)
         for key, value in glossary.items():
-            if key in axes_labels:
+            if key in axes_labels or key == 'Significance':
                 note_and_glossary.append(r'\item \textbf{' + replace_special_latex_chars(key) +
                                        '}: ' + replace_special_latex_chars(value))
     if len(note_and_glossary) == 0:
@@ -33,6 +33,6 @@ def convert_note_and_glossary_to_html(df, note: str, glossary: Dict[str, str], i
     if glossary:
         axes_labels = extract_df_axes_labels(df, index=index)
         for key, value in glossary.items():
-            if key in axes_labels:
+            if key in axes_labels or key == 'Significance':
                 note_and_glossary.append(f'<b>{escape_html(key)}</b>: {escape_html(value)}<br>')
     return '\n'.join(note_and_glossary)

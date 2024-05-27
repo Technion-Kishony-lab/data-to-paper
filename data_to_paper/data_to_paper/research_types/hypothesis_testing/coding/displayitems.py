@@ -156,16 +156,22 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
             `caption` (str): Caption for the figure (can be multi-line).
             `label` (str): Latex label for the figure, 'figure:xxx'. 
             `glossary` (optional, dict): Dictionary mapping abbreviated df col/row labels to full names.
+            
+            Parameters for df.plot():
             `x` / `y` (optional, str): Column name for x-axis / y-axis values.
             `kind` (str): Type of plot: 'line', 'scatter', 'bar'.
             `use_index` (bool): If True, use the index as x-axis values.
             `logx` / `logy` (bool): If True, use log scale for x/y axis.
             `xerr` / `yerr` (optional, str): Column name for x/y error bars.
+            
+            Additional plotting options:
+            `x_p_value` / `y_p_value` (optional, str): Column name for x/y p-values to plot as stars above the data points.
+                p-values are converted to: '***' if < 0.001, '**' if < 0.01, '*' if < 0.05, 'NS' if >= 0.05.
+
+            Instead of xerr/yerr, you can directly provide confidence intervals:
             `x_ci` / `y_ci` (optional, str or (str, str)): an be either a single column name where each row contains
                 a 2-element tuple (n x 2 matrix when expanded), or a list containing two column names 
                 representing the lower and upper bounds of the confidence interval.
-            `x_p_value` / `y_p_value` (optional, str): Column name for x/y p-values to plot as stars above the data points.
-                p-values are converted to: '***' if < 0.001, '**' if < 0.01, '*' if < 0.05, 'NS' if >= 0.05.
             
             Note on error bars (explanation for y-axis is provided, x-axis is analogous):
             Either `yerr` or `y_ci` can be provided, but not both.
@@ -276,7 +282,9 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
             df{first_df_number}, 'df_{first_df_number}.tex',
             caption="<one line heading of the figure (this will get bolded in the scientific papers).>", 
             label='<figure:xxx>',
-            note="<If needed, add a note that will appear below the caption. Do not repeat the caption, or the glossary>",
+            note="<If needed, add a note with additional information that will appear below the caption.
+                  Do not repeat the caption. Do not repeat the glossary. 
+                  Do not specify '** < 0.001' (will add automatically)>",
             glossary=glossary{first_df_number},
             kind='bar',
             y='coef',

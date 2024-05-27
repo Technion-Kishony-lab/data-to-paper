@@ -148,6 +148,7 @@ def get_description_of_plot_creation(df, fig_filename, kwargs, float_num_digits=
     with OnStrPValue(OnStr.SMALLER_THAN):
         df_str = to_string_with_iterables(df, float_format=STR_FLOAT_FORMAT)
 
+    kwargs = kwargs.copy()
     ci_x = kwargs.pop('x_ci', None)
     ci_y = kwargs.pop('y_ci', None)
     p_value_x = kwargs.pop('x_p_value', None)
@@ -198,6 +199,10 @@ def to_figure_with_note(df: pd.DataFrame, filename: Optional[str],
     index = kwargs.get('use_index', True)
 
     label = label or ''
+
+    glossary = {} if glossary is None else glossary
+    if 'x_p_value' in kwargs or 'y_p_value' in kwargs:
+        glossary['Significance'] = PValueToStars().get_conversion_legend_text()
 
     note_and_glossary = convert_note_and_glossary_to_latex(df, note, glossary, index)
     note_and_glossary_html = convert_note_and_glossary_to_html(df, note, glossary, index)
