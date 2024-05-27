@@ -14,8 +14,8 @@ from data_to_paper.code_and_output_files.referencable_text import BaseReferencea
 from data_to_paper.latex.tables import get_table_caption
 from data_to_paper.research_types.hypothesis_testing.cast import ScientificAgent
 from data_to_paper.research_types.hypothesis_testing.coding.base_code_conversers import BaseCreateTablesCodeProductsGPT
-from data_to_paper.research_types.hypothesis_testing.coding.original_utils.to_latex_with_note import \
-    get_html_from_latex_table, get_latex_table_without_html_comment
+from data_to_paper.research_types.hypothesis_testing.coding.original_utils.add_html_to_latex import \
+    get_html_from_latex, get_latex_without_html_comment
 from data_to_paper.research_types.hypothesis_testing.coding.utils import get_additional_contexts
 from data_to_paper.research_types.hypothesis_testing.coding.utils_modified_for_gpt_use.to_latex_with_note import \
     TABLE_COMMENT_HEADER
@@ -66,7 +66,7 @@ class TexTableContentOutputFileRequirement(TextContentOutputFileRequirement):
     def get_referencable_text(self, content: Any, filename: str = None, num_file: int = 0,
                               content_view: ContentView = None) -> BaseReferenceableText:
         if content_view == ContentViewPurpose.APP_HTML:
-            content = get_html_from_latex_table(content)
+            content = get_html_from_latex(content)
             result = TableNumericReferenceableText(
                     text=content,
                     filename=filename,
@@ -74,7 +74,7 @@ class TexTableContentOutputFileRequirement(TextContentOutputFileRequirement):
                     content_view_purpose_converter=self.content_view_purpose_converter,
                 )
         else:
-            content = get_latex_table_without_html_comment(content)
+            content = get_latex_without_html_comment(content)
             result = super().get_referencable_text(content, filename, num_file, content_view)
         if content_view == ContentViewPurpose.FINAL_INLINE:
             text = result.text

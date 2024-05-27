@@ -17,9 +17,9 @@ def convert_latex_to_html(latex: str) -> str:
     - str: The converted HTML text.
     """
 
-    from data_to_paper.research_types.hypothesis_testing.coding.original_utils.to_latex_with_note import \
-        get_html_from_latex_table
-    html = get_html_from_latex_table(latex)
+    from data_to_paper.research_types.hypothesis_testing.coding.original_utils.add_html_to_latex import \
+        get_html_from_latex
+    html = get_html_from_latex(latex)
     if html:
         return html
 
