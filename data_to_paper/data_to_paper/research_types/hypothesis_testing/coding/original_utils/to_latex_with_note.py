@@ -47,7 +47,8 @@ HTML_TABLE_WITH_LABEL_AND_CAPTION = r"""
 """
 
 
-def raise_on_wrong_params_for_to_latex_with_note(df: pd.DataFrame, filename: Optional[str], caption: str = None,
+def raise_on_wrong_params_for_to_latex_with_note(df: pd.DataFrame, filename: Optional[str],
+                                                 caption: str = None,
                                                  label: str = None,
                                                  note: str = None,
                                                  legend: Dict[str, str] = None,

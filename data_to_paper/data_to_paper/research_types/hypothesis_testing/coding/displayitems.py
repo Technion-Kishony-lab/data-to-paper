@@ -128,16 +128,39 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
     provided_code: str = dedent_triple_quote_str('''
         def to_figure_with_note(df, filename: str, caption: str, label: str,
                                 note: str = None, legend: Dict[str, str] = None, 
-                                p_value: Optional[str] = None, **kwargs):
+                                x: Optional[str] = None, y: Optional[str] = None, kind: str = 'line',
+                                use_index: bool = True, 
+                                logx: bool = False, logy: bool = False,
+                                xerr: str = None, yerr: str = None,
+                                x_ci: Union[str, Tuple[str, str]] = None, y_ci: Union[str, Tuple[str, str]] = None,
+                                x_p_value: str = None, y_p_value: str = None,
+                                ):
             """
             Saves a DataFrame to a LaTeX figure with caption and optional legend added below the figure.
-            Uses `df.plot` to plot the DataFrame.
 
             Parameters:
-            - df, filename, caption, label: as in `df.to_latex`.
-            - legend (optional): Dictionary mapping abbreviations to full names.
-            - p_value (optional): Column name of p-values to plot as stars.
-            - **kwargs: arguments for `df.plot`, such as `x`, `y`, `kind`, etc.
+            `df`: DataFrame to plot (with column names and index as scientific labels). 
+            `filename` (str): name of a .tex file to create (a matching .png file will also be created). 
+            `caption` (str): Caption for the figure (can be multi-line).
+            `label` (str): Latex label for the figure, 'figure:xxx'. 
+            `legend` (optional, dict): Dictionary mapping abbreviated df col/row labels to full names.
+            `x` / `y` (optional, str): Column name for x-axis / y-axis values.
+            `kind` (str): Type of plot: 'line', 'scatter', 'bar'.
+            `use_index` (bool): If True, use the index as x-axis values.
+            `logx` / `logy` (bool): If True, use log scale for x/y axis.
+            `xerr` / `yerr` (optional, str): Column name for x/y error bars.
+            `x_ci` / `y_ci` (optional, str or (str, str)): an be either a single column name where each row contains
+                a 2-element tuple (n x 2 matrix when expanded), or a list containing two column names 
+                representing the lower and upper bounds of the confidence interval.
+            `x_p_value` / `y_p_value` (optional, str): Column name for x/y p-values to plot as stars above the data points.
+                p-values are converted to: '***' if < 0.001, '**' if < 0.01, '*' if < 0.05, 'NS' if >= 0.05.
+            
+            Note on error bars (explanation for y-axis is provided, x-axis is analogous):
+            Either `yerr` or `y_ci` can be provided, but not both.
+            If `yerr` is provided, the plotted error bars are (df[y]-df[yerr], df[y]+df[yerr]).
+            If `y_ci` is provided, the plotted error bars are (df[y_ci][0], df[y_ci][1]).
+            Note that unlike yerr, the y_ci are NOT added to the nominal df[y] values. 
+            Instead, the provided y_ci values should flank the nominal df[y] values.
             """
 
         def is_str_in_df(df: pd.DataFrame, s: str):
@@ -232,10 +255,12 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
             label='<figure:xxx>',
             note="<If needed, add a note to provide any additional information that is not captured in the caption>",
             legend=legend{first_df_number},
-            p_value='PV',
             kind='bar',
             y='coef',
-            yerr='CI')
+            y_ci='CI',  # or y_ci=('CI_LB', 'CI_UB')
+            y_p_value='PV',  # a column with p-values for the y values. Will be presented as stars in the plot.
+        )
+
 
         # DF <?>
         ### <etc, all 'df_?.pkl' files>

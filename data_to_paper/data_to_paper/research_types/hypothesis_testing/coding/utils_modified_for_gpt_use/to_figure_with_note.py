@@ -23,7 +23,10 @@ from ..original_utils import to_figure_with_note
 from ..original_utils.to_latex_with_note import raise_on_wrong_params_for_to_latex_with_note
 
 
-def _to_figure_with_note(df: pd.DataFrame, filename: str, caption: str = None, label: str = None,
+def _to_figure_with_note(df: pd.DataFrame, filename: str,
+                         caption: str = None,
+                         label: str = None,
+                         note: str = None,
                          legend: Dict[str, str] = None,
                          **kwargs):
     """
@@ -60,18 +63,19 @@ def _check_for_figure_style_issues(df: pd.DataFrame, filename: str, *args,
     caption: Optional[str] = kwargs.get('caption', None)
     label: Optional[str] = kwargs.get('label', None)
     legend = {} if legend is None else legend
+    index: bool = kwargs.get('use_index', True)
 
     issues = check_output_df_for_content_issues(df, filename)
     if issues:
         return issues
 
     # Check for repetitive values in a column
-    issues.extend(check_for_repetitive_value_in_column(df, filename))
+    issues.extend(check_for_repetitive_value_in_column(df, filename, displayitem='figure'))
     if issues:
         return issues
 
     # Check that the rows are labeled:
-    issues.extend(checks_that_rows_are_labelled(df, filename, index))
+    issues.extend(checks_that_rows_are_labelled(df, filename, index=index, displayitem='figure'))
     if issues:
         return issues
 
@@ -82,11 +86,11 @@ def _check_for_figure_style_issues(df: pd.DataFrame, filename: str, *args,
         return issues
 
     # Check caption/label
-    issues.extend(check_displayitem_label(df, filename, label=label))
-    issues.extend(check_displayitem_caption(df, filename, text=caption, item_name='caption'))
+    issues.extend(check_displayitem_label(df, filename, label=label, displayitem='figure'))
+    issues.extend(check_displayitem_caption(df, filename, text=caption, item_name='caption', displayitem='figure'))
     if note is not None:
-        issues.extend(check_displayitem_caption(df, filename, text=note, item_name='note'))
-        issues.extend(check_note_different_than_caption(df, filename, note=note, caption=caption))
+        issues.extend(check_displayitem_caption(df, filename, text=note, item_name='note', displayitem='figure'))
+        issues.extend(check_note_different_than_caption(df, filename, note=note, caption=caption, displayitem='figure'))
     if issues:
         return issues
 
@@ -96,8 +100,10 @@ def _check_for_figure_style_issues(df: pd.DataFrame, filename: str, *args,
         return issues
 
     # Check that any abbreviated row/column labels are explained in the legend
-    issues.extend(check_for_un_legend_abbreviations(df, filename, legend=legend, is_narrow=e < 0.8))
+    issues.extend(check_for_un_legend_abbreviations(df, filename, legend=legend, is_narrow=True,
+                                                    displayitem='figure'))
 
     # Check that the legend does not include any labels that are not in the table
-    issues.extend(check_legend_does_not_include_labels_that_are_not_in_df(df, filename, legend=legend))
+    issues.extend(check_legend_does_not_include_labels_that_are_not_in_df(df, filename, legend=legend,
+                                                                          displayitem='figure'))
     return issues

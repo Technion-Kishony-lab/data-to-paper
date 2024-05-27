@@ -83,17 +83,22 @@ def check_for_repetitive_value_in_column(df: pd.DataFrame, filename: str, displa
     return issues
 
 
-def checks_that_rows_are_labelled(df: pd.DataFrame, filename: str, index: bool) -> List[RunIssue]:
+def checks_that_rows_are_labelled(df: pd.DataFrame, filename: str, index: bool, displayitem: str = 'table'
+                                  ) -> List[RunIssue]:
     columns = df.columns
     if index is False and df.shape[0] > 1 and df[columns[0]].dtype != 'object':
+        if displayitem == 'table':
+            instructions = 'Use `index=True` in the function `to_latex_with_note`.'
+        else:
+            instructions = 'Use `use_index=True` in the function `to_figure_with_note`.'
         return [RunIssue(
             category='Checking df: Unlabelled rows',
             code_problem=CodeProblem.OutputFileDesignLevelA,
             item=filename,
-            issue=f'The table has more than one row, but the rows are not labeled.',
-            instructions=dedent_triple_quote_str("""
+            issue=f'The df has more than one row, but the rows are not labeled.',
+            instructions=dedent_triple_quote_str(f"""
                 Please revise the code making sure all tables are created with labeled rows.
-                Use `index=True` in the function `to_latex_with_note`.
+                {instructions}
                 """),
         )]
     return []
