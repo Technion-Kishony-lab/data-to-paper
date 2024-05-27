@@ -167,3 +167,15 @@ def hypertarget_if_referencable_text(text: Union[str, BaseReferenceableText],
     if isinstance(text, BaseReferenceableText):
         return text.get_hypertarget_text_with_header(content_view)
     return text
+
+
+@dataclass
+class LabeledNumericReferenceableText(NumericReferenceableText):
+    """
+    A text whose labeled numeric values can be converted to hypertargets.
+    Numeric values should be labeled with @@<...>@@.
+    """
+    pattern: str = r'@@<(\d+\.\d+)>@@'
+
+    def _get_value(self, match, reference_num, line_no, line_no_with_ref, in_line_number):  # noqa
+        return match.group(0)[3:-3]

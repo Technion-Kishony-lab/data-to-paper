@@ -1,9 +1,10 @@
 import pytest
 
-from data_to_paper.code_and_output_files.file_view_params import ContentViewParams
+from data_to_paper.code_and_output_files.file_view_params import ContentViewParams, ContentViewPurpose
 from data_to_paper.code_and_output_files.ref_numeric_values import \
     ReferencedValue, find_hyperlinks, find_numeric_values, HypertargetFormat, HypertargetPosition
-from data_to_paper.code_and_output_files.referencable_text import NumericReferenceableText
+from data_to_paper.code_and_output_files.referencable_text import NumericReferenceableText, \
+    LabeledNumericReferenceableText
 
 
 @pytest.mark.parametrize('text, expected_text', [
@@ -14,6 +15,19 @@ from data_to_paper.code_and_output_files.referencable_text import NumericReferen
 def test_create_references_to_numeric_values(text, expected_text):
     assert NumericReferenceableText(text=text, hypertarget_prefix='A').get_hypertarget_text_and_header_references(
         ContentViewParams(hypertarget_format=HypertargetFormat(position=HypertargetPosition.WRAP)))[0] == expected_text
+
+
+def test_labeled_numeric_referenceable_text():
+    text = "Label @@<1.23>@@ and not this 7.89 value."
+    numeric_ref = LabeledNumericReferenceableText(
+        text=text,
+        hypertarget_prefix='N',
+        filename='numeric_values',
+    )
+    assert numeric_ref.get_hypertarget_text_with_header(
+        ContentViewPurpose.HYPERTARGET_PRODUCT) == r"Label \hypertarget{N0a}{1.23} and not this 7.89 value."
+    assert numeric_ref.get_hypertarget_text_with_header(
+        ContentViewPurpose.PRODUCT) == r"Label 1.23 and not this 7.89 value."
 
 
 @pytest.mark.parametrize('text, expected', [
