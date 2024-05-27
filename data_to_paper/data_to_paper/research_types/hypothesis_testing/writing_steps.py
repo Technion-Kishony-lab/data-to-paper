@@ -260,8 +260,8 @@ class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProd
         * short statement of the subject and its importance. 
         * description of the research gap/question/motivation.
         * short, non-technical, description of the dataset used and a non-technical explanation of the methodology.
-        * summary of each of the main results. It should summarize each key result which is evident from the tables, \t
-        but without referring to specific numeric values from the tables.
+        * summary of each of the main results. It should summarize each key result which is evident from the displyitems, \t
+        but without referring to specific numeric values from the displayitems.
         * statement of limitations and implications.
         """)
     section_review_specific_instructions: str = "{section_specific_instructions}"
@@ -489,11 +489,14 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
     general_result_instructions: str = dedent_triple_quote_str("""\n
         Use the following guidelines when writing the Results:
 
-        * Include 3-4 paragraphs, each focusing on one of the Tables:
-        You should typically have a separate paragraph describing each of the Tables. \t
+        * Include 3-4 paragraphs, each focusing on one of the displayitems:
+        You should typically have a separate paragraph describing each of the Tables/Figures. \t
         In each such paragraph, indicate the motivation/question for the analysis, the methodology, \t
-        and only then describe the results. You should refer to the Tables by their labels (using \\ref{table:xxx}) \t
-        and explain their content, but do not add the tables themselves (I will add the tables later manually).
+        and only then describe the results. \t
+        You should describe what we see and learn from each Table/Figure. \t
+        You should refer to the Tables/Figures by their labels \t
+        (using \\ref{table:xxx}, \\ref{figure:xxx}), \t
+        but do not add the displayitems themselves (they will be added later automatically).
 
         * Story-like flow: 
         It is often nice to have a story-like flow between the paragraphs, so that the reader \t
@@ -566,12 +569,12 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         ```
 
         * Accuracy: 
-        Make sure that you are only mentioning details that are explicitly found within the Tables and \t
+        Make sure that you are only mentioning details that are explicitly found within the Tables, Figures and \t
         Numerical Values.
 
         * Unknown values:
         If we need to include a numeric value that is not explicitly given in the \t
-        Tables or "{additional_results_linked}", and cannot be derived from them using the \\num command, \t
+        Tables/Figures or "{additional_results_linked}", and cannot be derived from them using the \\num command, \t
         then indicate `[unknown]` instead of the numeric value. 
 
         For example:
@@ -588,12 +591,12 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         (they will be automatically replaced with the actual numeric values in compilation).
         """)
     section_review_specific_instructions: str = dedent_triple_quote_str("""
-        Do not suggest adding missing information, or stating whats missing from the Tables and Numerical Values, \t
+        Do not suggest adding missing information, or stating whats missing from the displayitems and Numerical Values, \t
         only suggest changes that are relevant to the Results section itself and that are supported by the given \t
-        Tables and Numerical Values.
+        displayitems and Numerical Values.
 
         Do not suggest changes to the {goal_noun} that may require data not available in the the \t
-        Tables and Numerical Values.
+        displayitems and Numerical Values.
         """)
     sentence_to_add_at_the_end_of_reviewer_response: str = dedent_triple_quote_str("""\n\n
         Please correct your response according to any points in my feedback that you find relevant and applicable.
@@ -604,19 +607,20 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
     """)
 
     def _get_displayitem_labels(self, section_name: str) -> List[str]:
-        return [get_displayitem_label(table) for table in self.products.get_latex_displayitems()[section_name]]
+        return [get_displayitem_label(displayitem) for displayitem in self.products.get_latex_displayitems()[section_name]]
 
     def _check_and_refine_section(self, section: str, section_name: str) -> str:
         result = super()._check_and_refine_section(section, section_name)
         displayitems_labels = self._get_displayitem_labels(section_name)
+        figure_or_table = 'Figure' if section_name.startswith('figure') else 'Table'
         for displayitem_label in displayitems_labels:
             if displayitem_label not in section:
                 self._raise_self_response_error(
-                    title='# Missing Table reference',
+                    title='# Missing Displayitem reference',
                     error_message=dedent_triple_quote_str(f"""
-                        The {section_name} section should specifically reference each of the Tables that we have.
-                        Please make sure we have a sentence addressing Table "{displayitem_label}".
-                        The sentence should have a reference like this: "Table~\\ref{{{displayitem_label}}}".
+                        The {section_name} section should specifically reference each of the Displayitems that we have.
+                        Please make sure we have a sentence addressing {figure_or_table} "{displayitem_label}".
+                        The sentence should have a reference like this: "{figure_or_table}~\\ref{{{displayitem_label}}}".
                         """)
                 )
         return result
