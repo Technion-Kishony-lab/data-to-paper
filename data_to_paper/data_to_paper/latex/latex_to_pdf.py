@@ -6,6 +6,7 @@ import numpy as np
 
 from typing import Optional, Collection, Tuple, Dict
 
+from data_to_paper.env import FOLDER_FOR_RUN
 from data_to_paper.servers.custom_types import Citation
 from data_to_paper.utils.file_utils import run_in_temp_directory
 from data_to_paper.code_and_output_files.ref_numeric_values import replace_hyperlinks_with_values
@@ -115,6 +116,10 @@ def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_dir
     latex_file_name = file_stem + '.tex'
     pdflatex_params = ['pdflatex', '--shell-escape', '-interaction=nonstopmode', latex_file_name]
     with run_in_temp_directory():
+        # Copy the figures from the running directory to the temp directory:
+        png_files_in_running_directory = [f for f in FOLDER_FOR_RUN.glob('*.png') if f.is_file()]
+        for png_file in png_files_in_running_directory:
+            shutil.copy(png_file, '.')
 
         # Create the bib file:
         if should_compile_with_bib:

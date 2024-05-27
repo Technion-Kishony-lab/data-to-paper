@@ -21,6 +21,7 @@ DEFAULT_PACKAGES = (
     '{color}',
     '{listings}',
     '{sectsty}',
+    '{graphicx}',
 )
 
 DEFAULT_INITIATION_COMMANDS = (r"""
