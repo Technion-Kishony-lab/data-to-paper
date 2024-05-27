@@ -146,3 +146,11 @@ def short_repr(var):
     except TypeError:
         pass
     return f"<{type(var).__name__}>"
+
+
+def escape_html(text: str) -> str:
+    """
+    Escape HTML special characters in a string.
+    """
+    return text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;'). \
+        replace('"', '&quot;').replace("'", '&#39;')

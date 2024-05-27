@@ -4,6 +4,7 @@ import subprocess
 
 from data_to_paper.latex.clean_latex import process_latex_text_and_math
 from data_to_paper.utils.file_utils import run_in_temp_directory
+from data_to_paper.utils.text_formatting import escape_html
 
 
 def convert_latex_to_html(latex: str) -> str:
@@ -64,4 +65,4 @@ def convert_latex_to_html(latex: str) -> str:
             return html_output
     except subprocess.CalledProcessError:
         # In case of an error, return the raw latex with proper escaping for HTML
-        return html.escape(latex)
+        return escape_html(latex)
