@@ -6,6 +6,8 @@ from data_to_paper.base_steps import DirectorProductGPT, CheckLatexCompilation, 
 from .app_startup import HypothesisTestingStartDialog
 from .cast import ScientificAgent
 from .coding.after_coding import RequestCodeExplanation, RequestCodeProducts
+from .coding.data_analysis import DataAnalysisCodeProductsGPT
+from .coding.data_exploration import DataExplorationCodeProductsGPT
 from .coding.displayitems import CreateLatexTablesCodeProductsGPT
 from .coding.preprocessing import DataPreprocessingCodeProductsGPT
 from .coding.data_analysis import DataAnalysisCodeProductsGPT
@@ -22,11 +24,20 @@ from .scientific_stage import ScientificStage
 from .writing_steps import FirstTitleAbstractSectionWriterReviewGPT, SecondTitleAbstractSectionWriterReviewGPT, \
     MethodsSectionWriterReviewGPT, IntroductionSectionWriterReviewGPT, ResultsSectionWriterReviewGPT, \
     DiscussionSectionWriterReviewGPT
+from ...utils.highlighted_text import text_to_html
 
 PAPER_SECTIONS_NAMES = ['title', 'abstract', 'introduction', 'results', 'discussion', 'methods']
 SECTIONS_WITH_CITATIONS = ['introduction', 'discussion']
 
 SKIP_STAGE_MESSAGE = 'This stage was skipped because the goal was provided by the user.'
+SECTIONS_TO_WRITING_CLASS = [
+    (('results',), ResultsSectionWriterReviewGPT),
+    (('title', 'abstract'), SecondTitleAbstractSectionWriterReviewGPT),
+    (('methods',), MethodsSectionWriterReviewGPT),
+    (('introduction',), IntroductionSectionWriterReviewGPT),
+    (('discussion',), DiscussionSectionWriterReviewGPT),
+    # (('conclusion',), ConclusionSectionWriterReviewGPT),
+]
 
 
 @dataclass
