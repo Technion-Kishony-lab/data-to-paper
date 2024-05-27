@@ -7,7 +7,7 @@ from data_to_paper.base_steps.request_code import CodeReviewPrompt
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.code_and_output_files.file_view_params import ContentView, ContentViewPurpose, ContentViewParams
 from data_to_paper.code_and_output_files.output_file_requirements import TextContentOutputFileRequirement, \
-    OutputFileRequirements
+    OutputFileRequirements, DataOutputFileRequirement
 from data_to_paper.code_and_output_files.ref_numeric_values import HypertargetFormat, HypertargetPosition
 from data_to_paper.code_and_output_files.referencable_text import BaseReferenceableText, convert_str_to_latex_label, \
     NumericReferenceableText
@@ -99,6 +99,9 @@ tex_file_requirement.content_view_purpose_converter.view_purpose_to_params[
                       pvalue_on_str=OnStr.SMALLER_THAN)
 
 
+png_file_requirement = DataOutputFileRequirement('*.png', minimal_count=1)
+
+
 @dataclass
 class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLatexCompilation):
     code_step: str = 'data_to_latex'
@@ -120,7 +123,7 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
     allow_data_files_from_sections: Tuple[Optional[str]] = ('data_analysis', )
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'my_utils')
     output_file_requirements: OutputFileRequirements = OutputFileRequirements(
-        [tex_file_requirement])
+        [tex_file_requirement, png_file_requirement])
 
     provided_code: str = dedent_triple_quote_str('''
         def to_latex_with_note(df, filename: str, caption: str, label: str,
