@@ -127,19 +127,19 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
 
     provided_code: str = dedent_triple_quote_str('''
         def to_latex_with_note(df, filename: str, caption: str, label: str,
-                               note: str = None, legend: Dict[str, str] = None, **kwargs):
+                               note: str = None, glossary: Dict[str, str] = None, **kwargs):
             """
-            Saves a DataFrame as a LaTeX table with optional note and legend added below the table.
+            Saves a DataFrame as a LaTeX table with optional note and glossary added below the table.
 
             Parameters:
             - df, filename, caption, label: as in `df.to_latex`.
             - note (optional): Additional note below the table.
-            - legend (optional): Dictionary mapping abbreviations to full names.
+            - glossary (optional): Dictionary mapping abbreviations to full names.
             - **kwargs: Additional arguments for `df.to_latex`.
             """
 
         def to_figure_with_note(df, filename: str, caption: str, label: str,
-                                note: str = None, legend: Dict[str, str] = None, 
+                                note: str = None, glossary: Dict[str, str] = None, 
                                 x: Optional[str] = None, y: Optional[str] = None, kind: str = 'line',
                                 use_index: bool = True, 
                                 logx: bool = False, logy: bool = False,
@@ -148,14 +148,14 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
                                 x_p_value: str = None, y_p_value: str = None,
                                 ):
             """
-            Saves a DataFrame to a LaTeX figure with caption and optional legend added below the figure.
+            Saves a DataFrame to a LaTeX figure with caption and optional glossary added below the figure.
 
             Parameters:
             `df`: DataFrame to plot (with column names and index as scientific labels). 
             `filename` (str): name of a .tex file to create (a matching .png file will also be created). 
             `caption` (str): Caption for the figure (can be multi-line).
             `label` (str): Latex label for the figure, 'figure:xxx'. 
-            `legend` (optional, dict): Dictionary mapping abbreviated df col/row labels to full names.
+            `glossary` (optional, dict): Dictionary mapping abbreviated df col/row labels to full names.
             `x` / `y` (optional, str): Column name for x-axis / y-axis values.
             `kind` (str): Type of plot: 'line', 'scatter', 'bar'.
             `use_index` (bool): If True, use the index as x-axis values.
@@ -204,7 +204,7 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
         * Rename column and row names: You should provide a new name to any column or row label that is abbreviated \t
         or technical, or that is otherwise not self-explanatory.
 
-        * Provide legend definitions: You should provide a full definition for any name (or new name) \t
+        * Provide glossary definitions: You should provide a full definition for any name (or new name) \t
         in the df that satisfies any of the following: 
         - Remains abbreviated, or not self-explanatory, even after renaming.
         - Is an ordinal/categorical variable that requires clarification of the meaning of each of its possible values.
@@ -256,7 +256,7 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
             'CI': ('CI', '95% Confidence Interval'),
             'Sex_Age': ('Age * Sex', 'Interaction term between Age and Sex'),
         }
-        abbrs_to_names{first_df_number}, legend{first_df_number} = split_mapping(mapping{first_df_number})
+        abbrs_to_names{first_df_number}, glossary{first_df_number} = split_mapping(mapping{first_df_number})
         df{first_df_number} = df{first_df_number}.rename(columns=abbrs_to_names{first_df_number}, \t
         index=abbrs_to_names{first_df_number})
         
@@ -269,15 +269,15 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
             caption="<choose a caption suitable for a table in a scientific paper>", 
             label='<table:xxx>',
             note="<If needed, add a note to provide any additional information that is not captured in the caption>",
-            legend=legend{first_df_number})
+            glossary=glossary{first_df_number})
         
         # Create latex figure:
         to_figure_with_note(
             df{first_df_number}, 'df_{first_df_number}.tex',
             caption="<one line heading of the figure (this will get bolded in the scientific papers).>", 
             label='<figure:xxx>',
-            note="<If needed, add a note that will appear below the caption. Do not repeat the caption, or the legend>",
-            legend=legend{first_df_number},
+            note="<If needed, add a note that will appear below the caption. Do not repeat the caption, or the glossary>",
+            glossary=glossary{first_df_number},
             kind='bar',
             y='coef',
             y_ci='CI',  # or y_ci=('CI_LB', 'CI_UB')

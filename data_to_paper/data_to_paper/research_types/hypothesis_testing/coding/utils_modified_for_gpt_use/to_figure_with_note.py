@@ -12,8 +12,8 @@ from data_to_paper.run_gpt_code.run_contexts import ProvideData, IssueCollector
 from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue, RunIssues
 from data_to_paper.utils.dataframe import extract_df_axes_labels
 from .check_df_formatting import check_for_repetitive_value_in_column, checks_that_rows_are_labelled, \
-    check_for_unallowed_characters, check_for_un_legend_abbreviations, \
-    check_legend_does_not_include_labels_that_are_not_in_df, check_displayitem_label, check_displayitem_caption, \
+    check_for_unallowed_characters, check_for_un_glossary_abbreviations, \
+    check_glossary_does_not_include_labels_that_are_not_in_df, check_displayitem_label, check_displayitem_caption, \
     check_note_different_than_caption
 
 from .check_df_of_table import check_df_headers_are_int_str_or_bool, check_output_df_for_content_issues
@@ -27,18 +27,18 @@ def _to_figure_with_note(df: pd.DataFrame, filename: str,
                          caption: str = None,
                          label: str = None,
                          note: str = None,
-                         legend: Dict[str, str] = None,
+                         glossary: Dict[str, str] = None,
                          **kwargs):
     """
     Replacement of to_figure_with_note to be used by LLM-writen code.
     Same as to_figure_with_note, but also checks for issues.
     """
-    raise_on_wrong_params_for_to_latex_with_note(df, filename, caption=caption, label=label, legend=legend)
+    raise_on_wrong_params_for_to_latex_with_note(df, filename, caption=caption, label=label, glossary=glossary)
     if not isinstance(filename, str):
         raise ValueError(f'Expected `filename` to be a string, got {type(filename)}')
 
-    issues = _check_for_figure_style_issues(df, filename, caption=caption, label=label, note=note, legend=legend,
-                                           **kwargs)
+    issues = _check_for_figure_style_issues(df, filename, note=note, glossary=glossary, caption=caption, label=label,
+                                            **kwargs)
     IssueCollector.get_runtime_instance().issues.extend(issues)
     # get the ReadPickleAttrReplacer instance:
     pickle_filename = next((context.last_read_pickle_filename
@@ -49,20 +49,18 @@ def _to_figure_with_note(df: pd.DataFrame, filename: str,
     else:
         comment = None
 
-    latex = to_figure_with_note(df, filename, caption=caption, label=label, note=note, legend=legend,
-                                pvalue_on_str=OnStr.LATEX_SMALLER_THAN,
-                                comment=comment,
-                                **kwargs)
+    latex = to_figure_with_note(df, filename, caption=caption, label=label, note=note, glossary=glossary,
+                                pvalue_on_str=OnStr.LATEX_SMALLER_THAN, comment=comment, **kwargs)
     return latex
 
 
 def _check_for_figure_style_issues(df: pd.DataFrame, filename: str, *args,
                                    note: str = None,
-                                   legend: Dict[str, str] = None,
+                                   glossary: Dict[str, str] = None,
                                    **kwargs) -> RunIssues:
     caption: Optional[str] = kwargs.get('caption', None)
     label: Optional[str] = kwargs.get('label', None)
-    legend = {} if legend is None else legend
+    glossary = {} if glossary is None else glossary
     index: bool = kwargs.get('use_index', True)
 
     issues = check_output_df_for_content_issues(df, filename)
@@ -99,11 +97,11 @@ def _check_for_figure_style_issues(df: pd.DataFrame, filename: str, *args,
     if issues:
         return issues
 
-    # Check that any abbreviated row/column labels are explained in the legend
-    issues.extend(check_for_un_legend_abbreviations(df, filename, legend=legend, is_narrow=True,
-                                                    displayitem='figure'))
+    # Check that any abbreviated row/column labels are explained in the glossary
+    issues.extend(
+        check_for_un_glossary_abbreviations(df, filename, glossary=glossary, is_narrow=True, displayitem='figure'))
 
-    # Check that the legend does not include any labels that are not in the table
-    issues.extend(check_legend_does_not_include_labels_that_are_not_in_df(df, filename, legend=legend,
-                                                                          displayitem='figure'))
+    # Check that the glossary does not include any labels that are not in the table
+    issues.extend(
+        check_glossary_does_not_include_labels_that_are_not_in_df(df, filename, glossary=glossary, displayitem='figure'))
     return issues

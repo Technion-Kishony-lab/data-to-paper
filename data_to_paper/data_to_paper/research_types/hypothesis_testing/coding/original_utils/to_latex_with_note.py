@@ -6,7 +6,7 @@ import pandas as pd
 from data_to_paper.latex.clean_latex import replace_special_latex_chars, process_latex_text_and_math
 from data_to_paper.research_types.hypothesis_testing.coding.original_utils.add_html_to_latex import add_html_to_latex
 from data_to_paper.research_types.hypothesis_testing.coding.original_utils.note_and_legend import \
-    convert_note_and_legend_to_latex, convert_note_and_legend_to_html
+    convert_note_and_glossary_to_latex, convert_note_and_glossary_to_html
 from data_to_paper.run_gpt_code.overrides.pvalue import OnStr, OnStrPValue
 from data_to_paper.utils.text_numeric_formatting import round_floats
 from data_to_paper.utils.dataframe import extract_df_axes_labels
@@ -18,7 +18,7 @@ THREEPARTTABLE = r"""\begin{table}[htbp]
 <label>
 <tabular>
 \begin{tablenotes}
-<note_and_legend>
+<note_and_glossary>
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
@@ -33,7 +33,7 @@ THREEPARTTABLE_WIDE = r"""\begin{table}[h]
 <tabular>}
 \begin{tablenotes}
 \footnotesize
-<note_and_legend>
+<note_and_glossary>
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
@@ -43,7 +43,7 @@ THREEPARTTABLE_WIDE = r"""\begin{table}[h]
 HTML_TABLE_WITH_LABEL_AND_CAPTION = r"""
 <b>{caption}</b>
 {table}
-{note_and_legend}
+{note_and_glossary}
 """
 
 
@@ -51,7 +51,7 @@ def raise_on_wrong_params_for_to_latex_with_note(df: pd.DataFrame, filename: Opt
                                                  caption: str = None,
                                                  label: str = None,
                                                  note: str = None,
-                                                 legend: Dict[str, str] = None,
+                                                 glossary: Dict[str, str] = None,
                                                  is_wide: bool = True,
                                                  float_num_digits: int = 4,
                                                  pvalue_on_str: Optional[OnStr] = None,
@@ -76,13 +76,13 @@ def raise_on_wrong_params_for_to_latex_with_note(df: pd.DataFrame, filename: Opt
     if not isinstance(note, str) and note is not None:
         raise ValueError(f'Expected `note` to be a string or None, got {type(note)}')
 
-    if isinstance(legend, dict):
-        if not all(isinstance(key, str) for key in legend.keys()):
-            raise ValueError(f'Expected `legend` keys to be strings, got {legend.keys()}')
-        if not all(isinstance(value, str) for value in legend.values()):
-            raise ValueError(f'Expected `legend` values to be strings, got {legend.values()}')
-    elif legend is not None:
-        raise ValueError(f'Expected legend to be a dict or None, got {type(legend)}')
+    if isinstance(glossary, dict):
+        if not all(isinstance(key, str) for key in glossary.keys()):
+            raise ValueError(f'Expected `glossary` keys to be strings, got {glossary.keys()}')
+        if not all(isinstance(value, str) for value in glossary.values()):
+            raise ValueError(f'Expected `glossary` values to be strings, got {glossary.values()}')
+    elif glossary is not None:
+        raise ValueError(f'Expected `glossary` to be a dict or None, got {type(glossary)}')
 
     if not isinstance(is_wide, bool):
         raise ValueError(f'Expected `is_wide` to be a bool, got {type(is_wide)}')
@@ -99,7 +99,7 @@ def raise_on_wrong_params_for_to_latex_with_note(df: pd.DataFrame, filename: Opt
 
 def to_latex_with_note(df: pd.DataFrame, filename: Optional[str], caption: str = None, label: str = None,
                        note: str = None,
-                       legend: Dict[str, str] = None,
+                       glossary: Dict[str, str] = None,
                        is_wide: bool = True,
                        float_num_digits: int = 4,
                        pvalue_on_str: Optional[OnStr] = None,
@@ -108,12 +108,11 @@ def to_latex_with_note(df: pd.DataFrame, filename: Optional[str], caption: str =
                        **kwargs):
     """
     Create a latex table with a note.
-    Same as df.to_latex, but with a note and legend.
+    Same as df.to_latex, but with a note and glossary.
     """
 
-    raise_on_wrong_params_for_to_latex_with_note(
-        df, filename, caption, label, note, legend, is_wide, float_num_digits, pvalue_on_str, comment,
-        append_html, **kwargs)
+    raise_on_wrong_params_for_to_latex_with_note(df, filename, caption, label, note, glossary, is_wide,
+                                                 float_num_digits, pvalue_on_str, comment, append_html, **kwargs)
 
     with OnStrPValue(pvalue_on_str):
         regular_latex_table = df.to_latex(None, caption=None, label=None, multirow=False, multicolumn=False, **kwargs)
@@ -128,18 +127,18 @@ def to_latex_with_note(df: pd.DataFrame, filename: Optional[str], caption: str =
     label = r'\label{' + label + '}\n' if label else ''
 
     index = kwargs.get('index', True)
-    note_and_legend = convert_note_and_legend_to_latex(df, note, legend, index)
-    note_and_legend_html = convert_note_and_legend_to_html(df, note, legend, index)
+    note_and_glossary = convert_note_and_glossary_to_latex(df, note, glossary, index)
+    note_and_glossary_html = convert_note_and_glossary_to_html(df, note, glossary, index)
 
     template = THREEPARTTABLE if not is_wide else THREEPARTTABLE_WIDE
     latex = template.replace('<tabular>', tabular_part) \
         .replace('<caption>\n', latex_caption) \
         .replace('<label>\n', label) \
-        .replace('<note_and_legend>', note_and_legend)
+        .replace('<note_and_glossary>', note_and_glossary)
 
     html = HTML_TABLE_WITH_LABEL_AND_CAPTION.replace('{caption}', html_caption) \
         .replace('{table}', regular_html_table) \
-        .replace('{note_and_legend}', note_and_legend_html)
+        .replace('{note_and_glossary}', note_and_glossary_html)
 
     if float_num_digits is not None:
         latex = round_floats(latex, float_num_digits, source_precision=float_num_digits + 1, pad_with_spaces=False)

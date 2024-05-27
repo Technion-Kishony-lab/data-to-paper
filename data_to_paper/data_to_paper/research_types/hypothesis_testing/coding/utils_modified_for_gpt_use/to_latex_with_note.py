@@ -12,8 +12,8 @@ from data_to_paper.run_gpt_code.run_contexts import ProvideData, IssueCollector
 from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue, RunIssues
 from data_to_paper.utils.dataframe import extract_df_axes_labels
 from .check_df_formatting import check_for_repetitive_value_in_column, checks_that_rows_are_labelled, \
-    check_for_unallowed_characters, check_for_un_legend_abbreviations, \
-    check_legend_does_not_include_labels_that_are_not_in_df, check_displayitem_label, check_displayitem_caption, \
+    check_for_unallowed_characters, check_for_un_glossary_abbreviations, \
+    check_glossary_does_not_include_labels_that_are_not_in_df, check_displayitem_label, check_displayitem_caption, \
     check_note_different_than_caption
 
 from .check_df_of_table import check_df_headers_are_int_str_or_bool, check_output_df_for_content_issues
@@ -54,14 +54,14 @@ def _find_longest_labels_in_index(index: [pd.Index, pd.MultiIndex]) -> Union[str
 
 def _to_latex_with_note(df: pd.DataFrame, filename: str, caption: str = None, label: str = None,
                         note: str = None,
-                        legend: Dict[str, str] = None,
+                        glossary: Dict[str, str] = None,
                         columns: List[str] = None,
                         **kwargs):
     """
     Replacement of to_latex_with_note to be used by LLM-writen code.
     Same as to_latex_with_note, but also checks for issues.
     """
-    raise_on_wrong_params_for_to_latex_with_note(df, filename, caption=caption, label=label, note=note, legend=legend,)
+    raise_on_wrong_params_for_to_latex_with_note(df, filename, caption=caption, label=label, note=note, glossary=glossary)
     if not isinstance(filename, str):
         raise ValueError(f'Expected `filename` to be a string, got {type(filename)}')
 
@@ -70,7 +70,7 @@ def _to_latex_with_note(df: pd.DataFrame, filename: str, caption: str = None, la
 
     # replace PValue objects with their string representation:
     # df = apply_deeply(df, lambda x: format_p_value(x.value), is_p_value)
-    issues = _check_for_table_style_issues(df, filename, caption=caption, label=label, note=note, legend=legend,
+    issues = _check_for_table_style_issues(df, filename, note=note, glossary=glossary, caption=caption, label=label,
                                            **kwargs)
     IssueCollector.get_runtime_instance().issues.extend(issues)
     # get the ReadPickleAttrReplacer instance:
@@ -82,35 +82,33 @@ def _to_latex_with_note(df: pd.DataFrame, filename: str, caption: str = None, la
     else:
         comment = None
 
-    latex = to_latex_with_note(df, filename, caption=caption, label=label, note=note, legend=legend,
-                               pvalue_on_str=OnStr.LATEX_SMALLER_THAN,
-                               comment=comment,
-                               **kwargs)
+    latex = to_latex_with_note(df, filename, caption=caption, label=label, note=note, glossary=glossary,
+                               pvalue_on_str=OnStr.LATEX_SMALLER_THAN, comment=comment, **kwargs)
     return latex
 
 
 def to_latex_with_note_transpose(df: pd.DataFrame, filename: Optional[str], *args,
                                  note: str = None,
-                                 legend: Dict[str, str] = None,
+                                 glossary: Dict[str, str] = None,
                                  pvalue_on_str: Optional[OnStr] = None,
                                  **kwargs):
     assert 'columns' not in kwargs, "assumes columns is None"
     index = kwargs.pop('index', True)
     header = kwargs.pop('header', True)
     header, index = index, header
-    return to_latex_with_note(df.T, filename, note=note, legend=legend, pvalue_on_str=pvalue_on_str, index=index,
+    return to_latex_with_note(df.T, filename, note=note, glossary=glossary, pvalue_on_str=pvalue_on_str, index=index,
                               header=header, **kwargs)
 
 
 def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
                                   note: str = None,
-                                  legend: Dict[str, str] = None,
+                                  glossary: Dict[str, str] = None,
                                   **kwargs) -> RunIssues:
     assert 'columns' not in kwargs, "assumes columns is None"
     caption: Optional[str] = kwargs.get('caption', None)
     label: Optional[str] = kwargs.get('label', None)
     index: bool = kwargs.get('index', True)
-    legend = {} if legend is None else legend
+    glossary = {} if glossary is None else glossary
 
     issues = check_output_df_for_content_issues(df, filename)
     if issues:
@@ -134,10 +132,8 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
 
     file_stem, _ = filename.split('.')
     with RegisteredRunContext.temporarily_disable_all():
-        latex = to_latex_with_note(df, None, *args, note=note, legend=legend,
-                                   pvalue_on_str=OnStr.LATEX_SMALLER_THAN,
-                                   append_html=False,
-                                   **kwargs)
+        latex = to_latex_with_note(df, None, note=note, glossary=glossary, pvalue_on_str=OnStr.LATEX_SMALLER_THAN,
+                                   append_html=False, **kwargs)
         if compilation_func is None:
             e = 0
         else:
@@ -167,9 +163,8 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
         ))
     elif e > 1.3:
         # Try to compile the transposed table:
-        latex_transpose = to_latex_with_note_transpose(df, None, *args, note=note, legend=legend,
-                                                       pvalue_on_str=OnStr.LATEX_SMALLER_THAN,
-                                                       append_html=False,
+        latex_transpose = to_latex_with_note_transpose(df, None, *args, note=note, glossary=glossary,
+                                                       pvalue_on_str=OnStr.LATEX_SMALLER_THAN, append_html=False,
                                                        **kwargs)
         with RegisteredRunContext.temporarily_disable_all():
             e_transpose = compilation_func(latex_transpose, file_stem + '_transpose')
@@ -251,9 +246,9 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
     if issues:
         return issues
 
-    # Check that any abbreviated row/column labels are explained in the legend
-    issues.extend(check_for_un_legend_abbreviations(df, filename, legend=legend, is_narrow=e < 0.8))
+    # Check that any abbreviated row/column labels are explained in the glossary
+    issues.extend(check_for_un_glossary_abbreviations(df, filename, glossary=glossary, is_narrow=e < 0.8))
 
-    # Check that the legend does not include any labels that are not in the table
-    issues.extend(check_legend_does_not_include_labels_that_are_not_in_df(df, filename, legend=legend))
+    # Check that the glossary does not include any labels that are not in the table
+    issues.extend(check_glossary_does_not_include_labels_that_are_not_in_df(df, filename, glossary=glossary))
     return issues

@@ -145,7 +145,7 @@ def check_for_unallowed_characters(df: pd.DataFrame, filename: str) -> List[RunI
     return issues
 
 
-def check_for_un_legend_abbreviations(df: pd.DataFrame, filename: str, legend: dict, is_narrow: bool,
+def check_for_un_glossary_abbreviations(df: pd.DataFrame, filename: str, glossary: dict, is_narrow: bool,
                                       displayitem: str = 'table') -> List[RunIssue]:
     issues = []
     func = _get_creating_func(displayitem)
@@ -156,12 +156,12 @@ def check_for_un_legend_abbreviations(df: pd.DataFrame, filename: str, legend: d
     # This is not needed as we added is_str_in_df to the gpt code. Disabling this for now.
     # abbr_labels = [label for label in abbr_labels if label in df.columns or label in df.index]
 
-    un_mentioned_abbr_labels = sorted([label for label in abbr_labels if label not in legend])
+    un_mentioned_abbr_labels = sorted([label for label in abbr_labels if label not in glossary])
     if un_mentioned_abbr_labels:
         instructions = dedent_triple_quote_str(f"""
             Please revise the code making sure all abbreviated labels (of both column and rows!) are explained \t
-            in the legend.
-            Add the missing abbreviations and their explanations as keys and values in the `legend` argument of the \t
+            in the glossary.
+            Add the missing abbreviations and their explanations as keys and values in the `glossary` argument of the \t
             function `{func}`.
             """)
         if is_narrow:
@@ -169,20 +169,20 @@ def check_for_un_legend_abbreviations(df: pd.DataFrame, filename: str, legend: d
                 Alternatively, since the {displayitem} is not too wide, you can also replace the abbreviated labels with \t
                 their full names in the dataframe itself.
                 """)
-        if legend:
+        if glossary:
             issue = dedent_triple_quote_str(f"""
-                The `legend` argument of `{func}` includes only the following keys:
-                {list(legend.keys())}
+                The `glossary` argument of `{func}` includes only the following keys:
+                {list(glossary.keys())}
                 We need to add also the following abbreviated row/column labels:
                 {un_mentioned_abbr_labels}
                 """)
         else:
             issue = dedent_triple_quote_str(f"""
-                The {displayitem} needs a legend explaining the following abbreviated labels:
+                The {displayitem} needs a glossary explaining the following abbreviated labels:
                 {un_mentioned_abbr_labels}
                 """)
         issues.append(RunIssue(
-            category='Displayitem legend',
+            category='Displayitem glossary',
             code_problem=CodeProblem.OutputFileDesignLevelB,
             item=filename,
             issue=issue,
@@ -191,24 +191,24 @@ def check_for_un_legend_abbreviations(df: pd.DataFrame, filename: str, legend: d
     return issues
 
 
-def check_legend_does_not_include_labels_that_are_not_in_df(df: pd.DataFrame, filename: str, legend: dict,
+def check_glossary_does_not_include_labels_that_are_not_in_df(df: pd.DataFrame, filename: str, glossary: dict,
                                                             displayitem: str = 'table') -> List[RunIssue]:
     issues = []
-    if legend:
+    if glossary:
         all_labels = extract_df_axes_labels(df, with_title=True, string_only=True)
-        un_mentioned_labels = [label for label in legend if label not in all_labels]
+        un_mentioned_labels = [label for label in glossary if label not in all_labels]
         if un_mentioned_labels:
             issues.append(RunIssue(
-                category='Displayitem legend',
+                category='Displayitem glossary',
                 code_problem=CodeProblem.OutputFileDesignLevelB,
                 item=filename,
-                issue=f'The legend of the {displayitem} includes the following labels that are not in the df:\n'
+                issue=f'The glossary of the {displayitem} includes the following labels that are not in the df:\n'
                       f'{un_mentioned_labels}\n'
                       f'Here are the available df row and column labels:\n{all_labels}',
                 instructions=dedent_triple_quote_str("""
-                    The legend keys should be a subset of the df labels.
+                    The glossary keys should be a subset of the df labels.
 
-                    Please revise the code changing either the legend keys, or the df labels, accordingly.
+                    Please revise the code changing either the glossary keys, or the df labels, accordingly.
 
                     As a reminder: you can also use the `note` argument to add information that is related to the
                     displayitem as a whole, rather than to a specific label.
@@ -230,8 +230,8 @@ def _create_displayitem_caption_label_issue(filename: str, issue: str) -> RunIss
             Labels should be in the format `table:<your table label here>`, `figure:<your figure label here>`.
             In addition, you can add:
             - an optional note for further explanations (use the argument `note`)
-            - a legend mapping any abbreviated row/column labels to their definitions \t
-            (use the argument `legend` argument). 
+            - a glossary mapping any abbreviated row/column labels to their definitions \t
+            (use the argument `glossary` argument). 
             """)
     )
 

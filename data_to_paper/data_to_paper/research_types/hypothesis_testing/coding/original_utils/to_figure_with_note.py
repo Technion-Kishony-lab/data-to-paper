@@ -9,7 +9,7 @@ from data_to_paper.latex.clean_latex import process_latex_text_and_math, replace
 from data_to_paper.research_types.hypothesis_testing.coding.original_utils.add_html_to_latex import add_html_to_latex, \
     convert_to_latex_comment
 from data_to_paper.research_types.hypothesis_testing.coding.original_utils.note_and_legend import \
-    convert_note_and_legend_to_latex, convert_note_and_legend_to_html
+    convert_note_and_glossary_to_latex, convert_note_and_glossary_to_html
 from data_to_paper.run_gpt_code.overrides.dataframes.df_methods import STR_FLOAT_FORMAT
 from data_to_paper.run_gpt_code.overrides.dataframes.utils import to_string_with_iterables
 from data_to_paper.run_gpt_code.overrides.pvalue import OnStrPValue, OnStr
@@ -177,7 +177,7 @@ def to_figure_with_note(df: pd.DataFrame, filename: Optional[str],
                         caption: str = None,
                         label: str = None,
                         note: str = None,
-                        legend: Dict[str, str] = None,
+                        glossary: Dict[str, str] = None,
                         float_num_digits: int = 4,
                         pvalue_on_str: Optional[OnStr] = None,
                         comment: str = None,
@@ -199,14 +199,14 @@ def to_figure_with_note(df: pd.DataFrame, filename: Optional[str],
 
     label = label or ''
 
-    note_and_legend = convert_note_and_legend_to_latex(df, note, legend, index)
-    note_and_legend_html = convert_note_and_legend_to_html(df, note, legend, index)
+    note_and_glossary = convert_note_and_glossary_to_latex(df, note, glossary, index)
+    note_and_glossary_html = convert_note_and_glossary_to_html(df, note, glossary, index)
 
-    caption_note_and_legend = replace_special_latex_chars(caption) + '\n\n' + note_and_legend
-    caption_note_and_legend_html = escape_html(caption) + '<br>' + note_and_legend_html
+    caption_note_and_glossary = replace_special_latex_chars(caption) + '\n\n' + note_and_glossary
+    caption_note_and_glossary_html = escape_html(caption) + '<br>' + note_and_glossary_html
 
-    latex = get_figure_and_caption_as_latex(fig_filename, caption_note_and_legend, label)
-    html = get_figure_and_caption_as_html(fig_filename, caption_note_and_legend_html)
+    latex = get_figure_and_caption_as_latex(fig_filename, caption_note_and_glossary, label)
+    html = get_figure_and_caption_as_html(fig_filename, caption_note_and_glossary_html)
 
     latex += convert_to_latex_comment(
         get_description_of_plot_creation(df, fig_filename, kwargs, float_num_digits=float_num_digits))

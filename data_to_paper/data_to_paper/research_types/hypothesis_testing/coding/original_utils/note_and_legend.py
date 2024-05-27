@@ -5,34 +5,34 @@ from data_to_paper.utils.dataframe import extract_df_axes_labels
 from data_to_paper.utils.text_formatting import escape_html
 
 
-def convert_note_and_legend_to_latex(df, note: str, legend: Dict[str, str], index: bool) -> str:
+def convert_note_and_glossary_to_latex(df, note: str, glossary: Dict[str, str], index: bool) -> str:
     """
-    Convert a note and legend to a latex string.
+    Convert a note and glossary to a latex string.
     """
-    note_and_legend = []
+    note_and_glossary = []
     if note:
-        note_and_legend.append(r'\item ' + replace_special_latex_chars(note))
-    if legend:
+        note_and_glossary.append(r'\item ' + replace_special_latex_chars(note))
+    if glossary:
         axes_labels = extract_df_axes_labels(df, index=index)
-        for key, value in legend.items():
+        for key, value in glossary.items():
             if key in axes_labels:
-                note_and_legend.append(r'\item \textbf{' + replace_special_latex_chars(key) +
+                note_and_glossary.append(r'\item \textbf{' + replace_special_latex_chars(key) +
                                        '}: ' + replace_special_latex_chars(value))
-    if len(note_and_legend) == 0:
-        note_and_legend.append(r'\item ')  # add an empty item to avoid an error
-    return '\n'.join(note_and_legend)
+    if len(note_and_glossary) == 0:
+        note_and_glossary.append(r'\item ')  # add an empty item to avoid an error
+    return '\n'.join(note_and_glossary)
 
 
-def convert_note_and_legend_to_html(df, note: str, legend: Dict[str, str], index: bool) -> str:
+def convert_note_and_glossary_to_html(df, note: str, glossary: Dict[str, str], index: bool) -> str:
     """
-    Convert a note and legend to an html string.
+    Convert a note and glossary to an html string.
     """
-    note_and_legend = []
+    note_and_glossary = []
     if note:
-        note_and_legend.append(f'{escape_html(note)}<br>')
-    if legend:
+        note_and_glossary.append(f'{escape_html(note)}<br>')
+    if glossary:
         axes_labels = extract_df_axes_labels(df, index=index)
-        for key, value in legend.items():
+        for key, value in glossary.items():
             if key in axes_labels:
-                note_and_legend.append(f'<b>{escape_html(key)}</b>: {escape_html(value)}<br>')
-    return '\n'.join(note_and_legend)
+                note_and_glossary.append(f'<b>{escape_html(key)}</b>: {escape_html(value)}<br>')
+    return '\n'.join(note_and_glossary)
