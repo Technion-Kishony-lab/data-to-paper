@@ -440,7 +440,7 @@ class ScientificProducts(Products):
                 '(figure/table latex representations of the df_?.pkl dataframes):\n\n{}',
                 ScientificStage.DISPLAYITEMS,
                 lambda: None if not self.get_all_latex_tables(ContentViewPurpose.PRODUCT) else
-                '\n\n'.join([f'- "{get_displayitem_caption(table)}":\n\n'
+                '\n\n'.join([f'- "{get_displayitem_caption(table, first_line_only=True)}":\n\n'
                              f'```latex\n{table}\n```'
                              for table in self.get_all_latex_tables(ContentViewPurpose.PRODUCT)]),
             ),
@@ -451,7 +451,7 @@ class ScientificProducts(Products):
                 '(figure/table latex representations of the df_?.pkl dataframes, with hypertargets):\n\n{}',
                 ScientificStage.DISPLAYITEMS,
                 lambda: None if not self.get_all_latex_tables(ContentViewPurpose.HYPERTARGET_PRODUCT) else
-                '\n\n'.join([f'- "{get_displayitem_caption(table)}":\n\n'
+                '\n\n'.join([f'- "{get_displayitem_caption(table, first_line_only=True)}":\n\n'
                              f'```latex\n{table}\n```'
                              for table in self.get_all_latex_tables(ContentViewPurpose.HYPERTARGET_PRODUCT)]),
             ),

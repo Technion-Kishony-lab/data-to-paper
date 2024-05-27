@@ -5,7 +5,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 
 from data_to_paper.env import FOLDER_FOR_RUN
-from data_to_paper.latex.clean_latex import process_latex_text_and_math
+from data_to_paper.latex.clean_latex import process_latex_text_and_math, replace_special_latex_chars
 from data_to_paper.research_types.hypothesis_testing.coding.original_utils.add_html_to_latex import add_html_to_latex, \
     convert_to_latex_comment
 from data_to_paper.research_types.hypothesis_testing.coding.original_utils.note_and_legend import \
@@ -13,6 +13,7 @@ from data_to_paper.research_types.hypothesis_testing.coding.original_utils.note_
 from data_to_paper.run_gpt_code.overrides.dataframes.df_methods import STR_FLOAT_FORMAT
 from data_to_paper.run_gpt_code.overrides.dataframes.utils import to_string_with_iterables
 from data_to_paper.run_gpt_code.overrides.pvalue import OnStrPValue, OnStr
+from data_to_paper.utils.text_formatting import escape_html
 
 
 def get_xy_coordinates_of_df_plot(df, x=None, y=None, kind='line'):
@@ -185,8 +186,6 @@ def to_figure_with_note(df: pd.DataFrame, filename: Optional[str],
     """
     Create a matplotlib figure embedded in a LaTeX figure with a caption and label.
     """
-    if note:
-        caption = f'{caption}\n{note}'
     fig_filename = filename.replace('.tex', '.png')
     fig, ax = plt.subplots()
     with OnStrPValue(OnStr.AS_FLOAT):
@@ -198,13 +197,16 @@ def to_figure_with_note(df: pd.DataFrame, filename: Optional[str],
 
     index = kwargs.get('use_index', True)
 
-    label = r'\label{' + label + '}\n' if label else ''
+    label = label or ''
 
-    caption_and_legend = convert_note_and_legend_to_latex(df, caption, legend, index)
-    caption_and_legend_html = convert_note_and_legend_to_html(df, caption, legend, index)
+    note_and_legend = convert_note_and_legend_to_latex(df, note, legend, index)
+    note_and_legend_html = convert_note_and_legend_to_html(df, note, legend, index)
 
-    latex = get_figure_and_caption_as_latex(fig_filename, caption_and_legend, label)
-    html = get_figure_and_caption_as_html(fig_filename, caption_and_legend_html)
+    caption_note_and_legend = replace_special_latex_chars(caption) + '\n\n' + note_and_legend
+    caption_note_and_legend_html = escape_html(caption) + '<br>' + note_and_legend_html
+
+    latex = get_figure_and_caption_as_latex(fig_filename, caption_note_and_legend, label)
+    html = get_figure_and_caption_as_html(fig_filename, caption_note_and_legend_html)
 
     latex += convert_to_latex_comment(
         get_description_of_plot_creation(df, fig_filename, kwargs, float_num_digits=float_num_digits))
@@ -234,7 +236,7 @@ def get_figure_and_caption_as_latex(filename: str, caption: str, label: str) -> 
 \\label{{{label}}}
 \\end{{figure}}
 """
-    return latex
+    return latex.strip()
 
 
 def get_figure_and_caption_as_html(filename: str, caption: str, width: int = None):

@@ -9,11 +9,14 @@ def get_displayitem_label(displayitem: str) -> Optional[str]:
     return extract_text_between_tags(displayitem, '\\label{', '}', keep_tags=False)
 
 
-def get_displayitem_caption(displayitem: str) -> Optional[str]:
+def get_displayitem_caption(displayitem: str, first_line_only: bool = False) -> Optional[str]:
     """
     Extract the caption of a floating LaTeX display item (table, figure, etc.).
     """
-    return extract_text_between_tags(displayitem, '\\caption{', '}', keep_tags=False)
+    caption = extract_text_between_tags(displayitem, '\\caption{', '}', keep_tags=False)
+    if first_line_only:
+        caption = caption.split('\n')[0]
+    return caption
 
 
 def add_displayitems_to_paper_section(section_content: str, displayitems: List[str]) -> str:

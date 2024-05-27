@@ -274,9 +274,9 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
         # Create latex figure:
         to_figure_with_note(
             df{first_df_number}, 'df_{first_df_number}.tex',
-            caption="<choose a caption suitable for a figure in a scientific paper. Can be a multi-line caption>", 
+            caption="<one line heading of the figure (this will get bolded in the scientific papers).>", 
             label='<figure:xxx>',
-            note="<If needed, add a note to provide any additional information that is not captured in the caption>",
+            note="<If needed, add a note that will appear below the caption. Do not repeat the caption, or the legend>",
             legend=legend{first_df_number},
             kind='bar',
             y='coef',

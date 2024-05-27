@@ -1,5 +1,5 @@
 import re
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import pandas as pd
 
@@ -256,18 +256,20 @@ def check_displayitem_label(df: pd.DataFrame, filename: str, label: Optional[str
 
 
 def check_displayitem_caption(df: pd.DataFrame, filename: str, text: Optional[str], item_name: str = 'caption',
+                              forbidden_starts: Tuple[str] = ('Figure', 'Table'),
                               displayitem: str = 'table') -> List[RunIssue]:
+    issues = []
     if text is None:
-        issue = f'The {displayitem} does not have a {item_name}.'
-    elif text.lower().startswith(displayitem.lower()):
-        issue = f'The {item_name} of the {displayitem} should not start with "{displayitem.title()} ...".'
-    elif '...' in text:
-        issue = f'The {item_name} of the {displayitem} should not contain "..."'
-    elif re.search(pattern=r'<.*\>', string=text):
-        issue = f'The {item_name} of the {displayitem} should not contain "<...>"'
+        issues.append(f'The {displayitem} does not have a {item_name}.')
     else:
-        return []
-    return [_create_displayitem_caption_label_issue(filename, issue)]
+        for forbidden_start in forbidden_starts:
+            if text.startswith(forbidden_start):
+                issues.append(f'The {item_name} of the {displayitem} should not start with "{forbidden_start}".')
+        if '...' in text:
+            issues.append(f'The {item_name} of the {displayitem} should not contain "..."')
+        if re.search(pattern=r'<.*\>', string=text):
+            issues.append(f'The {item_name} of the {displayitem} should not contain "<...>"')
+    return [_create_displayitem_caption_label_issue(filename, issue) for issue in issues]
 
 
 def check_note_different_than_caption(df: pd.DataFrame, filename: str, note: Optional[str], caption: Optional[str],

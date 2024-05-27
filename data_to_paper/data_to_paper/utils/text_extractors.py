@@ -53,7 +53,7 @@ def extract_text_between_tags(text: str, left_tag: str, right_tag: str = None, k
                 return text[start:end + len(right_tag)]
             return text[start + len(left_tag):end]
         else:
-            return extract_text_between_brackets(text, left_tag, leave_brackets=keep_tags)
+            return extract_text_between_brackets(text, left_tag, keep_tags=keep_tags)
     else:
         # right tag is None, so we return the text from the left tag to the end of the text
         start = find_str(text, left_tag, case_sensitive=case_sensitive)
@@ -64,7 +64,7 @@ def extract_text_between_tags(text: str, left_tag: str, right_tag: str = None, k
         return text[start + len(left_tag):]
 
 
-def extract_text_between_brackets(text: str, open_tag: str, leave_brackets: bool = False):
+def extract_text_between_brackets(text: str, open_tag: str, keep_tags: bool = False):
     """
     use stack to find matching closing bracket for the first open bracket, use stack to find matching closing bracket.
     return the text between the first open bracket and the matching closing bracket without the brackets.
@@ -84,7 +84,7 @@ def extract_text_between_brackets(text: str, open_tag: str, leave_brackets: bool
         elif text[end] == close_bracket:
             stack.pop()
         end += 1
-    if leave_brackets:
+    if keep_tags:
         return text[start:end]
     return text[start + len(open_tag):end - 1]
 

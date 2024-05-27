@@ -2,6 +2,7 @@ from typing import Dict
 
 from data_to_paper.latex.clean_latex import replace_special_latex_chars
 from data_to_paper.utils.dataframe import extract_df_axes_labels
+from data_to_paper.utils.text_formatting import escape_html
 
 
 def convert_note_and_legend_to_latex(df, note: str, legend: Dict[str, str], index: bool) -> str:
@@ -28,10 +29,10 @@ def convert_note_and_legend_to_html(df, note: str, legend: Dict[str, str], index
     """
     note_and_legend = []
     if note:
-        note_and_legend.append(f'{note}<br>')
+        note_and_legend.append(f'{escape_html(note)}<br>')
     if legend:
         axes_labels = extract_df_axes_labels(df, index=index)
         for key, value in legend.items():
             if key in axes_labels:
-                note_and_legend.append(f'<b>{key}</b>: {value}<br>')
+                note_and_legend.append(f'<b>{escape_html(key)}</b>: {escape_html(value)}<br>')
     return '\n'.join(note_and_legend)
