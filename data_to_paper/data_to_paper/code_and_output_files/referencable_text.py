@@ -175,7 +175,11 @@ class LabeledNumericReferenceableText(NumericReferenceableText):
     A text whose labeled numeric values can be converted to hypertargets.
     Numeric values should be labeled with @@<...>@@.
     """
-    pattern: str = r'@@<(-?\d+\.\d+)>@@'
+    pattern: str = r'@@<(.+?)>@@'
 
     def _get_value(self, match, reference_num, line_no, line_no_with_ref, in_line_number):  # noqa
         return match.group(0)[3:-3]
+
+
+def label_numeric_value(text: str) -> str:
+    return '@@<' + text + '>@@'

@@ -8,10 +8,10 @@ from data_to_paper.env import FOLDER_FOR_RUN
 from data_to_paper.latex.clean_latex import process_latex_text_and_math, replace_special_latex_chars
 from data_to_paper.research_types.hypothesis_testing.coding.original_utils.add_html_to_latex import add_html_to_latex, \
     convert_to_latex_comment
+from data_to_paper.research_types.hypothesis_testing.coding.original_utils.df_to_labeled_latex import \
+    df_to_numerically_labeled_latex
 from data_to_paper.research_types.hypothesis_testing.coding.original_utils.note_and_legend import \
     convert_note_and_glossary_to_html, convert_note_and_glossary_to_latex_figure_caption
-from data_to_paper.run_gpt_code.overrides.dataframes.df_methods import STR_FLOAT_FORMAT
-from data_to_paper.run_gpt_code.overrides.dataframes.utils import to_latex_with_value_format
 from data_to_paper.run_gpt_code.overrides.pvalue import OnStrPValue, OnStr
 from data_to_paper.utils.text_formatting import escape_html
 
@@ -145,9 +145,7 @@ def get_description_of_plot_creation(df, fig_filename, kwargs) -> str:
     This is what the LLM will get. This is essentially how the LLM "sees" the figure.
     More sophisticated implementations can be added in the future.
     """
-    with OnStrPValue(OnStr.SMALLER_THAN):
-        # Label the numeric values with @@<...>@@ - to allow converting to ReferenceableText:
-        df_str = to_latex_with_value_format(df, numeric_formater=lambda x: '@@<' + STR_FLOAT_FORMAT(x) + '>@@')
+    df_str = df_to_numerically_labeled_latex(df, OnStr.SMALLER_THAN)
 
     kwargs = kwargs.copy()
     ci_x = kwargs.pop('x_ci', None)

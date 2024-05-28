@@ -5,10 +5,11 @@ import pandas as pd
 
 from data_to_paper.latex.clean_latex import process_latex_text_and_math
 from data_to_paper.research_types.hypothesis_testing.coding.original_utils.add_html_to_latex import add_html_to_latex
+from data_to_paper.research_types.hypothesis_testing.coding.original_utils.df_to_labeled_latex import \
+    df_to_numerically_labeled_latex
 from data_to_paper.research_types.hypothesis_testing.coding.original_utils.note_and_legend import \
     convert_note_and_glossary_to_latex_table_caption, convert_note_and_glossary_to_html
-from data_to_paper.run_gpt_code.overrides.dataframes.df_methods import STR_FLOAT_FORMAT
-from data_to_paper.run_gpt_code.overrides.dataframes.utils import to_latex_with_value_format, to_html_with_value_format
+from data_to_paper.run_gpt_code.overrides.dataframes.utils import to_html_with_value_format
 from data_to_paper.run_gpt_code.overrides.pvalue import OnStr, OnStrPValue
 
 THREEPARTTABLE = r"""\begin{table}[htbp]
@@ -109,10 +110,7 @@ def to_latex_with_note(df: pd.DataFrame, filename: Optional[str], caption: str =
     raise_on_wrong_params_for_to_latex_with_note(df, filename, caption, label, note, glossary, is_wide,
                                                  pvalue_on_str, comment, append_html, **kwargs)
 
-    with OnStrPValue(pvalue_on_str):
-        # Label the numeric values with @@<...>@@ - to allow converting to ReferenceableText:
-        regular_latex_table = to_latex_with_value_format(
-            df, numeric_formater=lambda x: '@@<' + STR_FLOAT_FORMAT(x) + '>@@', caption=None, label=None, **kwargs)
+    regular_latex_table = df_to_numerically_labeled_latex(df, pvalue_on_str=pvalue_on_str)
 
     pvalue_on_str_html = OnStr.SMALLER_THAN if pvalue_on_str == OnStr.LATEX_SMALLER_THAN else pvalue_on_str
     with OnStrPValue(pvalue_on_str_html):
