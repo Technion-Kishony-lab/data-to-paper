@@ -118,7 +118,8 @@ def df_plot_with_pvalue(df, x=None, y=None, kind='line', ax: Optional[plt.Axes] 
     with mpl.rc_context(rc=rc_params):
         xerr = _convert_err_and_ci_to_err(df, x, 'x', xerr, x_ci)
         yerr = _convert_err_and_ci_to_err(df, y, 'y', yerr, y_ci)
-        df.plot(x=x, y=y, kind=kind, ax=ax, xerr=xerr, yerr=yerr, **kwargs)
+        legend = not isinstance(y, str)
+        df.plot(x=x, y=y, kind=kind, ax=ax, xerr=xerr, yerr=yerr, legend=legend, **kwargs)
         coords = get_xy_coordinates_of_df_plot(df, x=x, y=y, kind=kind)
 
         # Set labels automatically if not provided and if we are plotting only one column:
