@@ -107,6 +107,7 @@ def df_plot_with_pvalue(df, x=None, y=None, kind='line', ax: Optional[plt.Axes] 
                         xerr: Optional[str] = None, yerr: Optional[str] = None,
                         x_ci: Optional[str] = None, y_ci: Optional[str] = None,
                         x_p_value: Optional[str] = None, y_p_value: Optional[str] = None,
+                        xlabel: Optional[str] = None, ylabel: Optional[str] = None,
                         **kwargs):
     """
     Same as df.plot, but allows for plotting p-values as 'NS', '*', '**', or '***'.
@@ -119,6 +120,17 @@ def df_plot_with_pvalue(df, x=None, y=None, kind='line', ax: Optional[plt.Axes] 
         yerr = _convert_err_and_ci_to_err(df, y, 'y', yerr, y_ci)
         df.plot(x=x, y=y, kind=kind, ax=ax, xerr=xerr, yerr=yerr, **kwargs)
         coords = get_xy_coordinates_of_df_plot(df, x=x, y=y, kind=kind)
+
+        # Set labels automatically if not provided and if we are plotting only one column:
+        if xlabel is None and isinstance(x, str):
+            xlabel = x
+        if ylabel is None and isinstance(y, str):
+            ylabel = y
+
+        if xlabel:
+            ax.set_xlabel(xlabel)
+        if ylabel:
+            ax.set_ylabel(ylabel)
 
         if x_p_value is None and y_p_value is None:
             return
@@ -186,6 +198,8 @@ def to_figure_with_note(df: pd.DataFrame, filename: Optional[str],
                         pvalue_on_str: Optional[OnStr] = None,
                         comment: str = None,
                         append_html: bool = True,
+                        xlabel: Optional[str] = None,
+                        ylabel: Optional[str] = None,
                         **kwargs):
     """
     Create a matplotlib figure embedded in a LaTeX figure with a caption and label.
@@ -193,7 +207,7 @@ def to_figure_with_note(df: pd.DataFrame, filename: Optional[str],
     fig_filename = filename.replace('.tex', '.png')
     fig, ax = plt.subplots()
     with OnStrPValue(OnStr.AS_FLOAT):
-        df_plot_with_pvalue(df, ax=ax, **kwargs)
+        df_plot_with_pvalue(df, ax=ax, xlabel=xlabel, ylabel=ylabel, **kwargs)
     ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha="right",
                        rotation_mode="anchor", wrap=True)
     plt.tight_layout()  # Adjusts subplot parameters to give the plot more room
@@ -210,6 +224,7 @@ def to_figure_with_note(df: pd.DataFrame, filename: Optional[str],
     note_and_glossary = convert_note_and_glossary_to_latex_figure_caption(df, note, glossary, index)
     note_and_glossary_html = convert_note_and_glossary_to_html(df, note, glossary, index)
 
+    caption = caption or ''
     caption_note_and_glossary = replace_special_latex_chars(caption) + '\n' + note_and_glossary
     caption_note_and_glossary_html = escape_html(caption) + '<br>' + note_and_glossary_html
 

@@ -149,6 +149,7 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
                                 note: str = None, glossary: Dict[str, str] = None, 
                                 x: Optional[str] = None, y: Optional[str] = None, kind: str = 'line',
                                 use_index: bool = True, 
+                                xlabel: str = None, ylabel: str = None,
                                 logx: bool = False, logy: bool = False,
                                 xerr: str = None, yerr: str = None,
                                 x_ci: Union[str, Tuple[str, str]] = None, y_ci: Union[str, Tuple[str, str]] = None,
@@ -170,6 +171,7 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
             `use_index` (bool): If True, use the index as x-axis values.
             `logx` / `logy` (bool): If True, use log scale for x/y axis.
             `xerr` / `yerr` (optional, str): Column name for x/y error bars.
+            `xlabel` / `ylabel` (optional, str): Label for x/y axis.
 
             Additional plotting options:
             `x_p_value` / `y_p_value` (optional, str): Column name for x/y p-values to show as stars above data points.
@@ -295,6 +297,7 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
             glossary=glossary{first_df_number},
             kind='bar',
             y='coef',
+            ylabel='Coefficient',
             y_ci='CI',  # or y_ci=('CI_LB', 'CI_UB')
             y_p_value='PV',  # a column with p-values for the y values. Will be presented as stars in the plot.
         )
