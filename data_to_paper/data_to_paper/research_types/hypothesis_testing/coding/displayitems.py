@@ -106,7 +106,7 @@ tex_file_requirement.content_view_purpose_converter.view_purpose_to_params[
                       pvalue_on_str=OnStr.SMALLER_THAN)
 
 
-png_file_requirement = DataOutputFileRequirement('*.png', minimal_count=1)
+png_file_requirement = DataOutputFileRequirement('*.png', minimal_count=0)
 
 
 @dataclass
