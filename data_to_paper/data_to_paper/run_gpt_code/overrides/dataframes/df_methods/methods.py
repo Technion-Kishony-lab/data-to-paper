@@ -5,7 +5,7 @@ from typing import Any
 import pandas as pd
 
 from data_to_paper.exceptions import data_to_paperException
-from ..utils import format_float, temporarily_change_float_format, to_string_with_iterables
+from ..utils import format_numeric_value, temporarily_change_float_format, to_string_with_format_value
 from ..dataframe_operations import SaveDataframeOperation, CreationDataframeOperation, \
     ChangeSeriesDataframeOperation, AddSeriesDataframeOperation, RemoveSeriesDataframeOperation
 
@@ -41,7 +41,7 @@ class DataFrameLocKeyError(BaseKeyError):
 
 ORIGINAL_FLOAT_FORMAT = pd.get_option('display.float_format')
 TO_CSV_FLOAT_FORMAT = ORIGINAL_FLOAT_FORMAT
-STR_FLOAT_FORMAT = format_float
+STR_FLOAT_FORMAT = format_numeric_value
 
 
 def __init__(self, *args, created_by: str = None, file_path: str = None,
@@ -108,10 +108,10 @@ def to_string(self, *args, original_method=None, on_change=None, **kwargs):
     We print with short floats, avoid printing with [...] skipping columns, and checking which orientation to use.
     """
     if 'float_format' in kwargs:
-        float_format = kwargs.pop('float_format')
+        numeric_formater = kwargs.pop('float_format')
     else:
-        float_format = STR_FLOAT_FORMAT
-    return to_string_with_iterables(self, original_method=original_method, float_format=float_format, **kwargs)
+        numeric_formater = STR_FLOAT_FORMAT
+    return to_string_with_format_value(self, numeric_formater=numeric_formater, **kwargs)
 
 
 def to_csv(self, *args, original_method=None, on_change=None, **kwargs):

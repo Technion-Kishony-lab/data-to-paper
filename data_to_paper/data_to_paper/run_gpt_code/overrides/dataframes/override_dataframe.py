@@ -24,7 +24,7 @@ CLS_METHOD_NAMES_NEW_METHODS = [
     (DataFrame, '__str__', df_methods.__str__),
     (DataFrame, 'to_string', df_methods.to_string),
     (DataFrame, 'to_csv', df_methods.to_csv),
-    (DataFrame, 'to_latex', df_methods.to_latex),
+    (DataFrame, 'to_latex', df_methods.raise_on_call),
     (DataFrame, 'to_json', df_methods.raise_on_call),
     (_LocationIndexer, '__getitem__', df_methods.__LocationIndexer__get_item__),
 ]
@@ -42,16 +42,6 @@ class DataFrameSeriesChange(RunIssue):
                         'new sensible name.'
     code_problem: CodeProblem = CodeProblem.RuntimeError
     comment: str = 'Code modifies dataframe series'
-
-
-def get_original_df_method(method_name):
-    """
-    Get the original DataFrame method.
-    """
-    method = getattr(DataFrame, method_name)
-    while hasattr(method, 'wrapper_of'):
-        method = method.wrapper_of
-    return method
 
 
 @dataclass

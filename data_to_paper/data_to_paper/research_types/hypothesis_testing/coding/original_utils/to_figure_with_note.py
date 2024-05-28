@@ -11,7 +11,7 @@ from data_to_paper.research_types.hypothesis_testing.coding.original_utils.add_h
 from data_to_paper.research_types.hypothesis_testing.coding.original_utils.note_and_legend import \
     convert_note_and_glossary_to_latex, convert_note_and_glossary_to_html
 from data_to_paper.run_gpt_code.overrides.dataframes.df_methods import STR_FLOAT_FORMAT
-from data_to_paper.run_gpt_code.overrides.dataframes.utils import to_string_with_iterables
+from data_to_paper.run_gpt_code.overrides.dataframes.utils import to_string_with_format_value
 from data_to_paper.run_gpt_code.overrides.pvalue import OnStrPValue, OnStr
 from data_to_paper.utils.text_formatting import escape_html
 
@@ -146,7 +146,7 @@ def get_description_of_plot_creation(df, fig_filename, kwargs, float_num_digits=
     More sophisticated implementations can be added in the future.
     """
     with OnStrPValue(OnStr.SMALLER_THAN):
-        df_str = to_string_with_iterables(df, float_format=STR_FLOAT_FORMAT)
+        df_str = to_string_with_format_value(df)
 
     kwargs = kwargs.copy()
     ci_x = kwargs.pop('x_ci', None)

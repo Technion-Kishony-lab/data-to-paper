@@ -14,8 +14,7 @@ from data_to_paper.research_types.hypothesis_testing.coding.utils import get_add
 from data_to_paper.research_types.hypothesis_testing.coding.utils_modified_for_gpt_use.to_pickle import \
     get_dataframe_to_pickle_attr_replacer, get_pickle_dump_attr_replacer
 from data_to_paper.research_types.hypothesis_testing.scientific_products import HypertargetPrefix
-from data_to_paper.run_gpt_code.overrides.dataframes.df_methods import STR_FLOAT_FORMAT
-from data_to_paper.run_gpt_code.overrides.dataframes.utils import to_string_with_iterables
+from data_to_paper.run_gpt_code.overrides.dataframes.utils import to_string_with_format_value
 from data_to_paper.run_gpt_code.overrides.pvalue import is_containing_p_value
 from data_to_paper.run_gpt_code.run_issues import RunIssue, CodeProblem
 from data_to_paper.utils import dedent_triple_quote_str
@@ -25,7 +24,7 @@ from data_to_paper.utils.nice_list import NiceList, NiceDict
 class DataFramePickleContentOutputFileRequirement(PickleContentOutputFileRequirement):
 
     def _to_str(self, content: DataFrame) -> str:
-        return to_string_with_iterables(content, float_format=STR_FLOAT_FORMAT)
+        return to_string_with_format_value(content)
 
 
 class DictPickleContentOutputFileRequirement(PickleContentOutputFileRequirement,

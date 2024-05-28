@@ -4,8 +4,6 @@ from pandas import MultiIndex
 from pandas.core.frame import DataFrame
 from data_to_paper.latex.clean_latex import replace_special_latex_chars
 
-from data_to_paper.run_gpt_code.overrides.dataframes.utils import format_float
-
 
 def carefully_replace_special_latex_chars(s: str) -> str:
     if isinstance(s, str):
@@ -14,12 +12,21 @@ def carefully_replace_special_latex_chars(s: str) -> str:
 
 
 LATEX_DEFAULT_KWARGS = dict(
-    float_format=partial(format_float, float_format='.3g'),
     escape=False,
     multicolumn=True,
     multirow=True,
     bold_rows=True,
 )
+
+
+def _escape_strings_in_index(index):
+    if isinstance(index, MultiIndex):
+        for level in range(len(index.levels)):
+            index = index.set_levels(index.levels[level].map(carefully_replace_special_latex_chars), level=level)
+            index.names = type(index.names)([carefully_replace_special_latex_chars(name) for name in index.names])
+    index = index.map(carefully_replace_special_latex_chars)
+    index.name = carefully_replace_special_latex_chars(index.name)
+    return index
 
 
 def _escape_string_in_dataframe(df: DataFrame) -> DataFrame:
@@ -31,26 +38,12 @@ def _escape_string_in_dataframe(df: DataFrame) -> DataFrame:
     for col_index in range(len(df.columns)):
         if df.iloc[:, col_index].dtype == object:
             df.iloc[:, col_index] = df.iloc[:, col_index].apply(carefully_replace_special_latex_chars)
-    if isinstance(df.index, MultiIndex):
-        for level in range(len(df.index.levels)):
-            df.index = df.index.set_levels(df.index.levels[level].map(carefully_replace_special_latex_chars),
-                                           level=level)
-            df.index.names = type(df.index.names)([carefully_replace_special_latex_chars(name)
-                                                   for name in df.index.names])
-    if isinstance(df.columns, MultiIndex):
-        for level in range(len(df.columns.levels)):
-            df.columns = df.columns.set_levels(df.columns.levels[level].map(carefully_replace_special_latex_chars),
-                                               level=level)
-            df.columns.names = type(df.columns.names)([carefully_replace_special_latex_chars(name)
-                                                       for name in df.columns.names])
-    df.index = df.index.map(carefully_replace_special_latex_chars)
-    df.index.name = carefully_replace_special_latex_chars(df.index.name)
-    df.columns = df.columns.map(carefully_replace_special_latex_chars)
-    df.columns.name = carefully_replace_special_latex_chars(df.columns.name)
+    df.index = _escape_strings_in_index(df.index)
+    df.columns = _escape_strings_in_index(df.columns)
     return df
 
 
-def to_latex(self, *args, original_method=None, on_change=None, **kwargs):
+def to_latex_with_escape(self, *args, original_method=None, on_change=None, **kwargs):
     kwargs = {**LATEX_DEFAULT_KWARGS, **kwargs}
     df = _escape_string_in_dataframe(self.copy())
     caption = kwargs.pop('caption', None)
