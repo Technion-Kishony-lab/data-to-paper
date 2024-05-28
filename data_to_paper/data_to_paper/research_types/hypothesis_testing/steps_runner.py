@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Type
 
+from data_to_paper.utils.highlighted_text import text_to_html
 from data_to_paper.base_steps import DirectorProductGPT, CheckLatexCompilation, DataStepRunner
 
 from .app_startup import HypothesisTestingStartDialog
@@ -24,7 +25,6 @@ from .scientific_stage import ScientificStage
 from .writing_steps import FirstTitleAbstractSectionWriterReviewGPT, SecondTitleAbstractSectionWriterReviewGPT, \
     MethodsSectionWriterReviewGPT, IntroductionSectionWriterReviewGPT, ResultsSectionWriterReviewGPT, \
     DiscussionSectionWriterReviewGPT
-from ...utils.highlighted_text import text_to_html
 
 PAPER_SECTIONS_NAMES = ['title', 'abstract', 'introduction', 'results', 'discussion', 'methods']
 SECTIONS_WITH_CITATIONS = ['introduction', 'discussion']

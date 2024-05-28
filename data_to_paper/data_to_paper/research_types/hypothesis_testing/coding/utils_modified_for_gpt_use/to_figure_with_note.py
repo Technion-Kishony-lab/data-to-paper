@@ -1,16 +1,13 @@
-import re
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 import pandas as pd
 
-from data_to_paper.utils import dedent_triple_quote_str
-from data_to_paper.run_gpt_code.overrides.pvalue import OnStr, is_containing_p_value
+from data_to_paper.run_gpt_code.overrides.pvalue import OnStr
 
 from data_to_paper.run_gpt_code.base_run_contexts import RegisteredRunContext
-from data_to_paper.run_gpt_code.run_contexts import ProvideData, IssueCollector
+from data_to_paper.run_gpt_code.run_contexts import IssueCollector
 
-from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue, RunIssues
-from data_to_paper.utils.dataframe import extract_df_axes_labels
+from data_to_paper.run_gpt_code.run_issues import RunIssues
 from .check_df_formatting import check_for_repetitive_value_in_column, checks_that_rows_are_labelled, \
     check_for_unallowed_characters, check_for_un_glossary_abbreviations, \
     check_glossary_does_not_include_labels_that_are_not_in_df, check_displayitem_label, check_displayitem_caption, \
@@ -103,5 +100,6 @@ def _check_for_figure_style_issues(df: pd.DataFrame, filename: str, *args,
 
     # Check that the glossary does not include any labels that are not in the table
     issues.extend(
-        check_glossary_does_not_include_labels_that_are_not_in_df(df, filename, glossary=glossary, displayitem='figure'))
+        check_glossary_does_not_include_labels_that_are_not_in_df(df, filename, glossary=glossary,
+                                                                  displayitem='figure'))
     return issues

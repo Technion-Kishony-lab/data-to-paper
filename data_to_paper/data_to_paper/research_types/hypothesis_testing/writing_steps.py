@@ -260,7 +260,7 @@ class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProd
         * short statement of the subject and its importance. 
         * description of the research gap/question/motivation.
         * short, non-technical, description of the dataset used and a non-technical explanation of the methodology.
-        * summary of each of the main results. It should summarize each key result which is evident from the displyitems, \t
+        * summary of each of the main results. Summarize each key result which is evident from the displayitems, \t
         but without referring to specific numeric values from the displayitems.
         * statement of limitations and implications.
         """)
@@ -591,8 +591,8 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         (they will be automatically replaced with the actual numeric values in compilation).
         """)
     section_review_specific_instructions: str = dedent_triple_quote_str("""
-        Do not suggest adding missing information, or stating whats missing from the displayitems and Numerical Values, \t
-        only suggest changes that are relevant to the Results section itself and that are supported by the given \t
+        Do not suggest adding missing information, or stating whats missing from the displayitems or Numerical Values.
+        Only suggest changes that are relevant to the Results section itself and that are supported by the given \t
         displayitems and Numerical Values.
 
         Do not suggest changes to the {goal_noun} that may require data not available in the the \t
@@ -607,7 +607,8 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
     """)
 
     def _get_displayitem_labels(self, section_name: str) -> List[str]:
-        return [get_displayitem_label(displayitem) for displayitem in self.products.get_latex_displayitems()[section_name]]
+        return [get_displayitem_label(displayitem)
+                for displayitem in self.products.get_latex_displayitems()[section_name]]
 
     def _check_and_refine_section(self, section: str, section_name: str) -> str:
         result = super()._check_and_refine_section(section, section_name)
@@ -620,7 +621,7 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
                     error_message=dedent_triple_quote_str(f"""
                         The {section_name} section should specifically reference each of the Displayitems that we have.
                         Please make sure we have a sentence addressing {figure_or_table} "{displayitem_label}".
-                        The sentence should have a reference like this: "{figure_or_table}~\\ref{{{displayitem_label}}}".
+                        The sentence should have a reference: "{figure_or_table}~\\ref{{{displayitem_label}}}".
                         """)
                 )
         return result

@@ -17,7 +17,7 @@ def convert_note_and_glossary_to_latex_table_caption(df, note: str, glossary: Di
         for key, value in glossary.items():
             if key in axes_labels or key == 'Significance':
                 note_and_glossary.append(r'\item \textbf{' + replace_special_latex_chars(key) +
-                                       '}: ' + replace_special_latex_chars(value))
+                                         '}: ' + replace_special_latex_chars(value))
     if len(note_and_glossary) == 0:
         note_and_glossary.append(r'\item ')  # add an empty item to avoid an error
     return '\n'.join(note_and_glossary)
@@ -32,7 +32,7 @@ def convert_note_and_glossary_to_latex_figure_caption(df, note: str, glossary: D
         for key, value in glossary.items():
             if key in axes_labels or key == 'Significance':
                 note_and_glossary.append((replace_special_latex_chars(key) +
-                                       ': ' + replace_special_latex_chars(value)).strip())
+                                          ': ' + replace_special_latex_chars(value)).strip())
     # add '. ' at the end of each line if missing:
     note_and_glossary = [line + ' ' if line.endswith('.') else line + '. ' for line in note_and_glossary]
     return '\n'.join(note_and_glossary)

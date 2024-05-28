@@ -4,7 +4,7 @@ from typing import Dict, List, Optional, Union, Iterable, Any
 import pandas as pd
 
 from data_to_paper.utils import dedent_triple_quote_str
-from data_to_paper.run_gpt_code.overrides.pvalue import OnStr, is_containing_p_value
+from data_to_paper.run_gpt_code.overrides.pvalue import OnStr
 
 from data_to_paper.run_gpt_code.base_run_contexts import RegisteredRunContext
 from data_to_paper.run_gpt_code.run_contexts import ProvideData, IssueCollector
@@ -61,7 +61,8 @@ def _to_latex_with_note(df: pd.DataFrame, filename: str, caption: str = None, la
     Replacement of to_latex_with_note to be used by LLM-writen code.
     Same as to_latex_with_note, but also checks for issues.
     """
-    raise_on_wrong_params_for_to_latex_with_note(df, filename, caption=caption, label=label, note=note, glossary=glossary)
+    raise_on_wrong_params_for_to_latex_with_note(df, filename, caption=caption, label=label, note=note,
+                                                 glossary=glossary)
     if not isinstance(filename, str):
         raise ValueError(f'Expected `filename` to be a string, got {type(filename)}')
 

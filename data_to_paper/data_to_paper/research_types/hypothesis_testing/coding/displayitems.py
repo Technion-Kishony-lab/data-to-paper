@@ -10,7 +10,7 @@ from data_to_paper.code_and_output_files.output_file_requirements import TextCon
     OutputFileRequirements, DataOutputFileRequirement
 from data_to_paper.code_and_output_files.ref_numeric_values import HypertargetFormat, HypertargetPosition
 from data_to_paper.code_and_output_files.referencable_text import BaseReferenceableText, convert_str_to_latex_label, \
-    NumericReferenceableText, LabeledNumericReferenceableText
+    LabeledNumericReferenceableText
 from data_to_paper.latex.tables import get_displayitem_caption
 from data_to_paper.research_types.hypothesis_testing.cast import ScientificAgent
 from data_to_paper.research_types.hypothesis_testing.coding.base_code_conversers import BaseCreateTablesCodeProductsGPT
@@ -163,23 +163,23 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
             `caption` (str): Caption for the figure (can be multi-line).
             `label` (str): Latex label for the figure, 'figure:xxx'. 
             `glossary` (optional, dict): Dictionary mapping abbreviated df col/row labels to full names.
-            
+
             Parameters for df.plot():
             `x` / `y` (optional, str): Column name for x-axis / y-axis values.
             `kind` (str): Type of plot: 'line', 'scatter', 'bar'.
             `use_index` (bool): If True, use the index as x-axis values.
             `logx` / `logy` (bool): If True, use log scale for x/y axis.
             `xerr` / `yerr` (optional, str): Column name for x/y error bars.
-            
+
             Additional plotting options:
-            `x_p_value` / `y_p_value` (optional, str): Column name for x/y p-values to plot as stars above the data points.
+            `x_p_value` / `y_p_value` (optional, str): Column name for x/y p-values to show as stars above data points.
                 p-values are converted to: '***' if < 0.001, '**' if < 0.01, '*' if < 0.05, 'NS' if >= 0.05.
 
             Instead of xerr/yerr, you can directly provide confidence intervals:
             `x_ci` / `y_ci` (optional, str or (str, str)): an be either a single column name where each row contains
                 a 2-element tuple (n x 2 matrix when expanded), or a list containing two column names 
                 representing the lower and upper bounds of the confidence interval.
-            
+
             Note on error bars (explanation for y-axis is provided, x-axis is analogous):
             Either `yerr` or `y_ci` can be provided, but not both.
             If `yerr` is provided, the plotted error bars are (df[y]-df[yerr], df[y]+df[yerr]).
@@ -272,7 +272,7 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
         abbrs_to_names{first_df_number}, glossary{first_df_number} = split_mapping(mapping{first_df_number})
         df{first_df_number} = df{first_df_number}.rename(columns=abbrs_to_names{first_df_number}, \t
         index=abbrs_to_names{first_df_number})
-        
+
         # <Choose whether it is more appropriate to present the data as a table or a figure.>
         # <Use either `to_latex_with_note` or `to_figure_with_note`> 
 
@@ -283,7 +283,7 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
             label='<table:xxx>',
             note="<If needed, add a note to provide any additional information that is not captured in the caption>",
             glossary=glossary{first_df_number})
-        
+
         # Create latex figure:
         to_figure_with_note(
             df{first_df_number}, 'df_{first_df_number}.tex',

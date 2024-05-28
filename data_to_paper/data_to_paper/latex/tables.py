@@ -2,6 +2,7 @@ from typing import List, Optional
 
 from data_to_paper.utils import extract_text_between_tags
 
+
 def get_displayitem_label(displayitem: str) -> Optional[str]:
     """
     Extract the label of a LaTeX display item (table, figure, etc.).

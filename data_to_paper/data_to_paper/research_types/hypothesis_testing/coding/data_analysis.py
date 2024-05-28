@@ -6,7 +6,7 @@ from pandas import DataFrame
 from data_to_paper.base_steps import DebuggerConverser
 from data_to_paper.base_steps.request_code import CodeReviewPrompt
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
-from data_to_paper.code_and_output_files.output_file_requirements import TextContentOutputFileRequirement, \
+from data_to_paper.code_and_output_files.output_file_requirements import \
     NumericTextContentOutputFileRequirement, OutputFileRequirements, PickleContentOutputFileRequirement
 from data_to_paper.research_types.hypothesis_testing.coding.base_code_conversers import \
     BaseScientificCodeProductsGPT, BaseCreateTablesCodeProductsGPT
@@ -18,7 +18,7 @@ from data_to_paper.run_gpt_code.overrides.dataframes.utils import to_string_with
 from data_to_paper.run_gpt_code.overrides.pvalue import is_containing_p_value
 from data_to_paper.run_gpt_code.run_issues import RunIssue, CodeProblem
 from data_to_paper.utils import dedent_triple_quote_str
-from data_to_paper.utils.nice_list import NiceList, NiceDict
+from data_to_paper.utils.nice_list import NiceDict
 
 
 class DataFramePickleContentOutputFileRequirement(PickleContentOutputFileRequirement):

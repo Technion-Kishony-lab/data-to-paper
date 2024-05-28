@@ -3,15 +3,13 @@ from typing import Optional, Dict
 
 import pandas as pd
 
-from data_to_paper.latex.clean_latex import replace_special_latex_chars, process_latex_text_and_math
+from data_to_paper.latex.clean_latex import process_latex_text_and_math
 from data_to_paper.research_types.hypothesis_testing.coding.original_utils.add_html_to_latex import add_html_to_latex
 from data_to_paper.research_types.hypothesis_testing.coding.original_utils.note_and_legend import \
     convert_note_and_glossary_to_latex_table_caption, convert_note_and_glossary_to_html
 from data_to_paper.run_gpt_code.overrides.dataframes.df_methods import STR_FLOAT_FORMAT
 from data_to_paper.run_gpt_code.overrides.dataframes.utils import to_latex_with_value_format, to_html_with_value_format
 from data_to_paper.run_gpt_code.overrides.pvalue import OnStr, OnStrPValue
-from data_to_paper.utils.text_numeric_formatting import round_floats
-from data_to_paper.utils.dataframe import extract_df_axes_labels
 
 THREEPARTTABLE = r"""\begin{table}[htbp]
 \centering
@@ -156,4 +154,3 @@ def get_tabular_block(latex_table: str) -> str:
     Extract the tabular block of the table.
     """
     return re.search(pattern=r'\\begin{tabular}.*\n(.*)\\end{tabular}', string=latex_table, flags=re.DOTALL).group(0)
-

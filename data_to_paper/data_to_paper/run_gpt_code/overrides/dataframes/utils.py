@@ -46,7 +46,8 @@ def temporarily_change_float_format(new_format):
 
 
 def _get_formatters_for_df(df: DataFrame, numeric_formater: Callable = None, object_formatter: Callable = None):
-    formater = partial(format_numerics_and_iterables, numeric_formater=numeric_formater, object_formatter=object_formatter)
+    formater = partial(format_numerics_and_iterables, numeric_formater=numeric_formater,
+                       object_formatter=object_formatter)
     formatters = {}
     for column in df.columns:
         formatters[column] = formater

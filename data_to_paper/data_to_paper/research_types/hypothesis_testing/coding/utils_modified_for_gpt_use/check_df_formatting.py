@@ -136,7 +136,7 @@ def check_for_unallowed_characters(df: pd.DataFrame, filename: str) -> List[RunI
                     instructions=dedent_triple_quote_str(f"""
                         Please revise the code to map these {index_or_column} labels to new names \t
                         that do not contain the "{char}" characters.
-                        
+
                         Doublecheck to make sure your code uses `df.rename({index_or_column}=...)` \t
                         with the `{index_or_column}` argument set to a dictionary mapping the old \t
                         {index_or_column} names to the new ones.
@@ -146,7 +146,7 @@ def check_for_unallowed_characters(df: pd.DataFrame, filename: str) -> List[RunI
 
 
 def check_for_un_glossary_abbreviations(df: pd.DataFrame, filename: str, glossary: dict, is_narrow: bool,
-                                      displayitem: str = 'table') -> List[RunIssue]:
+                                        displayitem: str = 'table') -> List[RunIssue]:
     issues = []
     func = _get_creating_func(displayitem)
     axes_labels = extract_df_axes_labels(df, with_title=False, string_only=True)
@@ -166,8 +166,8 @@ def check_for_un_glossary_abbreviations(df: pd.DataFrame, filename: str, glossar
             """)
         if is_narrow:
             instructions += dedent_triple_quote_str(f"""
-                Alternatively, since the {displayitem} is not too wide, you can also replace the abbreviated labels with \t
-                their full names in the dataframe itself.
+                Alternatively, since the {displayitem} is not too wide, you can also replace the abbreviated labels \t 
+                with their full names in the dataframe itself.
                 """)
         if glossary:
             issue = dedent_triple_quote_str(f"""
@@ -192,7 +192,7 @@ def check_for_un_glossary_abbreviations(df: pd.DataFrame, filename: str, glossar
 
 
 def check_glossary_does_not_include_labels_that_are_not_in_df(df: pd.DataFrame, filename: str, glossary: dict,
-                                                            displayitem: str = 'table') -> List[RunIssue]:
+                                                              displayitem: str = 'table') -> List[RunIssue]:
     issues = []
     if glossary:
         all_labels = extract_df_axes_labels(df, with_title=True, string_only=True)

@@ -1,5 +1,3 @@
-from functools import partial
-
 from pandas import MultiIndex
 from pandas.core.frame import DataFrame
 from data_to_paper.latex.clean_latex import replace_special_latex_chars
