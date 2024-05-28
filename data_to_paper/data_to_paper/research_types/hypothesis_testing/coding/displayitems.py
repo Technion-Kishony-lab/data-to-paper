@@ -10,7 +10,7 @@ from data_to_paper.code_and_output_files.output_file_requirements import TextCon
     OutputFileRequirements, DataOutputFileRequirement
 from data_to_paper.code_and_output_files.ref_numeric_values import HypertargetFormat, HypertargetPosition
 from data_to_paper.code_and_output_files.referencable_text import BaseReferenceableText, convert_str_to_latex_label, \
-    NumericReferenceableText
+    NumericReferenceableText, LabeledNumericReferenceableText
 from data_to_paper.latex.tables import get_displayitem_caption
 from data_to_paper.research_types.hypothesis_testing.cast import ScientificAgent
 from data_to_paper.research_types.hypothesis_testing.coding.base_code_conversers import BaseCreateTablesCodeProductsGPT
@@ -28,6 +28,7 @@ from data_to_paper.run_gpt_code.overrides.pvalue import PValue, OnStr
 from data_to_paper.run_gpt_code.run_contexts import ProvideData
 from data_to_paper.run_gpt_code.run_issues import RunIssue, CodeProblem
 from data_to_paper.utils import dedent_triple_quote_str
+from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
 
 
 @dataclass
@@ -54,20 +55,21 @@ class DataframePreventAssignmentToAttrs(PreventAssignmentToAttrs):
 
 
 @dataclass
-class TableNumericReferenceableText(NumericReferenceableText):
+class DisplayitemNumericReferenceableText(LabeledNumericReferenceableText):
     def _wrap_as_block(self, content: str):
-        return f'"{self.filename}":\n```html\n{content}\n```\n'
+        return f'"{self.filename}":\n{wrap_text_with_triple_quotes(content, "html")}\n'
 
 
 @dataclass(frozen=True)
 class TexTableContentOutputFileRequirement(TextContentOutputFileRequirement):
     filename: str = '*.tex'
+    referenceable_text_cls: type = LabeledNumericReferenceableText
 
     def get_referencable_text(self, content: Any, filename: str = None, num_file: int = 0,
                               content_view: ContentView = None) -> BaseReferenceableText:
         if content_view == ContentViewPurpose.APP_HTML:
             content = get_html_from_latex(content)
-            result = TableNumericReferenceableText(
+            result = DisplayitemNumericReferenceableText(
                     text=content,
                     filename=filename,
                     hypertarget_prefix=self.hypertarget_prefixes[num_file] if self.hypertarget_prefixes else None,
@@ -322,8 +324,6 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
             enforce_saving_altered_dataframes=False) | {
             'CustomPreventMethods': PreventCalling(
                 modules_and_functions=(
-                    ('pandas.DataFrame', 'to_latex', False),
-                    ('pandas.DataFrame', 'to_html', False),
                     ('pandas', 'to_numeric', False),
                 )
             ),

@@ -7,6 +7,8 @@ from data_to_paper.latex.clean_latex import replace_special_latex_chars, process
 from data_to_paper.research_types.hypothesis_testing.coding.original_utils.add_html_to_latex import add_html_to_latex
 from data_to_paper.research_types.hypothesis_testing.coding.original_utils.note_and_legend import \
     convert_note_and_glossary_to_latex, convert_note_and_glossary_to_html
+from data_to_paper.run_gpt_code.overrides.dataframes.df_methods import STR_FLOAT_FORMAT
+from data_to_paper.run_gpt_code.overrides.dataframes.utils import to_latex_with_value_format, to_html_with_value_format
 from data_to_paper.run_gpt_code.overrides.pvalue import OnStr, OnStrPValue
 from data_to_paper.utils.text_numeric_formatting import round_floats
 from data_to_paper.utils.dataframe import extract_df_axes_labels
@@ -110,11 +112,13 @@ def to_latex_with_note(df: pd.DataFrame, filename: Optional[str], caption: str =
                                                  pvalue_on_str, comment, append_html, **kwargs)
 
     with OnStrPValue(pvalue_on_str):
-        regular_latex_table = df.to_latex(None, caption=None, label=None, multirow=False, multicolumn=False, **kwargs)
+        # Label the numeric values with @@<...>@@ - to allow converting to ReferenceableText:
+        regular_latex_table = to_latex_with_value_format(
+            df, numeric_formater=lambda x: '@@<' + STR_FLOAT_FORMAT(x) + '>@@', caption=None, label=None, **kwargs)
 
     pvalue_on_str_html = OnStr.SMALLER_THAN if pvalue_on_str == OnStr.LATEX_SMALLER_THAN else pvalue_on_str
     with OnStrPValue(pvalue_on_str_html):
-        regular_html_table = df.to_html(None, border=0, justify='left')
+        regular_html_table = to_html_with_value_format(df, border=0, justify='left')
 
     tabular_part = get_tabular_block(regular_latex_table)
     latex_caption = r'\caption{' + process_latex_text_and_math(caption) + '}\n' if caption else ''
