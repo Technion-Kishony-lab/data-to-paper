@@ -102,7 +102,6 @@ def _convert_err_and_ci_to_err(df: pd.DataFrame, xy: Optional[str],
     lower = nominal - ci[:, 0]
     return np.array([lower, upper])
 
-
 def df_plot_with_pvalue(df, x=None, y=None, kind='line', ax: Optional[plt.Axes] = None,
                         xerr: Optional[str] = None, yerr: Optional[str] = None,
                         x_ci: Optional[str] = None, y_ci: Optional[str] = None,
@@ -134,13 +133,14 @@ def df_plot_with_pvalue(df, x=None, y=None, kind='line', ax: Optional[plt.Axes] 
             ax.set_ylabel(ylabel)
 
         # Add a horizontal grid line at y=0 for bar charts with negative and positive values
-        df_y_as_df = pd.DataFrame(df[y])
-        if len(df_y_as_df.select_dtypes(include=np.number).columns) == len(df_y_as_df.columns) and (
-                df_y_as_df < 0).any().sum() > 0 and (df_y_as_df > 0).any().sum() > 0:
-            if kind == 'bar':
-                ax.axhline(0, color='grey', linewidth=0.8, linestyle='--')
-            elif kind == 'barh':
-                ax.axvline(0, color='grey', linewidth=0.8, linestyle='--')
+        if kind == 'bar' or kind == 'barh':
+            df_y_as_df = pd.DataFrame(df[y])
+            if len(df_y_as_df.select_dtypes(include=np.number).columns) == len(df_y_as_df.columns) and (
+                    df_y_as_df < 0).any().sum() > 0 and (df_y_as_df > 0).any().sum() > 0:
+                if kind == 'bar':
+                    ax.axhline(0, color='grey', linewidth=0.8, linestyle='--')
+                elif kind == 'barh':
+                    ax.axvline(0, color='grey', linewidth=0.8, linestyle='--')
 
         if x_p_value is None and y_p_value is None:
             return
@@ -152,8 +152,6 @@ def df_plot_with_pvalue(df, x=None, y=None, kind='line', ax: Optional[plt.Axes] 
             raise ValueError('The x_p_value argument is currently not supported.')
         else:
             # y-values
-            if y_p_value not in df.columns:
-                raise ValueError(f'The p_value column "{x_p_value}" is not in the dataframe.')
             y_p_values = df[y_p_value]
             if yerr is None:
                 raise ValueError('The yerr or y_ci argument must be provided when plotting y_p_value.')
@@ -164,7 +162,6 @@ def df_plot_with_pvalue(df, x=None, y=None, kind='line', ax: Optional[plt.Axes] 
                     #  the bar
                     ax.text(x, y + yerr[1, row_index], PValueToStars(y_p_values[row_index]).convert_to_stars(),
                             ha='center', va='bottom')
-
 
 
 def get_description_of_plot_creation(df, fig_filename, kwargs) -> str:

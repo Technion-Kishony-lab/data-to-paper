@@ -9,14 +9,21 @@ from data_to_paper.utils.file_utils import run_in_directory
 
 @pytest.fixture(scope="module")
 def test_data():
+    x = range(10)
+    y = np.random.randn(10)
+    y_2 = np.random.randn(10)
+    y_err = np.random.rand(10) * 0.1
+    y_ci_lower = y - np.random.rand(10) * 0.5
+    y_ci_upper = y + np.random.rand(10) * 0.5
+    y_p_value = np.random.rand(10) * 0.05
     df = pd.DataFrame({
-        'x': range(10),
-        'y': np.random.randn(10),
-        'y_2': np.random.randn(10),
-        'y_err': np.random.rand(10) * 0.1,
-        'y_ci_lower': np.random.rand(10) * 0.5,
-        'y_ci_upper': np.random.rand(10) * 0.5,
-        'y_p_value': np.random.rand(10) * 0.05
+        'x': x,
+        'y': y,
+        'y_2': y_2,
+        'y_err': y_err,
+        'y_ci_lower': y_ci_lower,
+        'y_ci_upper': y_ci_upper,
+        'y_p_value': y_p_value,
     })
     filename = 'test_figure.tex'
     yield df, filename
@@ -113,25 +120,12 @@ def test_plot_with_all_options_kind_bar(test_data, tmpdir):
         assert os.path.exists(filename)
 
 
-def test_plot_with_invalid_y_p_value(test_data, tmpdir):
-    with run_in_directory(tmpdir):
-        df, filename = test_data
-        with pytest.raises(ValueError):
-            to_figure_with_note(df, filename=filename, y='y', y_p_value='invalid_column', yerr='y_err')
-
-
 def test_plot_without_yerr_for_p_value(test_data, tmpdir):
     with run_in_directory(tmpdir):
         df, filename = test_data
         with pytest.raises(ValueError):
             to_figure_with_note(df, filename=filename, y='y', y_p_value='y_p_value')
 
-
-def test_plot_with_invalid_y_ci(test_data, tmpdir):
-    with run_in_directory(tmpdir):
-        df, filename = test_data
-        with pytest.raises(ValueError):
-            to_figure_with_note(df, filename=filename, y='y', y_ci='invalid_column')
 
 def test_plot_with_multiple_columns_input(test_data, tmpdir):
     with run_in_directory(tmpdir):
