@@ -3,6 +3,7 @@ from typing import Optional, Dict, Union, Tuple
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
+import matplotlib as mpl
 
 from data_to_paper.env import FOLDER_FOR_RUN
 from data_to_paper.latex.clean_latex import process_latex_text_and_math, replace_special_latex_chars
@@ -111,32 +112,36 @@ def df_plot_with_pvalue(df, x=None, y=None, kind='line', ax: Optional[plt.Axes] 
     Same as df.plot, but allows for plotting p-values as 'NS', '*', '**', or '***'.
     p_value: A string representing the column name of the p-values.
     """
-    xerr = _convert_err_and_ci_to_err(df, x, 'x', xerr, x_ci)
-    yerr = _convert_err_and_ci_to_err(df, y, 'y', yerr, y_ci)
-    df.plot(x=x, y=y, kind=kind, ax=ax, xerr=xerr, yerr=yerr, **kwargs)
-    coords = get_xy_coordinates_of_df_plot(df, x=x, y=y, kind=kind)
+    rc_params = {'figure.figsize': [10, 6], 'font.size': 14, 'savefig.dpi': 300, 'savefig.bbox': 'tight',
+    'savefig.facecolor': 'white', 'axes.facecolor': 'white'}
+    with mpl.rc_context(rc=rc_params):
+        xerr = _convert_err_and_ci_to_err(df, x, 'x', xerr, x_ci)
+        yerr = _convert_err_and_ci_to_err(df, y, 'y', yerr, y_ci)
+        df.plot(x=x, y=y, kind=kind, ax=ax, xerr=xerr, yerr=yerr, **kwargs)
+        coords = get_xy_coordinates_of_df_plot(df, x=x, y=y, kind=kind)
 
-    if x_p_value is None and y_p_value is None:
-        return
-    elif x_p_value is not None and y_p_value is not None:
-        raise ValueError('Only one of x_p_value and y_p_value can be provided.')
-    elif x_p_value is not None:
-        # x-values
-        # TODO: Implement this
-        raise ValueError('The x_p_value argument is currently not supported.')
-    else:
-        # y-values
-        if y_p_value not in df.columns:
-            raise ValueError(f'The p_value column "{x_p_value}" is not in the dataframe.')
-        y_p_values = df[y_p_value]
-        if yerr is None:
-            raise ValueError('The yerr or y_ci argument must be provided when plotting y_p_value.')
+        if x_p_value is None and y_p_value is None:
+            return
+        elif x_p_value is not None and y_p_value is not None:
+            raise ValueError('Only one of x_p_value and y_p_value can be provided.')
+        elif x_p_value is not None:
+            # x-values
+            # TODO: Implement this
+            raise ValueError('The x_p_value argument is currently not supported.')
+        else:
+            # y-values
+            if y_p_value not in df.columns:
+                raise ValueError(f'The p_value column "{x_p_value}" is not in the dataframe.')
+            y_p_values = df[y_p_value]
+            if yerr is None:
+                raise ValueError('The yerr or y_ci argument must be provided when plotting y_p_value.')
 
-        for col_index, index_data in coords.items():
-            for row_index, (x, y) in index_data.items():
-                # TODO: need to take care of bars with negative values, in which case the text should be below the bar
-                ax.text(x, y + yerr[1, row_index], PValueToStars(y_p_values[row_index]).convert_to_stars(),
-                        ha='center', va='bottom')
+            for col_index, index_data in coords.items():
+                for row_index, (x, y) in index_data.items():
+                    # TODO: need to take care of bars with negative values, in which case the text should be below the bar
+                    ax.text(x, y + yerr[1, row_index], PValueToStars(y_p_values[row_index]).convert_to_stars(),
+                            ha='center', va='bottom')
+
 
 
 def get_description_of_plot_creation(df, fig_filename, kwargs) -> str:
