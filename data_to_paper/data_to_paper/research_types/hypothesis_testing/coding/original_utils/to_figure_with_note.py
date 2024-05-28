@@ -9,7 +9,8 @@ from data_to_paper.latex.clean_latex import process_latex_text_and_math, replace
 from data_to_paper.research_types.hypothesis_testing.coding.original_utils.add_html_to_latex import add_html_to_latex, \
     convert_to_latex_comment
 from data_to_paper.research_types.hypothesis_testing.coding.original_utils.note_and_legend import \
-    convert_note_and_glossary_to_latex, convert_note_and_glossary_to_html
+    convert_note_and_glossary_to_latex_table_caption, convert_note_and_glossary_to_html, \
+    convert_note_and_glossary_to_latex_figure_caption
 from data_to_paper.run_gpt_code.overrides.dataframes.df_methods import STR_FLOAT_FORMAT
 from data_to_paper.run_gpt_code.overrides.dataframes.utils import to_string_with_format_value, \
     to_latex_with_value_format
@@ -205,10 +206,10 @@ def to_figure_with_note(df: pd.DataFrame, filename: Optional[str],
     if 'x_p_value' in kwargs or 'y_p_value' in kwargs:
         glossary['Significance'] = PValueToStars().get_conversion_legend_text()
 
-    note_and_glossary = convert_note_and_glossary_to_latex(df, note, glossary, index)
+    note_and_glossary = convert_note_and_glossary_to_latex_figure_caption(df, note, glossary, index)
     note_and_glossary_html = convert_note_and_glossary_to_html(df, note, glossary, index)
 
-    caption_note_and_glossary = replace_special_latex_chars(caption) + '\n\n' + note_and_glossary
+    caption_note_and_glossary = replace_special_latex_chars(caption) + '\n' + note_and_glossary
     caption_note_and_glossary_html = escape_html(caption) + '<br>' + note_and_glossary_html
 
     latex = get_figure_and_caption_as_latex(fig_filename, caption_note_and_glossary, label)

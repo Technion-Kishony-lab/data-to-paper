@@ -85,7 +85,12 @@ class TexTableContentOutputFileRequirement(TextContentOutputFileRequirement):
                 # we add a hyperlink to the table caption
                 pickle_filename = convert_str_to_latex_label(pickle_filename, 'file')
                 caption = get_displayitem_caption(text)
-                new_caption = f'\\protect\\hyperlink{{{pickle_filename}}}{{{caption}}}'
+                if '\n' in caption:
+                    # we wrap only the first line with hyperlink
+                    first_line, rest = caption.split('\n', 1)
+                    new_caption = f'\\protect\\hyperlink{{{pickle_filename}}}{{{first_line}}}\n{rest}'
+                else:
+                    new_caption = f'\\protect\\hyperlink{{{pickle_filename}}}{{{caption}}}'
                 text = text.replace(caption, new_caption)
             result.text = text
         return result

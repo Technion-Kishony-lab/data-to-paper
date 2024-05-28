@@ -6,7 +6,7 @@ import pandas as pd
 from data_to_paper.latex.clean_latex import replace_special_latex_chars, process_latex_text_and_math
 from data_to_paper.research_types.hypothesis_testing.coding.original_utils.add_html_to_latex import add_html_to_latex
 from data_to_paper.research_types.hypothesis_testing.coding.original_utils.note_and_legend import \
-    convert_note_and_glossary_to_latex, convert_note_and_glossary_to_html
+    convert_note_and_glossary_to_latex_table_caption, convert_note_and_glossary_to_html
 from data_to_paper.run_gpt_code.overrides.dataframes.df_methods import STR_FLOAT_FORMAT
 from data_to_paper.run_gpt_code.overrides.dataframes.utils import to_latex_with_value_format, to_html_with_value_format
 from data_to_paper.run_gpt_code.overrides.pvalue import OnStr, OnStrPValue
@@ -126,7 +126,7 @@ def to_latex_with_note(df: pd.DataFrame, filename: Optional[str], caption: str =
     label = r'\label{' + label + '}\n' if label else ''
 
     index = kwargs.get('index', True)
-    note_and_glossary = convert_note_and_glossary_to_latex(df, note, glossary, index)
+    note_and_glossary = convert_note_and_glossary_to_latex_table_caption(df, note, glossary, index)
     note_and_glossary_html = convert_note_and_glossary_to_html(df, note, glossary, index)
 
     template = THREEPARTTABLE if not is_wide else THREEPARTTABLE_WIDE
