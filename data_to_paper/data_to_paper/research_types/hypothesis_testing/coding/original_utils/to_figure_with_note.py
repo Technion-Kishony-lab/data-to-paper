@@ -114,8 +114,8 @@ def df_plot_with_pvalue(df, x=None, y=None, kind='line', ax: Optional[plt.Axes] 
     p_value: A string representing the column name of the p-values.
     """
     rc_params = {'figure.figsize': [10, 6], 'font.size': 14, 'savefig.dpi': 300, 'savefig.bbox': 'tight',
-    'savefig.facecolor': 'white', 'axes.facecolor': 'white'}
-    with mpl.rc_context(rc=rc_params):
+                 'savefig.facecolor': 'white', 'axes.facecolor': 'white'}
+    with (mpl.rc_context(rc=rc_params)):
         xerr = _convert_err_and_ci_to_err(df, x, 'x', xerr, x_ci)
         yerr = _convert_err_and_ci_to_err(df, y, 'y', yerr, y_ci)
         legend = not isinstance(y, str)
@@ -132,6 +132,15 @@ def df_plot_with_pvalue(df, x=None, y=None, kind='line', ax: Optional[plt.Axes] 
             ax.set_xlabel(xlabel)
         if ylabel:
             ax.set_ylabel(ylabel)
+
+        # Add a horizontal grid line at y=0 for bar charts with negative and positive values
+        df_y_as_df = pd.DataFrame(df[y])
+        if len(df_y_as_df.select_dtypes(include=np.number).columns) == len(df_y_as_df.columns) and (
+                df_y_as_df < 0).any().sum() > 0 and (df_y_as_df > 0).any().sum() > 0:
+            if kind == 'bar':
+                ax.axhline(0, color='grey', linewidth=0.8, linestyle='--')
+            elif kind == 'barh':
+                ax.axvline(0, color='grey', linewidth=0.8, linestyle='--')
 
         if x_p_value is None and y_p_value is None:
             return
@@ -151,7 +160,8 @@ def df_plot_with_pvalue(df, x=None, y=None, kind='line', ax: Optional[plt.Axes] 
 
             for col_index, index_data in coords.items():
                 for row_index, (x, y) in index_data.items():
-                    # TODO: need to take care of bars with negative values, in which case the text should be below the bar
+                    # TODO: need to take care of bars with negative values, in which case the text should be below
+                    #  the bar
                     ax.text(x, y + yerr[1, row_index], PValueToStars(y_p_values[row_index]).convert_to_stars(),
                             ha='center', va='bottom')
 
