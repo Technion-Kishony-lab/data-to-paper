@@ -53,7 +53,6 @@ def raise_on_wrong_params_for_to_latex_with_note(df: pd.DataFrame, filename: Opt
                                                  note: str = None,
                                                  glossary: Dict[str, str] = None,
                                                  is_wide: bool = True,
-                                                 float_num_digits: int = 4,
                                                  pvalue_on_str: Optional[OnStr] = None,
                                                  comment: str = None,
                                                  append_html: bool = True,
@@ -87,9 +86,6 @@ def raise_on_wrong_params_for_to_latex_with_note(df: pd.DataFrame, filename: Opt
     if not isinstance(is_wide, bool):
         raise ValueError(f'Expected `is_wide` to be a bool, got {type(is_wide)}')
 
-    if not isinstance(float_num_digits, int):
-        raise ValueError(f'Expected `float_num_digits` to be an int, got {type(float_num_digits)}')
-
     if not isinstance(comment, str) and comment is not None:
         raise ValueError(f'Expected `comment` to be a string or None, got {type(comment)}')
 
@@ -101,7 +97,6 @@ def to_latex_with_note(df: pd.DataFrame, filename: Optional[str], caption: str =
                        note: str = None,
                        glossary: Dict[str, str] = None,
                        is_wide: bool = True,
-                       float_num_digits: int = 4,
                        pvalue_on_str: Optional[OnStr] = None,
                        comment: str = None,
                        append_html: bool = True,
@@ -112,7 +107,7 @@ def to_latex_with_note(df: pd.DataFrame, filename: Optional[str], caption: str =
     """
 
     raise_on_wrong_params_for_to_latex_with_note(df, filename, caption, label, note, glossary, is_wide,
-                                                 float_num_digits, pvalue_on_str, comment, append_html, **kwargs)
+                                                 pvalue_on_str, comment, append_html, **kwargs)
 
     with OnStrPValue(pvalue_on_str):
         regular_latex_table = df.to_latex(None, caption=None, label=None, multirow=False, multicolumn=False, **kwargs)
@@ -139,10 +134,6 @@ def to_latex_with_note(df: pd.DataFrame, filename: Optional[str], caption: str =
     html = HTML_TABLE_WITH_LABEL_AND_CAPTION.replace('{caption}', html_caption) \
         .replace('{table}', regular_html_table) \
         .replace('{note_and_glossary}', note_and_glossary_html)
-
-    if float_num_digits is not None:
-        latex = round_floats(latex, float_num_digits, source_precision=float_num_digits + 1, pad_with_spaces=False)
-        html = round_floats(html, float_num_digits, source_precision=float_num_digits + 1, pad_with_spaces=False)
 
     if comment:
         latex = comment + '\n' + latex

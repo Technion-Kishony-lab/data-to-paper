@@ -139,7 +139,7 @@ def df_plot_with_pvalue(df, x=None, y=None, kind='line', ax: Optional[plt.Axes] 
                         ha='center', va='bottom')
 
 
-def get_description_of_plot_creation(df, fig_filename, kwargs, float_num_digits=4) -> str:
+def get_description_of_plot_creation(df, fig_filename, kwargs) -> str:
     """
     Get a description of how the plot was created.
     This is what the LLM will get. This is essentially how the LLM "sees" the figure.
@@ -179,7 +179,6 @@ def to_figure_with_note(df: pd.DataFrame, filename: Optional[str],
                         label: str = None,
                         note: str = None,
                         glossary: Dict[str, str] = None,
-                        float_num_digits: int = 4,
                         pvalue_on_str: Optional[OnStr] = None,
                         comment: str = None,
                         append_html: bool = True,
@@ -214,7 +213,7 @@ def to_figure_with_note(df: pd.DataFrame, filename: Optional[str],
     html = get_figure_and_caption_as_html(fig_filename, caption_note_and_glossary_html)
 
     latex += convert_to_latex_comment(
-        get_description_of_plot_creation(df, fig_filename, kwargs, float_num_digits=float_num_digits))
+        get_description_of_plot_creation(df, fig_filename, kwargs))
 
     if comment:
         latex = comment + '\n' + latex
