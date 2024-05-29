@@ -264,6 +264,7 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         [c] Create and save a dataframe for the scientific table/figure (`df1`, `df2`, etc): 
         * Only include information that is relevant and suitable for inclusion in a scientific table.
         * Nominal values should be accompanied by a measure of uncertainty (CI or STD and p-value).
+        As applicable, CI should be provided as a column of tuple (lower, upper).
         * Exclude data not important to the research goal, or that are too technical.
         * Do not repeat the same data in multiple tables/figures.
         * The df should have labels for both the columns and the index (rows): 
@@ -441,6 +442,8 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
             # does it also report their measures of uncertainty (like p-value, CI, or STD, as applicable)?
             # For example:
             "Measures of uncertainty": ("CONCERN", "We should have included p-values for ..."),
+            Or:
+            "Measures of uncertainty": ("CONCERN", "CI should be provided as a column of (lower, upper) tuple"),
 
             # * MISSING DATA: 
             # Are we missing key variables, or important results, that we should calculate and report in the table?
