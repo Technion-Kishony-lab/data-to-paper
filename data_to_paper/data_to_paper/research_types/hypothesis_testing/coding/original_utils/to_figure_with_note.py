@@ -5,6 +5,8 @@ from matplotlib import pyplot as plt
 
 from data_to_paper.env import FOLDER_FOR_RUN
 from data_to_paper.graphics.df_plot_with_pvalue import df_plot_with_pvalue, get_description_of_plot_creation
+from data_to_paper.graphics.matplotlib_utils import rotate_xticklabels_if_not_numeric, \
+    raise_if_numeric_axes_do_not_have_labels
 from data_to_paper.latex.clean_latex import process_latex_text_and_math, replace_special_latex_chars
 from data_to_paper.research_types.hypothesis_testing.coding.original_utils.add_html_to_latex import add_html_to_latex, \
     convert_to_latex_comment
@@ -32,8 +34,8 @@ def to_figure_with_note(df: pd.DataFrame, filename: Optional[str],
     fig, ax = plt.subplots()
     with OnStrPValue(OnStr.AS_FLOAT):
         df_plot_with_pvalue(df, ax=ax, xlabel=xlabel, ylabel=ylabel, **kwargs)
-    ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha="right",
-                       rotation_mode="anchor", wrap=True)
+    rotate_xticklabels_if_not_numeric(ax)
+    raise_if_numeric_axes_do_not_have_labels(ax)
     plt.tight_layout()  # Adjusts subplot parameters to give the plot more room
     fig.savefig(fig_filename)
 

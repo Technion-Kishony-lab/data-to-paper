@@ -5,10 +5,21 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
-from data_to_paper.graphics.matplotlib_utils import get_xy_coordinates_of_df_plot
+from data_to_paper.graphics.matplotlib_utils import get_xy_coordinates_of_df_plot, \
+    replace_singleton_legend_with_axis_label, add_grid_line_at_zero_if_not_origin, rotate_xticklabels_if_not_numeric
 from data_to_paper.research_types.hypothesis_testing.coding.original_utils.df_to_labeled_latex import \
     df_to_numerically_labeled_latex
 from data_to_paper.run_gpt_code.overrides.pvalue import PValueToStars, OnStr
+
+
+RC_PARAMS = {
+    'figure.figsize': [10, 6],
+    'font.size': 14,
+    'savefig.dpi': 300,
+    'savefig.bbox': 'tight',
+    'savefig.facecolor': 'white',
+    'axes.facecolor': 'white'
+}
 
 
 def _convert_err_and_ci_to_err(df: pd.DataFrame, xy: Optional[str],
@@ -52,36 +63,19 @@ def df_plot_with_pvalue(df, x=None, y=None, kind='line', ax: Optional[plt.Axes] 
     Same as df.plot, but allows for plotting p-values as 'NS', '*', '**', or '***'.
     p_value: A string representing the column name of the p-values.
     """
-    rc_params = {'figure.figsize': [10, 6], 'font.size': 14, 'savefig.dpi': 300, 'savefig.bbox': 'tight',
-                 'savefig.facecolor': 'white', 'axes.facecolor': 'white'}
-    with (mpl.rc_context(rc=rc_params)):
+    with mpl.rc_context(rc=RC_PARAMS):
         xerr = _convert_err_and_ci_to_err(df, x, 'x', xerr, x_ci)
         yerr = _convert_err_and_ci_to_err(df, y, 'y', yerr, y_ci)
-        legend = not isinstance(y, str)
-        df.plot(x=x, y=y, kind=kind, ax=ax, xerr=xerr, yerr=yerr, legend=legend, **kwargs)
+        df.plot(x=x, y=y, kind=kind, ax=ax, xerr=xerr, yerr=yerr, **kwargs)
         coords = get_xy_coordinates_of_df_plot(df, x=x, y=y, kind=kind)
+        replace_singleton_legend_with_axis_label(ax, kind)
+        rotate_xticklabels_if_not_numeric(ax)
+        if kind == 'bar':
+            add_grid_line_at_zero_if_not_origin(ax, 'h')
+        if kind == 'barh':
+            add_grid_line_at_zero_if_not_origin(ax, 'v')
 
-        # Set labels automatically if not provided and if we are plotting only one column:
-        if xlabel is None and isinstance(x, str):
-            xlabel = x
-        if ylabel is None and isinstance(y, str):
-            ylabel = y
-
-        if xlabel:
-            ax.set_xlabel(xlabel)
-        if ylabel:
-            ax.set_ylabel(ylabel)
-
-        # Add a horizontal grid line at y=0 for bar charts with negative and positive values
-        if kind == 'bar' or kind == 'barh':
-            df_y_as_df = pd.DataFrame(df[y])
-            if len(df_y_as_df.select_dtypes(include=np.number).columns) == len(df_y_as_df.columns) and (
-                    df_y_as_df < 0).any().sum() > 0 and (df_y_as_df > 0).any().sum() > 0:
-                if kind == 'bar':
-                    ax.axhline(0, color='grey', linewidth=0.8, linestyle='--')
-                elif kind == 'barh':
-                    ax.axvline(0, color='grey', linewidth=0.8, linestyle='--')
-
+        # Add p-values
         if x_p_value is None and y_p_value is None:
             return
         elif x_p_value is not None and y_p_value is not None:
@@ -94,8 +88,7 @@ def df_plot_with_pvalue(df, x=None, y=None, kind='line', ax: Optional[plt.Axes] 
             # y-values
             y_p_values = df[y_p_value]
             if yerr is None:
-                raise ValueError('The yerr or y_ci argument must be provided when plotting y_p_value.')
-
+                raise ValueError('The `yerr` or `y_ci` argument must be provided when including `y_p_value`.')
             for col_index, index_data in coords.items():
                 for row_index, (x, y) in index_data.items():
                     # TODO: need to take care of bars with negative values, in which case the text should be below
