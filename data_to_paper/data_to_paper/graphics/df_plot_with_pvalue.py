@@ -57,7 +57,6 @@ def df_plot_with_pvalue(df, x=None, y=None, kind='line', ax: Optional[plt.Axes] 
                         xerr: Optional[str] = None, yerr: Optional[str] = None,
                         x_ci: Optional[str] = None, y_ci: Optional[str] = None,
                         x_p_value: Optional[str] = None, y_p_value: Optional[str] = None,
-                        xlabel: Optional[str] = None, ylabel: Optional[str] = None,
                         **kwargs):
     """
     Same as df.plot, but allows for plotting p-values as 'NS', '*', '**', or '***'.

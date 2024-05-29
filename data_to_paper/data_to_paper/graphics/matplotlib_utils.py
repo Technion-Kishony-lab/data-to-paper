@@ -74,10 +74,10 @@ def add_grid_line_at_zero_if_not_origin(ax: plt.Axes, h_or_v: str):
     h_or_v: 'h' for horizontal, 'v' for vertical, 'hv' for both.
     """
     if 'h' in h_or_v:
-        if ax.ylim[0] < 0 < ax.ylim[1]:
+        if ax.get_ylim()[0] < 0 < ax.get_ylim()[1]:
             ax.axhline(0, color='grey', linewidth=0.8, linestyle='--')
     if 'v' in h_or_v:
-        if ax.xlim[0] < 0 < ax.xlim[1]:
+        if ax.get_xlim()[0] < 0 < ax.get_xlim()[1]:
             ax.axvline(0, color='grey', linewidth=0.8, linestyle='--')
 
 
@@ -89,7 +89,7 @@ def rotate_xticklabels_if_not_numeric(ax: plt.Axes):
     if not x_numeric:
         ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha="right",
                            rotation_mode="anchor", wrap=True)
-        ax.tight_layout()  # Adjusts subplot parameters to give the plot more room
+        ax.figure.tight_layout()  # Adjusts subplot parameters to give the plot more room
 
 
 def raise_if_numeric_axes_do_not_have_labels(ax: plt.Axes):

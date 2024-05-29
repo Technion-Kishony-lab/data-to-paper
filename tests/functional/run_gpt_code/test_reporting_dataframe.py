@@ -5,6 +5,7 @@ import pytest
 from data_to_paper.run_gpt_code.overrides.dataframes.dataframe_operations import AddSeriesDataframeOperation
 from data_to_paper.run_gpt_code.overrides.dataframes.df_methods.raise_on_call import UnAllowedDataframeMethodCall
 from data_to_paper.run_gpt_code.overrides.dataframes.override_dataframe import TrackDataFrames
+from data_to_paper.run_gpt_code.overrides.dataframes.utils import to_latex_with_value_format
 from data_to_paper.utils.file_utils import run_in_directory
 
 
@@ -179,12 +180,12 @@ def test_raise_on_call():
     assert 'to_json' in str(exc.value)
 
 
-def test_df_to_latex():
+def test_df_to_latex_with_value_format():
     with TrackDataFrames():
-        df = pd.DataFrame({'a': [7.0, 1.2385]})
-        latex = df.to_latex()
+        df = pd.DataFrame({'a': [7.0, 1.2348]})
+        latex = to_latex_with_value_format(df)
         assert '7 ' in latex
-        assert '1.24 ' in latex
+        assert '1.235 ' in latex
 
 
 def test_df_raise_column_key_options():

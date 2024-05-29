@@ -25,10 +25,13 @@ def format_numerics_and_iterables(value: Any, numeric_formater: Callable = None,
     object_formatter = object_formatter or (lambda x: x)
     if isinstance(value, numbers.Number):
         return numeric_formater(value)
-    if isinstance(value, (tuple, set, list)):
-        return type(value)(format_numerics_and_iterables(v, numeric_formater) for v in value)
+    if isinstance(value, tuple):
+        return '(' + ', '.join(format_numerics_and_iterables(v, numeric_formater) for v in value) + ')'
+    elif isinstance(value, list):
+        return '[' + ', '.join(format_numerics_and_iterables(v, numeric_formater) for v in value) + ']'
     elif isinstance(value, dict):
-        return {k: format_numerics_and_iterables(v, numeric_formater) for k, v in value.items()}
+        return '{' + ', '.join(f'{k}: {format_numerics_and_iterables(v, numeric_formater)}'
+                               for k, v in value.items()) + '}'
     return object_formatter(value)
 
 

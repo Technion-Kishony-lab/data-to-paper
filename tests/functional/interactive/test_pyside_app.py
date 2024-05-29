@@ -1,6 +1,8 @@
 import sys
 import time
 
+import pytest
+
 from data_to_paper.env import CHOSEN_APP
 from data_to_paper.interactive.get_app import get_or_create_q_application_if_app_is_pyside
 from data_to_paper.interactive.pyside_app import PysideApp
@@ -133,7 +135,7 @@ def test_print_html():
 
 
 # TODO: Need to make this into a real test
-# @pytest.mark.skip(reason="Need some work to make it into a real test")
+@pytest.mark.skip(reason="Need some work to make it into a real test")
 def test_pyside_app():
     def func_to_run():
         # Request text input from the user with an initial text

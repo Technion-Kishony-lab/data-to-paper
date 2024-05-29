@@ -115,7 +115,8 @@ def test_plot_with_all_options_kind_bar(test_data, tmpdir):
         to_figure_with_note(
             df, filename=filename, caption='Full options',
             label='fig:full_options', note='Note here', glossary={'x': 'X values', 'y': 'Y values'},
-            y=['y', 'y_2'], yerr='y_err', y_p_value='y_p_value', kind='bar'
+            y=['y', 'y_2'], yerr='y_err', y_p_value='y_p_value', kind='bar',
+            xlabel='x',
         )
         assert os.path.exists(filename)
 
