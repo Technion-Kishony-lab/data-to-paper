@@ -59,6 +59,8 @@ def dynamic_import(full_path):
         return importlib.import_module(full_path)
     except ImportError:
         # If direct import fails, it might be a class or function in a module
+        if '.' not in full_path:
+            raise
         module_path, class_or_func_name = full_path.rsplit('.', 1)
         module = importlib.import_module(module_path)
         return getattr(module, class_or_func_name)
@@ -74,7 +76,6 @@ def _import_obj(obj_import_str: Optional[str, Any]):
 
 @dataclass
 class OverrideImportedObjContext(RegisteredRunContext):
-    TEMPORARILY_DISABLE_IS_INTERNAL_ONLY = True
     obj_import_str: Optional[str, Any] = None
 
     @property
@@ -183,9 +184,11 @@ class AttrReplacer(OverrideImportedObjContext):
     def _reversible_enter(self):
         self._original = getattr(self.obj, self.attr)
         setattr(self.obj, self.attr, self._get_wrapped_wrapper())
+        super()._reversible_enter()
 
     def _reversible_exit(self):
         setattr(self.obj, self.attr, self._original)
+        super()._reversible_exit()
 
 
 @dataclass
@@ -209,14 +212,15 @@ class PreventAssignmentToAttrs(OverrideImportedObjContext):
     def _reversible_enter(self):
         self._original = self.obj.__setattr__
         self.obj.__setattr__ = self._get_wrapper()
+        super()._reversible_enter()
 
     def _reversible_exit(self):
         self.obj.__setattr__ = self._original
+        super()._reversible_exit()
 
 
 @dataclass
 class PreventCalling(RegisteredRunContext):
-    TEMPORARILY_DISABLE_IS_INTERNAL_ONLY = True
     modules_and_functions: Iterable[Tuple[Any, str, bool]] = None
     _original_functions: Optional[Dict[str, Callable]] = None
 

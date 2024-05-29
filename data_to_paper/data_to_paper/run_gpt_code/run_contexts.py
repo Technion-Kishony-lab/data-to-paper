@@ -6,7 +6,9 @@ import warnings
 
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from typing import Any, Iterable, Callable, List, Type, Dict, Optional
+from typing import Any, Iterable, Callable, List, Type, Dict, Optional, Union, Tuple
+
+from pathlib import Path
 
 from data_to_paper.utils.file_utils import is_name_matches_list_of_wildcard_names
 from data_to_paper.utils.types import ListBasedSet
@@ -28,18 +30,6 @@ class ProvideData(SingletonRegisteredRunContext):
         self = cls.get_runtime_instance()
         return self.data[key]
 
-    @classmethod
-    def set_item(cls, key: str, value: Any):
-        self = cls.get_runtime_instance()
-        self.data[key] = value
-
-    @classmethod
-    def get_or_create_item(cls, key: str, value: Any):
-        self = cls.get_runtime_instance()
-        if key not in self.data:
-            self.data[key] = value
-        return self.data[key]
-
 
 @dataclass
 class IssueCollector(SingletonRegisteredRunContext):
@@ -52,11 +42,10 @@ class PreventFileOpen(SingletonRegisteredRunContext):
     SYSTEM_FOLDERS = \
         [r'C:\Windows', r'C:\Program Files', r'C:\Program Files (x86)'] if os.name == 'nt' \
         else ['/usr', '/etc', '/bin', '/sbin', '/sys', '/dev', '/var', '/opt', '/proc']
-    TEMPORARILY_DISABLE_IS_INTERNAL_ONLY = False
     allowed_read_files: Iterable[str] = None  # list of wildcard names,  None means allow all, [] means allow none
     allowed_write_files: Iterable[str] = None  # list of wildcard names,  None means allow all, [] means allow none
 
-    original_open: Callable = None
+    original_open: Optional[Callable] = None
 
     def _reversible_enter(self):
         self.original_open = builtins.open
@@ -65,6 +54,7 @@ class PreventFileOpen(SingletonRegisteredRunContext):
 
     def _reversible_exit(self):
         builtins.open = self.original_open
+        self.original_open = None
         return super()._reversible_exit()
 
     def is_allowed_read_file(self, file_name: str) -> bool:
@@ -148,30 +138,34 @@ class TrackCreatedFiles(SingletonRegisteredRunContext):
 
 @dataclass
 class ModifyImport(SingletonRegisteredRunContext):
-    modified_imports: Dict[str, Optional[str]] = field(default_factory=dict)
-    TEMPORARILY_DISABLE_IS_INTERNAL_ONLY = False
+    modified_imports: Iterable[Tuple[str, Optional[str]]] = field(default_factory=list)
 
     _currently_importing: list = field(default_factory=list)
-    original_import: Callable = None
+    original_import: Optional[Callable] = None
+
+    def __enter__(self):
+        self._currently_importing = []
+        return super().__enter__()
 
     def _reversible_enter(self):
         self.original_import = builtins.__import__
         builtins.__import__ = self.custom_import
-        return super()._reversible_enter()
+        super()._reversible_enter()
 
     def _reversible_exit(self):
         builtins.__import__ = self.original_import
         self.original_import = None
-        return super()._reversible_exit()
+        super()._reversible_exit()
 
     def is_currently_importing(self) -> bool:
         return len(self._currently_importing) > 0
 
     def custom_import(self, name, globals=None, locals=None, fromlist=(), level=0):
         if self._is_called_from_user_script():
-            matched_module = next((module for module in self.modified_imports if name.startswith(module)), None)
+            matched_module, new_name = \
+                next(((module, new_name) for module, new_name in self.modified_imports
+                      if name.startswith(module)), (None, None))
             if matched_module:
-                new_name = self.modified_imports[matched_module]
                 if new_name is None:
                     raise CodeImportForbiddenModule(module=name)
                 name = new_name + name[len(matched_module):]
@@ -200,17 +194,17 @@ class WarningHandler(SingletonRegisteredRunContext):
     categories_to_issue: Optional[Iterable[Type[Warning]]] = ()
     categories_to_raise: Optional[Iterable[Type[Warning]]] = ()
     categories_to_ignore: Optional[Iterable[Type[Warning]]] = ()
-    TEMPORARILY_DISABLE_IS_INTERNAL_ONLY = False
     original_showwarning: Callable = None
 
     def _reversible_enter(self):
         self.original_showwarning = warnings.showwarning
         warnings.showwarning = self._warning_handler
-        return super()._reversible_enter()
+        super()._reversible_enter()
 
     def _reversible_exit(self):
         warnings.showwarning = self.original_showwarning
-        return super()._reversible_exit()
+        self.original_showwarning = None
+        super()._reversible_exit()
 
     @staticmethod
     def _is_matched_cls(category, classes):
@@ -231,3 +225,24 @@ class WarningHandler(SingletonRegisteredRunContext):
             ))
         else:
             return self.original_showwarning(message, category, filename, lineno, file, line)
+
+
+@dataclass
+class RunInDirectory(SingletonRegisteredRunContext):
+    """
+    Run code in a specific folder.
+    If folder is None, run in the current folder.
+    """
+    folder: Union[Path, str] = None
+    original_cwd: Optional[str] = None
+
+    def __enter__(self):
+        self.original_cwd = os.getcwd()
+        if self.folder is not None:
+            os.chdir(self.folder)
+        return super().__enter__()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        os.chdir(self.original_cwd)
+        self.original_cwd = None
+        return super().__exit__(exc_type, exc_val, exc_tb)

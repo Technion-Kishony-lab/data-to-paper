@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from contextlib import contextmanager, ExitStack
 from dataclasses import dataclass
-from typing import List, Type, TypeVar, Optional, Iterable
+from typing import List, Type, TypeVar, Optional, Iterable, Union, Dict
 
 from .user_script_name import is_called_from_user_script, is_called_from_data_to_paper
 from .run_issues import RunIssues
@@ -16,47 +16,37 @@ class DisableableContext:
     """
     Context manager that can be temporarily disabled.
     """
-    TEMPORARILY_DISABLE_IS_INTERNAL_ONLY = False
-    # Whether temporarily_disable() is only for the internal state of the context manager, or completely
-    # reversing the __enter__ and __exit__ methods.
-
     _is_enabled: Optional[bool] = None
 
     def _reversible_enter(self):
-        pass
+        self._is_enabled = True
 
     def _reversible_exit(self):
-        pass
+        self._is_enabled = False
 
     def __enter__(self):
         self._reversible_enter()
-        self._is_enabled = True
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self._is_enabled = None
         self._reversible_exit()
+        self._is_enabled = None
         return False
 
     @contextmanager
-    def temporarily_disable(self, internal_only: bool = None):
+    def temporarily_disable(self):
 
         assert self._is_enabled is not None, 'The context is not initialized yet.'
 
-        internal_only = internal_only if internal_only is not None else self.TEMPORARILY_DISABLE_IS_INTERNAL_ONLY
         was_enabled = self._is_enabled
-
+        assert was_enabled is not None, 'The context is not initialized yet.'
         if was_enabled:
-            if not internal_only:
-                self._reversible_exit()
-            self._is_enabled = False
+            self._reversible_exit()
         try:
             yield
         finally:
             if was_enabled:
-                if not internal_only:
-                    self._reversible_enter()
-                self._is_enabled = True
+                self._reversible_enter()
 
 
 @dataclass
@@ -108,7 +98,7 @@ class RegisteredRunContext(RunContext):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self.should_register:
-            del self.PROCESS_AND_NAME_TO_OBJECT[self._process_and_identifier]
+            self.PROCESS_AND_NAME_TO_OBJECT.pop(self._process_and_identifier)
         return super().__exit__(exc_type, exc_val, exc_tb)
 
     @classmethod
@@ -140,6 +130,11 @@ class SingletonRegisteredRunContext(RegisteredRunContext):
     def _identifier(self):
         return self.__class__.__name__
 
+    def __enter__(self):
+        if self._identifier in self.PROCESS_AND_NAME_TO_OBJECT:
+            raise RuntimeError(f'SingletonRegisteredRunContext {self._identifier} already exists.')
+        return super().__enter__()
+
     @classmethod
     def get_runtime_instance(cls: Type[T]) -> T:
         process_and_identifier = os.getpid(), cls.__name__
@@ -153,15 +148,24 @@ class MultiRunContext(RunContext):
     """
     Pack together multiple run contexts.
     """
-    contexts: Iterable[RunContext] = ()
+    contexts: Union[Dict[str, RunContext], Iterable[RunContext]] = ()
+    exit_stack: ExitStack = None
+
+    def get_contexts(self) -> List[RunContext]:
+        if isinstance(self.contexts, dict):
+            return list(self.contexts.values())
+        return list(self.contexts)
 
     def __enter__(self):
-        for context in self.contexts:
-            context.__enter__()
+        self.exit_stack = ExitStack()
+        for context in self.get_contexts():
+            self.exit_stack.enter_context(context)
         return super().__enter__()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        for context in self.contexts:
-            context.__exit__(exc_type, exc_val, exc_tb)
+        for context in self.get_contexts():
             self.issues.extend(context.issues)
-        return super().__exit__(exc_type, exc_val, exc_tb)
+        super_result = super().__exit__(exc_type, exc_val, exc_tb)
+        stack_result = self.exit_stack.__exit__(exc_type, exc_val, exc_tb)
+        return super_result or stack_result
+

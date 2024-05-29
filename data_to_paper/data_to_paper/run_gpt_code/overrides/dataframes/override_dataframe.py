@@ -144,8 +144,8 @@ class TrackDataFrames(RunContext):
         Override the float format.
         """
         if self.str_float_format:
-            pd.set_option(f'display.float_format', self.str_float_format)
             self._original_float_format = pd.get_option('display.float_format')
+            pd.set_option(f'display.float_format', self.str_float_format)
         else:
             self._original_float_format = None
 

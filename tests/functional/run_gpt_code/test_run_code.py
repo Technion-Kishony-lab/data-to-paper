@@ -144,7 +144,7 @@ def test_run_code_forbidden_import(forbidden_import, module_name):
         {}
         """).format(forbidden_import)
     if 'matplotlib' in module_name:
-        run_code = RunCode(modified_imports={'matplotlib': None})
+        run_code = RunCode(modified_imports=(('matplotlib', None),))
     else:
         run_code = RunCode()
     error = run_code.run(code)[4]

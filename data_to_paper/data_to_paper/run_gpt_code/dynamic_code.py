@@ -15,10 +15,10 @@ from data_to_paper import llm_created_scripts
 from data_to_paper.utils.file_utils import run_in_directory
 from data_to_paper.utils.types import ListBasedSet
 
-from .base_run_contexts import RunContext
+from .base_run_contexts import RunContext, MultiRunContext
 from .attr_replacers import PreventCalling
 from .run_contexts import PreventFileOpen, ModifyImport, WarningHandler, IssueCollector, \
-    TrackCreatedFiles
+    TrackCreatedFiles, RunInDirectory
 
 from .exceptions import FailedRunningCode, BaseRunContextException, CodeTimeoutException
 from .timeout_context import timeout_context
@@ -51,32 +51,8 @@ def is_serializable(x):
     try:
         pickle.dumps(x)
         return True
-    except TypeError:
+    except Exception:
         return False
-
-
-# DEFAULT_WARNINGS_TO_ISSUE = (RuntimeWarning, SyntaxWarning, ConvergenceWarning)
-DEFAULT_WARNINGS_TO_IGNORE = (DeprecationWarning, ResourceWarning, PendingDeprecationWarning, FutureWarning)
-DEFAULT_WARNINGS_TO_RAISE = ()
-DEFAULT_WARNINGS_TO_ISSUE = ...  # `...` for all that are not ignored or raised
-
-DEFAULT_FORBIDDEN_MODULES_AND_FUNCTIONS = (
-        # Module, function, create RunIssue (True) or raise exception (False)
-        (builtins, 'print', True),
-        (builtins, 'input', False),
-        (builtins, 'eval', False),
-        (builtins, 'exit', False),
-        (builtins, 'quit', False),
-        ('matplotlib.pyplot', 'show', True),  # 'matplotlib.pyplot' is a string because it is not always installed
-    )
-
-# Set import replacing. `None` means import is forbidden:
-MODIFIED_IMPORTS: Dict[str, Optional[str]] = {
-    'os': None,
-    'sys': None,
-    'subprocess': None,
-    'shutil': None,
-}
 
 
 @dataclass
@@ -85,12 +61,27 @@ class RunCode:
     Run the provided code and report exceptions or specific warnings.
     """
     timeout_sec: Optional[int] = None
-    warnings_to_issue: Optional[Iterable[Type[Warning]]] = None
-    warnings_to_ignore: Optional[Iterable[Type[Warning]]] = None
-    warnings_to_raise: Optional[Iterable[Type[Warning]]] = None
+    warnings_to_ignore: Optional[Iterable[Type[Warning]]] = \
+        (DeprecationWarning, ResourceWarning, PendingDeprecationWarning, FutureWarning)
+    warnings_to_raise: Optional[Iterable[Type[Warning]]] = ()
+    warnings_to_issue: Optional[Iterable[Type[Warning]]] = ...  # `...` for all that are not ignored or raised
 
-    forbidden_modules_and_functions: Iterable[Tuple[Any, str, bool]] = None
-    modified_imports: Dict[str, Optional[str]] = None
+    forbidden_modules_and_functions: Iterable[Tuple[Any, str, bool]] = \
+        (
+            # Module, function, create RunIssue (True) or raise exception (False)
+            ('builtins', 'print', True),
+            ('builtins', 'input', False),
+            ('builtins', 'eval', False),
+            ('builtins', 'exit', False),
+            ('builtins', 'quit', False),
+            ('matplotlib.pyplot', 'show', True),  # 'matplotlib.pyplot' is a string because it is not always installed
+        )
+    modified_imports: Tuple[Tuple[str, Optional[str]]] = (
+            ('os', None),
+            ('sys', None),
+            ('subprocess', None),
+            ('shutil', None),
+    )
 
     # File lists can include wildcards, e.g. '*.py' or '**/*.py'. () means no files. None means all files.
 
@@ -103,27 +94,19 @@ class RunCode:
 
     run_folder: Union[Path, str] = field(default_factory=Path)
 
-    additional_contexts: Optional[Dict[str, Any]] = None
+    additional_contexts: Optional[Dict[str, Any]] = field(default_factory=dict)
+
+    _multi_context: MultiRunContext = None
 
     _module: ModuleType = None
 
-    def __post_init__(self):
-        if self.warnings_to_issue is None:
-            self.warnings_to_issue = DEFAULT_WARNINGS_TO_ISSUE
-        if self.warnings_to_ignore is None:
-            self.warnings_to_ignore = DEFAULT_WARNINGS_TO_IGNORE
-        if self.warnings_to_raise is None:
-            self.warnings_to_raise = DEFAULT_WARNINGS_TO_RAISE
-        if self.forbidden_modules_and_functions is None:
-            self.forbidden_modules_and_functions = DEFAULT_FORBIDDEN_MODULES_AND_FUNCTIONS
-        if self.modified_imports is None:
-            self.modified_imports = MODIFIED_IMPORTS
-
-    def _create_and_get_all_contexts(self) -> Dict[str, Any]:
+    def _get_or_create_multi_context(self) -> MultiRunContext:
+        if self._multi_context is not None:
+            return self._multi_context
 
         # Mandatory contexts:
         contexts = {
-            'run_in_directory': run_in_directory(self.run_folder),
+            'run_in_directory': RunInDirectory(folder=self.run_folder),
             'IssueCollector': IssueCollector(),
             'TrackCreatedFiles': TrackCreatedFiles(output_file_requirements=self.output_file_requirements),
         }
@@ -152,10 +135,12 @@ class RunCode:
         # name all contexts
         for name, context in contexts.items():
             context.name = name
-        return contexts
+
+        self._multi_context = MultiRunContext(contexts=contexts)
+        return self._multi_context
 
     def run(self, code: Optional[str] = None, module_filepath: Optional[str] = None, save_as: Optional[str] = None,
-            ) -> Tuple[Any, ListBasedSet[str], RunIssues, Dict[str, RunContext], Optional[FailedRunningCode]]:
+            ) -> Tuple[Any, ListBasedSet[str], RunIssues, MultiRunContext, Optional[FailedRunningCode]]:
         """
         Run the provided code and report exceptions or specific warnings.
 
@@ -175,13 +160,11 @@ class RunCode:
             self._module = generate_empty_code_module_object()
             save_code_to_module_file(code)
 
-        contexts = self._create_and_get_all_contexts()
+        multi_context = self._get_or_create_multi_context()
         exception = None
         result = None
         try:
-            with ExitStack() as stack:
-                for context in contexts.values():
-                    stack.enter_context(context)
+            with multi_context:
                 try:
                     if module_filepath is None:
                         module = importlib.reload(self._module)
@@ -198,7 +181,7 @@ class RunCode:
         except Exception:
             raise
         finally:
-            created_files = contexts['TrackCreatedFiles'].created_files
+            created_files = multi_context.contexts['TrackCreatedFiles'].created_files
             if exception:
                 with run_in_directory(self.run_folder):
                     # remove all the files that were created
@@ -210,15 +193,11 @@ class RunCode:
                 os.rename(module_default_filepath, os.path.join(module_dir, save_as) + ".py")
             save_code_to_module_file()  # leave the module empty
 
-        # Collect issues from all contexts
-        issues = RunIssues()
-        for context in contexts.values():
-            if hasattr(context, 'issues'):
-                issues.extend(context.issues)
-        contexts = {name: context for name, context in contexts.items()
-                    if isinstance(context, RunContext) and is_serializable(context)}
+        issues = multi_context.issues  # Issues from all sub contexts
+        for context in multi_context.get_contexts():
+            assert is_serializable(context), f"Context {context} is not serializable."
 
-        return result, created_files, issues, contexts, exception
+        return result, created_files, issues, multi_context.contexts, exception
 
     def _run_function_in_module(self, module: ModuleType):
         pass

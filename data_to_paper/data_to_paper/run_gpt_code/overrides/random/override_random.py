@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Any
 
 from data_to_paper.run_gpt_code.base_run_contexts import RegisteredRunContext
 
@@ -12,8 +12,10 @@ class SetRandomSeeds(RegisteredRunContext):
     - random (random.seed)
     """
     random_seed: Optional[int] = 0  # None to disable
+    _np_seed: Optional[Any] = None
+    _random_seed: Optional[Any] = None
 
-    def _reversible_enter(self):
+    def __enter__(self):
         if self.random_seed is not None:
             import numpy as np
             import random
@@ -21,12 +23,14 @@ class SetRandomSeeds(RegisteredRunContext):
             self._random_seed = random.getstate()
             np.random.seed(self.random_seed)
             random.seed(self.random_seed)
-        return super()._reversible_enter()
+        return super().__enter__()
 
-    def _reversible_exit(self):
+    def __exit__(self, exc_type, exc_val, exc_tb):
         if self.random_seed is not None:
             import numpy as np
             import random
             np.random.set_state(self._np_seed)
             random.setstate(self._random_seed)
-        return super()._reversible_exit()
+            self._np_seed = None
+            self._random_seed = None
+        return super().__exit__(exc_type, exc_val, exc_tb)
