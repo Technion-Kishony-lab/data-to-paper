@@ -9,7 +9,7 @@ from data_to_paper.run_gpt_code.overrides.pvalue import is_p_value, PValue
 from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue, RunIssues
 from data_to_paper.utils import dedent_triple_quote_str
 
-MAX_COLUMNS = 10
+MAX_COLUMNS = None  # No limit, a long table can be used for a figure
 MAX_ROWS = 20
 
 
@@ -248,7 +248,7 @@ def check_df_size(df: pd.DataFrame, filename: str) -> RunIssues:
     trimming_note = "Note that simply trimming the data is not always a good solution. " \
                     "You might instead want to think of a different representation/organization of the table."
 
-    if df.shape[1] > MAX_COLUMNS:
+    if MAX_COLUMNS is not None and df.shape[1] > MAX_COLUMNS:
         issues.append(RunIssue(
             category='Checking df: too many columns',
             code_problem=CodeProblem.OutputFileContentLevelB,
@@ -258,7 +258,7 @@ def check_df_size(df: pd.DataFrame, filename: str) -> RunIssues:
                          f"have just 2-5 columns and definitely not more than {MAX_COLUMNS}.\n" + trimming_note
         ))
 
-    if df.shape[0] > MAX_ROWS:
+    if MAX_ROWS is not None and df.shape[0] > MAX_ROWS:
         issues.append(RunIssue(
             category='Checking df: too many rows',
             code_problem=CodeProblem.OutputFileContentLevelB,

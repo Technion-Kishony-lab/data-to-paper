@@ -165,13 +165,26 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
 
     mission_prompt: str = dedent_triple_quote_str("""
         Write a complete Python code to analyze the data and create dataframes as basis for scientific Tables \t
-        for our paper.
+        and Figures for our paper.
+        
+        Created df for tables will be later converted to LaTeX tables using `df.to_latex()`.
+        Created df for figures will be later converted to plots using a `my_plot(df, x=, y=, ...)` function, \t
+        which is similar to `df.plot()` but also allows specifying:
+        - Confidence intervals (CI) for error bars. Like:
+        `my_plot(df, x=, y='height', y_ci='height_ci', ...)`
+        where 'height_ci' is a column in the df with the CI values as a tuple (lower, upper).
+        - P-values for plotting significance as stars. Like:
+        `my_plot(df, x=, y='height', y_p_value='height_pval', ...)`
+        where 'height_pval' is a column in the df with the p-values.
+        
+        Important: We are not making the plots in this code, only creating dataframes that will be used later to \t
+        create the plots and tables. 
 
         The code must have the following sections (with these exact capitalized headers):
 
         `# IMPORT`
         `import pickle`
-        You can also import here any other packages you need from: 
+        You can also import here any other packages including: 
         {supported_packages}
 
 
@@ -196,16 +209,23 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         `# DESCRIPTIVE STATISTICS`
         * In light of our study goals and the hypothesis testing plan (see above "{research_goal}" and \t
         "{hypothesis_testing_plan}"), decide whether and which descriptive statistics are needed to be included in \t
-        the research paper and create a relevant table.
+        the research paper and create dfs for relevant tables and figures.
 
         For example:
-        `## DF 0: "Descriptive statistics of height and age stratified by sex"`
-        Write here the code to create a descriptive statistics dataframe `df0` and save it using:
+        `## DF 0: "Table: Descriptive statistics of height and age stratified by sex"`
+        `# Designed for creating a scientific table using: df0.to_latex()`
+        Write here the code to create a descriptive statistics dataframe `df0`.
+        Do not convert to latex yet. Just save it using:
         `df0.to_pickle('df_0.pkl')`
-
         If no descriptive statistics are needed, write:
         `# No descriptive statistics table is needed.`
-
+        
+        And/or, for a figure:
+        `## DF 1: "Figure: Distribution of height"`
+        `# Designed for creating a scientific figure using: my_plot(df1, kind='hist', x='height')`
+        Write here the code to create `df1`. Like, `df1 = data_after_cleaning['height']`.
+        Do not create the plot yet. Just save the dataframe using:
+        `df1.to_pickle('df_1.pkl')`
 
         `# PREPROCESSING` 
         Perform any preprocessing steps needed to prepare the data for the analysis.
@@ -218,15 +238,16 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
 
 
         `# ANALYSIS`
-        Considering our "{research_goal}" and "{hypothesis_testing_plan}", decide on 1-3 tables \t
-        (in addition to the above descriptive statistics, if any) we should create for our scientific paper. \t
-        Typically, we should have at least one table for each hypothesis test.
+        Considering our "{research_goal}" and "{hypothesis_testing_plan}", decide on 1-3 additional displayitems \t
+        (tables/figures) we should create for our scientific paper. \t
+        Typically, we should have at least one table or figure for each hypothesis test.
 
-        For each such scientific table:
-        [a] Write a comment with a suggested table's caption. 
-        Choose a caption that clearly describes the table's content and its purpose.
+        For each such displayitem, follow these 3 steps:
+        [a] Write a comment with a suggested table/figure caption. 
         For example:
-        `## DF 1: "Test of association between age and risk of death, accounting for sex and race"`
+        `## DF 1: "Table: Test of association between age and risk of death, accounting for sex and race"`
+        Or
+        `## DF 1: "Figure: Adjusted and unadjusted odds ratios for ..."  
         Avoid generic captions such as `## DF 1: "Results of analysis"`.
 
         [b] Perform analysis
@@ -234,17 +255,18 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         - Account for relevant confounding variables, as applicable.
         - Note that you may need to perform more than one test for each hypothesis.
         - Try using inherent functionality and syntax provided in functions from the available \t
-        Python packages (above). Avoid, as possible, manually implementing generically available functionality.
+        Python packages (above). 
+        - Avoid, as possible, manually implementing generically available functionality.
         For example, to include interactions in regression analysis (if applicable), use the `formula = "y ~ a * b"` \t
         syntax in statsmodels formulas, rather than trying to manually multiply the variables.
         {mediation_note_if_applicable}\t
 
-        [c] Create and save a dataframe representing the scientific table (`df1`, `df2`, etc): 
+        [c] Create and save a dataframe for the scientific table/figure (`df1`, `df2`, etc): 
         * Only include information that is relevant and suitable for inclusion in a scientific table.
         * Nominal values should be accompanied by a measure of uncertainty (CI or STD and p-value).
         * Exclude data not important to the research goal, or that are too technical.
-        * Do not repeat the same data in multiple tables.
-        * The table should have labels for both the columns and the index (rows): 
+        * Do not repeat the same data in multiple tables/figures.
+        * The df should have labels for both the columns and the index (rows): 
             - As possible, do not invent new names; just keep the original variable names from the dataset.
             - As applicable, also keep any attr names from statistical test results.
 
@@ -252,12 +274,19 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         Overall, the section should have the following structure:
 
         `# ANALYSIS`
-        `## DF 1: <your chosen table name here>`
+        `## DF 1: "Table: <your chosen table name here>"`
+        `# Intended use: df1.to_latex()`
         Write here the code to analyze the data and create a dataframe df1 for table 1
         `df1.to_pickle('df_1.pkl')`
 
-        `## DF 2: <your chosen table name here>`
-        etc, up to 3 tables.
+        `## DF 2: "Figure: <your chosen figure name here>"`
+        `# Intended use: my_plot(df2, kind='bar', y=['height', 'weight', ...], y_ci=['height_ci', 'weight_ci', ...],
+        y_p_value=['height_pval', 'weight_pval', ...])`
+        Write here the code to analyze the data and create a dataframe df2 for figure 2.
+        Do not create the plot yet. Just save the dataframe using:
+        `df2.to_pickle('df_2.pkl')`
+        
+        etc, up to 3-4 display items.
 
 
         # SAVE ADDITIONAL RESULTS
@@ -278,7 +307,7 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
 
         Avoid the following:
         Do not provide a sketch or pseudocode; write a complete runnable code including all '# HEADERS' sections.
-        Do not create any graphics, figures or any plots.
+        Do not create the actual plots or latex tables; only prepare and save the suitable dataframes.
         Do not send any presumed output examples.
         Avoid convoluted or indirect methods of data extraction and manipulation; \t
         For clarity, use direct attribute access for clarity and simplicity.
