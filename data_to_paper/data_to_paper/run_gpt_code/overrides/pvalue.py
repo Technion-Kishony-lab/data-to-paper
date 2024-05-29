@@ -1,7 +1,7 @@
 import numbers
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Iterable, Optional
+from typing import List, Iterable, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -228,3 +228,33 @@ class OnStrPValue:
     def __exit__(self, exc_type, exc_val, exc_tb):
         PValue.ON_STR = self.prev_on_str
         return False
+
+
+class PValueToStars:
+    default_levels = (0.01, 0.001, 0.0001)
+
+    def __init__(self, p_value: Optional[float] = None, levels: Tuple[float] = None):
+        self.p_value = p_value
+        self.levels = levels or self.default_levels
+
+    def __str__(self):
+        return self.convert_to_stars()
+
+    def convert_to_stars(self):
+        p_value = self.p_value
+        levels = self.levels
+        if p_value < levels[2]:
+            return '***'
+        if p_value < levels[1]:
+            return '**'
+        if p_value < levels[0]:
+            return '*'
+        return 'NS'
+
+    def get_conversion_legend_text(self) -> str:
+        #  NS p >= 0.01, * p < 0.01, ** p < 0.001, *** p < 0.0001
+        levels = self.levels
+        legend = [f'NS p >= {levels[0]}']
+        for i, level in enumerate(levels):
+            legend.append(f'{(i + 1) * "*"} p < {level}')
+        return ', '.join(legend)
