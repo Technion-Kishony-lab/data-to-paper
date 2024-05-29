@@ -85,7 +85,7 @@ class PreventFileOpen(SingletonRegisteredRunContext):
                 raise CodeWriteForbiddenFile(file=file_name)
         else:
             if not self.is_allowed_read_file(file_name) \
-                    and not PreventImport.get_runtime_instance(). \
+                    and not ModifyImport.get_runtime_instance(). \
                     is_currently_importing():  # allow read files when importing packages
                 raise CodeReadForbiddenFile(file=file_name)
         return self.original_open(*args, **kwargs)
@@ -147,8 +147,8 @@ class TrackCreatedFiles(SingletonRegisteredRunContext):
 
 
 @dataclass
-class PreventImport(SingletonRegisteredRunContext):
-    modules: Iterable[str] = None
+class ModifyImport(SingletonRegisteredRunContext):
+    modified_imports: Dict[str, Optional[str]] = field(default_factory=dict)
     TEMPORARILY_DISABLE_IS_INTERNAL_ONLY = False
 
     _currently_importing: list = field(default_factory=list)
@@ -168,9 +168,13 @@ class PreventImport(SingletonRegisteredRunContext):
         return len(self._currently_importing) > 0
 
     def custom_import(self, name, globals=None, locals=None, fromlist=(), level=0):
-        if self._is_called_from_user_script() and \
-                (any(name.startswith(module + '.') for module in self.modules) or name in self.modules):
-            raise CodeImportForbiddenModule(module=name)
+        if self._is_called_from_user_script():
+            matched_module = next((module for module in self.modified_imports if name.startswith(module)), None)
+            if matched_module:
+                new_name = self.modified_imports[matched_module]
+                if new_name is None:
+                    raise CodeImportForbiddenModule(module=name)
+                name = new_name + name[len(matched_module):]
         with self.within_import(name):
             try:
                 return self.original_import(name, globals, locals, fromlist, level)

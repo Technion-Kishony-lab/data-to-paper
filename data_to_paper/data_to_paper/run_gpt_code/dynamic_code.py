@@ -17,7 +17,7 @@ from data_to_paper.utils.types import ListBasedSet
 
 from .base_run_contexts import RunContext
 from .attr_replacers import PreventCalling
-from .run_contexts import PreventFileOpen, PreventImport, WarningHandler, IssueCollector, \
+from .run_contexts import PreventFileOpen, ModifyImport, WarningHandler, IssueCollector, \
     TrackCreatedFiles
 
 from .exceptions import FailedRunningCode, BaseRunContextException, CodeTimeoutException
@@ -71,8 +71,13 @@ DEFAULT_FORBIDDEN_MODULES_AND_FUNCTIONS = (
         ('matplotlib.pyplot', 'show', True),  # 'matplotlib.pyplot' is a string because it is not always installed
     )
 
-
-DEFAULT_FORBIDDEN_IMPORTS = ('os', 'sys', 'subprocess', 'shutil')
+# Set import replacing. `None` means import is forbidden:
+MODIFIED_IMPORTS: Dict[str, Optional[str]] = {
+    'os': None,
+    'sys': None,
+    'subprocess': None,
+    'shutil': None,
+}
 
 
 @dataclass
@@ -86,7 +91,7 @@ class RunCode:
     warnings_to_raise: Optional[Iterable[Type[Warning]]] = undefined
 
     forbidden_modules_and_functions: Iterable[Tuple[Any, str, bool]] = undefined
-    forbidden_imports: Optional[Iterable[str]] = undefined
+    modified_imports: Optional[Iterable[str]] = undefined
 
     # File lists can include wildcards, e.g. '*.py' or '**/*.py'. () means no files. None means all files.
 
@@ -114,8 +119,8 @@ class RunCode:
             self.warnings_to_raise = DEFAULT_WARNINGS_TO_RAISE
         if self.forbidden_modules_and_functions is undefined:
             self.forbidden_modules_and_functions = DEFAULT_FORBIDDEN_MODULES_AND_FUNCTIONS
-        if self.forbidden_imports is undefined:
-            self.forbidden_imports = DEFAULT_FORBIDDEN_IMPORTS
+        if self.modified_imports is undefined:
+            self.modified_imports = MODIFIED_IMPORTS
 
     def _create_and_get_all_contexts(self) -> Dict[str, Any]:
 
@@ -129,8 +134,8 @@ class RunCode:
         # Optional builtin contexts:
         if self.forbidden_modules_and_functions is not None:
             contexts['PreventCalling'] = PreventCalling(modules_and_functions=self.forbidden_modules_and_functions)
-        if self.forbidden_imports is not None:
-            contexts['PreventImport'] = PreventImport(modules=self.forbidden_imports)
+        if self.modified_imports is not None:
+            contexts['ModifyImport'] = ModifyImport(modified_imports=self.modified_imports)
         if not (self.allowed_open_read_files is None and self.allowed_open_write_files is None):
             contexts['PreventFileOpen'] = PreventFileOpen(allowed_read_files=self.allowed_open_read_files,
                                                           allowed_write_files=self.allowed_open_write_files)
