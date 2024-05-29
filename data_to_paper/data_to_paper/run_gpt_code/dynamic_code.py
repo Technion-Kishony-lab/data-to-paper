@@ -25,7 +25,6 @@ from .timeout_context import timeout_context
 from .user_script_name import MODULE_NAME, module_filename
 from .run_issues import RunIssue, RunIssues
 from data_to_paper.code_and_output_files.output_file_requirements import OutputFileRequirements
-from data_to_paper.utils.singleton import undefined
 
 module_dir = os.path.dirname(llm_created_scripts.__file__)
 module_default_filepath = os.path.join(module_dir, module_filename)
@@ -59,7 +58,7 @@ def is_serializable(x):
 # DEFAULT_WARNINGS_TO_ISSUE = (RuntimeWarning, SyntaxWarning, ConvergenceWarning)
 DEFAULT_WARNINGS_TO_IGNORE = (DeprecationWarning, ResourceWarning, PendingDeprecationWarning, FutureWarning)
 DEFAULT_WARNINGS_TO_RAISE = ()
-DEFAULT_WARNINGS_TO_ISSUE = None  # None for all that are not ignored or raised
+DEFAULT_WARNINGS_TO_ISSUE = ...  # `...` for all that are not ignored or raised
 
 DEFAULT_FORBIDDEN_MODULES_AND_FUNCTIONS = (
         # Module, function, create RunIssue (True) or raise exception (False)
@@ -85,13 +84,13 @@ class RunCode:
     """
     Run the provided code and report exceptions or specific warnings.
     """
-    timeout_sec: Optional[int] = undefined
-    warnings_to_issue: Optional[Iterable[Type[Warning]]] = undefined
-    warnings_to_ignore: Optional[Iterable[Type[Warning]]] = undefined
-    warnings_to_raise: Optional[Iterable[Type[Warning]]] = undefined
+    timeout_sec: Optional[int] = None
+    warnings_to_issue: Optional[Iterable[Type[Warning]]] = None
+    warnings_to_ignore: Optional[Iterable[Type[Warning]]] = None
+    warnings_to_raise: Optional[Iterable[Type[Warning]]] = None
 
-    forbidden_modules_and_functions: Iterable[Tuple[Any, str, bool]] = undefined
-    modified_imports: Optional[Iterable[str]] = undefined
+    forbidden_modules_and_functions: Iterable[Tuple[Any, str, bool]] = None
+    modified_imports: Dict[str, Optional[str]] = None
 
     # File lists can include wildcards, e.g. '*.py' or '**/*.py'. () means no files. None means all files.
 
@@ -109,17 +108,15 @@ class RunCode:
     _module: ModuleType = None
 
     def __post_init__(self):
-        if self.timeout_sec is undefined:
-            self.timeout_sec = None
-        if self.warnings_to_issue is undefined:
+        if self.warnings_to_issue is None:
             self.warnings_to_issue = DEFAULT_WARNINGS_TO_ISSUE
-        if self.warnings_to_ignore is undefined:
+        if self.warnings_to_ignore is None:
             self.warnings_to_ignore = DEFAULT_WARNINGS_TO_IGNORE
-        if self.warnings_to_raise is undefined:
+        if self.warnings_to_raise is None:
             self.warnings_to_raise = DEFAULT_WARNINGS_TO_RAISE
-        if self.forbidden_modules_and_functions is undefined:
+        if self.forbidden_modules_and_functions is None:
             self.forbidden_modules_and_functions = DEFAULT_FORBIDDEN_MODULES_AND_FUNCTIONS
-        if self.modified_imports is undefined:
+        if self.modified_imports is None:
             self.modified_imports = MODIFIED_IMPORTS
 
     def _create_and_get_all_contexts(self) -> Dict[str, Any]:

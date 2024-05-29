@@ -214,7 +214,7 @@ class WarningHandler(SingletonRegisteredRunContext):
 
     @staticmethod
     def _is_matched_cls(category, classes):
-        return classes is None or any(issubclass(category, cls) for cls in classes)
+        return classes is ... or any(issubclass(category, cls) for cls in classes)
 
     def _warning_handler(self, message, category, filename, lineno, file=None, line=None):
         if self._is_matched_cls(category, self.categories_to_raise):
