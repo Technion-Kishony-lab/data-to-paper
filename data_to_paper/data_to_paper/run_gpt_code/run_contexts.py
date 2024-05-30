@@ -42,8 +42,8 @@ class PreventFileOpen(SingletonRegisteredRunContext):
     SYSTEM_FOLDERS = \
         [r'C:\Windows', r'C:\Program Files', r'C:\Program Files (x86)'] if os.name == 'nt' \
         else ['/usr', '/etc', '/bin', '/sbin', '/sys', '/dev', '/var', '/opt', '/proc']
-    allowed_read_files: Iterable[str] = None  # list of wildcard names,  None means allow all, [] means allow none
-    allowed_write_files: Iterable[str] = None  # list of wildcard names,  None means allow all, [] means allow none
+    allowed_read_files: Iterable[str] = 'all'  # list of wildcard names,  'all' means allow all, [] means allow none
+    allowed_write_files: Iterable[str] = 'all'  # list of wildcard names,  'all' means allow all, [] means allow none
 
     original_open: Optional[Callable] = None
 
@@ -58,12 +58,12 @@ class PreventFileOpen(SingletonRegisteredRunContext):
         return super()._reversible_exit()
 
     def is_allowed_read_file(self, file_name: str) -> bool:
-        return self.allowed_read_files is None or \
+        return self.allowed_read_files == 'all' or \
             is_name_matches_list_of_wildcard_names(file_name, self.allowed_read_files) or \
             self._is_system_file(file_name)
 
     def is_allowed_write_file(self, file_name: str) -> bool:
-        return self.allowed_write_files is None or \
+        return self.allowed_write_files == 'all' or \
             is_name_matches_list_of_wildcard_names(file_name, self.allowed_write_files)
 
     def open_wrapper(self, *args, **kwargs):

@@ -5,7 +5,7 @@ from types import ModuleType
 import pytest
 
 from data_to_paper.research_types.hypothesis_testing.coding.data_analysis import DictPickleContentOutputFileRequirement
-from data_to_paper.run_gpt_code.dynamic_code import RunCode, FailedRunningCode
+from data_to_paper.run_gpt_code.dynamic_code import CodeRunner, FailedRunningCode
 from data_to_paper.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, \
     CodeWriteForbiddenFile, CodeImportForbiddenModule, UnAllowedFilesCreated
 from data_to_paper.run_gpt_code.overrides.contexts import OverrideStatisticsPackages
@@ -17,7 +17,7 @@ from data_to_paper.code_and_output_files.output_file_requirements import OutputF
 from data_to_paper.utils import dedent_triple_quote_str
 
 
-class CallFuncRunCode(RunCode):
+class CallFuncCodeRunner(CodeRunner):
     def _run_function_in_module(self, module: ModuleType):
         return module.func()
 
@@ -27,7 +27,7 @@ def test_run_code_on_legit_code():
         def f():
             return 'hello'
         """)
-    run_code = RunCode()
+    run_code = CodeRunner()
     run_code.run(code)
     assert run_code._module.f() == 'hello'
 
@@ -39,7 +39,7 @@ def test_run_code_correctly_reports_exception():
         raise Exception('error')
         # line 4
         """)
-    error = RunCode().run(code)[4]
+    error = CodeRunner().run(code)[3]
     assert isinstance(error, FailedRunningCode)
     assert error.exception.msg == 'error'
     linenos_lines, msg = error.get_lineno_line_message()
@@ -51,7 +51,7 @@ def test_run_code_raises_warning():
         import warnings
         warnings.warn('be careful', UserWarning)
         """)
-    error = RunCode(warnings_to_raise=[UserWarning]).run(code)[4]
+    error = CodeRunner(warnings_to_raise=[UserWarning]).run(code)[3]
     assert isinstance(error, FailedRunningCode)
     lineno_line, msg = error.get_lineno_line_message()
     assert msg == 'be careful'
@@ -63,7 +63,8 @@ def test_run_code_issues_warning():
         import warnings
         warnings.warn('be careful', UserWarning)
         """)
-    result, created_files, issues, contexts, e = RunCode(warnings_to_issue=[UserWarning]).run(code)
+    result, created_files, multi_context, e = CodeRunner(warnings_to_issue=[UserWarning]).run(code)
+    issues = multi_context.issues
     assert e is None
     assert len(issues) == 1
     assert 'be careful' in issues[0].issue
@@ -76,7 +77,7 @@ def test_run_code_correctly_reports_exception_from_func():
             raise Exception('stupid error')
         func()
         """)
-    error = RunCode().run(code)[4]
+    error = CodeRunner().run(code)[3]
     assert isinstance(error, FailedRunningCode)
     assert 'stupid error' in str(error.exception)
     linenos_lines, msg = error.get_lineno_line_message()
@@ -94,8 +95,8 @@ def test_run_code_timeout():
         time.sleep(20)
         # line 4
         """)
-    results = RunCode(timeout_sec=1).run(code)
-    error = results[4]
+    results = CodeRunner(timeout_sec=1).run(code)
+    error = results[3]
     assert isinstance(error, FailedRunningCode)
     assert isinstance(error.exception, TimeoutError)
     lineno_lines, msg = error.get_lineno_line_message()
@@ -109,7 +110,7 @@ def test_run_code_forbidden_functions(forbidden_call):
         a = 1
         {}()
         """).format(forbidden_call)
-    error = RunCode().run(code)[4]
+    error = CodeRunner().run(code)[3]
     assert isinstance(error, FailedRunningCode)
     assert isinstance(error.exception, CodeUsesForbiddenFunctions)
     lineno_lines, msg = error.get_lineno_line_message()
@@ -124,8 +125,8 @@ def test_run_code_forbidden_function_print():
         print(a)
         a = 2
         """)
-    result, created_files, issues, contexts, error = RunCode().run(code)
-    assert 'print' in issues[0].issue
+    result, created_files, multi_context, error = CodeRunner().run(code)
+    assert 'print' in multi_context.issues[0].issue
 
 
 @pytest.mark.parametrize("forbidden_import,module_name", [
@@ -144,10 +145,10 @@ def test_run_code_forbidden_import(forbidden_import, module_name):
         {}
         """).format(forbidden_import)
     if 'matplotlib' in module_name:
-        run_code = RunCode(modified_imports=(('matplotlib', None),))
+        run_code = CodeRunner(modified_imports=(('matplotlib', None),))
     else:
-        run_code = RunCode()
-    error = run_code.run(code)[4]
+        run_code = CodeRunner()
+    error = run_code.run(code)[3]
     assert isinstance(error, FailedRunningCode)
     assert isinstance(error.exception, CodeImportForbiddenModule)
     assert error.exception.module == module_name
@@ -161,14 +162,14 @@ def test_run_code_forbidden_import_should_not_raise_on_allowed_packages():
         import numpy as np
         from scipy.stats import chi2_contingency
         """)
-    RunCode().run(code)
+    CodeRunner().run(code)
 
 
 def test_run_code_wrong_import():
     code = dedent_triple_quote_str("""
         from xxx import yyy
         """)
-    error = RunCode().run(code)[4]
+    error = CodeRunner().run(code)[3]
     assert isinstance(error, FailedRunningCode)
     assert error.exception.fromlist == ('yyy',)
 
@@ -180,7 +181,7 @@ code = dedent_triple_quote_str("""
 
 
 def test_run_code_raises_on_unallowed_open_files(tmpdir):
-    error = RunCode(allowed_open_write_files=[], run_folder=tmpdir).run(code)[4]
+    error = CodeRunner(allowed_open_write_files=[], run_folder=tmpdir).run(code)[3]
     assert isinstance(error, FailedRunningCode)
     assert isinstance(error.exception, CodeWriteForbiddenFile)
     linenos_lines, msg = error.get_lineno_line_message()
@@ -188,7 +189,7 @@ def test_run_code_raises_on_unallowed_open_files(tmpdir):
 
 
 def test_run_code_raises_on_unallowed_created_files(tmpdir):
-    error = RunCode(allowed_open_write_files=None, run_folder=tmpdir).run(code)[4]
+    error = CodeRunner(allowed_open_write_files='all', run_folder=tmpdir).run(code)[3]
     assert isinstance(error, FailedRunningCode)
     assert isinstance(error.exception, UnAllowedFilesCreated)
     lineno_line, msg = error.get_lineno_line_message()
@@ -197,7 +198,7 @@ def test_run_code_raises_on_unallowed_created_files(tmpdir):
 
 def test_run_code_allows_allowed_files(tmpdir):
     os.chdir(tmpdir)
-    RunCode(allowed_open_write_files=['test.txt'], output_file_requirements=None).run(code)
+    CodeRunner(allowed_open_write_files=['test.txt'], output_file_requirements=None).run(code)
 
 
 def test_run_code_that_creates_pvalues_using_f_oneway(tmpdir):
@@ -213,10 +214,10 @@ def test_run_code_that_creates_pvalues_using_f_oneway(tmpdir):
             pickle.dump(additional_results, f)
         """)
     with OverrideStatisticsPackages():
-        error = RunCode(run_folder=tmpdir,
-                        allowed_open_write_files=None,
-                        output_file_requirements=OutputFileRequirements(
-                            (DictPickleContentOutputFileRequirement('additional_results.pkl', 1),)), ).run(code)[4]
+        error = CodeRunner(run_folder=tmpdir,
+                           allowed_open_write_files=None,
+                           output_file_requirements=OutputFileRequirements(
+                            (DictPickleContentOutputFileRequirement('additional_results.pkl', 1),)), ).run(code)[3]
         if error is not None:
             raise error
         assert os.path.exists(tmpdir / 'additional_results.pkl')
@@ -238,7 +239,7 @@ for model in models.keys():
         assert models[model].random_state == 0, f'{model} is not initialized with random_state=0'
 """
     with SklearnRandomStateOverride():
-        error = RunCode().run(code)[4]
+        error = CodeRunner().run(code)[3]
         if error is not None:
             raise error
 
@@ -257,9 +258,9 @@ def test_global_random_seed():
         """)
     for seed in [0, 1, None]:
         with SetRandomSeeds(random_seed=seed):
-            a1, b1 = CallFuncRunCode().run(code)[0]
+            a1, b1 = CallFuncCodeRunner().run(code)[0]
         with SetRandomSeeds(random_seed=seed):
-            a2, b2 = CallFuncRunCode().run(code)[0]
+            a2, b2 = CallFuncCodeRunner().run(code)[0]
         if seed is None:
             assert a1 != a2
             assert b1 != b2
@@ -278,7 +279,7 @@ def test_run_code_with_sklearn_nn_with_too_many_layers(MLPclass, hidden_layer_si
 from sklearn.neural_network import {MLPclass}
 mlp = {MLPclass}(hidden_layer_sizes={hidden_layer_sizes})
 """
-    error = RunCode(additional_contexts={'SklearnNNSizeOverride': SklearnNNSizeOverride()}).run(code)[4]
+    error = CodeRunner(additional_contexts={'SklearnNNSizeOverride': SklearnNNSizeOverride()}).run(code)[3]
     if expected_err is None:
         assert error is None
     else:

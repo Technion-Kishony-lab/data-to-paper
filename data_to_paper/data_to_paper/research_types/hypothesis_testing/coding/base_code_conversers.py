@@ -40,11 +40,8 @@ class BaseScientificCodeProductsHandler:
 class BaseScientificCodeProductsGPT(BaseScientificCodeProductsHandler, BaseCodeProductsGPT):
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, )  # None for the raw data files, () for no data files
     background_product_fields: Tuple[str, ...] = ('all_file_descriptions', 'research_goal')
-    gpt_script_filename: str = None
 
     def __post_init__(self):
-        if self.gpt_script_filename is None:
-            self.gpt_script_filename = f'{self.code_step}_code'
         BaseScientificCodeProductsHandler.__post_init__(self)
         BaseCodeProductsGPT.__post_init__(self)
 
@@ -91,9 +88,6 @@ class BaseScientificCodeProductsGPT(BaseScientificCodeProductsHandler, BaseCodeP
 class BaseCreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
     max_debug_iterations_per_attempt: int = 20
     max_code_revisions: int = 3
-    headers_required_in_code: Tuple[str, ...] = ()
-    attrs_to_send_to_debugger: Tuple[str, ...] = \
-        BaseScientificCodeProductsGPT.attrs_to_send_to_debugger + ('headers_required_in_code',)
     model_engine: ModelEngine = \
         field(default_factory=lambda: get_model_engine_for_class(BaseCreateTablesCodeProductsGPT))
     user_agent: ScientificAgent = ScientificAgent.Debugger

@@ -8,7 +8,7 @@ from scipy.stats._stats_py import TtestResult
 from statsmodels.genmod.generalized_linear_model import GLM
 from statsmodels.stats.anova import anova_lm
 
-from data_to_paper.run_gpt_code.code_runner import CodeRunner
+from data_to_paper.run_gpt_code.dynamic_code import CodeRunner
 from data_to_paper.run_gpt_code.overrides.contexts import OverrideStatisticsPackages
 from data_to_paper.run_gpt_code.overrides.sklearn.override_sklearn import SklearnFitOverride
 from data_to_paper.run_gpt_code.overrides.statsmodels.override_statsmodels import StatsmodelsFitPValueOverride
@@ -173,50 +173,43 @@ def test_sklean_raise_on_multiple_fit_calls():
             model.fit(X, y)
 
 
-response_with_two_fit_calls = """
-```
+code_with_two_fit_calls = """
 from sklearn.linear_model import LinearRegression
 import statsmodels.api as sm
 data = sm.datasets.longley.load()
 X = sm.add_constant(data.exog)
 y = data.endog
 model = LinearRegression()
-model.fit(X, y)
-model.fit(X, y)
-```
+model.fit(X, y)  # 1st fit
+model.fit(X, y)  # 2nd fit
 """
 
 
 def test_sklean_raise_on_multiple_fit_calls_in_code_runner():
-    _, _, _, exception = CodeRunner(response=response_with_two_fit_calls,
-                                    additional_contexts={'OverrideStatisticsPackages': OverrideStatisticsPackages()},
-                                    allowed_read_files=None,
-                                    ).run_code_in_separate_process()
+    _, _, _, exception = CodeRunner(
+        additional_contexts={'OverrideStatisticsPackages': OverrideStatisticsPackages()},
+        allowed_open_read_files='all',
+               ).run(code_with_two_fit_calls)
     assert isinstance(exception, RunIssue)
 
 
 code0 = """
-```from statsmodels.formula.api import logit
+from statsmodels.formula.api import logit
 import pandas as pd
 df = pd.DataFrame({'Y': [1, 0, 1, 0, 1, 0, 1, 0, 1, 0],
                    'X': [1, 0, 1, 0, 1, 0, 1, 0, 1, 0],})
 table1_model = logit("interaction ~ Beauty", data=df).fit()
-```
 """
 
 
 def test_run_code_with_none_serializable_exception():
-    runner = CodeRunner(response=code0, allowed_read_files=None)
-    _, _, _, exception = runner.run_code_in_separate_process()
+    _, _, _, exception = CodeRunner(allowed_open_read_files='all').run(code0)
     assert exception.get_type_name() == 'PatsyError'
 
 
 def test_sklean_do_not_raise_on_single_fit_call_in_code_runner():
-    response_with_single_fit_calls = response_with_two_fit_calls.replace('model.fit(X, y)\n```', '```')
-    _, _, _, exception = CodeRunner(response=response_with_single_fit_calls,
-                                    additional_contexts={'OverrideStatisticsPackages': OverrideStatisticsPackages()},
-                                    allowed_read_files=None,
-                                    ).run_code_in_separate_process()
+    code_with_single_fit_calls = code_with_two_fit_calls.replace('model.fit(X, y)  # 2nd fit', '')
+    _, _, _, exception = CodeRunner(allowed_open_read_files='all').run(code_with_single_fit_calls)
     assert exception is None
 
 

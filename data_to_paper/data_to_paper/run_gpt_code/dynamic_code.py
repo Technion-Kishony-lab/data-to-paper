@@ -1,6 +1,4 @@
-import builtins
 import pickle
-from contextlib import ExitStack
 from dataclasses import dataclass, field
 from pathlib import Path
 from types import ModuleType
@@ -15,7 +13,7 @@ from data_to_paper import llm_created_scripts
 from data_to_paper.utils.file_utils import run_in_directory
 from data_to_paper.utils.types import ListBasedSet
 
-from .base_run_contexts import RunContext, MultiRunContext
+from .base_run_contexts import MultiRunContext
 from .attr_replacers import PreventCalling
 from .run_contexts import PreventFileOpen, ModifyImport, WarningHandler, IssueCollector, \
     TrackCreatedFiles, RunInDirectory
@@ -23,7 +21,7 @@ from .run_contexts import PreventFileOpen, ModifyImport, WarningHandler, IssueCo
 from .exceptions import FailedRunningCode, BaseRunContextException, CodeTimeoutException
 from .timeout_context import timeout_context
 from .user_script_name import MODULE_NAME, module_filename
-from .run_issues import RunIssue, RunIssues
+from .run_issues import RunIssue
 from data_to_paper.code_and_output_files.output_file_requirements import OutputFileRequirements
 
 module_dir = os.path.dirname(llm_created_scripts.__file__)
@@ -56,7 +54,7 @@ def is_serializable(x):
 
 
 @dataclass
-class RunCode:
+class CodeRunner:
     """
     Run the provided code and report exceptions or specific warnings.
     """
@@ -75,7 +73,7 @@ class RunCode:
             ('builtins', 'exit', False),
             ('builtins', 'quit', False),
             ('matplotlib.pyplot', 'show', True),  # 'matplotlib.pyplot' is a string because it is not always installed
-        )
+    )
     modified_imports: Tuple[Tuple[str, Optional[str]]] = (
             ('os', None),
             ('sys', None),
@@ -86,8 +84,8 @@ class RunCode:
     # File lists can include wildcards, e.g. '*.py' or '**/*.py'. () means no files. None means all files.
 
     # Allowed in `open` for reading/writing
-    allowed_open_read_files: Optional[Iterable[str]] = ()
-    allowed_open_write_files: Optional[Iterable[str]] = ()
+    allowed_open_read_files: Optional[Iterable[str]] = ()  # 'all' means all files. () means no files.
+    allowed_open_write_files: Optional[Iterable[str]] = None  # 'all': all. `None`: Based on output_file_requirements
 
     # Allowed new files. Assessed at end of run. If None then all files are allowed.
     output_file_requirements: Optional[OutputFileRequirements] = OutputFileRequirements()
@@ -104,9 +102,12 @@ class RunCode:
         if self._multi_context is not None:
             return self._multi_context
 
+        allowed_open_write_files = self.allowed_open_write_files if self.allowed_open_write_files is not None \
+            else self.output_file_requirements.get_all_allowed_created_filenames()
+
         # Mandatory contexts:
         contexts = {
-            'run_in_directory': RunInDirectory(folder=self.run_folder),
+            'RunInDirectory': RunInDirectory(folder=self.run_folder),
             'IssueCollector': IssueCollector(),
             'TrackCreatedFiles': TrackCreatedFiles(output_file_requirements=self.output_file_requirements),
         }
@@ -116,15 +117,15 @@ class RunCode:
             contexts['PreventCalling'] = PreventCalling(modules_and_functions=self.forbidden_modules_and_functions)
         if self.modified_imports is not None:
             contexts['ModifyImport'] = ModifyImport(modified_imports=self.modified_imports)
-        if not (self.allowed_open_read_files is None and self.allowed_open_write_files is None):
+        if not (self.allowed_open_read_files is None and allowed_open_write_files is None):
             contexts['PreventFileOpen'] = PreventFileOpen(allowed_read_files=self.allowed_open_read_files,
-                                                          allowed_write_files=self.allowed_open_write_files)
+                                                          allowed_write_files=allowed_open_write_files)
         if not (self.warnings_to_raise is None and self.warnings_to_issue is None and self.warnings_to_ignore is None):
             contexts['WarningHandler'] = WarningHandler(categories_to_raise=self.warnings_to_raise,
                                                         categories_to_issue=self.warnings_to_issue,
                                                         categories_to_ignore=self.warnings_to_ignore)
         if self.timeout_sec is not None:
-            contexts['timeout_context'] = timeout_context(self.timeout_sec, CodeTimeoutException)
+            contexts['TimeoutContext'] = timeout_context(self.timeout_sec, CodeTimeoutException)
 
         # Additional custom contexts:
         if self.additional_contexts is not None:
@@ -139,8 +140,8 @@ class RunCode:
         self._multi_context = MultiRunContext(contexts=contexts)
         return self._multi_context
 
-    def run(self, code: Optional[str] = None, module_filepath: Optional[str] = None, save_as: Optional[str] = None,
-            ) -> Tuple[Any, ListBasedSet[str], RunIssues, MultiRunContext, Optional[FailedRunningCode]]:
+    def run(self, code: Optional[str] = None, module_filepath: Optional[str] = None
+            ) -> Tuple[Any, ListBasedSet[str], MultiRunContext, Optional[FailedRunningCode]]:
         """
         Run the provided code and report exceptions or specific warnings.
 
@@ -188,16 +189,12 @@ class RunCode:
                     for file in created_files:
                         if os.path.exists(file):
                             os.remove(file)
-                created_files = []
-            if save_as and module_filepath is None:
-                os.rename(module_default_filepath, os.path.join(module_dir, save_as) + ".py")
             save_code_to_module_file()  # leave the module empty
 
-        issues = multi_context.issues  # Issues from all sub contexts
         for context in multi_context.get_contexts():
             assert is_serializable(context), f"Context {context} is not serializable."
 
-        return result, created_files, issues, multi_context.contexts, exception
+        return result, created_files, multi_context, exception
 
     def _run_function_in_module(self, module: ModuleType):
         pass

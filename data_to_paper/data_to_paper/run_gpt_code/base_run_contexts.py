@@ -168,4 +168,3 @@ class MultiRunContext(RunContext):
         super_result = super().__exit__(exc_type, exc_val, exc_tb)
         stack_result = self.exit_stack.__exit__(exc_type, exc_val, exc_tb)
         return super_result or stack_result
-

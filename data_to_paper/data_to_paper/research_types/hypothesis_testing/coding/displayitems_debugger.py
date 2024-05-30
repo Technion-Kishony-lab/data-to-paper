@@ -1,16 +1,16 @@
 from dataclasses import dataclass
-from typing import Tuple, List, Type
+from typing import Tuple, List
 
 from data_to_paper.base_steps import DebuggerConverser
 from data_to_paper.research_types.hypothesis_testing.scientific_products import ScientificProducts
-from data_to_paper.run_gpt_code.code_runner import CodeRunner
+from data_to_paper.run_gpt_code.code_runner import CodeRunnerWrapper
 
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue
 
 
 @dataclass
-class UtilsCodeRunner(CodeRunner):
+class UtilsCodeRunner(CodeRunnerWrapper):
     def _modify_code(self, code: str) -> Tuple[str, int]:
         """
         Modify the extracted code before running it.
@@ -25,7 +25,6 @@ class UtilsCodeRunner(CodeRunner):
 @dataclass
 class LatexTablesDebuggerConverser(DebuggerConverser):
     products: ScientificProducts = None
-    code_runner_cls: Type[CodeRunner] = UtilsCodeRunner
 
     def _get_issues_for_created_output_files(self, code_and_output: CodeAndOutput, contexts) -> List[RunIssue]:
         num_created_pkl_df_files = self.products.get_number_of_created_dfs()

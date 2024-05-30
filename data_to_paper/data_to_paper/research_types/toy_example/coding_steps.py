@@ -21,7 +21,6 @@ class DemoCodeProductsGPT(BaseCodeProductsGPT):
     assistant_agent: DemoAgent = DemoAgent.Performer
     user_agent: DemoAgent = DemoAgent.Debugger
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal')
-    gpt_script_filename: str = None
     code_name: str = 'Prime Number Search'
 
     @property

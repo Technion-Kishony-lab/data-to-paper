@@ -8,8 +8,7 @@ from data_to_paper.base_steps.request_code import CodeReviewPrompt
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.code_and_output_files.output_file_requirements import \
     NumericTextContentOutputFileRequirement, OutputFileRequirements, PickleContentOutputFileRequirement
-from data_to_paper.research_types.hypothesis_testing.coding.base_code_conversers import \
-    BaseScientificCodeProductsGPT, BaseCreateTablesCodeProductsGPT
+from data_to_paper.research_types.hypothesis_testing.coding.base_code_conversers import BaseCreateTablesCodeProductsGPT
 from data_to_paper.research_types.hypothesis_testing.coding.utils import get_additional_contexts
 from data_to_paper.research_types.hypothesis_testing.coding.utils_modified_for_gpt_use.to_pickle import \
     get_dataframe_to_pickle_attr_replacer, get_pickle_dump_attr_replacer
@@ -145,8 +144,6 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         '# ANALYSIS',
         '# SAVE ADDITIONAL RESULTS',
     )
-    attrs_to_send_to_debugger: Tuple[str, ...] = \
-        BaseScientificCodeProductsGPT.attrs_to_send_to_debugger + ('headers_required_in_code',)
 
     background_product_fields: Tuple[str, ...] = \
         ('data_file_descriptions', 'outputs:data_exploration', 'codes:data_preprocessing',
@@ -166,7 +163,7 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
     mission_prompt: str = dedent_triple_quote_str("""
         Write a complete Python code to analyze the data and create dataframes as basis for scientific Tables \t
         and Figures for our paper.
-        
+
         Created df for tables will be later converted to LaTeX tables using `df.to_latex()`.
         Created df for figures will be later converted to plots using a `my_plot(df, x=, y=, ...)` function, \t
         which is similar to `df.plot()` but also allows specifying:
@@ -176,7 +173,7 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         - P-values for plotting significance as stars. Like:
         `my_plot(df, x=, y='height', y_p_value='height_pval', ...)`
         where 'height_pval' is a column in the df with the p-values.
-        
+
         Important: We are not making the plots in this code, only creating dataframes that will be used later to \t
         create the plots and tables. 
 
@@ -219,7 +216,7 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         `df0.to_pickle('df_0.pkl')`
         If no descriptive statistics are needed, write:
         `# No descriptive statistics table is needed.`
-        
+
         And/or, for a figure:
         `## DF 1: "Figure: Distribution of height"`
         `# Designed for creating a scientific figure using: my_plot(df1, kind='hist', x='height')`
@@ -286,7 +283,7 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         Write here the code to analyze the data and create a dataframe df2 for figure 2.
         Do not create the plot yet. Just save the dataframe using:
         `df2.to_pickle('df_2.pkl')`
-        
+
         etc, up to 3-4 display items.
 
 

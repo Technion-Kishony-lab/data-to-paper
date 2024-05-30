@@ -121,8 +121,7 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLat
     )
     phrases_required_in_code: Tuple[str, ...] = \
         ('\nfrom my_utils import to_latex_with_note, to_figure_with_note, is_str_in_df, split_mapping, AbbrToNameDef', )
-    attrs_to_send_to_debugger: Tuple[str, ...] = \
-        BaseCreateTablesCodeProductsGPT.attrs_to_send_to_debugger + ('phrases_required_in_code',)
+
     user_agent: ScientificAgent = ScientificAgent.InterpretationReviewer
     background_product_fields: Tuple[str, ...] = \
         ('data_file_descriptions', 'research_goal', 'codes:data_preprocessing', 'codes:data_analysis',
