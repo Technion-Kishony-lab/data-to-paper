@@ -16,7 +16,7 @@ from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue, RunIssues
 from data_to_paper.code_and_output_files.output_file_requirements import BaseContentOutputFileRequirement, \
     OutputFileRequirements
-from data_to_paper.run_gpt_code.code_runner import CodeRunnerWrapper
+from data_to_paper.run_gpt_code.code_runner_wrapper import CodeRunnerWrapper
 from data_to_paper.run_gpt_code.code_utils import FailedExtractingBlock, IncompleteBlockFailedExtractingBlock
 from data_to_paper.run_gpt_code.exceptions import FailedRunningCode, UnAllowedFilesCreated, \
     CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule

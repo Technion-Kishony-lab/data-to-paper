@@ -3,7 +3,7 @@ from typing import Tuple, List
 
 from data_to_paper.base_steps import DebuggerConverser
 from data_to_paper.research_types.hypothesis_testing.scientific_products import ScientificProducts
-from data_to_paper.run_gpt_code.code_runner import CodeRunnerWrapper
+from data_to_paper.run_gpt_code.code_runner_wrapper import CodeRunnerWrapper
 
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue

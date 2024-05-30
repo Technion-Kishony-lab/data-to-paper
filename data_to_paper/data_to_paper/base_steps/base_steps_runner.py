@@ -20,7 +20,7 @@ from data_to_paper.conversation.stage import Stage
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
 from data_to_paper.exceptions import TerminateException, ResetStepException
 from data_to_paper.base_products import DataFileDescriptions
-from data_to_paper.run_gpt_code.code_runner import RUN_CACHE_FILEPATH
+from data_to_paper.run_gpt_code.code_runner_wrapper import RUN_CACHE_FILEPATH
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.replacer import Replacer
 
