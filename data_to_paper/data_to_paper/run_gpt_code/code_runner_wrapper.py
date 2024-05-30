@@ -11,7 +11,7 @@ from typing import Optional, Tuple, Any
 
 from data_to_paper.env import MAX_EXEC_TIME
 from data_to_paper.utils.mutable import Mutable
-from data_to_paper.run_gpt_code.dynamic_code import CodeRunner, is_serializable
+from data_to_paper.run_gpt_code.code_runner import CodeRunner, is_serializable
 
 from .base_run_contexts import MultiRunContext
 from .cache_runs import CacheRunToFile

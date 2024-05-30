@@ -5,7 +5,7 @@ from types import ModuleType
 import pytest
 
 from data_to_paper.research_types.hypothesis_testing.coding.data_analysis import DictPickleContentOutputFileRequirement
-from data_to_paper.run_gpt_code.dynamic_code import CodeRunner, FailedRunningCode
+from data_to_paper.run_gpt_code.code_runner import CodeRunner, FailedRunningCode
 from data_to_paper.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, \
     CodeWriteForbiddenFile, CodeImportForbiddenModule, UnAllowedFilesCreated
 from data_to_paper.run_gpt_code.overrides.contexts import OverrideStatisticsPackages

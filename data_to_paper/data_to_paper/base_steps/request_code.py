@@ -21,7 +21,7 @@ from data_to_paper.interactive.human_actions import RequestInfoHumanAction
 from data_to_paper.interactive.human_review import HumanReviewAppInteractor
 
 from data_to_paper.interactive.symbols import Symbols
-from data_to_paper.run_gpt_code.dynamic_code import CodeRunner
+from data_to_paper.run_gpt_code.code_runner import CodeRunner
 from data_to_paper.run_gpt_code.extract_and_check_code import CodeExtractor, ModifyAndCheckCodeExtractor
 
 from .converser import _raise_if_reset

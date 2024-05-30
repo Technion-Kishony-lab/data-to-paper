@@ -8,7 +8,7 @@ from scipy.stats._stats_py import TtestResult
 from statsmodels.genmod.generalized_linear_model import GLM
 from statsmodels.stats.anova import anova_lm
 
-from data_to_paper.run_gpt_code.dynamic_code import CodeRunner
+from data_to_paper.run_gpt_code.code_runner import CodeRunner
 from data_to_paper.run_gpt_code.overrides.contexts import OverrideStatisticsPackages
 from data_to_paper.run_gpt_code.overrides.sklearn.override_sklearn import SklearnFitOverride
 from data_to_paper.run_gpt_code.overrides.statsmodels.override_statsmodels import StatsmodelsFitPValueOverride

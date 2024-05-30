@@ -2,7 +2,7 @@ import pytest
 import os
 
 from data_to_paper.run_gpt_code.code_runner_wrapper import CodeRunnerWrapper
-from data_to_paper.run_gpt_code.dynamic_code import CodeRunner
+from data_to_paper.run_gpt_code.code_runner import CodeRunner
 from data_to_paper.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, FailedRunningCode
 from data_to_paper.run_gpt_code.code_utils import FailedExtractingBlock
 from data_to_paper.run_gpt_code.extract_and_check_code import CodeExtractor
