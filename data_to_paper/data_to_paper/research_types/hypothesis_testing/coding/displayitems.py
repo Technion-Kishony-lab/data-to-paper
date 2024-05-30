@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from functools import partial
-from typing import Iterable, Any, Type, Tuple, Optional, Dict, Collection
+from typing import Iterable, Any, Type, Tuple, Optional, Dict, Collection, List
 
 from data_to_paper.base_steps import DebuggerConverser, CheckLatexCompilation
 from data_to_paper.base_steps.request_code import CodeReviewPrompt
@@ -21,9 +21,9 @@ from data_to_paper.research_types.hypothesis_testing.coding.utils_modified_for_g
     extract_source_filename_from_latex_displayitem
 from data_to_paper.research_types.hypothesis_testing.coding.utils_modified_for_gpt_use.to_pickle import \
     get_read_pickle_attr_replacer
-from data_to_paper.research_types.hypothesis_testing.scientific_products import HypertargetPrefix
-from data_to_paper.research_types.hypothesis_testing.coding.displayitems_debugger import LatexTablesDebuggerConverser
+from data_to_paper.research_types.hypothesis_testing.scientific_products import HypertargetPrefix, ScientificProducts
 from data_to_paper.run_gpt_code.attr_replacers import PreventAssignmentToAttrs, PreventCalling, AttrReplacer
+from data_to_paper.run_gpt_code.code_runner import CodeRunner
 from data_to_paper.run_gpt_code.overrides.pvalue import PValue, OnStr
 from data_to_paper.run_gpt_code.run_contexts import ProvideData
 from data_to_paper.run_gpt_code.run_issues import RunIssue, CodeProblem
@@ -110,10 +110,36 @@ png_file_requirement = DataOutputFileRequirement('*.png', minimal_count=0)
 
 
 @dataclass
-class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLatexCompilation):
+class UtilsCodeRunner(CodeRunner):
+    modified_imports: Tuple[Tuple[str, Optional[str]]] = CodeRunner.modified_imports + (
+        ('my_utils', 'data_to_paper.research_types.hypothesis_testing.coding.utils_modified_for_gpt_use'),
+    )
+
+
+@dataclass
+class DisplayitemsDebuggerConverser(DebuggerConverser):
+    products: ScientificProducts = None
+
+    def _get_issues_for_created_output_files(self, code_and_output: CodeAndOutput, contexts) -> List[RunIssue]:
+        num_created_pkl_df_files = self.products.get_number_of_created_dfs()
+        created_tex_files = code_and_output.created_files.get_created_content_files()
+        if len(created_tex_files) < num_created_pkl_df_files:
+            return [RunIssue(
+                category='Missing output files',
+                issue=f"We have {num_created_pkl_df_files} df_?.pkl files, but only "
+                      f"{len(created_tex_files)} tex files were created.",
+                instructions=f"Please create a tex file for each table.",
+                code_problem=CodeProblem.OutputFileContentLevelA,
+            )]
+        return super()._get_issues_for_created_output_files(code_and_output, contexts)
+
+
+@dataclass
+class CreateDisplayitemsCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLatexCompilation):
     code_step: str = 'data_to_latex'
     tolerance_for_too_wide_in_pts: Optional[float] = 25.
-    debugger_cls: Type[DebuggerConverser] = LatexTablesDebuggerConverser
+    debugger_cls: Type[DebuggerConverser] = DisplayitemsDebuggerConverser
+    code_runner_cls: Type[CodeRunner] = UtilsCodeRunner
     code_and_output_cls: Type[CodeAndOutput] = CreateLatexDisplayitemsCodeAndOutput
     headers_required_in_code: Tuple[str, ...] = (
         '# IMPORT',

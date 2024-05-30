@@ -13,6 +13,7 @@ from data_to_paper.research_types.hypothesis_testing.coding.utils import get_add
 from data_to_paper.research_types.hypothesis_testing.coding.utils_modified_for_gpt_use.to_pickle import \
     get_dataframe_to_pickle_attr_replacer, get_pickle_dump_attr_replacer
 from data_to_paper.research_types.hypothesis_testing.scientific_products import HypertargetPrefix
+from data_to_paper.run_gpt_code.extract_and_check_code import ModifyAndCheckCodeExtractor, CodeExtractor
 from data_to_paper.run_gpt_code.overrides.dataframes.utils import to_string_with_format_value
 from data_to_paper.run_gpt_code.overrides.pvalue import is_containing_p_value
 from data_to_paper.run_gpt_code.run_issues import RunIssue, CodeProblem
@@ -46,8 +47,7 @@ class DataAnalysisCodeAndOutput(CodeAndOutput):
         return None
 
 
-@dataclass
-class DataAnalysisDebuggerConverser(DebuggerConverser):
+class StaticChecks(ModifyAndCheckCodeExtractor):
     class_and_from_formula: Tuple[str, str] = (
         ('GLS', 'gls'),
         ('WLS', 'wls'),
@@ -71,6 +71,29 @@ class DataAnalysisDebuggerConverser(DebuggerConverser):
         ('ConditionalMNLogit', 'conditional_mnlogit'),
         ('ConditionalPoisson', 'conditional_poisson'),
     )
+
+    def get_issues_for_static_code_check(self, code: str) -> List[RunIssue]:
+        issues = super().get_issues_for_static_code_check(code)
+
+        for class_name, from_formula in self.class_and_from_formula:
+            if class_name + '(' in code:
+                issues.append(RunIssue(
+                    category='Coding: good practices',
+                    issue=f'You are using the "{class_name}" class. ',
+                    instructions=dedent_triple_quote_str(f"""
+                        You should use the "{from_formula}" function instead, so that the formula is clearly \t
+                        specified as a string. 
+                        Reminder: For interactions, if any, use the `*` operator in the formula, rather than \t
+                        manually multiplying the variables.
+                        """),
+                    code_problem=CodeProblem.StaticCheck,
+                ))
+
+        return issues
+
+
+@dataclass
+class DataAnalysisDebuggerConverser(DebuggerConverser):
 
     def _get_issues_for_created_output_files(self, code_and_output: CodeAndOutput, contexts) -> List[RunIssue]:
         """
@@ -110,29 +133,11 @@ class DataAnalysisDebuggerConverser(DebuggerConverser):
                 ))
         return issues
 
-    def _get_issues_for_static_code_check(self, code: str) -> List[RunIssue]:
-        issues = super()._get_issues_for_static_code_check(code)
-
-        for class_name, from_formula in self.class_and_from_formula:
-            if class_name + '(' in code:
-                issues.append(RunIssue(
-                    category='Coding: good practices',
-                    issue=f'You are using the "{class_name}" class. ',
-                    instructions=dedent_triple_quote_str(f"""
-                        You should use the "{from_formula}" function instead, so that the formula is clearly \t
-                        specified as a string. 
-                        Reminder: For interactions, if any, use the `*` operator in the formula, rather than \t
-                        manually multiplying the variables.
-                        """),
-                    code_problem=CodeProblem.StaticCheck,
-                ))
-
-        return issues
-
 
 @dataclass
 class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
     code_step: str = 'data_analysis'
+    code_extractor_cls: Type[CodeExtractor] = StaticChecks
     debugger_cls: Type[DebuggerConverser] = DataAnalysisDebuggerConverser
     code_and_output_cls: Type[CodeAndOutput] = DataAnalysisCodeAndOutput
     headers_required_in_code: Tuple[str, ...] = (

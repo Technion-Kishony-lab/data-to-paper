@@ -27,7 +27,7 @@ class CodeRunnerWrapper(CacheRunToFile):
     code: str = None  # code to run
     timeout_sec: int = MAX_EXEC_TIME.val
     code_runner: CodeRunner = field(default_factory=CodeRunner)
-
+    run_in_separate_process: bool = True
     cache_filepath: Path = field(default_factory=lambda: RUN_CACHE_FILEPATH.val)  # None if not caching
 
     @property
@@ -47,7 +47,9 @@ class CodeRunnerWrapper(CacheRunToFile):
         return super().run(*args, **kwargs)
 
     def _run(self):
-        return self.run_code_in_separate_process()
+        if self.run_in_separate_process:
+            return self.run_code_in_separate_process()
+        return self.code_runner.run(code=self.code)
 
     def run_code_in_separate_process(self) \
             -> Tuple[Any, ListBasedSet[str], MultiRunContext, Optional[FailedRunningCode]]:

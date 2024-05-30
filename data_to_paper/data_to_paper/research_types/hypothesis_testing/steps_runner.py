@@ -9,7 +9,7 @@ from .cast import ScientificAgent
 from .coding.after_coding import RequestCodeExplanation, RequestCodeProducts
 from .coding.data_analysis import DataAnalysisCodeProductsGPT
 from .coding.data_exploration import DataExplorationCodeProductsGPT
-from .coding.displayitems import CreateLatexTablesCodeProductsGPT
+from .coding.displayitems import CreateDisplayitemsCodeProductsGPT
 from .coding.preprocessing import DataPreprocessingCodeProductsGPT
 from .coding.data_analysis import DataAnalysisCodeProductsGPT
 from .coding.data_exploration import DataExplorationCodeProductsGPT
@@ -198,7 +198,7 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
             self,
             code_step='data_to_latex',
             latex_document=self.latex_document,
-            code_writing_class=CreateLatexTablesCodeProductsGPT,
+            code_writing_class=CreateDisplayitemsCodeProductsGPT,
             explain_code_class=None,
             explain_created_files_class=None,
         ).get_code_and_output_and_descriptions()
