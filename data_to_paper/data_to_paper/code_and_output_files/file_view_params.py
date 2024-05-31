@@ -56,14 +56,14 @@ DEFAULT_VIEW_PURPOSE_TO_PARAMS: Dict[Optional[ContentViewPurpose], ContentViewPa
         ContentViewParams(
             hypertarget_format=HypertargetFormat(position=HypertargetPosition.NONE),
             with_hyper_header=False,
-            is_block=False,
+            is_block=True,
             pvalue_on_str=OnStr.SMALLER_THAN),
 
     ContentViewPurpose.HYPERTARGET_PRODUCT:
         ContentViewParams(
             hypertarget_format=HypertargetFormat(position=HypertargetPosition.WRAP, raised=False, escaped=False),
             with_hyper_header=False,
-            is_block=False,
+            is_block=True,
             pvalue_on_str=OnStr.SMALLER_THAN),
 
     ContentViewPurpose.CODE_REVIEW: ContentViewParams(

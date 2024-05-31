@@ -35,8 +35,8 @@ class BaseScientificPostCodeProductsHandler(BaseScientificCodeProductsHandler):
         return self.products.codes_and_outputs[self.code_step]
 
     @property
-    def output_filename(self):
-        return self.code_and_output.created_files.get_single_content_file()
+    def created_output_filenames(self):
+        return self.code_and_output.created_files.get_all_created_files()
 
 
 @dataclass
@@ -60,7 +60,7 @@ class RequestCodeExplanation(BaseScientificPostCodeProductsHandler, LatexReviewB
         high-level explanation of the code in a language suitable for a Methods section of a research \t
         paper.
         Focus on analysis steps. There is no need to explain trivial parts, like reading/writing a file, etc.  
-        {actual_requesting_output_explanation}
+        {requesting_output_explanation}
 
         Your explanation should be written in LaTeX, and should be enclosed within a LaTeX Code Block, like this:
 
@@ -77,13 +77,8 @@ class RequestCodeExplanation(BaseScientificPostCodeProductsHandler, LatexReviewB
         """)
 
     requesting_output_explanation: str = dedent_triple_quote_str("""
-        Also explain what does the code write into the "{output_filename}" file.    
+        Also explain what does the code write into the files(s): {created_output_filenames}.    
         """)
-
-    @property
-    def actual_requesting_output_explanation(self):
-        return self.requesting_output_explanation \
-            if self.code_and_output.created_files.get_single_content_file() else ''
 
     def run_and_get_valid_result(self):
         result = super().run_and_get_valid_result()

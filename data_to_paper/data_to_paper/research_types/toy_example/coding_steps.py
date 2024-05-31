@@ -41,8 +41,8 @@ class DemoCodeProductsGPT(BaseCodeProductsGPT):
     mission_prompt: str = dedent_triple_quote_str("""
         Please write a short Python code for the goal above.
 
-        Your code should create an output text file named "{output_filename}", which should \t
-        contain the results of your analysis.
+        Your code should create the following output files: {requested_output_filenames}.
+        These files should contain ...
 
         If needed, you can use the following packages which are already installed:
         {supported_packages}

@@ -19,6 +19,18 @@ from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue
 
 from .file_view_params import ContentView, ContentViewPurposeConverter
 
+"""
+OUTPUT FILEE REQUIREMENTS
+-------------------------
+There are two main types of requirements:
+
+- Data: the file contains data that is not presentable to the LLM. Like: large data files, images, etc.
+In this case we keep the file.
+
+- Content: the file contains content that is presentable to the LLM. Like: text, tables, etc.
+In this case we load and keep the content and typically delete the file.
+"""
+
 
 @dataclass(frozen=True)
 class OutputFileRequirement:
@@ -65,11 +77,11 @@ class DataOutputFileRequirement(OutputFileRequirement):
 class BaseContentOutputFileRequirement(OutputFileRequirement):
     should_keep_file: bool = NotImplemented
     minimal_count: int = 1
-    hypertarget_prefixes: Optional[Tuple[str]] = None
+    hypertarget_prefixes: Optional[Tuple[str]] = None  # List of hypertarget prefixes to assign for each file
     referenceable_text_cls: type = NumericReferenceableText
     content_view_purpose_converter: ContentViewPurposeConverter = field(default_factory=ContentViewPurposeConverter)
 
-    def get_content(self, file_path: str) -> str:
+    def get_content(self, file_path: str) -> Any:
         """
         Return the content of the file.
         """
@@ -169,14 +181,6 @@ class OutputFileRequirements(Tuple[OutputFileRequirement]):
     def get_all_allowed_created_filenames(self) -> Tuple[str, ...]:
         return tuple(requirement.filename for requirement in self)
 
-    def get_single_content_file(self) -> Optional[str]:
-        content_file_requirements = [
-            req for req in self
-            if isinstance(req, BaseContentOutputFileRequirement) and not req.is_wildcard() and req.minimal_count == 1]
-        if len(content_file_requirements) != 1:
-            return None
-        return content_file_requirements[0].filename
-
     def _get_requirements_to_output_files_and_unmatched_files(
             self, created_files: Iterable[str]) -> Tuple[Dict[OutputFileRequirement, List[str]], List[str]]:
         """
@@ -225,9 +229,6 @@ class OutputFileRequirementsWithContent(Dict[OutputFileRequirement, Dict[str, An
 
     def convert_to_output_file_requirements(self) -> OutputFileRequirements:
         return OutputFileRequirements(self.keys())
-
-    def get_single_content_file(self) -> Optional[str]:
-        return self.convert_to_output_file_requirements().get_single_content_file()
 
     def get_all_created_files(self) -> List[str]:
         """
@@ -287,15 +288,6 @@ class OutputFileRequirementsWithContent(Dict[OutputFileRequirement, Dict[str, An
         files_to_contents = self.get_created_content_files_to_pretty_contents(content_view=content_view,
                                                                               match_filename=match_filename)
         return '\n\n'.join(files_to_contents.values())
-
-    def get_single_output(self, content_view: ContentView = None) -> Optional[str]:
-        """
-        Return the output of the run, if it is a single content file.
-        """
-        single_content_filename = self.get_single_content_file()
-        if single_content_filename is None:
-            return None
-        return self._get_created_content_files_to_contents(content_view=content_view)[single_content_filename]
 
     def get_created_data_files(self, match_filename: str = '*') -> List[str]:
         """

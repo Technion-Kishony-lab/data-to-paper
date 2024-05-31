@@ -55,8 +55,12 @@ class BaseReferenceableText:
         raise NotImplementedError
 
     def _wrap_as_block(self, content: str):
-        label = EXTS_TO_LABELS.get(Path(self.filename).suffix, 'output')
-        return f'"{self.filename}":\n```{label}\n{content}\n```\n'
+        if self.filename:
+            label = EXTS_TO_LABELS.get(Path(self.filename).suffix, 'output')
+            return f'"{self.filename}":\n```{label}\n{content}\n```\n'
+        else:
+            return f'```\n{content}\n```\n'
+
 
     def get_hypertarget_text_with_header(self, content_view: ContentView) -> str:
         view_params = self.content_view_purpose_converter.convert_content_view_to_params(content_view)

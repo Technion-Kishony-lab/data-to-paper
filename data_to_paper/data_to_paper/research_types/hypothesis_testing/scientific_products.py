@@ -325,11 +325,11 @@ class ScientificProducts(Products):
 
             'outputs:{}': NameDescriptionStageGenerator(
                 'Output of the {code_name} Code',
-                'Here is the Output of our {code_name} code:\n```output\n{output}\n```\n',
+                'Here is the Output of our {code_name} code:\n{output}',
                 lambda code_step: get_code_stage(code_step),
                 lambda code_step: {
-                    'output': self.codes_and_outputs[code_step].created_files.get_single_output(
-                        content_view=ContentViewPurpose.PRODUCT),
+                    'output': self.codes_and_outputs[code_step].created_files.
+                    get_created_content_files_description(content_view=ContentViewPurpose.PRODUCT),
                     'code_name': self.codes_and_outputs[code_step].name},
             ),
 
@@ -348,8 +348,8 @@ class ScientificProducts(Products):
                 lambda code_step: get_code_stage(code_step),
                 lambda code_step: {
                     'code_name': self.codes_and_outputs[code_step].name,
-                    'code_description': self.get_description("codes:" + code_step),
-                    'output_description': self.get_description("outputs:" + code_step)},
+                    'code_description': self.get_description('codes:' + code_step),
+                    'output_description': self.get_description('outputs:' + code_step)},
             ),
 
             'codes_and_outputs_with_explanations:{}': NameDescriptionStageGenerator(
@@ -441,7 +441,7 @@ class ScientificProducts(Products):
                 ScientificStage.DISPLAYITEMS,
                 lambda: None if not self.get_all_latex_tables(ContentViewPurpose.PRODUCT) else
                 '\n\n'.join([f'- "{get_displayitem_caption(table, first_line_only=True)}":\n\n'
-                             f'```latex\n{table}\n```'
+                             f'{table}'
                              for table in self.get_all_latex_tables(ContentViewPurpose.PRODUCT)]),
             ),
 
@@ -452,14 +452,13 @@ class ScientificProducts(Products):
                 ScientificStage.DISPLAYITEMS,
                 lambda: None if not self.get_all_latex_tables(ContentViewPurpose.HYPERTARGET_PRODUCT) else
                 '\n\n'.join([f'- "{get_displayitem_caption(table, first_line_only=True)}":\n\n'
-                             f'```latex\n{table}\n```'
+                             f'{table}'
                              for table in self.get_all_latex_tables(ContentViewPurpose.HYPERTARGET_PRODUCT)]),
             ),
 
             'additional_results': NameDescriptionStageGenerator(
                 'Additional Results (additional_results.pkl)',
-                'Here are some additional numeric values that may be helpful in writing the paper '
-                '(as saved to "additional_results.pkl"):\n\n{}',
+                'Here are some additional numeric values that may be helpful in writing the paper:\n\n{}',
                 ScientificStage.INTERPRETATION,
                 lambda: self.codes_and_outputs[
                     'data_analysis'].created_files.get_created_content_files_to_pretty_contents(
@@ -468,8 +467,7 @@ class ScientificProducts(Products):
 
             'additional_results_linked': NameDescriptionStageGenerator(
                 'Additional Results (additional_results.pkl) with hypertargets',
-                'Here are some additional numeric values that may be helpful in writing the paper '
-                '(as saved to "additional_results.pkl"):\n\n{}',
+                'Here are some additional numeric values that may be helpful in writing the paper:\n\n{}',
                 ScientificStage.INTERPRETATION,
                 lambda: self.codes_and_outputs[
                     'data_analysis'].created_files.get_created_content_files_to_pretty_contents(

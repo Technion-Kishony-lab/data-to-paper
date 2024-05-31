@@ -100,6 +100,7 @@ tex_file_requirement = TexTableContentOutputFileRequirement('*.tex',
                                                             minimal_count=1, max_tokens=None,
                                                             hypertarget_prefixes=HypertargetPrefix.LATEX_TABLES.value)
 
+# Disable hypertargets for FINAL_APPENDIX because we want the hypertargets to be in the tables themselves:
 tex_file_requirement.content_view_purpose_converter.view_purpose_to_params[
     ContentViewPurpose.FINAL_APPENDIX] = \
     ContentViewParams(hypertarget_format=HypertargetFormat(position=HypertargetPosition.NONE),
