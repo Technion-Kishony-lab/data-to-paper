@@ -12,8 +12,8 @@ from data_to_paper.utils.dataframe import extract_df_row_labels, extract_df_colu
 
 
 DISPLAYITEMS_TO_FUNC_NAMES = {
-    'table': 'to_latex_with_note',
-    'figure': 'to_figure_with_note'
+    'table': 'df_to_latex',
+    'figure': 'df_to_figure'
 }
 
 
@@ -31,10 +31,10 @@ def check_that_index_is_true(df: pd.DataFrame, filename: str, index: bool) -> Li
         else:
             msg = ''
         issues.append(RunIssue.from_current_tb(
-            category='Calling to_latex_with_note',
+            category='Calling df_to_latex',
             code_problem=CodeProblem.OutputFileDesignLevelA,
             item=filename,
-            issue=f'Do not call `to_latex_with_note` with `index=False`. '
+            issue=f'Do not call `df_to_latex` with `index=False`. '
                   f'I want to be able to extract the row labels from the index.',
             instructions=dedent_triple_quote_str("""
                 Please revise the code making sure all tables are created with `index=True`, and that the index is \t
@@ -88,9 +88,9 @@ def checks_that_rows_are_labelled(df: pd.DataFrame, filename: str, index: bool, 
     columns = df.columns
     if index is False and df.shape[0] > 1 and df[columns[0]].dtype != 'object':
         if displayitem == 'table':
-            instructions = 'Use `index=True` in the function `to_latex_with_note`.'
+            instructions = 'Use `index=True` in the function `df_to_latex`.'
         else:
-            instructions = 'Use `use_index=True` in the function `to_figure_with_note`.'
+            instructions = 'Use `use_index=True` in the function `df_to_figure`.'
         return [RunIssue(
             category='Checking df: Unlabelled rows',
             code_problem=CodeProblem.OutputFileDesignLevelA,
@@ -225,7 +225,7 @@ def _create_displayitem_caption_label_issue(filename: str, issue: str) -> RunIss
         issue=issue,
         instructions=dedent_triple_quote_str("""
             Please revise the code making sure all displayitems are created with a caption and a label.
-            Use the arguments `caption` and `label` of `to_latex_with_note` or `to_figure_with_note`.
+            Use the arguments `caption` and `label` of `df_to_latex` or `df_to_figure`.
             Captions should be suitable for tables/figures of a scientific paper.
             Labels should be in the format `table:<your table label here>`, `figure:<your figure label here>`.
             In addition, you can add:

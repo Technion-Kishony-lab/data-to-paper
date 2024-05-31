@@ -16,21 +16,21 @@ from .check_df_formatting import check_for_repetitive_value_in_column, checks_th
 from .check_df_of_table import check_df_headers_are_int_str_or_bool, check_output_df_for_content_issues
 from .label_latex_source import embed_source_filename_as_comment_in_latex_displayitem
 
-from ..original_utils import to_figure_with_note
-from ..original_utils.to_latex_with_note import raise_on_wrong_params_for_to_latex_with_note
+from ..original_utils import df_to_figure
+from ..original_utils.df_to_latex import raise_on_wrong_params_for_df_to_latex
 
 
-def _to_figure_with_note(df: pd.DataFrame, filename: str,
-                         caption: str = None,
-                         label: str = None,
-                         note: str = None,
-                         glossary: Dict[str, str] = None,
-                         **kwargs):
+def _df_to_figure(df: pd.DataFrame, filename: str,
+                  caption: str = None,
+                  label: str = None,
+                  note: str = None,
+                  glossary: Dict[str, str] = None,
+                  **kwargs):
     """
-    Replacement of to_figure_with_note to be used by LLM-writen code.
-    Same as to_figure_with_note, but also checks for issues.
+    Replacement of df_to_figure to be used by LLM-writen code.
+    Same as df_to_figure, but also checks for issues.
     """
-    raise_on_wrong_params_for_to_latex_with_note(df, filename, caption=caption, label=label, glossary=glossary)
+    raise_on_wrong_params_for_df_to_latex(df, filename, caption=caption, label=label, glossary=glossary)
     if not isinstance(filename, str):
         raise ValueError(f'Expected `filename` to be a string, got {type(filename)}')
 
@@ -46,8 +46,8 @@ def _to_figure_with_note(df: pd.DataFrame, filename: str,
     else:
         comment = None
 
-    latex = to_figure_with_note(df, filename, caption=caption, label=label, note=note, glossary=glossary,
-                                pvalue_on_str=OnStr.LATEX_SMALLER_THAN, comment=comment, **kwargs)
+    latex = df_to_figure(df, filename, caption=caption, label=label, note=note, glossary=glossary,
+                         pvalue_on_str=OnStr.LATEX_SMALLER_THAN, comment=comment, **kwargs)
     return latex
 
 

@@ -6,7 +6,7 @@ from pytest import raises
 from data_to_paper.research_types.hypothesis_testing.coding.utils_modified_for_gpt_use. \
     check_df_of_table import check_output_df_for_content_issues
 from data_to_paper.research_types.hypothesis_testing.coding. \
-    utils_modified_for_gpt_use.to_latex_with_note import _check_for_table_style_issues
+    utils_modified_for_gpt_use.df_to_latex import _check_for_table_style_issues
 from data_to_paper.research_types.hypothesis_testing.coding.\
     utils_modified_for_gpt_use.to_pickle import get_dataframe_to_pickle_attr_replacer
 from data_to_paper.run_gpt_code.overrides.pvalue import PValue, is_p_value

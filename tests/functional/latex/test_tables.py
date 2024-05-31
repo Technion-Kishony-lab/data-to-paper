@@ -4,7 +4,7 @@ import pytest
 from pytest import fixture
 
 from data_to_paper.latex.latex_doc import LatexDocument
-from data_to_paper.research_types.hypothesis_testing.coding.original_utils import to_latex_with_note
+from data_to_paper.research_types.hypothesis_testing.coding.original_utils import df_to_latex
 from data_to_paper.research_types.hypothesis_testing.coding. \
     utils_modified_for_gpt_use.abbreviations import is_unknown_abbreviation
 
@@ -19,8 +19,8 @@ def df_table():
     })
 
 
-def test_to_latex_with_note(df_table):
-    latex = to_latex_with_note(df_table, None, caption='test caption', label='table:test', note='this is a note',
+def test_df_to_latex(df_table):
+    latex = df_to_latex(df_table, None, caption='test caption', label='table:test', note='this is a note',
                                glossary={'CV': 'coefficient of variation', 'SD': 'standard deviation'})
     latex = latex.replace('@@<', '').replace('>@@', '')
     width = LatexDocument().compile_table(latex, file_stem='test')
@@ -31,7 +31,7 @@ def test_table_with_list():
     df = pd.DataFrame({
         'a': [[1, 2.3578523523523, 3], [4, 5, 6]],
     })
-    assert '2.358, ' in to_latex_with_note(df, None, caption='test caption', label='table:test', note='this is a note')
+    assert '2.358, ' in df_to_latex(df, None, caption='test caption', label='table:test', note='this is a note')
 
 
 @pytest.mark.parametrize('phrase, expected', [

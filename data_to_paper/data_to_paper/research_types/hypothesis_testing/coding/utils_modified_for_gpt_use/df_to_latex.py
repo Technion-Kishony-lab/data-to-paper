@@ -19,8 +19,8 @@ from .check_df_formatting import check_for_repetitive_value_in_column, checks_th
 from .check_df_of_table import check_df_headers_are_int_str_or_bool, check_output_df_for_content_issues
 from .label_latex_source import embed_source_filename_as_comment_in_latex_displayitem
 
-from ..original_utils import to_latex_with_note
-from ..original_utils.to_latex_with_note import raise_on_wrong_params_for_to_latex_with_note
+from ..original_utils import df_to_latex
+from ..original_utils.df_to_latex import raise_on_wrong_params_for_df_to_latex
 
 
 def _find_longest_str_in_list(lst: Iterable[Union[str, Any]]) -> Optional[str]:
@@ -52,16 +52,16 @@ def _find_longest_labels_in_index(index: [pd.Index, pd.MultiIndex]) -> Union[str
         return [_find_longest_str_in_list(index)]
 
 
-def _to_latex_with_note(df: pd.DataFrame, filename: str, caption: str = None, label: str = None,
-                        note: str = None,
-                        glossary: Dict[str, str] = None,
-                        columns: List[str] = None,
-                        **kwargs):
+def _df_to_latex(df: pd.DataFrame, filename: str, caption: str = None, label: str = None,
+                 note: str = None,
+                 glossary: Dict[str, str] = None,
+                 columns: List[str] = None,
+                 **kwargs):
     """
-    Replacement of to_latex_with_note to be used by LLM-writen code.
-    Same as to_latex_with_note, but also checks for issues.
+    Replacement of df_to_latex to be used by LLM-writen code.
+    Same as df_to_latex, but also checks for issues.
     """
-    raise_on_wrong_params_for_to_latex_with_note(df, filename, caption=caption, label=label, note=note,
+    raise_on_wrong_params_for_df_to_latex(df, filename, caption=caption, label=label, note=note,
                                                  glossary=glossary)
     if not isinstance(filename, str):
         raise ValueError(f'Expected `filename` to be a string, got {type(filename)}')
@@ -83,22 +83,22 @@ def _to_latex_with_note(df: pd.DataFrame, filename: str, caption: str = None, la
     else:
         comment = None
 
-    latex = to_latex_with_note(df, filename, caption=caption, label=label, note=note, glossary=glossary,
-                               pvalue_on_str=OnStr.LATEX_SMALLER_THAN, comment=comment, **kwargs)
+    latex = df_to_latex(df, filename, caption=caption, label=label, note=note, glossary=glossary,
+                        pvalue_on_str=OnStr.LATEX_SMALLER_THAN, comment=comment, **kwargs)
     return latex
 
 
-def to_latex_with_note_transpose(df: pd.DataFrame, filename: Optional[str], *args,
-                                 note: str = None,
-                                 glossary: Dict[str, str] = None,
-                                 pvalue_on_str: Optional[OnStr] = None,
-                                 **kwargs):
+def df_to_latex_transpose(df: pd.DataFrame, filename: Optional[str], *args,
+                          note: str = None,
+                          glossary: Dict[str, str] = None,
+                          pvalue_on_str: Optional[OnStr] = None,
+                          **kwargs):
     assert 'columns' not in kwargs, "assumes columns is None"
     index = kwargs.pop('index', True)
     header = kwargs.pop('header', True)
     header, index = index, header
-    return to_latex_with_note(df.T, filename, note=note, glossary=glossary, pvalue_on_str=pvalue_on_str, index=index,
-                              header=header, **kwargs)
+    return df_to_latex(df.T, filename, note=note, glossary=glossary, pvalue_on_str=pvalue_on_str, index=index,
+                       header=header, **kwargs)
 
 
 def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
@@ -133,8 +133,8 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
 
     file_stem, _ = filename.split('.')
     with RegisteredRunContext.temporarily_disable_all():
-        latex = to_latex_with_note(df, None, note=note, glossary=glossary, pvalue_on_str=OnStr.LATEX_SMALLER_THAN,
-                                   append_html=False, **kwargs)
+        latex = df_to_latex(df, None, note=note, glossary=glossary, pvalue_on_str=OnStr.LATEX_SMALLER_THAN,
+                            append_html=False, **kwargs)
         if compilation_func is None:
             e = 0
         else:
@@ -164,9 +164,9 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
         ))
     elif e > 1.3:
         # Try to compile the transposed table:
-        latex_transpose = to_latex_with_note_transpose(df, None, *args, note=note, glossary=glossary,
-                                                       pvalue_on_str=OnStr.LATEX_SMALLER_THAN, append_html=False,
-                                                       **kwargs)
+        latex_transpose = df_to_latex_transpose(df, None, *args, note=note, glossary=glossary,
+                                                pvalue_on_str=OnStr.LATEX_SMALLER_THAN, append_html=False,
+                                                **kwargs)
         with RegisteredRunContext.temporarily_disable_all():
             e_transpose = compilation_func(latex_transpose, file_stem + '_transpose')
         if isinstance(e_transpose, float) and e_transpose < 1.1:
@@ -180,7 +180,7 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
                 - Drop unnecessary columns. \t
                 If the labels cannot be shortened much, consider whether there might be any \t
                 unnecessary columns that we can drop. \t
-                Use `to_latex_with_note(df, filename, columns=...)`.
+                Use `df_to_latex(df, filename, columns=...)`.
                 """)
         else:
             drop_column_message = ''

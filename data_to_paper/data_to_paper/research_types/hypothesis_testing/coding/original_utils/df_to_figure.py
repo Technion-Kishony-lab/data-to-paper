@@ -16,17 +16,17 @@ from data_to_paper.run_gpt_code.overrides.pvalue import OnStrPValue, OnStr, PVal
 from data_to_paper.utils.text_formatting import escape_html
 
 
-def to_figure_with_note(df: pd.DataFrame, filename: Optional[str],
-                        caption: str = None,
-                        label: str = None,
-                        note: str = None,
-                        glossary: Dict[str, str] = None,
-                        pvalue_on_str: Optional[OnStr] = None,
-                        comment: str = None,
-                        append_html: bool = True,
-                        xlabel: Optional[str] = None,
-                        ylabel: Optional[str] = None,
-                        **kwargs):
+def df_to_figure(df: pd.DataFrame, filename: Optional[str],
+                 caption: str = None,
+                 label: str = None,
+                 note: str = None,
+                 glossary: Dict[str, str] = None,
+                 pvalue_on_str: Optional[OnStr] = None,
+                 comment: str = None,
+                 append_html: bool = True,
+                 xlabel: Optional[str] = None,
+                 ylabel: Optional[str] = None,
+                 **kwargs):
     """
     Create a matplotlib figure embedded in a LaTeX figure with a caption and label.
     """

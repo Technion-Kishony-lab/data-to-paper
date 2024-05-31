@@ -48,16 +48,16 @@ HTML_TABLE_WITH_LABEL_AND_CAPTION = r"""
 """
 
 
-def raise_on_wrong_params_for_to_latex_with_note(df: pd.DataFrame, filename: Optional[str],
-                                                 caption: str = None,
-                                                 label: str = None,
-                                                 note: str = None,
-                                                 glossary: Dict[str, str] = None,
-                                                 is_wide: bool = True,
-                                                 pvalue_on_str: Optional[OnStr] = None,
-                                                 comment: str = None,
-                                                 append_html: bool = True,
-                                                 **kwargs):
+def raise_on_wrong_params_for_df_to_latex(df: pd.DataFrame, filename: Optional[str],
+                                          caption: str = None,
+                                          label: str = None,
+                                          note: str = None,
+                                          glossary: Dict[str, str] = None,
+                                          is_wide: bool = True,
+                                          pvalue_on_str: Optional[OnStr] = None,
+                                          comment: str = None,
+                                          append_html: bool = True,
+                                          **kwargs):
     if not isinstance(df, pd.DataFrame):
         raise ValueError(f'Expected `df` to be a pandas.DataFrame, got {type(df)}')
 
@@ -94,21 +94,21 @@ def raise_on_wrong_params_for_to_latex_with_note(df: pd.DataFrame, filename: Opt
         raise ValueError(f'Expected `append_html` to be a bool, got {type(append_html)}')
 
 
-def to_latex_with_note(df: pd.DataFrame, filename: Optional[str], caption: str = None, label: str = None,
-                       note: str = None,
-                       glossary: Dict[str, str] = None,
-                       is_wide: bool = True,
-                       pvalue_on_str: Optional[OnStr] = None,
-                       comment: str = None,
-                       append_html: bool = True,
-                       **kwargs):
+def df_to_latex(df: pd.DataFrame, filename: Optional[str], caption: str = None, label: str = None,
+                note: str = None,
+                glossary: Dict[str, str] = None,
+                is_wide: bool = True,
+                pvalue_on_str: Optional[OnStr] = None,
+                comment: str = None,
+                append_html: bool = True,
+                **kwargs):
     """
     Create a latex table with a note.
     Same as df.to_latex, but with a note and glossary.
     """
 
-    raise_on_wrong_params_for_to_latex_with_note(df, filename, caption, label, note, glossary, is_wide,
-                                                 pvalue_on_str, comment, append_html, **kwargs)
+    raise_on_wrong_params_for_df_to_latex(df, filename, caption, label, note, glossary, is_wide,
+                                          pvalue_on_str, comment, append_html, **kwargs)
 
     regular_latex_table = df_to_numerically_labeled_latex(df, pvalue_on_str=pvalue_on_str)
 

@@ -135,7 +135,7 @@ class CreateDisplayitemsCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLa
         '# PREPARATION FOR ALL TABLES AND FIGURES',
     )
     phrases_required_in_code: Tuple[str, ...] = \
-        ('\nfrom my_utils import to_latex_with_note, to_figure_with_note, is_str_in_df, split_mapping, AbbrToNameDef', )
+        ('\nfrom my_utils import df_to_latex, df_to_figure, is_str_in_df, split_mapping, AbbrToNameDef', )
 
     user_agent: ScientificAgent = ScientificAgent.InterpretationReviewer
     background_product_fields: Tuple[str, ...] = \
@@ -150,8 +150,8 @@ class CreateDisplayitemsCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLa
         DataOutputFileRequirement('*.png', minimal_count=0)])
 
     provided_code: str = dedent_triple_quote_str('''
-        def to_latex_with_note(df, filename: str, caption: str, label: str,
-                               note: str = None, glossary: Dict[str, str] = None, **kwargs):
+        def df_to_latex(df, filename: str, caption: str, label: str,
+                        note: str = None, glossary: Dict[str, str] = None, **kwargs):
             """
             Saves a DataFrame as a LaTeX table with optional note and glossary added below the table.
 
@@ -162,16 +162,16 @@ class CreateDisplayitemsCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLa
             - **kwargs: Additional arguments for `df.to_latex`.
             """
 
-        def to_figure_with_note(df, filename: str, caption: str, label: str,
-                                note: str = None, glossary: Dict[str, str] = None, 
-                                x: Optional[str] = None, y: Optional[str] = None, kind: str = 'line',
-                                use_index: bool = True, 
-                                xlabel: str = None, ylabel: str = None,
-                                logx: bool = False, logy: bool = False,
-                                xerr: str = None, yerr: str = None,
-                                x_ci: Union[str, Tuple[str, str]] = None, y_ci: Union[str, Tuple[str, str]] = None,
-                                x_p_value: str = None, y_p_value: str = None,
-                                ):
+        def df_to_figure(df, filename: str, caption: str, label: str,
+                         note: str = None, glossary: Dict[str, str] = None, 
+                         x: Optional[str] = None, y: Optional[str] = None, kind: str = 'line',
+                         use_index: bool = True, 
+                         xlabel: str = None, ylabel: str = None,
+                         logx: bool = False, logy: bool = False,
+                         xerr: str = None, yerr: str = None,
+                         x_ci: Union[str, Tuple[str, str]] = None, y_ci: Union[str, Tuple[str, str]] = None,
+                         x_p_value: str = None, y_p_value: str = None,
+                         ):
             """
             Saves a DataFrame to a LaTeX figure with caption and optional glossary added below the figure.
 
@@ -255,7 +255,7 @@ class CreateDisplayitemsCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLa
         ```python
         # IMPORT
         import pandas as pd
-        from my_utils import to_latex_with_note, to_figure_with_note, is_str_in_df, split_mapping, AbbrToNameDef
+        from my_utils import df_to_latex, df_to_figure, is_str_in_df, split_mapping, AbbrToNameDef
 
         # PREPARATION FOR ALL TABLES AND FIGURES
         ### As applicable, define a shared mapping for labels that are common to all df. For example:
@@ -293,10 +293,10 @@ class CreateDisplayitemsCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLa
         index=abbrs_to_names{first_df_number})
 
         # <Choose whether it is more appropriate to present the data as a table or a figure.>
-        # <Use either `to_latex_with_note` or `to_figure_with_note`> 
+        # <Use either `df_to_latex` or `df_to_figure`> 
 
         # Creat latex table:
-        to_latex_with_note(
+        df_to_latex(
             df{first_df_number}, 'df_{first_df_number}.tex',
             caption="<choose a caption suitable for a table in a scientific paper>", 
             label='<table:xxx>',
@@ -304,7 +304,7 @@ class CreateDisplayitemsCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLa
             glossary=glossary{first_df_number})
 
         # Create latex figure:
-        to_figure_with_note(
+        df_to_figure(
             df{first_df_number}, 'df_{first_df_number}.tex',
             caption="<one line heading of the figure (this will get bolded in the scientific papers).>", 
             label='<figure:xxx>',
