@@ -64,6 +64,9 @@ class CitationCollectionProduct(ValueProduct):
     name: str = "Citation List"
     value: List[Citation] = None
 
+    def __iter__(self) -> Iterable[Citation]:
+        return super().__iter__()
+
     def _get_citations_as_str(self, is_html: bool, style: str = None,
                               embedding_target: Optional[np.ndarray] = None) -> str:
         return '\n'.join(citation.pretty_repr(

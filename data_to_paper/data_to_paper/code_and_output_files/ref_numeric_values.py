@@ -102,7 +102,7 @@ class ReferencedValue:
 
 
 class HypertargetPosition(Enum):
-    NONE = 0  # do noit create hypertargets
+    NONE = 0  # do not create hypertargets
     WRAP = 1  # \hypertarget{target}{value}
     ADJACENT = 2  # \hypertarget{target}{}value
     HEADER = 3  # \hypertarget{target}{} ... value

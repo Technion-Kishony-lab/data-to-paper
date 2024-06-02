@@ -11,19 +11,10 @@ class Product:
     A product is a piece of information that is generated during the conversation.
     A product needs to know how to be presented:
     - as markdown, to be included in a pre-conversation context.
-    - as html, to be be shown in the app.
+    - as html, to be shown in the app.
     """
     name: str = None
     stage: Stage = None
-    pre_text_for_markdown: str = None
-    pre_text_for_html: str = None
-
-    def _get_pre_text_for_markdown(self, level: int, **kwargs) -> str:
-        return self.pre_text_for_markdown or ''
-
-    def _get_pre_text_for_html(self, level: int, **kwargs) -> str:
-        return self.pre_text_for_html if self.pre_text_for_html is not None \
-            else self.pre_text_for_markdown
 
     def get_stage(self, **kwargs) -> Stage:
         return self.stage
@@ -32,7 +23,7 @@ class Product:
         raise NotImplementedError
 
     def _get_content_as_markdown(self, level: int, **kwargs) -> str:
-        return ''
+        raise NotImplementedError
 
     def _get_content_as_html(self, level: int, **kwargs) -> str:
         return format_text_with_code_blocks(self._get_content_as_markdown(level, **kwargs), from_md=True,
@@ -49,7 +40,6 @@ class Product:
         s = ''
         if with_header:
             s += '#' * level + ' ' + self.get_header(**kwargs) + '\n'
-        s += self._get_pre_text_for_markdown(level, **kwargs)
         s += self._get_content_as_markdown(level, **kwargs)
         return s
 
