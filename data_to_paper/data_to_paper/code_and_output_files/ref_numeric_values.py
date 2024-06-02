@@ -118,7 +118,10 @@ class HypertargetFormat:
     escaped: bool = False  # (*@ ... @*)
 
     def __bool__(self):
-        return self.position
+        return bool(self.position)
+
+    def is_hypertarget_position_header(self) -> bool:
+        return self.position == HypertargetPosition.HEADER
 
 
 def find_hyperlinks(text: str, is_targets: bool = False) -> List[ReferencedValue]:

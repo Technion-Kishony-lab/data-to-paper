@@ -9,13 +9,13 @@ from typing import Optional, List, Union
 
 import pandas as pd
 
-from data_to_paper.code_and_output_files.file_view_params import ContentView
+from data_to_paper.code_and_output_files.file_view_params import ViewPurpose
 from data_to_paper.env import FOLDER_FOR_RUN
 from data_to_paper.latex.clean_latex import wrap_as_latex_code_output
 from data_to_paper.utils.file_utils import run_in_directory, clear_directory
 from data_to_paper.utils.mutable import Mutable
 from data_to_paper.code_and_output_files.referencable_text import NumericReferenceableText, \
-    hypertarget_if_referencable_text
+    hypertarget_if_referencable_text_product, ReferencableTextProduct
 
 TEXT_EXTS = ['.txt', '.md', '.csv', '.xls', '.xlsx']
 
@@ -23,7 +23,7 @@ TEXT_EXTS = ['.txt', '.md', '.csv', '.xls', '.xlsx']
 @dataclass(frozen=True)
 class DataFileDescription:
     file_path: str  # relative to the data directory.  should normally just be the file name
-    description: Optional[Union[str, NumericReferenceableText]] = None  # a user provided description of the file
+    description: Optional[Union[str, ReferencableTextProduct]] = None  # a user provided description of the file
     originated_from: Optional[str] = None  # None for raw file
     is_binary: Optional[bool] = None  # None for auto based on file extension
 
@@ -65,14 +65,14 @@ class DataFileDescription:
             return f'Here are the first few lines of the file:\n' \
                    f'```output\n{"".join(head)}\n```\n'
 
-    def pretty_repr(self, num_lines: int = 4, content_view: ContentView = None, file_num: Optional[int] = None) -> str:
+    def pretty_repr(self, num_lines: int = 4, view_purpose: ViewPurpose = None, file_num: Optional[int] = None) -> str:
         if file_num is not None:
             s = f'### File {file_num}: "{self.file_path}"\n'
         else:
             s = f'### "{self.file_path}"\n'
         description = self.description
         if description is not None:
-            description = hypertarget_if_referencable_text(description, content_view)
+            description = hypertarget_if_referencable_text_product(description, view_purpose, with_header=False)
             s += f'{description}\n\n'
         if num_lines > 0 and not self.get_is_binary():
             s += self.get_file_header(num_lines)
@@ -85,7 +85,7 @@ class DataFileDescriptions(List[DataFileDescription]):
     """
 
     def __init__(self, *args, data_folder: Optional[Union[str, Path]] = None,
-                 general_description: Optional[Union[str, NumericReferenceableText]] = None,
+                 general_description: Optional[Union[str, ReferencableTextProduct]] = None,
                  **kwargs):
         super().__init__(*args, **kwargs)
         self.data_folder = data_folder
@@ -124,34 +124,34 @@ class DataFileDescriptions(List[DataFileDescription]):
                                     data_folder=self.data_folder)
 
     def get_pretty_description_for_file_and_children(
-            self, data_file: DataFileDescription, index: Mutable = None, content_view: ContentView = None):
+            self, data_file: DataFileDescription, index: Mutable = None, view_purpose: ViewPurpose = None):
         """
         Return a pretty description for the given data file and all its children.
         """
         children = self.get_children(data_file)
         index.val += 1
-        s = data_file.pretty_repr(0 if children else 4, content_view=content_view, file_num=index.val) + '\n'
+        s = data_file.pretty_repr(0 if children else 4, view_purpose=view_purpose, file_num=index.val) + '\n'
         for child in children:
             s += self.get_pretty_description_for_file_and_children(child, index)
         return s
 
-    def pretty_repr(self, num_lines: int = 4, content_view: ContentView = None) -> str:
+    def pretty_repr(self, num_lines: int = 4, view_purpose: ViewPurpose = None) -> str:
         s = ''
         if self.general_description is not None:
             s += '## General Description\n'
-            s += hypertarget_if_referencable_text(self.general_description, content_view) + '\n'
+            s += hypertarget_if_referencable_text_product(self.general_description, view_purpose, with_header=False) + '\n'
         with run_in_directory(self.data_folder):
             s += '## Data Files\n'
             if len(self) == 0:
                 s += 'There are no data files'
             elif len(self) == 1:
                 s += f"The dataset consists of 1 data file:\n\n"
-                s += self[0].pretty_repr(num_lines, content_view=content_view)
+                s += self[0].pretty_repr(num_lines, view_purpose=view_purpose)
             else:
                 s += f"The dataset consists of {len(self)} data files:\n\n"
                 index = Mutable(0)
                 for parent in self.get_all_raw_files():
-                    s += self.get_pretty_description_for_file_and_children(parent, index, content_view=content_view)
+                    s += self.get_pretty_description_for_file_and_children(parent, index, view_purpose=view_purpose)
             return s
 
     def get_data_filenames(self):
@@ -161,11 +161,11 @@ class DataFileDescriptions(List[DataFileDescription]):
                  section_name: str = 'Data Description',
                  label: str = 'sec:data_description',
                  text: str = 'Here is the data description, as provided by the user:',
-                 content_view: ContentView = None) -> str:
+                 view_purpose: ViewPurpose = None) -> str:
         s = ''
         s += f"\\section{{{section_name}}} \\label{{{label}}} {text}"
         s += '\n\n' + wrap_as_latex_code_output(
-            self.pretty_repr(num_lines=0, content_view=content_view))
+            self.pretty_repr(num_lines=0, view_purpose=view_purpose))
         return s
 
 
@@ -213,8 +213,17 @@ class CreateDataFileDescriptions:
 
     def _convert_description_to_referenceable_text(self, description: str, file_num: Optional[int],
                                                    file_name: str = None):
-        return NumericReferenceableText(text=description,
-                                        hypertarget_prefix=self._get_hypertarget_prefix(file_num, file_name))
+        """
+        file_num: the file number. None refers to the general description.
+        """
+        return ReferencableTextProduct(
+            referencable_text=NumericReferenceableText(
+                text=description,
+                hypertarget_prefix=self._get_hypertarget_prefix(file_num, file_name)),
+            name=file_name,
+            block_label=None,
+            header_hypertarget_prefix='file',
+        )
 
     def _convert_data_file_path_str_to_path(self, data_file_path: str):
         """
@@ -230,8 +239,8 @@ class CreateDataFileDescriptions:
         return self._convert_description_to_referenceable_text(description, file_num, data_file_path.name)
 
     def _get_general_description_referenceable_text(self):
-        return self._convert_description_to_referenceable_text(
-            self._read_general_description(), None)
+        return self._convert_description_to_referenceable_text(self._read_general_description(), None,
+                                                               'General Description')
 
     def _copy_files_and_get_list_of_data_file_descriptions(self) -> List[DataFileDescription]:
         data_file_descriptions = []

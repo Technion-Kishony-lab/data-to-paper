@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from typing import Optional, Any, TYPE_CHECKING, Dict
 
 from data_to_paper.base_products import DataFileDescriptions
-from data_to_paper.code_and_output_files.file_view_params import ContentView, ContentViewPurpose
+from data_to_paper.code_and_output_files.file_view_params import ViewPurpose
 from data_to_paper.code_and_output_files.output_file_requirements import OutputFileRequirementsWithContent
 from data_to_paper.code_and_output_files.ref_numeric_values import HypertargetFormat, HypertargetPosition, \
     ReferencedValue
@@ -71,7 +71,7 @@ class CodeAndOutput:
                 code = self._add_hypertarget_to_code(code, self._get_label_for_file(filename), lineno)
         return code
 
-    def to_latex(self, content_view: ContentView) -> str:
+    def to_latex(self, view_purpose: ViewPurpose) -> str:
         s = f"\\section{{{self.name}}}\n"
         if self.code:
             s += "\\subsection{{Code}}\n"
@@ -85,11 +85,11 @@ class CodeAndOutput:
             s += "\\subsection{Code Description}\n"
             s += '\n' + self.code_explanation
 
-        outputs = self.created_files.get_created_content_files_to_referencable_text(content_view=content_view)
+        outputs = self.created_files.get_created_content_files_to_referencable_text_product(view_purpose=view_purpose)
         if outputs:
             s += '\n\n' + "\\subsection{Code Output}"
             for filename, output in outputs.items():
-                content, references = output.get_hypertarget_text_and_header_references(content_view)
+                content, references = output.get_formatted_text_and_references(view_purpose)
                 s += '\n'.join(reference.to_str(HypertargetFormat(HypertargetPosition.HEADER))
                                for reference in references)
                 header = replace_special_latex_chars(filename)
@@ -117,7 +117,7 @@ class CodeAndOutput:
             s += wrap_text_with_triple_quotes(self.code_explanation, 'latex') + '\n'
         if self.created_files:
             outputs = self.created_files.get_created_content_files_to_pretty_contents(
-                content_view=ContentViewPurpose.APP_HTML)
+                view_purpose=ViewPurpose.APP_HTML)
         else:
             outputs = None
 

@@ -5,12 +5,12 @@ from typing import Iterable, Any, Type, Tuple, Optional, Dict, Collection, List
 from data_to_paper.base_steps import DebuggerConverser, CheckLatexCompilation
 from data_to_paper.base_steps.request_code import CodeReviewPrompt
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
-from data_to_paper.code_and_output_files.file_view_params import ContentView, ContentViewPurpose, ContentViewParams
+from data_to_paper.code_and_output_files.file_view_params import ViewPurpose
 from data_to_paper.code_and_output_files.output_file_requirements import TextContentOutputFileRequirement, \
     OutputFileRequirements, DataOutputFileRequirement
 from data_to_paper.code_and_output_files.ref_numeric_values import HypertargetFormat, HypertargetPosition
 from data_to_paper.code_and_output_files.referencable_text import BaseReferenceableText, convert_str_to_latex_label, \
-    LabeledNumericReferenceableText
+    LabeledNumericReferenceableText, ReferencableTextProduct
 from data_to_paper.latex.tables import get_displayitem_caption
 from data_to_paper.research_types.hypothesis_testing.cast import ScientificAgent
 from data_to_paper.research_types.hypothesis_testing.coding.base_code_conversers import BaseCreateTablesCodeProductsGPT
@@ -55,9 +55,9 @@ class DataframePreventAssignmentToAttrs(PreventAssignmentToAttrs):
 
 
 @dataclass
-class DisplayitemNumericReferenceableText(LabeledNumericReferenceableText):
-    def _wrap_as_block(self, content: str):
-        return f'"{self.filename}":\n{wrap_text_with_triple_quotes(content, "html")}\n'
+class DisplayitemNumericReferenceableTextProduct(ReferencableTextProduct):
+    def _process_content(self, content: str):
+        return f'"{self.name}":\n{wrap_text_with_triple_quotes(content, "html")}\n'
 
 
 @dataclass(frozen=True)
@@ -65,20 +65,22 @@ class TexTableContentOutputFileRequirement(TextContentOutputFileRequirement):
     filename: str = '*.tex'
     referenceable_text_cls: type = LabeledNumericReferenceableText
 
-    def get_referencable_text(self, content: Any, filename: str = None, num_file: int = 0,
-                              content_view: ContentView = None) -> BaseReferenceableText:
-        if content_view == ContentViewPurpose.APP_HTML:
+    def get_referencable_text_product(self, content: Any, filename: str = None, num_file: int = 0,
+                                      view_purpose: ViewPurpose = None) -> ReferencableTextProduct:
+        if view_purpose == ViewPurpose.APP_HTML:
             content = get_html_from_latex(content)
-            result = DisplayitemNumericReferenceableText(
+            result = DisplayitemNumericReferenceableTextProduct(
+                referencable_text=self.referenceable_text_cls(
                     text=content,
-                    filename=filename,
                     hypertarget_prefix=self.hypertarget_prefixes[num_file] if self.hypertarget_prefixes else None,
-                    content_view_purpose_converter=self.content_view_purpose_converter,
-                )
+                ),
+                name=filename,
+                content_view_purpose_converter=self.content_view_purpose_converter,
+            )
         else:
             content = get_latex_without_html_comment(content)
-            result = super().get_referencable_text(content, filename, num_file, content_view)
-        if content_view == ContentViewPurpose.FINAL_INLINE:
+            result = super().get_referencable_text_product(content, filename, num_file, view_purpose)
+        if view_purpose == ViewPurpose.FINAL_INLINE:
             text = result.text
             pickle_filename = extract_source_filename_from_latex_displayitem(text)
             if pickle_filename:
@@ -102,9 +104,7 @@ tex_file_requirement = TexTableContentOutputFileRequirement('*.tex',
 
 # Disable hypertargets for FINAL_APPENDIX because we want the hypertargets to be in the tables themselves:
 tex_file_requirement.content_view_purpose_converter.view_purpose_to_params[
-    ContentViewPurpose.FINAL_APPENDIX] = \
-    ContentViewParams(hypertarget_format=HypertargetFormat(position=HypertargetPosition.NONE),
-                      pvalue_on_str=OnStr.SMALLER_THAN)
+    ViewPurpose.FINAL_APPENDIX] = HypertargetFormat(position=HypertargetPosition.NONE)
 
 
 png_file_requirement = DataOutputFileRequirement('*.png', minimal_count=0)

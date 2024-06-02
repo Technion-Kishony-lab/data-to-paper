@@ -4,9 +4,9 @@ from typing import Optional, Dict, Tuple, Set, List, Union
 
 from data_to_paper.base_steps import LiteratureSearch
 from data_to_paper.base_steps.literature_search import LiteratureSearchParams
-from data_to_paper.code_and_output_files.file_view_params import ContentView, ContentViewPurpose
+from data_to_paper.code_and_output_files.file_view_params import ViewPurpose
 from data_to_paper.code_and_output_files.ref_numeric_values import replace_hyperlinks_with_values
-from data_to_paper.code_and_output_files.referencable_text import hypertarget_if_referencable_text
+from data_to_paper.code_and_output_files.referencable_text import hypertarget_if_referencable_text_product
 from data_to_paper.conversation.stage import Stage
 from data_to_paper.latex import extract_latex_section_from_response
 from data_to_paper.latex.latex_to_pdf import evaluate_latex_num_command
@@ -122,21 +122,21 @@ class ScientificProducts(Products):
     def get_number_of_created_dfs(self) -> int:
         return len(self.get_created_dfs())
 
-    def get_latex_displayitems(self, content_view: ContentView = None) -> Dict[str, List[str]]:
+    def get_latex_displayitems(self, view_purpose: ViewPurpose = None) -> Dict[str, List[str]]:
         """
         Return the tables.
         """
         return {'results': [
             content for file, content
             in self.codes_and_outputs[
-                'data_to_latex'].created_files.get_created_content_files_to_pretty_contents(content_view).items()
+                'data_to_latex'].created_files.get_created_content_files_to_pretty_contents(view_purpose).items()
             if file.endswith('.tex')]}
 
-    def get_all_latex_tables(self, content_view: ContentView) -> List[str]:
+    def get_all_latex_tables(self, view_purpose: ViewPurpose) -> List[str]:
         """
         Return the tables from all sections.
         """
-        return [table for tables in self.get_latex_displayitems(content_view).values() for table in tables]
+        return [table for tables in self.get_latex_displayitems(view_purpose).values() for table in tables]
 
     @property
     def all_file_descriptions(self) -> DataFileDescriptions:
@@ -208,11 +208,11 @@ class ScientificProducts(Products):
             citations.update(section_citations)
         return NiceList(citations, separator='\n\n')
 
-    def get_tabled_paper_sections(self, content_view: ContentView) -> Dict[str, str]:
+    def get_tabled_paper_sections(self, view_purpose: ViewPurpose) -> Dict[str, str]:
         """
         Return the paper sections with tables inserted at the right places.
         """
-        latex_displayitems = self.get_latex_displayitems(content_view)
+        latex_displayitems = self.get_latex_displayitems(view_purpose)
         return {section_name: section if section_name not in latex_displayitems
                 else add_displayitems_to_paper_section(section, latex_displayitems[section_name])
                 for section_name, section in self.get_paper_sections_without_citations().items()}
@@ -242,8 +242,8 @@ class ScientificProducts(Products):
                 'Overall Description of the Dataset',
                 '{}',
                 ScientificStage.DATA,
-                lambda: hypertarget_if_referencable_text(self.data_file_descriptions.general_description,
-                                                         ContentViewPurpose.PRODUCT),
+                lambda: hypertarget_if_referencable_text_product(self.data_file_descriptions.general_description,
+                                                                 ViewPurpose.PRODUCT),
             ),
 
             'data_file_descriptions': NameDescriptionStageGenerator(
@@ -264,8 +264,8 @@ class ScientificProducts(Products):
                 'Description of the Original Dataset (with hypertargets)',
                 '{}',
                 ScientificStage.DATA,
-                lambda: self.data_file_descriptions.pretty_repr(
-                    num_lines=0, content_view=ContentViewPurpose.HYPERTARGET_PRODUCT),
+                lambda: self.data_file_descriptions.pretty_repr(num_lines=0,
+                                                                view_purpose=ViewPurpose.HYPERTARGET_PRODUCT),
             ),
 
             'all_file_descriptions': NameDescriptionStageGenerator(
@@ -329,7 +329,7 @@ class ScientificProducts(Products):
                 lambda code_step: get_code_stage(code_step),
                 lambda code_step: {
                     'output': self.codes_and_outputs[code_step].created_files.
-                    get_created_content_files_description(content_view=ContentViewPurpose.PRODUCT),
+                    get_created_content_files_description(view_purpose=ViewPurpose.PRODUCT),
                     'code_name': self.codes_and_outputs[code_step].name},
             ),
 
@@ -377,9 +377,7 @@ class ScientificProducts(Products):
                 lambda code_step, filespec: {
                     'created_files_content':
                         self.codes_and_outputs[code_step].created_files.get_created_content_files_description(
-                            match_filename=filespec,
-                            content_view=ContentViewPurpose.CODE_REVIEW,
-                        ),
+                            view_purpose=ViewPurpose.CODE_REVIEW, match_filename=filespec),
                     'which_files': 'all files' if filespec == '*' else f'files "{filespec}"',
                     'code_name': self.codes_and_outputs[code_step].name},
             ),
@@ -439,10 +437,10 @@ class ScientificProducts(Products):
                 'Here are the displayitems created by our data analysis code '
                 '(figure/table latex representations of the df_?.pkl dataframes):\n\n{}',
                 ScientificStage.DISPLAYITEMS,
-                lambda: None if not self.get_all_latex_tables(ContentViewPurpose.PRODUCT) else
+                lambda: None if not self.get_all_latex_tables(ViewPurpose.PRODUCT) else
                 '\n\n'.join([f'- "{get_displayitem_caption(table, first_line_only=True)}":\n\n'
                              f'{table}'
-                             for table in self.get_all_latex_tables(ContentViewPurpose.PRODUCT)]),
+                             for table in self.get_all_latex_tables(ViewPurpose.PRODUCT)]),
             ),
 
             'latex_displayitems_linked': NameDescriptionStageGenerator(
@@ -450,10 +448,10 @@ class ScientificProducts(Products):
                 'Here are the displayitems created by our data analysis code '
                 '(figure/table latex representations of the df_?.pkl dataframes, with hypertargets):\n\n{}',
                 ScientificStage.DISPLAYITEMS,
-                lambda: None if not self.get_all_latex_tables(ContentViewPurpose.HYPERTARGET_PRODUCT) else
+                lambda: None if not self.get_all_latex_tables(ViewPurpose.HYPERTARGET_PRODUCT) else
                 '\n\n'.join([f'- "{get_displayitem_caption(table, first_line_only=True)}":\n\n'
                              f'{table}'
-                             for table in self.get_all_latex_tables(ContentViewPurpose.HYPERTARGET_PRODUCT)]),
+                             for table in self.get_all_latex_tables(ViewPurpose.HYPERTARGET_PRODUCT)]),
             ),
 
             'additional_results': NameDescriptionStageGenerator(
@@ -462,7 +460,7 @@ class ScientificProducts(Products):
                 ScientificStage.INTERPRETATION,
                 lambda: self.codes_and_outputs[
                     'data_analysis'].created_files.get_created_content_files_to_pretty_contents(
-                    content_view=ContentViewPurpose.PRODUCT)['additional_results.pkl'],
+                    view_purpose=ViewPurpose.PRODUCT)['additional_results.pkl'],
             ),
 
             'additional_results_linked': NameDescriptionStageGenerator(
@@ -471,6 +469,6 @@ class ScientificProducts(Products):
                 ScientificStage.INTERPRETATION,
                 lambda: self.codes_and_outputs[
                     'data_analysis'].created_files.get_created_content_files_to_pretty_contents(
-                    content_view=ContentViewPurpose.HYPERTARGET_PRODUCT)['additional_results.pkl'],
+                    view_purpose=ViewPurpose.HYPERTARGET_PRODUCT)['additional_results.pkl'],
             ),
         }
