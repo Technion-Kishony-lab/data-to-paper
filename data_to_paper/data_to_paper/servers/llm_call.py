@@ -11,6 +11,8 @@ import tiktoken
 from data_to_paper.env import LLM_MODELS_TO_API_KEYS_AND_BASE_URL, CHOSEN_APP, FAKE_REQUEST_HUMAN_RESPONSE_ON_PLAYBACK
 from data_to_paper.exceptions import TerminateException
 from data_to_paper.interactive import HumanAction, BaseApp
+from data_to_paper.env import LLM_MODELS_TO_API_KEYS_AND_BASE_URL, CHOSEN_APP, FAKE_REQUEST_HUMAN_RESPONSE_ON_PLAYBACK, \
+    SHOW_LLM_CONTEXT
 from data_to_paper.utils.print_to_file import print_and_log_red, print_and_log
 from data_to_paper.utils.serialize import SerializableValue, deserialize_serializable_value
 from data_to_paper.utils.text_formatting import dedent_triple_quote_str
@@ -250,8 +252,11 @@ def try_get_llm_response(messages: List[Message],
     tokens = count_number_of_tokens_in_message(messages, model_engine)
     if tokens + expected_tokens_in_response > model_engine.max_tokens:
         return TooManyTokensInMessageError(tokens, expected_tokens_in_response, model_engine)
-    print_and_log_red(f'Using {model_engine} (max {model_engine.max_tokens} tokens) '
-                      f'for {tokens} context tokens and {expected_tokens_in_response} expected tokens.')
+    if SHOW_LLM_CONTEXT:
+        print_and_log_red(f'Using {model_engine} (max {model_engine.max_tokens} tokens) '
+                          f'for {tokens} context tokens and {expected_tokens_in_response} expected tokens.')
+    else:
+        print_and_log_red(f'Using {model_engine}.')
     if tokens + expected_tokens_in_response < ModelEngine.DEFAULT.max_tokens and model_engine > ModelEngine.DEFAULT:
         print_and_log(f'WARNING: Consider using {ModelEngine.DEFAULT} (max {ModelEngine.DEFAULT.max_tokens} tokens).',
                       should_log=False)

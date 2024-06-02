@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import NamedTuple, Optional, List
 
-from data_to_paper.env import TEXT_WIDTH, MINIMAL_COMPACTION_TO_SHOW_CODE_DIFF, HIDE_INCOMPLETE_CODE
+from data_to_paper.env import TEXT_WIDTH, MINIMAL_COMPACTION_TO_SHOW_CODE_DIFF, HIDE_INCOMPLETE_CODE, SHOW_LLM_CONTEXT
 from data_to_paper.base_cast import Agent
 from data_to_paper.run_gpt_code.code_utils import extract_code_from_text, FailedExtractingBlock
 from data_to_paper.servers.llm_call import count_number_of_tokens_in_message
@@ -163,7 +163,7 @@ class Message:
         else:
             index = len(self.context) if self.context else None
 
-        if with_header and self.role != Role.COMMENTER and index is not None:
+        if SHOW_LLM_CONTEXT and with_header and self.role != Role.COMMENTER and index is not None:
             llm_parameters = f'{self.openai_call_parameters}' if self.openai_call_parameters else ''
             header = ''
             if self.context:
