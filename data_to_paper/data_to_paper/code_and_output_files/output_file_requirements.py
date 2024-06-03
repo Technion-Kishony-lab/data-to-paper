@@ -115,7 +115,7 @@ class ReferencableContentOutputFileRequirement(BaseContentOutputFileRequirement)
         referencable_text_product = self.get_referencable_text_product(content, filename, num_file, view_purpose)
         if view_purpose == ViewPurpose.APP_HTML:
             return referencable_text_product.as_html(**kwargs)
-        return referencable_text_product.as_markdown(view_purpose=view_purpose, **kwargs)
+        return referencable_text_product.as_formatted_text(view_purpose=view_purpose, **kwargs)
 
     def get_referencable_text_product(self, content: Any, filename: str = None, num_file: int = 0,
                                       view_purpose: ViewPurpose = None) -> ReferencableTextProduct:

@@ -122,7 +122,7 @@ class ScientificProducts(Products):
     def get_number_of_created_dfs(self) -> int:
         return len(self.get_created_dfs())
 
-    def get_latex_displayitems(self, view_purpose: ViewPurpose = None) -> Dict[str, List[str]]:
+    def get_latex_displayitems(self, view_purpose: ViewPurpose = ViewPurpose.PRODUCT) -> Dict[str, List[str]]:
         """
         Return the tables.
         """

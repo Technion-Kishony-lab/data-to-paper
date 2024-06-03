@@ -170,7 +170,7 @@ class ResultConverser(Converser):
     def get_valid_result_as_markdown(self) -> str:
         valid_result = self._get_valid_result()
         if isinstance(valid_result, Product):
-            return valid_result.as_markdown(2)
+            return valid_result.as_formatted_text(2)
         return str(valid_result)
 
     def _upon_conversation_initiation(self):

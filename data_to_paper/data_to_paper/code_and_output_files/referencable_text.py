@@ -1,30 +1,17 @@
 from __future__ import annotations
 import re
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import Optional, List, Tuple, Union, Any
 
 from data_to_paper.base_products.product import ValueProduct, Product
 from data_to_paper.code_and_output_files.file_view_params import ViewPurpose, ContentViewPurposeConverter
-from data_to_paper.code_and_output_files.ref_numeric_values import HypertargetPosition, \
+from data_to_paper.code_and_output_files.ref_numeric_values import \
     numeric_values_in_products_pattern, ReferencedValue, HypertargetFormat
-from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
-
-EXTS_TO_LABELS = {
-    '.tex': 'latex',
-    '.txt': 'output',
-    '.csv': 'csv',
-}
 
 
 @dataclass
 class ReferencableTextProduct(Product):
     referencable_text: BaseReferenceableText = None
-    name: str = None
-    block_label: Optional[Union[bool, str]] = None  # True - use auto label; str, use this label; None - no label
-    header_hypertarget_prefix: Optional[str] = None
-    header_hypertarget_label: Optional[str] = None
-    header_hyperlink_label: Optional[str] = None
     content_view_purpose_converter: Optional[ContentViewPurposeConverter] = field(default_factory=ContentViewPurposeConverter)
 
     @property
@@ -40,50 +27,21 @@ class ReferencableTextProduct(Product):
         content, _ = self._get_formatted_text_and_header_references(hypertarget_format)
         return content
 
-    def get_header(self, **kwargs) -> str:
-        view_purpose: ViewPurpose = kwargs.get('view_purpose')
+    def get_header(self, view_purpose: ViewPurpose = ViewPurpose.PRODUCT, **kwargs) -> str:
         view_params = self.content_view_purpose_converter.convert_view_purpose_to_view_params(view_purpose)
         hypertarget_format = view_params.hypertarget_format
         _, references = self._get_formatted_text_and_header_references(hypertarget_format)
         header = super().get_header()
-        if view_params.with_hyper_header:
-            header_hyperlink_label = self.get_header_hyperlink_label()
-            header_hypertarget_label = self.get_header_hypertarget_label()
-            if header_hyperlink_label:
-                header = ReferencedValue(label=header_hyperlink_label, value=header, is_target=False).to_str()
-            if header_hypertarget_label:
-                references.append(ReferencedValue(label=header_hypertarget_label, value='', is_target=True))
         header = '\n'.join(reference.to_str(hypertarget_format) for reference in references) + header
         return header
 
-    def _get_content_as_markdown(self, level: int, **kwargs) -> str:
-        view_purpose: ViewPurpose = kwargs.get('view_purpose')
+    def _get_content_as_formatted_text(self, level: int, view_purpose: ViewPurpose, **kwargs) -> str:
         content = self._get_formatted_content(view_purpose)
         content = self._process_content(content)
         return content
 
     def _process_content(self, content: str) -> str:
-        if self.block_label:
-            if self.block_label is True:
-                block_label = EXTS_TO_LABELS.get(Path(self.name).suffix, 'output')
-            else:
-                block_label = self.block_label
-            return wrap_text_with_triple_quotes(content, block_label)
         return content
-
-    def get_header_hypertarget_label(self) -> str:
-        if self.header_hyperlink_label:
-            label = self.header_hyperlink_label
-        elif self.get_header():
-            label = self.get_header()
-        else:
-            raise ValueError('Either header_hypertarget_prefix or name should be set')
-        return convert_str_to_latex_label(label, self.header_hypertarget_prefix)
-
-    def get_header_hyperlink_label(self) -> Optional[str]:
-        if self.header_hyperlink_label:
-            return self.header_hyperlink_label
-        return None
 
     def _get_formatted_text_and_header_references(self, hypertarget_format: HypertargetFormat
                                                   ) -> Tuple[str, List[ReferencedValue]]:
@@ -216,7 +174,7 @@ def hypertarget_if_referencable_text_product(text: Union[str, ReferencableTextPr
     Create hypertargets if the text is a ReferencableTextProduct, otherwise return the text.
     """
     if isinstance(text, ReferencableTextProduct):
-        return text.as_markdown(view_purpose=view_purpose, **kwargs)
+        return text.as_formatted_text(view_purpose=view_purpose, **kwargs)
     return text
 
 

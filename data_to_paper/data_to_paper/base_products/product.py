@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Any
 
+from data_to_paper.code_and_output_files.file_view_params import ViewPurpose
 from data_to_paper.conversation.stage import Stage
 from data_to_paper.utils import format_text_with_code_blocks
 
@@ -22,17 +23,19 @@ class Product:
     def is_valid(self):
         raise NotImplementedError
 
-    def _get_content_as_markdown(self, level: int, **kwargs) -> str:
+    def _get_content_as_formatted_text(self, level: int, view_purpose: ViewPurpose, **kwargs) -> str:
         raise NotImplementedError
 
     def _get_content_as_html(self, level: int, **kwargs) -> str:
-        return format_text_with_code_blocks(self._get_content_as_markdown(level, **kwargs), from_md=True,
-                                            is_html=True, width=None)
+        return format_text_with_code_blocks(self._get_content_as_formatted_text(level, ViewPurpose.APP_HTML, **kwargs),
+                                            from_md=True, is_html=True, width=None)
 
-    def get_header(self, **kwargs) -> str:
+    def get_header(self, view_purpose: ViewPurpose = ViewPurpose.PRODUCT, **kwargs) -> str:
         return self.name
 
-    def as_markdown(self, level: int = 1, with_header: bool = True, **kwargs) -> str:
+    def as_formatted_text(self, level: int = 1, with_header: bool = True,
+                          view_purpose: ViewPurpose = ViewPurpose.PRODUCT,
+                          **kwargs) -> str:
         """
         Return the product in the form to be included in a pre-conversation context.
         Typically, this is a markdown format.
@@ -40,11 +43,15 @@ class Product:
         s = ''
         if with_header:
             s += '#' * level + ' ' + self.get_header(**kwargs) + '\n'
-        s += self._get_content_as_markdown(level, **kwargs)
+        s += self._get_content_as_formatted_text(level, view_purpose=view_purpose, **kwargs)
         return s
 
-    def as_html(self, level: int = 0, **kwargs):
-        return f'<h{level}>{self.get_header(**kwargs)}</h{level}>' + self._get_content_as_html(level, **kwargs)
+    def as_html(self, level: int = 0, with_header: bool = True, **kwargs) -> str:
+        s = ''
+        if with_header:
+            s += f'<h{level}>{self.get_header(**kwargs)}</h{level}>'
+        s += self._get_content_as_html(level, **kwargs)
+        return s
 
 
 @dataclass
@@ -54,7 +61,7 @@ class ValueProduct(Product):
     def is_valid(self):
         return self.value is not None
 
-    def _get_content_as_markdown(self, level: int, **kwargs):
+    def _get_content_as_formatted_text(self, level: int, view_purpose: ViewPurpose, **kwargs) -> str:
         return str(self.value)
 
     def __getitem__(self, item):

@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from typing import Optional, Dict, List, Iterable, NamedTuple
 
 from data_to_paper.base_products.product import ValueProduct
+from data_to_paper.code_and_output_files.file_view_params import ViewPurpose
 from data_to_paper.utils.iterators import interleave
 from data_to_paper.utils.mutable import Flag
 from data_to_paper.utils.nice_list import NiceList
@@ -49,7 +50,7 @@ class LiteratureSearchQueriesProduct(ValueProduct):
     name: str = "Literature Search Queries"
     value: Dict[str, List[str]] = None
 
-    def _get_content_as_markdown(self, level: int, **kwargs):
+    def _get_content_as_formatted_text(self, level: int, view_purpose: ViewPurpose, **kwargs) -> str:
         s = ''
         level_str = '#' * (level + 1)
         for scope, queries in self.value.items():
@@ -75,8 +76,8 @@ class CitationCollectionProduct(ValueProduct):
             embedding_target=embedding_target,
         ) for citation in self.value)
 
-    def _get_content_as_markdown(self, level: int, style: str = None,
-                                 embedding_target: Optional[np.ndarray] = None):
+    def _get_content_as_formatted_text(self, level: int, view_purpose: ViewPurpose, style: str = None,
+                                       embedding_target: Optional[np.ndarray] = None, **kwargs: str) -> str:
         return self._get_citations_as_str(is_html=False, style=style, embedding_target=embedding_target)
 
     def _get_content_as_html(self, level: int, style: str = None,
@@ -89,7 +90,7 @@ class QueryCitationCollectionProduct(CitationCollectionProduct):
     name: str = "Query Citation List"
     query: str = None
 
-    def get_header(self):
+    def get_header(self, view_purpose: ViewPurpose = ViewPurpose.PRODUCT, **kwargs) -> str:
         return f'{self.name} for "{self.query}"'
 
 
@@ -103,7 +104,7 @@ class SortedCitationCollectionProduct(CitationCollectionProduct):
     sort_by_similarity: bool = False
     minimal_influence: int = 0
 
-    def get_header(self, style: str, **kwargs: str):
+    def get_header(self, view_purpose: ViewPurpose = ViewPurpose.PRODUCT, style: str = 'llm', **kwargs) -> str:
         s = super().get_header()
         s += f', Scope: "{self.scope}"' if self.scope is not None else ''
         s += f', Query: "{self.query}"' if self.query is not None else ''
@@ -238,15 +239,15 @@ class LiteratureSearch(ValueProduct):
             embedding_target=self.embedding_target,
         ) for citation in citations)
 
-    def get_header(self, scope: Optional[str] = None, **kwargs):
-        #
+    def get_header(self, view_purpose: ViewPurpose = ViewPurpose.PRODUCT, scope: Optional[str] = None, **kwargs) -> str:
         return f'"{scope}"-related literature search' if scope is not None else self.name
 
-    def _get_content_as_markdown(self, level: int, scope: Optional[str] = None, style: str = 'llm', **kwargs) -> str:
+    def _get_content_as_formatted_text(self, level: int, view_purpose: ViewPurpose,
+                                       scope: Optional[str] = None, style: str = 'llm', **kwargs) -> str:
         if scope is None:
             s = ''
             for scope in self:
-                s += self._get_content_as_markdown(level, scope=scope, style=style)
+                s += self._get_content_as_formatted_text(level, view_purpose, scope=scope, style=style)
         else:
             s = self.pretty_repr_for_scope_and_query(scope=scope, style=style,
                                                      **self.scopes_to_search_params[scope].to_dict())

@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import List, Dict, Any
 
 from data_to_paper.base_products.product import ValueProduct, Product
+from data_to_paper.code_and_output_files.file_view_params import ViewPurpose
 from data_to_paper.research_types.hypothesis_testing.scientific_stage import ScientificStage
 from data_to_paper.servers.custom_types import Citation
 
@@ -12,7 +13,7 @@ class GoalAndHypothesisProduct(ValueProduct):
     stage: ScientificStage = ScientificStage.GOAL
     value: str = None
 
-    def _get_content_as_markdown(self, level: int, **kwargs):
+    def _get_content_as_formatted_text(self, level: int, view_purpose: ViewPurpose, **kwargs) -> str:
         return ('\n' + self.value).replace('\n# ', '\n' + '#' * (level + 1) + ' ').strip()
 
 
@@ -28,7 +29,7 @@ class MostSimilarPapersProduct(ValueProduct):
             is_html=is_html,
         ) for citation in self.value)
 
-    def _get_content_as_markdown(self, level: int, **kwargs):
+    def _get_content_as_formatted_text(self, level: int, view_purpose: ViewPurpose, **kwargs) -> str:
         return self._get_citations(is_html=False)
 
     def _get_content_as_html(self, level: int, **kwargs):
@@ -41,7 +42,7 @@ class NoveltyAssessmentProduct(ValueProduct):
     stage: ScientificStage = ScientificStage.ASSESS_NOVELTY
     value: Dict[str, Any] = None
 
-    def _get_content_as_markdown(self, level: int, **kwargs):
+    def _get_content_as_formatted_text(self, level: int, view_purpose: ViewPurpose, **kwargs) -> str:
         results = self.value
         level_str = '#' * (level + 1)
         s = ''
@@ -62,7 +63,7 @@ class HypothesisTestingPlanProduct(ValueProduct):
     stage: ScientificStage = ScientificStage.PLAN
     value: Dict[str, Dict[str, str]] = None
 
-    def _get_content_as_markdown(self, level: int, **kwargs):
+    def _get_content_as_formatted_text(self, level: int, view_purpose: ViewPurpose, **kwargs) -> str:
         s = ''
         issues = self.value['ISSUES']
         hypotheses = self.value['HYPOTHESES']

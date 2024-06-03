@@ -221,8 +221,6 @@ class CreateDataFileDescriptions:
                 text=description,
                 hypertarget_prefix=self._get_hypertarget_prefix(file_num, file_name)),
             name=file_name,
-            block_label=None,
-            header_hypertarget_prefix='file',
         )
 
     def _convert_data_file_path_str_to_path(self, data_file_path: str):

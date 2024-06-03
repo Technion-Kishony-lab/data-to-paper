@@ -131,7 +131,7 @@ class Products:
             level = variables.pop('level') if 'level' in variables else 2
             return NameDescriptionStage(
                 unified_product.get_header(**variables),
-                unified_product.as_markdown(**variables, with_header=False),
+                unified_product.as_formatted_text(with_header=False, **variables),
                 unified_product.get_stage(format_name=format_name, level=level,
                                           **variables),
             )
