@@ -15,6 +15,9 @@ class ViewPurpose(Enum):
     CODE_REVIEW = 4
     APP_HTML = 5
 
+    def is_for_llm(self):
+        return self in [ViewPurpose.PRODUCT, ViewPurpose.HYPERTARGET_PRODUCT, ViewPurpose.CODE_REVIEW]
+
 
 @dataclass(frozen=True)
 class ViewParams:

@@ -9,7 +9,7 @@ from typing import Optional, Any, List, Tuple, Iterable, Dict, Type
 from data_to_paper.env import MAX_SENSIBLE_OUTPUT_SIZE_TOKENS, NUM_DIGITS_FOR_FLOATS
 from data_to_paper.servers.llm_call import count_number_of_tokens_in_message
 from data_to_paper.servers.model_engine import ModelEngine
-from data_to_paper.utils import dedent_triple_quote_str
+from data_to_paper.utils import dedent_triple_quote_str, format_text_with_code_blocks
 from data_to_paper.utils.text_extractors import extract_to_nearest_newline
 from data_to_paper.utils.text_numeric_formatting import round_floats
 from data_to_paper.code_and_output_files.referencable_text import NumericReferenceableText, ReferencableTextProduct, \
@@ -17,8 +17,10 @@ from data_to_paper.code_and_output_files.referencable_text import NumericReferen
 
 from data_to_paper.run_gpt_code.overrides.pvalue import OnStrPValue
 from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue
+from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
 
 from .file_view_params import ContentViewPurposeConverter, ViewPurpose
+from .ref_numeric_values import ReferencedValue
 
 """
 OUTPUT FILEE REQUIREMENTS
@@ -31,6 +33,20 @@ In this case we keep the file.
 - Content: the file contains content that is presentable to the LLM. Like: text, tables, etc.
 In this case we load and keep the content and typically delete the file.
 """
+
+EXTS_TO_LABELS = {
+    '.tex': 'latex',
+    '.txt': 'output',
+    '.csv': 'csv',
+}
+
+
+def get_block_label_from_filename(filename: str) -> str:
+    """
+    Return the block label for the filename.
+    """
+    ext = os.path.splitext(filename)[1]
+    return EXTS_TO_LABELS.get(ext, 'output')
 
 
 @dataclass(frozen=True)
@@ -93,41 +109,73 @@ class BaseContentOutputFileRequirement(OutputFileRequirement):
         """
         return []
 
+    def _to_html(self, content: Any, **kwargs) -> str:
+        return format_text_with_code_blocks(content, from_md=True, is_html=True, width=None)
+
     def _to_str(self, content: Any, view_purpose: ViewPurpose, **kwargs) -> str:
         return str(content).strip()
 
+    def _get_header_html(self, filename: str = None, num_file: int = 0, level: int = 2):
+        return f'<h{level}>{filename}</h{level}>'
+
+    def _get_header(self, filename: str = None, num_file: int = 0,
+                   view_purpose: ViewPurpose = ViewPurpose.PRODUCT, **kwargs) -> str:
+        if view_purpose.is_for_llm():
+            return f'### {filename}'
+        return f'"{filename}"'
+
+    def get_header(self, filename: str = None, num_file: int = 0,
+                   view_purpose: ViewPurpose = ViewPurpose.PRODUCT, **kwargs) -> str:
+        if view_purpose == ViewPurpose.APP_HTML:
+            return self._get_header_html(filename, num_file, **kwargs)
+        return self._get_header(filename, num_file, view_purpose, **kwargs)
+
     def get_pretty_content(self, content: Any, filename: str = None, num_file: int = 0,
-                           view_purpose: ViewPurpose = None, **kwargs) -> str:
+                           view_purpose: ViewPurpose = ViewPurpose.PRODUCT, **kwargs) -> str:
         view_params = self.content_view_purpose_converter.convert_view_purpose_to_view_params(view_purpose)
         with OnStrPValue(view_params.pvalue_on_str):
-            return self._to_str(content, view_purpose, **kwargs)
+            if view_purpose == ViewPurpose.APP_HTML:
+                content = self._to_html(content, **kwargs)
+            else:
+                content = self._to_str(content, view_purpose, **kwargs)
+        if view_purpose.is_for_llm():
+            content = wrap_text_with_triple_quotes(content, get_block_label_from_filename(filename))
+        return content
+
+    def get_pretty_content_with_header(self, content: Any, filename: str = None, num_file: int = 0,
+                                       view_purpose: ViewPurpose = ViewPurpose.PRODUCT, **kwargs) -> str:
+        return self.get_header(filename, num_file, view_purpose, **kwargs) + \
+            '\n' + self.get_pretty_content(content, filename, num_file, view_purpose, **kwargs)
 
 
 @dataclass(frozen=True)
 class ReferencableContentOutputFileRequirement(BaseContentOutputFileRequirement):
     hypertarget_prefixes: Optional[Tuple[str]] = None  # List of hypertarget prefixes to assign for each file
-    referenceable_text_product_cls:  Type[ReferencableTextProduct] = ReferencableTextProduct
+    referenceable_text_product_cls: Type[ReferencableTextProduct] = ReferencableTextProduct
     referenceable_text_cls: Type[BaseReferenceableText] = NumericReferenceableText
 
     def get_pretty_content(self, content: Any, filename: str = None, num_file: int = 0,
                            view_purpose: ViewPurpose = None, **kwargs) -> str:
-        content = super().get_pretty_content(content, filename, num_file, view_purpose, **kwargs)
-        referencable_text_product = self.get_referencable_text_product(content, filename, num_file, view_purpose)
         if view_purpose == ViewPurpose.APP_HTML:
-            return referencable_text_product.as_html(**kwargs)
-        return referencable_text_product.as_formatted_text(view_purpose=view_purpose, **kwargs)
+            content = self.get_pretty_content(content, filename, num_file, ViewPurpose.PRODUCT, **kwargs)
+            return super().get_pretty_content(content, filename, num_file, view_purpose, **kwargs)
+        else:
+            content = super().get_pretty_content(content, filename, num_file, view_purpose, **kwargs)
+        return self.get_formatted_text_and_header_references(content, filename, num_file, view_purpose, **kwargs)[0]
 
-    def get_referencable_text_product(self, content: Any, filename: str = None, num_file: int = 0,
-                                      view_purpose: ViewPurpose = None) -> ReferencableTextProduct:
+    def get_formatted_text_and_header_references(self, content: Any, filename: str = None, num_file: int = 0,
+                                                 view_purpose: ViewPurpose = None, **kwargs
+                                                 ) -> Tuple[str, List[ReferencedValue]]:
+        referencable_text = self._get_referencable_text(content, filename, num_file, view_purpose)
         view_params = self.content_view_purpose_converter.convert_view_purpose_to_view_params(view_purpose)
-        return ReferencableTextProduct(
-            referencable_text=self.referenceable_text_cls(
-                text=content,
-                hypertarget_prefix=self.hypertarget_prefixes[num_file] if self.hypertarget_prefixes else None,
-            ),
-            name=filename,
-            block_label=view_params.is_block,
-            content_view_purpose_converter=self.content_view_purpose_converter,
+        return referencable_text.get_formatted_text_and_header_references(
+            hypertarget_format=view_params.hypertarget_format)
+
+    def _get_referencable_text(self, content: Any, filename: str = None, num_file: int = 0,
+                               view_purpose: ViewPurpose = None) -> BaseReferenceableText:
+        return self.referenceable_text_cls(
+            text=content,
+            hypertarget_prefix=self.hypertarget_prefixes[num_file] if self.hypertarget_prefixes else None,
         )
 
 
@@ -335,7 +383,8 @@ class OutputFileRequirementsToFileToContent(Dict[OutputFileRequirement, Dict[str
         for requirement, files_to_contents in self.items():
             for num_file, (filename, content) in enumerate(files_to_contents.items()):
                 if isinstance(requirement, BaseContentOutputFileRequirement) and fnmatch(filename, match_filename):
-                    pretty_content = requirement.get_pretty_content(content, filename, num_file, view_purpose, **kwargs)
+                    pretty_content = requirement.get_pretty_content_with_header(content, filename, num_file,
+                                                                                view_purpose, **kwargs)
                     files_to_pretty_contents[filename] = pretty_content
 
         return files_to_pretty_contents
