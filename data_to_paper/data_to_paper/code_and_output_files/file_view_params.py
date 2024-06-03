@@ -18,6 +18,9 @@ class ViewPurpose(Enum):
     def is_for_llm(self):
         return self in [ViewPurpose.PRODUCT, ViewPurpose.HYPERTARGET_PRODUCT, ViewPurpose.CODE_REVIEW]
 
+    def is_for_paper(self):
+        return self in [ViewPurpose.FINAL_APPENDIX, ViewPurpose.FINAL_INLINE]
+
 
 @dataclass(frozen=True)
 class ViewParams:
@@ -68,17 +71,17 @@ DEFAULT_VIEW_PURPOSE_TO_PARAMS: Dict[ViewPurpose, ViewParams] = {
 
     ViewPurpose.CODE_REVIEW:
         ViewParams(
-        hypertarget_format=HypertargetFormat(position=HypertargetPosition.NONE),
-        with_hyper_header=False,
-        is_block=True,
-        pvalue_on_str=OnStr.SMALLER_THAN),
+            hypertarget_format=HypertargetFormat(position=HypertargetPosition.NONE),
+            with_hyper_header=False,
+            is_block=True,
+            pvalue_on_str=OnStr.SMALLER_THAN),
 
     ViewPurpose.APP_HTML:
         ViewParams(
-        hypertarget_format=HypertargetFormat(position=HypertargetPosition.NONE),
-        with_hyper_header=False,
-        is_block=True,
-        pvalue_on_str=OnStr.SMALLER_THAN),
+            hypertarget_format=HypertargetFormat(position=HypertargetPosition.NONE),
+            with_hyper_header=False,
+            is_block=True,
+            pvalue_on_str=OnStr.SMALLER_THAN),
 }
 
 

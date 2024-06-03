@@ -89,6 +89,8 @@ class CodeAndOutput:
         if outputs:
             s += '\n\n' + "\\subsection{Code Output}"
             for filename, content in outputs.items():
+                s += ReferencedValue('', convert_str_to_latex_label(filename, 'file'), is_target=True).to_str(
+                    HypertargetFormat(position=HypertargetPosition.WRAP))
                 header = replace_special_latex_chars(filename)
                 header = f'\\hyperlink{{{self._get_label_for_file(filename)}}}{{{header}}}'
                 s += f'\n\n\\subsubsection*{{{header}}}'

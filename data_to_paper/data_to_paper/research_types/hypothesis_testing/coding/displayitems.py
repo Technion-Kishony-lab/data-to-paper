@@ -69,16 +69,17 @@ class TexTableContentOutputFileRequirement(ReferencableContentOutputFileRequirem
                            view_purpose: ViewPurpose = None, **kwargs) -> str:
         if view_purpose == ViewPurpose.APP_HTML:
             return get_html_from_latex(content)
-        elif view_purpose == ViewPurpose.FINAL_APPENDIX:
-            return content
-        else:
-            content = get_latex_without_html_comment(content)
-            return super().get_pretty_content(content, filename, num_file, view_purpose, **kwargs)
+        content = get_latex_without_html_comment(content)
+        return super().get_pretty_content(content, filename, num_file, view_purpose, **kwargs)
 
-    def get_referencable_text_product(self, content: Any, filename: str = None, num_file: int = 0,
-                                      view_purpose: ViewPurpose = None) -> ReferencableTextProduct:
-        result = super().get_referencable_text_product(content, filename, num_file, view_purpose)
-        referenceable_text: FromTextReferenceableText = result.referencable_text
+    def _get_hyper_target_format(self, view_purpose: ViewPurpose) -> HypertargetFormat:
+        if view_purpose == ViewPurpose.FINAL_APPENDIX:
+            return HypertargetFormat(position=HypertargetPosition.NONE)
+        return super()._get_hyper_target_format(view_purpose)
+
+    def _get_referencable_text(self, content: Any, filename: str = None, num_file: int = 0,
+                               view_purpose: ViewPurpose = None) -> BaseReferenceableText:
+        referenceable_text = super()._get_referencable_text(content, filename, num_file, view_purpose)
         if view_purpose == ViewPurpose.FINAL_INLINE:
             text = referenceable_text.text
             pickle_filename = extract_source_filename_from_latex_displayitem(text)
@@ -94,7 +95,7 @@ class TexTableContentOutputFileRequirement(ReferencableContentOutputFileRequirem
                     new_caption = f'\\protect\\hyperlink{{{pickle_filename}}}{{{caption}}}'
                 text = text.replace(caption, new_caption)
             referenceable_text.text = text
-        return result
+        return referenceable_text
 
 
 @dataclass

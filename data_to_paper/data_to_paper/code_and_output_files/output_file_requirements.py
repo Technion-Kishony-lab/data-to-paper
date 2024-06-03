@@ -20,7 +20,7 @@ from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue
 from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
 
 from .file_view_params import ContentViewPurposeConverter, ViewPurpose
-from .ref_numeric_values import ReferencedValue
+from .ref_numeric_values import ReferencedValue, HypertargetFormat
 
 """
 OUTPUT FILEE REQUIREMENTS
@@ -118,7 +118,7 @@ class BaseContentOutputFileRequirement(OutputFileRequirement):
     def _get_header_html(self, filename: str = None, num_file: int = 0, level: int = 2):
         return f'<h{level}>{filename}</h{level}>'
 
-    def _get_header(self, filename: str = None, num_file: int = 0,
+    def _get_header_llm(self, filename: str = None, num_file: int = 0,
                    view_purpose: ViewPurpose = ViewPurpose.PRODUCT, **kwargs) -> str:
         if view_purpose.is_for_llm():
             return f'### {filename}'
@@ -128,7 +128,11 @@ class BaseContentOutputFileRequirement(OutputFileRequirement):
                    view_purpose: ViewPurpose = ViewPurpose.PRODUCT, **kwargs) -> str:
         if view_purpose == ViewPurpose.APP_HTML:
             return self._get_header_html(filename, num_file, **kwargs)
-        return self._get_header(filename, num_file, view_purpose, **kwargs)
+        if view_purpose.is_for_llm():
+            return self._get_header_llm(filename, num_file, view_purpose, **kwargs)
+        if view_purpose.is_for_paper():
+            return ''
+        return f'"{filename}"'
 
     def get_pretty_content(self, content: Any, filename: str = None, num_file: int = 0,
                            view_purpose: ViewPurpose = ViewPurpose.PRODUCT, **kwargs) -> str:
@@ -144,8 +148,11 @@ class BaseContentOutputFileRequirement(OutputFileRequirement):
 
     def get_pretty_content_with_header(self, content: Any, filename: str = None, num_file: int = 0,
                                        view_purpose: ViewPurpose = ViewPurpose.PRODUCT, **kwargs) -> str:
-        return self.get_header(filename, num_file, view_purpose, **kwargs) + \
-            '\n' + self.get_pretty_content(content, filename, num_file, view_purpose, **kwargs)
+        content = self.get_pretty_content(content, filename, num_file, view_purpose, **kwargs)
+        header = self.get_header(filename, num_file, view_purpose, **kwargs)
+        if header:
+            return header + '\n' + content
+        return content
 
 
 @dataclass(frozen=True)
@@ -167,9 +174,8 @@ class ReferencableContentOutputFileRequirement(BaseContentOutputFileRequirement)
                                                  view_purpose: ViewPurpose = None, **kwargs
                                                  ) -> Tuple[str, List[ReferencedValue]]:
         referencable_text = self._get_referencable_text(content, filename, num_file, view_purpose)
-        view_params = self.content_view_purpose_converter.convert_view_purpose_to_view_params(view_purpose)
         return referencable_text.get_formatted_text_and_header_references(
-            hypertarget_format=view_params.hypertarget_format)
+            hypertarget_format=self._get_hyper_target_format(view_purpose))
 
     def _get_referencable_text(self, content: Any, filename: str = None, num_file: int = 0,
                                view_purpose: ViewPurpose = None) -> BaseReferenceableText:
@@ -177,6 +183,9 @@ class ReferencableContentOutputFileRequirement(BaseContentOutputFileRequirement)
             text=content,
             hypertarget_prefix=self.hypertarget_prefixes[num_file] if self.hypertarget_prefixes else None,
         )
+
+    def _get_hyper_target_format(self, view_purpose: ViewPurpose) -> HypertargetFormat:
+        return self.content_view_purpose_converter.convert_view_purpose_to_view_params(view_purpose).hypertarget_format
 
 
 @dataclass(frozen=True)
