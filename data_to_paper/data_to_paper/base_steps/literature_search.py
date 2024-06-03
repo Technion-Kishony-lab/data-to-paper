@@ -154,16 +154,16 @@ class LiteratureSearch(ValueProduct):
         """
         if scope is None:
             assert query is None
-            citations = unite_citation_lists((self.get_citations(
+            citations = unite_citation_lists((iter(self.get_citations(
                     scope=scope,
                     total=int(total / len(self) * distribution_factor) + 1
                     if distribution_factor and total is not None else None,
                     minimal_influence=minimal_influence,
                     distribution_factor=distribution_factor,
                     sort_by_similarity=sort_by_similarity,
-            ) for scope in self))
+            )) for scope in self))
         elif query is None:
-            citations = unite_citation_lists((self.get_citations(
+            citations = unite_citation_lists((iter(self.get_citations(
                     scope=scope,
                     query=query,
                     total=int(total / len(self[scope]) * distribution_factor) + 1
@@ -171,7 +171,7 @@ class LiteratureSearch(ValueProduct):
                     minimal_influence=minimal_influence,
                     distribution_factor=distribution_factor,
                     sort_by_similarity=sort_by_similarity,
-                ) for query in self[scope]))
+                )) for query in self[scope]))
         else:
             citations = self[scope][query]
         citations = list(citations)
