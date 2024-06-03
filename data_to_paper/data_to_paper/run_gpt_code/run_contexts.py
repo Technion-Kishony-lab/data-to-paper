@@ -6,7 +6,7 @@ import warnings
 
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from typing import Any, Iterable, Callable, List, Type, Dict, Optional, Union, Tuple
+from typing import Any, Iterable, Callable, List, Type, Dict, Optional, Union, Tuple, NamedTuple
 
 from pathlib import Path
 
@@ -86,22 +86,31 @@ class PreventFileOpen(SingletonRegisteredRunContext):
             any(abs_path_to_file.endswith(file) for file in self.SYSTEM_FILES)
 
 
+class FileAndMetadata(NamedTuple):
+    file: str
+    metadata: Any
+
+
 @dataclass
 class TrackCreatedFiles(SingletonRegisteredRunContext):
     output_file_requirements: Optional[OutputFileRequirements] = None  # None means allow all
 
     created_files: Optional[ListBasedSet[str]] = None  # None - unknown, context is not yet exited
     un_allowed_created_files: Optional[List[str]] = None  # None - unknown, context is not yet exited
-    _preexisting_files: ListBasedSet[str] = None
+    _preexisting_files_and_metadata: ListBasedSet[FileAndMetadata] = None
+
+    def _get_dir_files_and_metadata(self) -> ListBasedSet[FileAndMetadata]:
+        return ListBasedSet((file, os.stat(file).st_mtime) for file in os.listdir())
 
     def __enter__(self):
-        self._preexisting_files = ListBasedSet(os.listdir())
+        self._preexisting_files_and_metadata = self._get_dir_files_and_metadata()
         self.created_files = None
         self.un_allowed_created_files = None
         return super().__enter__()
 
     def _get_created_files(self) -> ListBasedSet[str]:
-        return ListBasedSet(os.listdir()) - self._preexisting_files
+        files_and_metadata = self._get_dir_files_and_metadata() - self._preexisting_files_and_metadata
+        return ListBasedSet(file for file, _ in files_and_metadata)
 
     def _create_issues_for_num_files(self):
         for requirement, output_files \

@@ -182,11 +182,19 @@ def get_created_files():
     Files are returned as a sorted list of filenames.
     Note: The files are not deleted after the context manager exits.
     """
-    preexisting_files = set(os.listdir())
+    # we need to preserve the filenames and metadata of the files
+    preexisting_files_and_metadata = set()
+    for filename in os.listdir():
+        preexisting_files_and_metadata.update(_get_filename_and_metadata(filename))
+
     created_files = []
     try:
         yield created_files
     finally:
         for filename in sorted(os.listdir()):
-            if filename not in preexisting_files:
+            if _get_filename_and_metadata(filename) not in preexisting_files_and_metadata:
                 created_files.append(filename)
+
+
+def _get_filename_and_metadata(filename):
+    return filename, os.stat(filename).st_mtime
