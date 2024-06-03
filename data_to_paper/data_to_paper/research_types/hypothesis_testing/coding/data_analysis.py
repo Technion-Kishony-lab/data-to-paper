@@ -6,6 +6,7 @@ from pandas import DataFrame
 from data_to_paper.base_steps import DebuggerConverser
 from data_to_paper.base_steps.request_code import CodeReviewPrompt
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
+from data_to_paper.code_and_output_files.file_view_params import ViewPurpose
 from data_to_paper.code_and_output_files.output_file_requirements import \
     NumericTextContentOutputFileRequirement, OutputFileRequirements, PickleContentOutputFileRequirement
 from data_to_paper.research_types.hypothesis_testing.coding.base_code_conversers import BaseCreateTablesCodeProductsGPT
@@ -14,7 +15,8 @@ from data_to_paper.research_types.hypothesis_testing.coding.utils_modified_for_g
     get_dataframe_to_pickle_attr_replacer, get_pickle_dump_attr_replacer
 from data_to_paper.research_types.hypothesis_testing.scientific_products import HypertargetPrefix
 from data_to_paper.run_gpt_code.extract_and_check_code import ModifyAndCheckCodeExtractor, CodeExtractor
-from data_to_paper.run_gpt_code.overrides.dataframes.utils import to_string_with_format_value
+from data_to_paper.run_gpt_code.overrides.dataframes.utils import to_string_with_format_value, \
+    format_numerics_and_iterables
 from data_to_paper.run_gpt_code.overrides.pvalue import is_containing_p_value
 from data_to_paper.run_gpt_code.run_issues import RunIssue, CodeProblem
 from data_to_paper.utils import dedent_triple_quote_str
@@ -22,17 +24,14 @@ from data_to_paper.utils.nice_list import NiceDict
 
 
 class DataFramePickleContentOutputFileRequirement(PickleContentOutputFileRequirement):
-
-    def _to_str(self, content: DataFrame) -> str:
+    def _to_str(self, content: DataFrame, view_purpose: ViewPurpose, **kwargs) -> str:
         return to_string_with_format_value(content)
 
 
-class DictPickleContentOutputFileRequirement(PickleContentOutputFileRequirement,
-                                             NumericTextContentOutputFileRequirement):
-
-    def get_content(self, file_path: str) -> Dict:
-        result = super().get_content(file_path)
-        return NiceDict(result)
+class DictPickleContentOutputFileRequirement(PickleContentOutputFileRequirement):
+    def _to_str(self, content: DataFrame, view_purpose: ViewPurpose, **kwargs) -> str:
+        content = NiceDict(content, format_numerics_and_iterables=format_numerics_and_iterables)
+        return super()._to_str(content, view_purpose, **kwargs)
 
 
 @dataclass
@@ -155,7 +154,7 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
          'created_files_headers:data_preprocessing', 'research_goal', 'hypothesis_testing_plan')
     background_product_fields_to_hide_during_code_revision: Tuple[str, ...] = \
         ('outputs:data_exploration', 'research_goal')
-    allow_data_files_from_sections: Tuple[Optional[str]] = (None, 'data_exploration', 'data_preprocessing')
+    allow_data_files_from_sections: Tuple[Optional[str]] = (None, 'data_preprocessing')
 
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'statsmodels', 'sklearn', 'pickle')
 

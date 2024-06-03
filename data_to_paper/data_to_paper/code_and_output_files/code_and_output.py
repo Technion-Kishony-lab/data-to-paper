@@ -5,7 +5,7 @@ from typing import Optional, Any, TYPE_CHECKING, Dict
 
 from data_to_paper.base_products import DataFileDescriptions
 from data_to_paper.code_and_output_files.file_view_params import ViewPurpose
-from data_to_paper.code_and_output_files.output_file_requirements import OutputFileRequirementsWithContent
+from data_to_paper.code_and_output_files.output_file_requirements import OutputFileRequirementsToFileToContent
 from data_to_paper.code_and_output_files.ref_numeric_values import HypertargetFormat, HypertargetPosition, \
     ReferencedValue
 from data_to_paper.code_and_output_files.referencable_text import convert_str_to_latex_label
@@ -25,7 +25,7 @@ class CodeAndOutput:
     code: str = None
     result: Any = None
     created_files: \
-        OutputFileRequirementsWithContent = field(default_factory=OutputFileRequirementsWithContent)
+        OutputFileRequirementsToFileToContent = field(default_factory=OutputFileRequirementsToFileToContent)
     code_name: str = None
     code_explanation: Optional[str] = None
     provided_code: Optional[str] = None
@@ -117,14 +117,14 @@ class CodeAndOutput:
             s += wrap_text_with_triple_quotes(self.code_explanation, 'latex') + '\n'
         if self.created_files:
             outputs = self.created_files.get_created_content_files_to_pretty_contents(
-                view_purpose=ViewPurpose.APP_HTML)
+                view_purpose=ViewPurpose.APP_HTML, level=3)
         else:
             outputs = None
 
         if outputs:
             s += "## Code Output:\n"
             for filename, output in outputs.items():
-                s += f'### {output}\n'
+                s += f"### {wrap_text_with_triple_quotes(output, 'html')}\n"
         return s
 
     def as_html(self):

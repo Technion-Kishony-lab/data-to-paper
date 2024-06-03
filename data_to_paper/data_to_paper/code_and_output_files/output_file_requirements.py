@@ -4,7 +4,7 @@ import pickle
 from dataclasses import dataclass, field
 from fnmatch import fnmatch
 from pathlib import Path
-from typing import Optional, Any, List, Tuple, Iterable, Dict
+from typing import Optional, Any, List, Tuple, Iterable, Dict, Type
 
 from data_to_paper.env import MAX_SENSIBLE_OUTPUT_SIZE_TOKENS, NUM_DIGITS_FOR_FLOATS
 from data_to_paper.servers.llm_call import count_number_of_tokens_in_message
@@ -12,7 +12,8 @@ from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.text_extractors import extract_to_nearest_newline
 from data_to_paper.utils.text_numeric_formatting import round_floats
-from data_to_paper.code_and_output_files.referencable_text import NumericReferenceableText, ReferencableTextProduct
+from data_to_paper.code_and_output_files.referencable_text import NumericReferenceableText, ReferencableTextProduct, \
+    BaseReferenceableText
 
 from data_to_paper.run_gpt_code.overrides.pvalue import OnStrPValue
 from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue
@@ -51,7 +52,7 @@ class OutputFileRequirement:
         if not self.should_keep_file:
             os.remove(file_path)
 
-    def get_content(self, file_path: str) -> Optional[str]:
+    def read_content(self, file_path: str) -> Optional[str]:
         """
         Return the content of the file.
         If data file, return None.
@@ -62,7 +63,7 @@ class OutputFileRequirement:
         """
         Return the content of the file, and delete it if needed.
         """
-        content = self.get_content(file_path)
+        content = self.read_content(file_path)
         self.delete_if_needed(file_path)
         return content
 
@@ -77,11 +78,9 @@ class DataOutputFileRequirement(OutputFileRequirement):
 class BaseContentOutputFileRequirement(OutputFileRequirement):
     should_keep_file: bool = NotImplemented
     minimal_count: int = 1
-    hypertarget_prefixes: Optional[Tuple[str]] = None  # List of hypertarget prefixes to assign for each file
-    referenceable_text_cls: type = NumericReferenceableText
     content_view_purpose_converter: ContentViewPurposeConverter = field(default_factory=ContentViewPurposeConverter)
 
-    def get_content(self, file_path: str) -> Any:
+    def read_content(self, file_path: str) -> Any:
         """
         Return the content of the file.
         """
@@ -94,34 +93,49 @@ class BaseContentOutputFileRequirement(OutputFileRequirement):
         """
         return []
 
-    def _to_str(self, content: Any) -> str:
+    def _to_str(self, content: Any, view_purpose: ViewPurpose, **kwargs) -> str:
         return str(content).strip()
 
     def get_pretty_content(self, content: Any, filename: str = None, num_file: int = 0,
-                           view_purpose: ViewPurpose = None) -> str:
-        return self.get_referencable_text_product(content, filename, num_file,
-                                                  view_purpose).as_markdown(view_purpose=view_purpose)
+                           view_purpose: ViewPurpose = None, **kwargs) -> str:
+        view_params = self.content_view_purpose_converter.convert_view_purpose_to_view_params(view_purpose)
+        with OnStrPValue(view_params.pvalue_on_str):
+            return self._to_str(content, view_purpose, **kwargs)
+
+
+@dataclass(frozen=True)
+class ReferencableContentOutputFileRequirement(BaseContentOutputFileRequirement):
+    hypertarget_prefixes: Optional[Tuple[str]] = None  # List of hypertarget prefixes to assign for each file
+    referenceable_text_product_cls:  Type[ReferencableTextProduct] = ReferencableTextProduct
+    referenceable_text_cls: Type[BaseReferenceableText] = NumericReferenceableText
+
+    def get_pretty_content(self, content: Any, filename: str = None, num_file: int = 0,
+                           view_purpose: ViewPurpose = None, **kwargs) -> str:
+        content = super().get_pretty_content(content, filename, num_file, view_purpose, **kwargs)
+        referencable_text_product = self.get_referencable_text_product(content, filename, num_file, view_purpose)
+        if view_purpose == ViewPurpose.APP_HTML:
+            return referencable_text_product.as_html(**kwargs)
+        return referencable_text_product.as_markdown(view_purpose=view_purpose, **kwargs)
 
     def get_referencable_text_product(self, content: Any, filename: str = None, num_file: int = 0,
                                       view_purpose: ViewPurpose = None) -> ReferencableTextProduct:
-        view_purpose = self.content_view_purpose_converter.convert_view_purpose_to_view_params(view_purpose)
-        with OnStrPValue(view_purpose.pvalue_on_str):
-            content = self._to_str(content)
+        view_params = self.content_view_purpose_converter.convert_view_purpose_to_view_params(view_purpose)
         return ReferencableTextProduct(
             referencable_text=self.referenceable_text_cls(
                 text=content,
                 hypertarget_prefix=self.hypertarget_prefixes[num_file] if self.hypertarget_prefixes else None,
             ),
             name=filename,
+            block_label=view_params.is_block,
             content_view_purpose_converter=self.content_view_purpose_converter,
         )
 
 
 @dataclass(frozen=True)
-class PickleContentOutputFileRequirement(BaseContentOutputFileRequirement):
+class PickleContentOutputFileRequirement(ReferencableContentOutputFileRequirement):
     should_keep_file: bool = True
 
-    def get_content(self, file_path: str) -> Any:
+    def read_content(self, file_path: str) -> Any:
         """
         Return the content of the file.
         """
@@ -130,7 +144,7 @@ class PickleContentOutputFileRequirement(BaseContentOutputFileRequirement):
 
 
 @dataclass(frozen=True)
-class TextContentOutputFileRequirement(BaseContentOutputFileRequirement):
+class TextContentOutputFileRequirement(ReferencableContentOutputFileRequirement):
     should_keep_file: bool = False
     max_tokens: Optional[int] = MAX_SENSIBLE_OUTPUT_SIZE_TOKENS.val
 
@@ -169,49 +183,56 @@ class TextContentOutputFileRequirement(BaseContentOutputFileRequirement):
 
 
 @dataclass(frozen=True)
-class NumericTextContentOutputFileRequirement(BaseContentOutputFileRequirement):
+class NumericTextContentOutputFileRequirement(ReferencableContentOutputFileRequirement):
     target_precision: int = NUM_DIGITS_FOR_FLOATS
     source_precision: int = 10
 
-    def _to_str(self, content: Any) -> str:
-        content = super()._to_str(content)
+    def _to_str(self, content: Any, view_purpose: ViewPurpose, **kwargs) -> str:
+        content = super()._to_str(content, view_purpose)
         return round_floats(content, self.target_precision, self.source_precision)
 
 
 class OutputFileRequirements(Tuple[OutputFileRequirement]):
-
+    """
+    Stores a list of requirements for the output files of an LLM code run.
+    """
     def get_all_allowed_created_filenames(self) -> Tuple[str, ...]:
         return tuple(requirement.filename for requirement in self)
 
-    def _get_requirements_to_output_files_and_unmatched_files(
-            self, created_files: Iterable[str]) -> Tuple[Dict[OutputFileRequirement, List[str]], List[str]]:
+    def _match_files_to_requirements(self, created_files: Iterable[str]) -> Dict[str, Optional[OutputFileRequirement]]:
         """
-        Return:
-            - a dictionary mapping each requirement to a dictionary mapping each output file to its content.
-            - a list of files that were not matched to any requirement.
+        Return a dictionary mapping each file to the requirement that it matches.
+        If a file does not match any requirement, the value is None.
         """
-        requirements_to_output_files = {requirement: [] for requirement in self}
-        unmatched_files = []
+        file_to_requirement = {}
         for created_file in created_files:
             for requirement in self:
                 if requirement.matches(created_file):
-                    requirements_to_output_files[requirement].append(created_file)
+                    file_to_requirement[created_file] = requirement
                     break
             else:
-                unmatched_files.append(created_file)
-        return requirements_to_output_files, unmatched_files
+                file_to_requirement[created_file] = None
+        return file_to_requirement
 
     def get_requirements_to_output_files(
             self, created_files: Iterable[str]) -> Dict[OutputFileRequirement, List[str]]:
-        return self._get_requirements_to_output_files_and_unmatched_files(created_files)[0]
+        """
+        Return a dictionary mapping each requirement to a list of output files that match it.
+        """
+        requirements_to_files = {requirement: [] for requirement in self}
+        for created_file, requirement in self._match_files_to_requirements(created_files).items():
+            if requirement is not None:
+                requirements_to_files[requirement].append(created_file)
+        return requirements_to_files
 
     def get_unmatched_files(self, created_files: Iterable[str]) -> List[str]:
-        return self._get_requirements_to_output_files_and_unmatched_files(created_files)[1]
+        return [created_file for created_file, requirement in self._match_files_to_requirements(created_files).items()
+                if requirement is None]
 
     def convert_to_output_file_requirements_with_content(self, created_files: Iterable[str],
-                                                         run_folder) -> OutputFileRequirementsWithContent:
+                                                         run_folder) -> OutputFileRequirementsToFileToContent:
         """
-        Returns an OutputFileRequirementsWithContent, which is a dictionary mapping each requirement to
+        Returns an OutputFileRequirementsToFileToContent, which is a dictionary mapping each requirement to
         a dictionary mapping each output file to its content.
         """
         requirements_to_files = self.get_requirements_to_output_files(sorted(created_files))
@@ -221,12 +242,13 @@ class OutputFileRequirements(Tuple[OutputFileRequirement]):
                     file_path=run_folder / output_file if run_folder else output_file)
                 for output_file in files
             } for requirement, files in requirements_to_files.items()}
-        return OutputFileRequirementsWithContent(requirements_to_files_to_content)
+        return OutputFileRequirementsToFileToContent(requirements_to_files_to_content)
 
 
-class OutputFileRequirementsWithContent(Dict[OutputFileRequirement, Dict[str, Any]]):
+class OutputFileRequirementsToFileToContent(Dict[OutputFileRequirement, Dict[str, Any]]):
     """
-    Should behave like a dictionary mapping each requirement to a dictionary mapping each output file to its content.
+    A dictionary mapping each requirement to a dictionary mapping each output file to its content.
+    Allows to get textual content of the files.
     """
 
     def convert_to_output_file_requirements(self) -> OutputFileRequirements:
@@ -238,13 +260,55 @@ class OutputFileRequirementsWithContent(Dict[OutputFileRequirement, Dict[str, An
         """
         return [filename for filenames_to_contents in self.values() for filename in filenames_to_contents.keys()]
 
+    def get_all_created_and_undeleted_files(self) -> List[str]:
+        """
+        Return the names of all the files created by the run, and which were kept, not deleted.
+        """
+        return [filename for requirement, files_to_contents in self.items()
+                for filename in files_to_contents.keys() if requirement.should_keep_file]
+
+    def _get_created_files_to_requirements_and_contents(self, match_filename: str = '*',
+                                                        is_content: bool = None,
+                                                        ) -> Dict[str, Tuple[OutputFileRequirement, Any]]:
+        """
+        Return the names of the files created by the run, and their requirements and content.
+        Content is `None` for data files.
+        is_content:
+            True: return only content files
+            False: return only data files
+            None: return all files
+        """
+        return {filename: (requirement, content) for requirement, files_to_contents in self.items()
+                for filename, content in files_to_contents.items() if fnmatch(filename, match_filename)
+                and (is_content is None or is_content == (content is not None))}
+
+    def get_created_content_files_to_contents(self, match_filename: str = '*') -> Dict[str, Any]:
+        """
+        Return the names of the files created by the run, and their content.
+        """
+        return {filename: content for filename, (requirement, content) in
+                self._get_created_files_to_requirements_and_contents(match_filename, is_content=True).items()}
+
     def get_created_content_files(self, match_filename: str = '*') -> List[str]:
         """
         Return the names of the files created by the run, for which we collected the content.
         """
-        return [filename for requirement, files_to_contents in self.items()
-                for filename in files_to_contents.keys()
-                if isinstance(requirement, BaseContentOutputFileRequirement) and fnmatch(filename, match_filename)]
+        return list(self.get_created_content_files_to_contents(match_filename).keys())
+
+    def get_created_data_files(self, match_filename: str = '*') -> List[str]:
+        """
+        Return the names of the files created by the run, and which were kept, not deleted.
+        """
+        return list(self._get_created_files_to_requirements_and_contents(match_filename, is_content=False).keys())
+
+    def delete_all_created_files(self, run_folder: Optional[Path] = None):
+        """
+        Delete all the files that were created by the run, and which were kept, not deleted.
+        """
+        for filename in self.get_all_created_files():
+            filepath = run_folder / filename if run_folder else filename
+            if os.path.exists(filepath):
+                os.remove(filepath)
 
     def get_created_content_files_to_referencable_text_product(
             self, view_purpose: ViewPurpose, match_filename: str = '*') -> Dict[str, ReferencableTextProduct]:
@@ -254,53 +318,29 @@ class OutputFileRequirementsWithContent(Dict[OutputFileRequirement, Dict[str, An
         result = {}
         for requirement, files_to_contents in self.items():
             for num_file, (filename, content) in enumerate(files_to_contents.items()):
-                if isinstance(requirement, BaseContentOutputFileRequirement) and fnmatch(filename, match_filename):
-                    if view_purpose is not None:
-                        content = requirement.get_referencable_text_product(content=content, filename=filename,
-                                                                            num_file=num_file,
-                                                                            view_purpose=view_purpose)
-                    result[filename] = content
+                if isinstance(requirement, ReferencableContentOutputFileRequirement) \
+                        and fnmatch(filename, match_filename):
+                    result[filename] = requirement.get_referencable_text_product(content=content, filename=filename,
+                                                                                 num_file=num_file,
+                                                                                 view_purpose=view_purpose)
         return result
 
-    def _get_created_content_files_to_contents(self, view_purpose: ViewPurpose,
-                                               match_filename: str = '*') -> Dict[str, Any]:
-        result = self.get_created_content_files_to_referencable_text_product(view_purpose=view_purpose,
-                                                                             match_filename=match_filename)
-        if view_purpose is None:
-            return result
-        return {filename: content.as_markdown(view_purpose=view_purpose)
-                for filename, content in result.items()}
-
-    def get_created_content_files_to_pretty_contents(self, view_purpose: ViewPurpose = None,
-                                                     match_filename: str = '*') -> Dict[str, str]:
+    def get_created_content_files_to_pretty_contents(self, view_purpose: ViewPurpose,
+                                                     match_filename: str = '*', **kwargs) -> Dict[str, str]:
         """
         Return the names of the files created by the run, and their content formatted for display.
         """
-        return self._get_created_content_files_to_contents(view_purpose=view_purpose, match_filename=match_filename)
+        files_to_pretty_contents = {}
+        for requirement, files_to_contents in self.items():
+            for num_file, (filename, content) in enumerate(files_to_contents.items()):
+                if isinstance(requirement, BaseContentOutputFileRequirement) and fnmatch(filename, match_filename):
+                    pretty_content = requirement.get_pretty_content(content, filename, num_file, view_purpose, **kwargs)
+                    files_to_pretty_contents[filename] = pretty_content
 
-    def get_created_content_files_to_contents(self, match_filename: str = '*') -> Dict[str, Any]:
-        """
-        Return the names of the files created by the run, and their content.
-        """
-        return self._get_created_content_files_to_contents(view_purpose=None, match_filename=match_filename)
+        return files_to_pretty_contents
 
-    def get_created_content_files_description(self, view_purpose: ViewPurpose = None,
-                                              match_filename: str = '*') -> str:
+    def get_created_content_files_and_contents_as_single_str(self, view_purpose: ViewPurpose,
+                                                             match_filename: str = '*', **kwargs) -> str:
         files_to_contents = self.get_created_content_files_to_pretty_contents(
-            view_purpose=view_purpose, match_filename=match_filename)
+            view_purpose=view_purpose, match_filename=match_filename, **kwargs)
         return '\n\n'.join(files_to_contents.values())
-
-    def get_created_data_files(self, match_filename: str = '*') -> List[str]:
-        """
-        Return the names of the files created by the run, and which were kept, not deleted.
-        """
-        return [filename for requirement, files_to_contents in self.items()
-                for filename in files_to_contents.keys() if
-                requirement.should_keep_file and fnmatch(filename, match_filename)]
-
-    def delete_all_created_files(self, run_folder: Optional[Path] = None):
-        """
-        Delete all the files that were created by the run, and which were kept, not deleted.
-        """
-        for filename in self.get_created_data_files():
-            os.remove(run_folder / filename if run_folder else filename)

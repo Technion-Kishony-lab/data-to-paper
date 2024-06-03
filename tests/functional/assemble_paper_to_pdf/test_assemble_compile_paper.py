@@ -5,7 +5,7 @@ from pytest import fixture
 
 from data_to_paper.research_types.hypothesis_testing.produce_pdf_step import ProduceScientificPaperPDFWithAppendix
 from data_to_paper.research_types.hypothesis_testing.scientific_products import ScientificProducts
-from data_to_paper.code_and_output_files.output_file_requirements import OutputFileRequirementsWithContent
+from data_to_paper.code_and_output_files.output_file_requirements import OutputFileRequirementsToFileToContent
 from data_to_paper.servers.crossref import CrossrefCitation
 
 introduction_citation = {CrossrefCitation({
@@ -26,7 +26,7 @@ introduction_citation_id = next(iter(introduction_citation)).bibtex_id
 def code_and_output():
     code_and_output = mock.Mock()
     # return value for function get_created_content_files_to_pretty_contents:
-    code_and_output.created_files = OutputFileRequirementsWithContent()
+    code_and_output.created_files = OutputFileRequirementsToFileToContent()
     code_and_output.get_created_content_files_to_pretty_contents.return_value = {
         'table_1.tex': """\\begin{table}
 \\centering

@@ -243,7 +243,7 @@ class ScientificProducts(Products):
                 '{}',
                 ScientificStage.DATA,
                 lambda: hypertarget_if_referencable_text_product(self.data_file_descriptions.general_description,
-                                                                 ViewPurpose.PRODUCT),
+                                                                 ViewPurpose.PRODUCT, level=2),
             ),
 
             'data_file_descriptions': NameDescriptionStageGenerator(
@@ -329,7 +329,7 @@ class ScientificProducts(Products):
                 lambda code_step: get_code_stage(code_step),
                 lambda code_step: {
                     'output': self.codes_and_outputs[code_step].created_files.
-                    get_created_content_files_description(view_purpose=ViewPurpose.PRODUCT),
+                    get_created_content_files_and_contents_as_single_str(view_purpose=ViewPurpose.PRODUCT, level=3),
                     'code_name': self.codes_and_outputs[code_step].name},
             ),
 
@@ -361,23 +361,15 @@ class ScientificProducts(Products):
                     'description': self.codes_and_outputs[code_step].to_text(with_header=False)},
             ),
 
-            'created_files:{}': NameDescriptionStageGenerator(
-                'Files Created by the {code_name} Code',
-                'Here are the files created by the {code_name} code:\n\n{created_files}',
-                lambda code_step: get_code_stage(code_step),
-                lambda code_step: {
-                    'created_files': self.codes_and_outputs[code_step].created_files.get_created_data_files(),
-                    'code_name': self.codes_and_outputs[code_step].name},
-            ),
-
             'created_files_content:{}:{}': NameDescriptionStageGenerator(
                 'Content of Files Created by the {code_name} Code',
                 'Here is the content of {which_files} created by the {code_name} code:\n\n{created_files_content}',
                 lambda code_step, filespec: get_code_stage(code_step),
                 lambda code_step, filespec: {
                     'created_files_content':
-                        self.codes_and_outputs[code_step].created_files.get_created_content_files_description(
-                            view_purpose=ViewPurpose.CODE_REVIEW, match_filename=filespec),
+                        self.codes_and_outputs[
+                            code_step].created_files.get_created_content_files_and_contents_as_single_str(
+                            view_purpose=ViewPurpose.CODE_REVIEW, match_filename=filespec, level=3),
                     'which_files': 'all files' if filespec == '*' else f'files "{filespec}"',
                     'code_name': self.codes_and_outputs[code_step].name},
             ),
@@ -460,7 +452,7 @@ class ScientificProducts(Products):
                 ScientificStage.INTERPRETATION,
                 lambda: self.codes_and_outputs[
                     'data_analysis'].created_files.get_created_content_files_to_pretty_contents(
-                    view_purpose=ViewPurpose.PRODUCT)['additional_results.pkl'],
+                    view_purpose=ViewPurpose.PRODUCT, level=3)['additional_results.pkl'],
             ),
 
             'additional_results_linked': NameDescriptionStageGenerator(
@@ -469,6 +461,6 @@ class ScientificProducts(Products):
                 ScientificStage.INTERPRETATION,
                 lambda: self.codes_and_outputs[
                     'data_analysis'].created_files.get_created_content_files_to_pretty_contents(
-                    view_purpose=ViewPurpose.HYPERTARGET_PRODUCT)['additional_results.pkl'],
+                    view_purpose=ViewPurpose.HYPERTARGET_PRODUCT, level=3)['additional_results.pkl'],
             ),
         }

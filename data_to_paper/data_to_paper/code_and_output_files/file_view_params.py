@@ -63,13 +63,15 @@ DEFAULT_VIEW_PURPOSE_TO_PARAMS: Dict[ViewPurpose, ViewParams] = {
             is_block=True,
             pvalue_on_str=OnStr.SMALLER_THAN),
 
-    ViewPurpose.CODE_REVIEW: ViewParams(
+    ViewPurpose.CODE_REVIEW:
+        ViewParams(
         hypertarget_format=HypertargetFormat(position=HypertargetPosition.NONE),
         with_hyper_header=False,
         is_block=True,
         pvalue_on_str=OnStr.SMALLER_THAN),
 
-    ViewPurpose.APP_HTML: ViewParams(
+    ViewPurpose.APP_HTML:
+        ViewParams(
         hypertarget_format=HypertargetFormat(position=HypertargetPosition.NONE),
         with_hyper_header=False,
         is_block=True,

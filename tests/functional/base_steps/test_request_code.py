@@ -212,7 +212,7 @@ def test_request_code_with_file_review_revisions(code_running_converser):
             record_more_if_needed=False):
         code_and_output = code_running_converser.get_code_and_output()
     assert code_and_output.code == code2
-    assert code_and_output.created_files.get_created_content_files_to_pretty_contents() == \
+    assert code_and_output.created_files.get_created_content_files_to_contents() == \
            {'table_1.txt': 'Improved output1', 'table_2.txt': 'Improved output2'}
     assert len(code_running_converser.conversation) == 3
 

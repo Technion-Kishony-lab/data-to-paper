@@ -53,7 +53,7 @@ class ProduceScientificPaperPDFWithAppendix(BaseLatexToPDF):
         s = ''
         s += self.products.data_file_descriptions.to_latex(view_purpose=ViewPurpose.FINAL_APPENDIX)
         for code_name, code_and_output in self.products.codes_and_outputs.items():
-            s += '\n\n' + code_and_output.to_latex(view_purpose=ViewPurpose.FINAL_APPENDIX)
+            s += '\n\n' + code_and_output.as_latex_for_appendix(view_purpose=ViewPurpose.FINAL_APPENDIX)
         notes_appendix = self._get_notes_appendix()
         if notes_appendix:
             s += '\n\n' + notes_appendix

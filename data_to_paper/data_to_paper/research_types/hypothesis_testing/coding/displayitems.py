@@ -7,10 +7,10 @@ from data_to_paper.base_steps.request_code import CodeReviewPrompt
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.code_and_output_files.file_view_params import ViewPurpose
 from data_to_paper.code_and_output_files.output_file_requirements import TextContentOutputFileRequirement, \
-    OutputFileRequirements, DataOutputFileRequirement
+    OutputFileRequirements, DataOutputFileRequirement, ReferencableContentOutputFileRequirement
 from data_to_paper.code_and_output_files.ref_numeric_values import HypertargetFormat, HypertargetPosition
 from data_to_paper.code_and_output_files.referencable_text import BaseReferenceableText, convert_str_to_latex_label, \
-    LabeledNumericReferenceableText, ReferencableTextProduct
+    LabeledNumericReferenceableText, ReferencableTextProduct, FromTextReferenceableText
 from data_to_paper.latex.tables import get_displayitem_caption
 from data_to_paper.research_types.hypothesis_testing.cast import ScientificAgent
 from data_to_paper.research_types.hypothesis_testing.coding.base_code_conversers import BaseCreateTablesCodeProductsGPT
@@ -61,27 +61,26 @@ class DisplayitemNumericReferenceableTextProduct(ReferencableTextProduct):
 
 
 @dataclass(frozen=True)
-class TexTableContentOutputFileRequirement(TextContentOutputFileRequirement):
+class TexTableContentOutputFileRequirement(ReferencableContentOutputFileRequirement):
     filename: str = '*.tex'
     referenceable_text_cls: type = LabeledNumericReferenceableText
 
-    def get_referencable_text_product(self, content: Any, filename: str = None, num_file: int = 0,
-                                      view_purpose: ViewPurpose = None) -> ReferencableTextProduct:
+    def get_pretty_content(self, content: Any, filename: str = None, num_file: int = 0,
+                           view_purpose: ViewPurpose = None, **kwargs) -> str:
         if view_purpose == ViewPurpose.APP_HTML:
-            content = get_html_from_latex(content)
-            result = DisplayitemNumericReferenceableTextProduct(
-                referencable_text=self.referenceable_text_cls(
-                    text=content,
-                    hypertarget_prefix=self.hypertarget_prefixes[num_file] if self.hypertarget_prefixes else None,
-                ),
-                name=filename,
-                content_view_purpose_converter=self.content_view_purpose_converter,
-            )
+            return get_html_from_latex(content)
+        elif view_purpose == ViewPurpose.FINAL_APPENDIX:
+            return content
         else:
             content = get_latex_without_html_comment(content)
-            result = super().get_referencable_text_product(content, filename, num_file, view_purpose)
+            return super().get_pretty_content(content, filename, num_file, view_purpose, **kwargs)
+
+    def get_referencable_text_product(self, content: Any, filename: str = None, num_file: int = 0,
+                                      view_purpose: ViewPurpose = None) -> ReferencableTextProduct:
+        result = super().get_referencable_text_product(content, filename, num_file, view_purpose)
+        referenceable_text: FromTextReferenceableText = result.referencable_text
         if view_purpose == ViewPurpose.FINAL_INLINE:
-            text = result.text
+            text = referenceable_text.text
             pickle_filename = extract_source_filename_from_latex_displayitem(text)
             if pickle_filename:
                 # we add a hyperlink to the table caption
@@ -94,20 +93,8 @@ class TexTableContentOutputFileRequirement(TextContentOutputFileRequirement):
                 else:
                     new_caption = f'\\protect\\hyperlink{{{pickle_filename}}}{{{caption}}}'
                 text = text.replace(caption, new_caption)
-            result.text = text
+            referenceable_text.text = text
         return result
-
-
-tex_file_requirement = TexTableContentOutputFileRequirement('*.tex',
-                                                            minimal_count=1, max_tokens=None,
-                                                            hypertarget_prefixes=HypertargetPrefix.LATEX_TABLES.value)
-
-# Disable hypertargets for FINAL_APPENDIX because we want the hypertargets to be in the tables themselves:
-tex_file_requirement.content_view_purpose_converter.view_purpose_to_params[
-    ViewPurpose.FINAL_APPENDIX] = HypertargetFormat(position=HypertargetPosition.NONE)
-
-
-png_file_requirement = DataOutputFileRequirement('*.png', minimal_count=0)
 
 
 @dataclass
@@ -155,8 +142,11 @@ class CreateDisplayitemsCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLa
          'created_files_content:data_analysis:df_?.pkl')
     allow_data_files_from_sections: Tuple[Optional[str]] = ('data_analysis', )
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'my_utils')
-    output_file_requirements: OutputFileRequirements = OutputFileRequirements(
-        [tex_file_requirement, png_file_requirement])
+    output_file_requirements: OutputFileRequirements = OutputFileRequirements([
+        TexTableContentOutputFileRequirement('*.tex',
+                                             minimal_count=1,
+                                             hypertarget_prefixes=HypertargetPrefix.LATEX_TABLES.value),
+        DataOutputFileRequirement('*.png', minimal_count=0)])
 
     provided_code: str = dedent_triple_quote_str('''
         def to_latex_with_note(df, filename: str, caption: str, label: str,

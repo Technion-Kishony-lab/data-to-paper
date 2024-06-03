@@ -302,7 +302,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser, HumanReviewAppInteractor)
         else:
             content_files_to_contents = \
                 code_and_output.created_files.get_created_content_files_to_pretty_contents(
-                    view_purpose=ViewPurpose.CODE_REVIEW, match_filename=wildcard_filename)
+                    view_purpose=ViewPurpose.CODE_REVIEW, match_filename=wildcard_filename, level=3)
             if not individually:
                 content_files_to_contents = {wildcard_filename: '\n'.join(content_files_to_contents.values())}
         return content_files_to_contents

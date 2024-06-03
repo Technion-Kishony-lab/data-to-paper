@@ -121,6 +121,9 @@ class PValue(OperatorValue):
             return value
         self._raise_if_forbidden_func(method_name)
 
+    def is_integer(self):
+        return self.value.is_integer()
+
     @property
     def __class__(self):
         if self.BEHAVE_NORMALLY or self.ON_STR != OnStr.RAISE and self.ON_STR != OnStr.AS_FLOAT:

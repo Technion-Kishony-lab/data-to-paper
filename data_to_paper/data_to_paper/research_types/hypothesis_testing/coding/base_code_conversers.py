@@ -52,7 +52,7 @@ class BaseScientificCodeProductsGPT(BaseScientificCodeProductsHandler, BaseCodeP
             if section is None:
                 continue
             if section in self.products.codes_and_outputs:
-                files += self.products.codes_and_outputs[section].created_files.get_created_data_files()
+                files += self.products.codes_and_outputs[section].created_files.get_all_created_and_undeleted_files()
         return files
 
     @property
