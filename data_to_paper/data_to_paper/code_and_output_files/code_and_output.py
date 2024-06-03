@@ -71,7 +71,7 @@ class CodeAndOutput:
                 code = self._add_hypertarget_to_code(code, self._get_label_for_file(filename), lineno)
         return code
 
-    def to_latex(self, view_purpose: ViewPurpose) -> str:
+    def as_latex_for_appendix(self, view_purpose: ViewPurpose) -> str:
         s = f"\\section{{{self.name}}}\n"
         if self.code:
             s += "\\subsection{{Code}}\n"
@@ -85,13 +85,10 @@ class CodeAndOutput:
             s += "\\subsection{Code Description}\n"
             s += '\n' + self.code_explanation
 
-        outputs = self.created_files.get_created_content_files_to_referencable_text_product(view_purpose=view_purpose)
+        outputs = self.created_files.get_created_content_files_to_pretty_contents(view_purpose=view_purpose)
         if outputs:
             s += '\n\n' + "\\subsection{Code Output}"
-            for filename, output in outputs.items():
-                content, references = output.get_formatted_text_and_references(view_purpose)
-                s += '\n'.join(reference.to_str(HypertargetFormat(HypertargetPosition.HEADER))
-                               for reference in references)
+            for filename, content in outputs.items():
                 header = replace_special_latex_chars(filename)
                 header = f'\\hyperlink{{{self._get_label_for_file(filename)}}}{{{header}}}'
                 s += f'\n\n\\subsubsection*{{{header}}}'
