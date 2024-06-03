@@ -56,7 +56,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
 
     @property
     def output_filename(self) -> str:
-        return self.output_file_requirements[0].filename
+        return self.output_file_requirements[0].generic_filename
 
     mission_prompt: str = dedent_triple_quote_str("""
         As part of a data-exploration phase, please write a complete short Python code for getting a \t

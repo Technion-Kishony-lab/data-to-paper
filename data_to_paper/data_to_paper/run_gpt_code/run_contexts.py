@@ -120,11 +120,11 @@ class TrackCreatedFiles(SingletonRegisteredRunContext):
                 if requirement.is_wildcard():
                     issue = dedent_triple_quote_str(f"""
                         The code was supposed to create at least {requirement.minimal_count} files \t
-                        of "{requirement.filename}", \t
+                        of "{requirement.generic_filename}", \t
                         but it only created {len(output_files)} files of this type.
                         """)
                 else:
-                    issue = f"The code didn't generate the desired output file, '{requirement.filename}'."
+                    issue = f"The code didn't generate the desired output file, '{requirement.generic_filename}'."
                 self.issues.append(RunIssue(
                     category='Not all required files were created',
                     issue=issue,

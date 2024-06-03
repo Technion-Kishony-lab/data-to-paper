@@ -12,11 +12,11 @@ from typing import Optional, Tuple, Any
 from data_to_paper.env import MAX_EXEC_TIME
 from data_to_paper.utils.mutable import Mutable
 from data_to_paper.run_gpt_code.code_runner import CodeRunner, is_serializable
+from data_to_paper.utils.types import ListBasedSet
 
 from .base_run_contexts import MultiRunContext
 from .cache_runs import CacheRunToFile
 from .exceptions import FailedRunningCode, CodeTimeoutException
-from ..utils.types import ListBasedSet
 
 # process.queue fails on Mac OS X with large objects. Use file-based transfer instead.
 RUN_CACHE_FILEPATH = Mutable(None)

@@ -76,7 +76,7 @@ def test_dataframe_creation_is_collected_upon_read_csv(tmpdir_with_csv_file):
     dataframe_operations = tdf.dataframe_operations
     assert len(dataframe_operations) == 1
     assert dataframe_operations[0].created_by == 'read_csv'
-    assert dataframe_operations[0].filename == 'test.csv'
+    assert dataframe_operations[0].generic_filename == 'test.csv'
 
 
 def test_dataframe_read_csv_is_collected_if_changed(tmpdir_with_csv_file):
@@ -96,7 +96,7 @@ def test_dataframe_reports_save_csv(tmpdir_with_csv_file):
         df.to_csv(str(tmpdir_with_csv_file.join('test_modified.csv')))
     dataframe_operations = tdf.dataframe_operations
     assert len(dataframe_operations) == 4
-    assert dataframe_operations[3].filename == 'test_modified.csv'
+    assert dataframe_operations[3].generic_filename == 'test_modified.csv'
 
 
 def test_get_changed_and_unsaved_dataframes(tmpdir_with_csv_file):
@@ -133,7 +133,7 @@ def test_even_non_reporting_df_reports_on_save(tmpdir):
             df.to_csv('test.csv')
     dataframe_operations = tdf.dataframe_operations
     assert len(dataframe_operations) == 3
-    assert dataframe_operations[2].filename == 'test.csv'
+    assert dataframe_operations[2].generic_filename == 'test.csv'
     assert dataframe_operations[2].columns == ('A', )
 
 

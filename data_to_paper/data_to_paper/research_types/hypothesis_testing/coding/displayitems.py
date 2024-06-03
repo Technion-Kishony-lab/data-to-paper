@@ -62,7 +62,7 @@ class DisplayitemNumericReferenceableTextProduct(ReferencableTextProduct):
 
 @dataclass(frozen=True)
 class TexTableContentOutputFileRequirement(ReferencableContentOutputFileRequirement):
-    filename: str = '*.tex'
+    generic_filename: str = '*.tex'
     referenceable_text_cls: type = LabeledNumericReferenceableText
 
     def get_pretty_content(self, content: Any, filename: str = None, num_file: int = 0,

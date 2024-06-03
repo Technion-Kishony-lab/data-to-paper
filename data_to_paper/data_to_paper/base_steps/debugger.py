@@ -136,7 +136,7 @@ class DebuggerConverser(BackgroundProductsConverser):
             return 'Your code should not write to any file.'
 
         return 'Your code should only write to these files: {}.'.format(
-            ', '.join(f'"{r.filename}"' for r in requirements)
+            ', '.join(f'"{r.generic_filename}"' for r in requirements)
         )
 
     """

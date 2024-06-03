@@ -35,15 +35,15 @@ In this case we load and keep the content and typically delete the file.
 
 @dataclass(frozen=True)
 class OutputFileRequirement:
-    filename: str
+    generic_filename: str
     minimal_count: int
     should_keep_file: bool = NotImplemented
 
     def is_wildcard(self):
-        return '*' in self.filename or '?' in self.filename
+        return '*' in self.generic_filename or '?' in self.generic_filename
 
     def matches(self, filename: str):
-        return fnmatch(filename, self.filename)
+        return fnmatch(filename, self.generic_filename)
 
     def delete_if_needed(self, file_path: str):
         """
@@ -196,8 +196,9 @@ class OutputFileRequirements(Tuple[OutputFileRequirement]):
     """
     Stores a list of requirements for the output files of an LLM code run.
     """
+
     def get_all_allowed_created_filenames(self) -> Tuple[str, ...]:
-        return tuple(requirement.filename for requirement in self)
+        return tuple(requirement.generic_filename for requirement in self)
 
     def _match_files_to_requirements(self, created_files: Iterable[str]) -> Dict[str, Optional[OutputFileRequirement]]:
         """
