@@ -22,14 +22,12 @@ class ReferencableTextProduct(Product):
         return self.referencable_text is not None
 
     def _get_formatted_content(self, view_purpose: ViewPurpose) -> str:
-        view_params = self.content_view_purpose_converter.convert_view_purpose_to_view_params(view_purpose)
-        hypertarget_format = view_params.hypertarget_format
+        hypertarget_format = self.content_view_purpose_converter.convert_view_purpose_to_view_params(view_purpose)
         content, _ = self._get_formatted_text_and_header_references(hypertarget_format)
         return content
 
     def get_header(self, view_purpose: ViewPurpose = ViewPurpose.PRODUCT, **kwargs) -> str:
-        view_params = self.content_view_purpose_converter.convert_view_purpose_to_view_params(view_purpose)
-        hypertarget_format = view_params.hypertarget_format
+        hypertarget_format = self.content_view_purpose_converter.convert_view_purpose_to_view_params(view_purpose)
         _, references = self._get_formatted_text_and_header_references(hypertarget_format)
         header = super().get_header()
         header = '\n'.join(reference.to_str(hypertarget_format) for reference in references) + header

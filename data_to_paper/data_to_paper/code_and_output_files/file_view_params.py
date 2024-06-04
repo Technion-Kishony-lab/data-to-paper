@@ -1,10 +1,8 @@
 import copy
-from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, Optional
+from typing import Dict
 
 from data_to_paper.code_and_output_files.ref_numeric_values import HypertargetPosition, HypertargetFormat
-from data_to_paper.run_gpt_code.overrides.pvalue import OnStr
 
 
 class ViewPurpose(Enum):
@@ -22,75 +20,23 @@ class ViewPurpose(Enum):
         return self in [ViewPurpose.FINAL_APPENDIX, ViewPurpose.FINAL_INLINE]
 
 
-@dataclass(frozen=True)
-class ViewParams:
-    """
-    Parameters for how to present the content of the file.
-    """
-    hypertarget_format: HypertargetFormat
-    with_hyper_header: bool = False
-    is_block: bool = False
-    pvalue_on_str: Optional[OnStr] = None
-
-
-DEFAULT_VIEW_PURPOSE_TO_PARAMS: Dict[ViewPurpose, ViewParams] = {
-    None:
-        ViewParams(
-            hypertarget_format=HypertargetFormat(position=HypertargetPosition.NONE),
-            with_hyper_header=False,
-            is_block=False,
-            pvalue_on_str=None),
-
-    ViewPurpose.FINAL_APPENDIX:
-        ViewParams(
-            hypertarget_format=HypertargetFormat(position=HypertargetPosition.ADJACENT, raised=True, escaped=True),
-            with_hyper_header=True,
-            is_block=False,
-            pvalue_on_str=OnStr.WITH_ZERO),
-
-    ViewPurpose.FINAL_INLINE:
-        ViewParams(
-            hypertarget_format=HypertargetFormat(position=HypertargetPosition.ADJACENT, raised=True, escaped=False),
-            with_hyper_header=False,
-            is_block=False,
-            pvalue_on_str=OnStr.SMALLER_THAN),
-
-    ViewPurpose.PRODUCT:
-        ViewParams(
-            hypertarget_format=HypertargetFormat(position=HypertargetPosition.NONE),
-            with_hyper_header=False,
-            is_block=True,
-            pvalue_on_str=OnStr.SMALLER_THAN),
-
-    ViewPurpose.HYPERTARGET_PRODUCT:
-        ViewParams(
-            hypertarget_format=HypertargetFormat(position=HypertargetPosition.WRAP, raised=False, escaped=False),
-            with_hyper_header=False,
-            is_block=True,
-            pvalue_on_str=OnStr.SMALLER_THAN),
-
-    ViewPurpose.CODE_REVIEW:
-        ViewParams(
-            hypertarget_format=HypertargetFormat(position=HypertargetPosition.NONE),
-            with_hyper_header=False,
-            is_block=True,
-            pvalue_on_str=OnStr.SMALLER_THAN),
-
-    ViewPurpose.APP_HTML:
-        ViewParams(
-            hypertarget_format=HypertargetFormat(position=HypertargetPosition.NONE),
-            with_hyper_header=False,
-            is_block=True,
-            pvalue_on_str=OnStr.SMALLER_THAN),
+DEFAULT_VIEW_PURPOSE_TO_PARAMS: Dict[ViewPurpose, HypertargetFormat] = {
+    None: HypertargetFormat(position=HypertargetPosition.NONE),
+    ViewPurpose.FINAL_APPENDIX: HypertargetFormat(position=HypertargetPosition.ADJACENT, raised=True, escaped=True),
+    ViewPurpose.FINAL_INLINE: HypertargetFormat(position=HypertargetPosition.ADJACENT, raised=True, escaped=False),
+    ViewPurpose.PRODUCT: HypertargetFormat(position=HypertargetPosition.NONE),
+    ViewPurpose.HYPERTARGET_PRODUCT: HypertargetFormat(position=HypertargetPosition.WRAP, raised=False, escaped=False),
+    ViewPurpose.CODE_REVIEW: HypertargetFormat(position=HypertargetPosition.NONE),
+    ViewPurpose.APP_HTML: HypertargetFormat(position=HypertargetPosition.NONE),
 }
 
 
 class ContentViewPurposeConverter:
-    def __init__(self, view_purpose_to_params: Dict[ViewPurpose, ViewParams] = None):
+    def __init__(self, view_purpose_to_params: Dict[ViewPurpose, HypertargetFormat] = None):
         view_purpose_to_params = view_purpose_to_params or DEFAULT_VIEW_PURPOSE_TO_PARAMS
         self.view_purpose_to_params = copy.deepcopy(view_purpose_to_params)
 
-    def convert_view_purpose_to_view_params(self, view_purpose: ViewPurpose) -> ViewParams:
+    def convert_view_purpose_to_view_params(self, view_purpose: ViewPurpose) -> HypertargetFormat:
         return self.view_purpose_to_params[view_purpose]
 
     def __hash__(self):

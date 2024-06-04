@@ -15,7 +15,7 @@ from data_to_paper.utils.text_numeric_formatting import round_floats
 from data_to_paper.code_and_output_files.referencable_text import NumericReferenceableText, ReferencableTextProduct, \
     BaseReferenceableText
 
-from data_to_paper.run_gpt_code.overrides.pvalue import OnStrPValue
+from data_to_paper.run_gpt_code.overrides.pvalue import OnStrPValue, OnStr
 from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue
 from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
 
@@ -141,8 +141,8 @@ class BaseContentOutputFileRequirement(OutputFileRequirement):
 
     def get_pretty_content(self, content: Any, filename: str = None, num_file: int = 0,
                            view_purpose: ViewPurpose = ViewPurpose.PRODUCT) -> str:
-        view_params = self.content_view_purpose_converter.convert_view_purpose_to_view_params(view_purpose)
-        with OnStrPValue(view_params.pvalue_on_str):
+        pvalue_on_str = OnStr.WITH_ZERO if view_purpose == ViewPurpose.FINAL_APPENDIX else OnStr.SMALLER_THAN
+        with OnStrPValue(pvalue_on_str):
             if view_purpose == ViewPurpose.APP_HTML:
                 content = self._to_html(content)
             else:
@@ -191,7 +191,7 @@ class ReferencableContentOutputFileRequirement(BaseContentOutputFileRequirement)
         )
 
     def _get_hyper_target_format(self, view_purpose: ViewPurpose) -> HypertargetFormat:
-        return self.content_view_purpose_converter.convert_view_purpose_to_view_params(view_purpose).hypertarget_format
+        return self.content_view_purpose_converter.convert_view_purpose_to_view_params(view_purpose)
 
 
 @dataclass(frozen=True)
