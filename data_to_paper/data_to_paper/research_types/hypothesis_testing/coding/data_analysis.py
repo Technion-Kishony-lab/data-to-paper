@@ -37,12 +37,12 @@ class DictPickleContentOutputFileRequirement(PickleContentOutputFileRequirement)
 @dataclass
 class DataAnalysisCodeAndOutput(CodeAndOutput):
     def get_code_header_for_file(self, filename: str) -> Optional[str]:
-        # 'df_*.pkl' -> '# DF *'
-        if filename.startswith('df_') and filename.endswith('.pkl'):
-            return f'## DF {filename[3:-4]}'
         # 'additional_results.pkl' -> '# Additional Results'
         if filename == 'additional_results.pkl':
             return '# SAVE ADDITIONAL RESULTS'
+        # '*.pkl' -> '# DF *'
+        if filename.startswith('df_') and filename.endswith('.pkl'):
+            return f'## DF {filename[3:-4]}'
         return None
 
 
@@ -164,26 +164,64 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
                                                 hypertarget_prefixes=HypertargetPrefix.ADDITIONAL_RESULTS.value)
          ])
 
+    provided_code: str = dedent_triple_quote_str('''
+        def df_to_latex(
+                df, filename: str, caption: str, label: str,
+                **kwargs):
+            """
+            Saves a DataFrame as a LaTeX table.
+            Parameters, as in `df.to_latex`.
+            """
+
+        def df_to_figure(
+                df, filename: str, caption: str,
+                x: Optional[str] = None, y: Optional[str] = None, 
+                kind: str = 'line', use_index: bool = True, 
+                xlabel: str = None, ylabel: str = None,
+                logx: bool = False, logy: bool = False,
+                xerr: str = None, yerr: str = None,
+                x_ci: Union[str, Tuple[str, str]] = None, y_ci: Union[str, Tuple[str, str]] = None,
+                x_p_value: str = None, y_p_value: str = None,
+            ):
+            """
+            Saves a DataFrame to a LaTeX figure.
+            Parameters, for Latex embedding of the figure:
+            `df`, `filename`, `caption`
+
+            Parameters for df.plot():
+            `x` / `y` (optional, str): Column name for x-axis / y-axis values.
+            `kind` (str): Type of plot: 'line', 'scatter', 'bar', 'hist', 'box', 'kde', 'hexbin', 'pie'.
+            `use_index` (bool): If True (default), use the index as x-axis values.
+            `logx` / `logy` (bool): If True, use log scale for x/y axis.
+            `xerr` / `yerr` (optional, str): Column name for x/y error bars.
+
+            Additional plotting options:
+            `x_p_value` / `y_p_value` (optional, str): Column name for p-values to show as stars above data points.
+                p-values are automatically converted to: '***', '**', '*', 'ns' (not significant).
+
+            Instead of xerr/yerr, one can directly provide confidence intervals:
+            `x_ci` / `y_ci` (optional, str): a column name of tuples (lower, upper) for x/y confidence intervals.
+
+            Note on error bars (explanation for y-axis is provided, x-axis is analogous):
+            Either `yerr` or `y_ci` can be provided, but not both.
+            If `yerr` is provided, the plotted error bars are (df[y]-df[yerr], df[y]+df[yerr]).
+            If `y_ci` is provided, the plotted error bars are (df[y_ci][0], df[y_ci][1]).
+            Note that unlike yerr, the y_ci are NOT added to the nominal df[y] values. 
+            Instead, the provided y_ci values should flank the nominal df[y] values.
+            """
+        ''')
+
     mission_prompt: str = dedent_triple_quote_str("""
-        Write a complete Python code to analyze the data and create dataframes as basis for scientific Tables \t
-        and Figures for our paper.
+        Write a complete Python code to analyze the data according to our \t
+        "{research_goal}" and "{hypothesis_testing_plan}". 
 
-        Created df for tables will be later converted to LaTeX tables using `df.to_latex()`.
-        Created df for figures will be later converted to plots using a `my_plot(df, x=, y=, ...)` function, \t
-        which is similar to `df.plot()` but also allows specifying:
-        - Confidence intervals (CI) for error bars. Like:
-        `my_plot(df, x=, y='height', y_ci='height_ci', ...)`
-        where 'height_ci' is a column in the df with the CI values as a tuple (lower, upper).
-        - P-values for plotting significance as stars. Like:
-        `my_plot(df, x=, y='height', y_p_value='height_pval', ...)`
-        where 'height_pval' is a column in the df with the p-values.
-
-        Important: We are not making the plots in this code, only creating dataframes that will be used later to \t
-        create the plots and tables. 
+        The code should create scientific Tables and Figures for our paper, using the following provided functions:
+        {provided_code}
 
         The code must have the following sections (with these exact capitalized headers):
 
         `# IMPORT`
+        `from my_utils import df_to_latex, df_to_figure`
         `import pickle`
         You can also import here any other packages including: 
         {supported_packages}
@@ -210,23 +248,23 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         `# DESCRIPTIVE STATISTICS`
         * In light of our study goals and the hypothesis testing plan (see above "{research_goal}" and \t
         "{hypothesis_testing_plan}"), decide whether and which descriptive statistics are needed to be included in \t
-        the research paper and create dfs for relevant tables and figures.
+        the research paper and create relevant tables / figures.
 
-        For example:
-        `## DF 0: "Table: Descriptive statistics of height and age stratified by sex"`
-        `# Designed for creating a scientific table using: df0.to_latex()`
-        Write here the code to create a descriptive statistics dataframe `df0`.
-        Do not convert to latex yet. Just save it using:
-        `df0.to_pickle('df_0.pkl')`
-        If no descriptive statistics are needed, write:
-        `# No descriptive statistics table is needed.`
+        - If you decide that no descriptive statistics is needed, write:
+        `# No descriptive statistics table is needed because <your reasons here>.` 
 
-        And/or, for a figure:
-        `## DF 1: "Figure: Distribution of height"`
-        `# Designed for creating a scientific figure using: my_plot(df1, kind='hist', x='height')`
-        Write here the code to create `df1`. Like, `df1 = data_after_cleaning['height']`.
-        Do not create the plot yet. Just save the dataframe using:
-        `df1.to_pickle('df_1.pkl')`
+        - If you decide to create a descriptive statistics table:
+        `## Table desc_stat: "Descriptive statistics of ..."`
+        Write here the code to create a descriptive statistics dataframe `df_desc_stat`.
+        Then, save the dataframe to LaTeX:
+        `df_to_latex(df_desc_stat, 'desc_stat.tex')`
+
+        - If you decide to create a descriptive statistics figure, for example a distribution of variable(s):
+        `## Figure param_dist: "Distribution of ..."`
+        Write here the code to create `df_param_dist` of relevant parameters.
+        Then, save the dataframe to a figure:
+        `df_to_figure(df_param_dist, 'param_dist.tex', kind='hist', y=['height', 'weight', ...])`
+        As suitable, you can also directly use dfs of original data for creating figure.
 
         `# PREPROCESSING` 
         Perform any preprocessing steps needed to prepare the data for the analysis.
@@ -243,13 +281,13 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         (tables/figures) we should create for our scientific paper. \t
         Typically, we should have at least one table or figure for each hypothesis test.
 
-        For each such displayitem, follow these 3 steps:
+        For each such displayitem, follow these 4 steps:
         [a] Write a comment with a suggested table/figure caption. 
         For example:
-        `## DF 1: "Table: Test of association between age and risk of death, accounting for sex and race"`
+        `## Table age_death: "Test of association between age and risk of death, accounting for sex and race"`
         Or
-        `## DF 1: "Figure: Adjusted and unadjusted odds ratios for ..."  
-        Avoid generic captions such as `## DF 1: "Results of analysis"`.
+        `## Figure longevity_factors: "Adjusted and unadjusted odds ratios for longevity ..."  
+        Avoid generic captions such as "Results of analysis".
 
         [b] Perform analysis
         - Perform appropriate analysis and/or statistical tests (see above our "{hypothesis_testing_plan}").
@@ -262,7 +300,7 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         syntax in statsmodels formulas, rather than trying to manually multiply the variables.
         {mediation_note_if_applicable}\t
 
-        [c] Create and save a dataframe for the scientific table/figure (`df1`, `df2`, etc): 
+        [c] Create a dataframe for the scientific table/figure. 
         * Only include information that is relevant and suitable for inclusion in a scientific table.
         * Nominal values should be accompanied by a measure of uncertainty (CI or STD and p-value).
         As applicable, CI should be provided as a column of tuple (lower, upper).
@@ -272,23 +310,22 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
             - As possible, do not invent new names; just keep the original variable names from the dataset.
             - As applicable, also keep any attr names from statistical test results.
 
+        [d] Convert the dataframe to LaTeX Table or figure using the provided functions.
+
 
         Overall, the section should have the following structure:
 
         `# ANALYSIS`
-        `## DF 1: "Table: <your chosen table name here>"`
-        `# Intended use: df1.to_latex()`
-        Write here the code to analyze the data and create a dataframe df1 for table 1
-        `df1.to_pickle('df_1.pkl')`
+        `## Table <chosen_tag>: "<chosen table name>"`
+        Code to analyze the data and create a dataframe `df_chosen_tag` for the table. 
+        `df_to_latex(df_chosen_tag, 'chosen_tag.tex')`
 
-        `## DF 2: "Figure: <your chosen figure name here>"`
-        `# Intended use: my_plot(df2, kind='bar', y=['height', 'weight', ...], y_ci=['height_ci', 'weight_ci', ...],
-        y_p_value=['height_pval', 'weight_pval', ...])`
-        Write here the code to analyze the data and create a dataframe df2 for figure 2.
-        Do not create the plot yet. Just save the dataframe using:
-        `df2.to_pickle('df_2.pkl')`
+        `## Figure <chosen_tag>: "<chosen figure name>"`
+        Code to analyze the data and create a dataframe `df_chosen_tag` for the figure.
+        `df_to_figure(df_chosen_tag, 'chosen_tag.tex', kind='bar', y=['height_avg', 'weight_avg', ...], 
+        y_ci=['height_ci', 'weight_ci', ...], y_p_value=['height_pval', 'weight_pval', ...])`
 
-        etc, up to 3-4 display items.
+        etc, up to 3-4 display items in total.
 
 
         # SAVE ADDITIONAL RESULTS
@@ -309,7 +346,7 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
 
         Avoid the following:
         Do not provide a sketch or pseudocode; write a complete runnable code including all '# HEADERS' sections.
-        Do not create the actual plots or latex tables; only prepare and save the suitable dataframes.
+        Do not directly use matplotlib or other plotting packages; only use the provided functions.
         Do not send any presumed output examples.
         Avoid convoluted or indirect methods of data extraction and manipulation; \t
         For clarity, use direct attribute access for clarity and simplicity.
