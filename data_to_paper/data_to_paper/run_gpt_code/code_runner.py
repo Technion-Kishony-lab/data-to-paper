@@ -8,10 +8,9 @@ import importlib
 
 from typing import Optional, Type, Tuple, Any, Union, Iterable, Dict
 
-from data_to_paper import llm_created_scripts
-
 from data_to_paper.utils.file_utils import run_in_directory
 from data_to_paper.utils.types import ListBasedSet
+from data_to_paper.code_and_output_files.output_file_requirements import OutputFileRequirements
 
 from .base_run_contexts import MultiRunContext
 from .attr_replacers import PreventCalling
@@ -22,8 +21,8 @@ from .exceptions import FailedRunningCode, BaseRunContextException, CodeTimeoutE
 from .timeout_context import timeout_context
 from .user_script_name import MODULE_NAME, module_filename
 from .run_issues import RunIssue
-from data_to_paper.code_and_output_files.output_file_requirements import OutputFileRequirements
 
+from data_to_paper import llm_created_scripts
 module_dir = os.path.dirname(llm_created_scripts.__file__)
 module_default_filepath = os.path.join(module_dir, module_filename)
 
@@ -153,8 +152,7 @@ class CodeRunner:
         Returns:
             result: the result of a call to a function in the code, None if no function was called.
             created_files: the files that were created during the run.
-            issues: the issues that were found during the run.
-            contexts: a dict of all the contexts within which the code was run.
+            multi_context: the multi context that was used during the run.
             exception: an exception that was raised during the run, None if no exception was raised.
         """
         if module_filepath is None:

@@ -2,9 +2,9 @@ import re
 from dataclasses import dataclass, field
 from typing import Dict, Tuple, List
 
+from data_to_paper.utils import line_count, dedent_triple_quote_str
 from data_to_paper.run_gpt_code.code_utils import extract_code_from_text
 from data_to_paper.run_gpt_code.run_issues import RunIssue, CodeProblem
-from data_to_paper.utils import line_count, dedent_triple_quote_str
 
 
 def get_issue_for_use_of_a_forbidden_function(func: str, suggest_print_to_output: bool) -> RunIssue:

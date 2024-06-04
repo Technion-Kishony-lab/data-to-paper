@@ -329,7 +329,8 @@ class ScientificProducts(Products):
                 lambda code_step: get_code_stage(code_step),
                 lambda code_step: {
                     'output': self.codes_and_outputs[code_step].created_files.
-                    get_created_content_files_and_contents_as_single_str(view_purpose=ViewPurpose.PRODUCT, header_level=3),
+                    get_created_content_files_and_contents_as_single_str(view_purpose=ViewPurpose.PRODUCT,
+                                                                         header_level=3),
                     'code_name': self.codes_and_outputs[code_step].name},
             ),
 

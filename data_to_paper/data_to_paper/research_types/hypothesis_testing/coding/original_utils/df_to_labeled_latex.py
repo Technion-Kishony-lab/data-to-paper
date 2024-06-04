@@ -4,7 +4,7 @@ from data_to_paper.run_gpt_code.overrides.dataframes.utils import to_latex_with_
 from data_to_paper.run_gpt_code.overrides.pvalue import is_p_value, format_p_value, OnStr, OnStrPValue
 
 
-def format_obj(p_value):
+def _format_obj(p_value):
     if is_p_value:
         s = format_p_value(p_value.value, smaller_than_sign='$<$')
         if s.startswith('$<$'):
@@ -20,4 +20,4 @@ def df_to_numerically_labeled_latex(df, pvalue_on_str=OnStr.LATEX_SMALLER_THAN):
     with OnStrPValue(pvalue_on_str):
         return to_latex_with_value_format(
             df, numeric_formater=lambda x: label_numeric_value(STR_FLOAT_FORMAT(x)),
-            object_formatter=format_obj)
+            object_formatter=_format_obj)

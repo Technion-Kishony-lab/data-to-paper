@@ -21,7 +21,7 @@ def df_table():
 
 def test_df_to_latex(df_table):
     latex = df_to_latex(df_table, None, caption='test caption', label='table:test', note='this is a note',
-                               glossary={'CV': 'coefficient of variation', 'SD': 'standard deviation'})
+                        glossary={'CV': 'coefficient of variation', 'SD': 'standard deviation'})
     latex = latex.replace('@@<', '').replace('>@@', '')
     width = LatexDocument().compile_table(latex, file_stem='test')
     assert 0.1 < width < 0.2

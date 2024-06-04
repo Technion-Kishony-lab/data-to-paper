@@ -24,8 +24,6 @@ def df_to_figure(df: pd.DataFrame, filename: Optional[str],
                  pvalue_on_str: Optional[OnStr] = None,
                  comment: str = None,
                  append_html: bool = True,
-                 xlabel: Optional[str] = None,
-                 ylabel: Optional[str] = None,
                  **kwargs):
     """
     Create a matplotlib figure embedded in a LaTeX figure with a caption and label.
@@ -33,7 +31,7 @@ def df_to_figure(df: pd.DataFrame, filename: Optional[str],
     fig_filename = filename.replace('.tex', '.png')
     fig, ax = plt.subplots()
     with OnStrPValue(OnStr.AS_FLOAT):
-        df_plot_with_pvalue(df, ax=ax, xlabel=xlabel, ylabel=ylabel, **kwargs)
+        df_plot_with_pvalue(df, ax=ax, **kwargs)
     rotate_xticklabels_if_not_numeric(ax)
     raise_if_numeric_axes_do_not_have_labels(ax)
     plt.tight_layout()  # Adjusts subplot parameters to give the plot more room

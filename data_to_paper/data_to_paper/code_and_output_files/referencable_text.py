@@ -1,9 +1,9 @@
 from __future__ import annotations
 import re
 from dataclasses import dataclass, field
-from typing import Optional, List, Tuple, Union, Any
+from typing import Optional, List, Tuple, Union
 
-from data_to_paper.base_products.product import ValueProduct, Product
+from data_to_paper.base_products.product import Product
 from data_to_paper.code_and_output_files.file_view_params import ViewPurpose, ContentViewPurposeConverter
 from data_to_paper.code_and_output_files.ref_numeric_values import \
     numeric_values_in_products_pattern, ReferencedValue, HypertargetFormat
@@ -12,7 +12,8 @@ from data_to_paper.code_and_output_files.ref_numeric_values import \
 @dataclass
 class ReferencableTextProduct(Product):
     referencable_text: BaseReferenceableText = None
-    content_view_purpose_converter: Optional[ContentViewPurposeConverter] = field(default_factory=ContentViewPurposeConverter)
+    content_view_purpose_converter: Optional[ContentViewPurposeConverter] = \
+        field(default_factory=ContentViewPurposeConverter)
 
     @property
     def hypertarget_prefix(self):
@@ -112,7 +113,8 @@ class FromTextReferenceableText(BaseReferenceableText):
     def _get_value(self, match, reference_num, line_no, line_no_with_ref, in_line_number):  # noqa
         return match.group(0)
 
-    def get_formatted_text_and_references(self, hypertarget_format: HypertargetFormat) -> Tuple[str, List[ReferencedValue]]:
+    def get_formatted_text_and_references(self, hypertarget_format: HypertargetFormat
+                                          ) -> Tuple[str, List[ReferencedValue]]:
         """
         Find all numeric values in text and create references to them.
         Replace the numeric values with the references.

@@ -62,7 +62,7 @@ def _df_to_latex(df: pd.DataFrame, filename: str, caption: str = None, label: st
     Same as df_to_latex, but also checks for issues.
     """
     raise_on_wrong_params_for_df_to_latex(df, filename, caption=caption, label=label, note=note,
-                                                 glossary=glossary)
+                                          glossary=glossary)
     if not isinstance(filename, str):
         raise ValueError(f'Expected `filename` to be a string, got {type(filename)}')
 

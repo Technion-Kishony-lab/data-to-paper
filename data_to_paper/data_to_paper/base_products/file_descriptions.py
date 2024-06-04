@@ -139,7 +139,8 @@ class DataFileDescriptions(List[DataFileDescription]):
         s = ''
         if self.general_description is not None:
             s += '## General Description\n'
-            s += hypertarget_if_referencable_text_product(self.general_description, view_purpose, with_header=False) + '\n'
+            s += hypertarget_if_referencable_text_product(self.general_description, view_purpose,
+                                                          with_header=False) + '\n'
         with run_in_directory(self.data_folder):
             s += '## Data Files\n'
             if len(self) == 0:

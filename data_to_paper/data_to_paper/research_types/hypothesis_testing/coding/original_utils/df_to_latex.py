@@ -5,11 +5,11 @@ import pandas as pd
 
 from data_to_paper.latex.clean_latex import process_latex_text_and_math
 from data_to_paper.research_types.hypothesis_testing.coding.original_utils.add_html_to_latex import add_html_to_latex
-from data_to_paper.research_types.hypothesis_testing.coding.original_utils.df_to_labeled_latex import \
-    df_to_numerically_labeled_latex
 from data_to_paper.research_types.hypothesis_testing.coding.original_utils.note_and_legend import \
     convert_note_and_glossary_to_latex_table_caption, convert_note_and_glossary_to_html
 from data_to_paper.run_gpt_code.overrides.dataframes.utils import to_html_with_value_format
+from data_to_paper.research_types.hypothesis_testing.coding.original_utils.df_to_labeled_latex import \
+    df_to_numerically_labeled_latex
 from data_to_paper.run_gpt_code.overrides.pvalue import OnStr, OnStrPValue
 
 THREEPARTTABLE = r"""\begin{table}[htbp]
