@@ -8,7 +8,7 @@ from data_to_paper.base_steps.request_code import CodeReviewPrompt
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.code_and_output_files.file_view_params import ViewPurpose
 from data_to_paper.code_and_output_files.output_file_requirements import \
-    NumericTextContentOutputFileRequirement, OutputFileRequirements, PickleContentOutputFileRequirement
+    OutputFileRequirements, PickleContentOutputFileRequirement
 from data_to_paper.research_types.hypothesis_testing.coding.base_code_conversers import BaseCreateTablesCodeProductsGPT
 from data_to_paper.research_types.hypothesis_testing.coding.utils import get_additional_contexts
 from data_to_paper.research_types.hypothesis_testing.coding.utils_modified_for_gpt_use.to_pickle import \
@@ -24,14 +24,14 @@ from data_to_paper.utils.nice_list import NiceDict
 
 
 class DataFramePickleContentOutputFileRequirement(PickleContentOutputFileRequirement):
-    def _to_str(self, content: DataFrame, view_purpose: ViewPurpose, **kwargs) -> str:
+    def _to_str(self, content: DataFrame, view_purpose: ViewPurpose) -> str:
         return to_string_with_format_value(content)
 
 
 class DictPickleContentOutputFileRequirement(PickleContentOutputFileRequirement):
-    def _to_str(self, content: DataFrame, view_purpose: ViewPurpose, **kwargs) -> str:
+    def _to_str(self, content: DataFrame, view_purpose: ViewPurpose) -> str:
         content = NiceDict(content, format_numerics_and_iterables=format_numerics_and_iterables)
-        return super()._to_str(content, view_purpose, **kwargs)
+        return super()._to_str(content, view_purpose)
 
 
 @dataclass

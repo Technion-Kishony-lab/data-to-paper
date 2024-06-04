@@ -85,7 +85,7 @@ class CodeAndOutput:
             s += "\\subsection{Code Description}\n"
             s += '\n' + self.code_explanation
 
-        outputs = self.created_files.get_created_content_files_to_pretty_contents(view_purpose=view_purpose)
+        outputs = self.created_files.get_created_content_files_to_pretty_contents(view_purpose=view_purpose, header_level=None)
         if outputs:
             s += '\n\n' + "\\subsection{Code Output}"
             for filename, content in outputs.items():
@@ -116,7 +116,7 @@ class CodeAndOutput:
             s += wrap_text_with_triple_quotes(self.code_explanation, 'latex') + '\n'
         if self.created_files:
             outputs = self.created_files.get_created_content_files_to_pretty_contents(
-                view_purpose=ViewPurpose.APP_HTML, level=3)
+                view_purpose=ViewPurpose.APP_HTML, header_level=3)
         else:
             outputs = None
 

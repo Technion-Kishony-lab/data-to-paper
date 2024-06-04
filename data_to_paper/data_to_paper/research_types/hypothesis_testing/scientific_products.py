@@ -329,7 +329,7 @@ class ScientificProducts(Products):
                 lambda code_step: get_code_stage(code_step),
                 lambda code_step: {
                     'output': self.codes_and_outputs[code_step].created_files.
-                    get_created_content_files_and_contents_as_single_str(view_purpose=ViewPurpose.PRODUCT, level=3),
+                    get_created_content_files_and_contents_as_single_str(view_purpose=ViewPurpose.PRODUCT, header_level=3),
                     'code_name': self.codes_and_outputs[code_step].name},
             ),
 
@@ -369,7 +369,7 @@ class ScientificProducts(Products):
                     'created_files_content':
                         self.codes_and_outputs[
                             code_step].created_files.get_created_content_files_and_contents_as_single_str(
-                            view_purpose=ViewPurpose.CODE_REVIEW, match_filename=filespec, level=3),
+                            view_purpose=ViewPurpose.CODE_REVIEW, match_filename=filespec, header_level=3),
                     'which_files': 'all files' if filespec == '*' else f'files "{filespec}"',
                     'code_name': self.codes_and_outputs[code_step].name},
             ),
@@ -452,7 +452,7 @@ class ScientificProducts(Products):
                 ScientificStage.INTERPRETATION,
                 lambda: self.codes_and_outputs[
                     'data_analysis'].created_files.get_created_content_files_to_pretty_contents(
-                    view_purpose=ViewPurpose.PRODUCT, level=3)['additional_results.pkl'],
+                    view_purpose=ViewPurpose.PRODUCT, header_level=3)['additional_results.pkl'],
             ),
 
             'additional_results_linked': NameDescriptionStageGenerator(
@@ -461,6 +461,6 @@ class ScientificProducts(Products):
                 ScientificStage.INTERPRETATION,
                 lambda: self.codes_and_outputs[
                     'data_analysis'].created_files.get_created_content_files_to_pretty_contents(
-                    view_purpose=ViewPurpose.HYPERTARGET_PRODUCT, level=3)['additional_results.pkl'],
+                    view_purpose=ViewPurpose.HYPERTARGET_PRODUCT, header_level=3)['additional_results.pkl'],
             ),
         }

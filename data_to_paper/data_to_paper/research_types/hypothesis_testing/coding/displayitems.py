@@ -6,11 +6,11 @@ from data_to_paper.base_steps import DebuggerConverser, CheckLatexCompilation
 from data_to_paper.base_steps.request_code import CodeReviewPrompt
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.code_and_output_files.file_view_params import ViewPurpose
-from data_to_paper.code_and_output_files.output_file_requirements import TextContentOutputFileRequirement, \
+from data_to_paper.code_and_output_files.output_file_requirements import \
     OutputFileRequirements, DataOutputFileRequirement, ReferencableContentOutputFileRequirement
 from data_to_paper.code_and_output_files.ref_numeric_values import HypertargetFormat, HypertargetPosition
 from data_to_paper.code_and_output_files.referencable_text import BaseReferenceableText, convert_str_to_latex_label, \
-    LabeledNumericReferenceableText, ReferencableTextProduct, FromTextReferenceableText
+    LabeledNumericReferenceableText, ReferencableTextProduct
 from data_to_paper.latex.tables import get_displayitem_caption
 from data_to_paper.research_types.hypothesis_testing.cast import ScientificAgent
 from data_to_paper.research_types.hypothesis_testing.coding.base_code_conversers import BaseCreateTablesCodeProductsGPT
@@ -24,7 +24,7 @@ from data_to_paper.research_types.hypothesis_testing.coding.utils_modified_for_g
 from data_to_paper.research_types.hypothesis_testing.scientific_products import HypertargetPrefix, ScientificProducts
 from data_to_paper.run_gpt_code.attr_replacers import PreventAssignmentToAttrs, PreventCalling, AttrReplacer
 from data_to_paper.run_gpt_code.code_runner import CodeRunner
-from data_to_paper.run_gpt_code.overrides.pvalue import PValue, OnStr
+from data_to_paper.run_gpt_code.overrides.pvalue import PValue
 from data_to_paper.run_gpt_code.run_contexts import ProvideData
 from data_to_paper.run_gpt_code.run_issues import RunIssue, CodeProblem
 from data_to_paper.utils import dedent_triple_quote_str
@@ -66,11 +66,11 @@ class TexTableContentOutputFileRequirement(ReferencableContentOutputFileRequirem
     referenceable_text_cls: type = LabeledNumericReferenceableText
 
     def get_pretty_content(self, content: Any, filename: str = None, num_file: int = 0,
-                           view_purpose: ViewPurpose = None, **kwargs) -> str:
+                           view_purpose: ViewPurpose = None) -> str:
         if view_purpose == ViewPurpose.APP_HTML:
             return get_html_from_latex(content)
         content = get_latex_without_html_comment(content)
-        return super().get_pretty_content(content, filename, num_file, view_purpose, **kwargs)
+        return super().get_pretty_content(content, filename, num_file, view_purpose)
 
     def _get_hyper_target_format(self, view_purpose: ViewPurpose) -> HypertargetFormat:
         if view_purpose == ViewPurpose.FINAL_APPENDIX:
