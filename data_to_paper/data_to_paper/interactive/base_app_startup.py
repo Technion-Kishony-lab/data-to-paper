@@ -90,7 +90,6 @@ class PlainTextPasteTextEdit(QTextEdit):
 def create_info_label(tooltip_text):
     info_label = QLabel("ℹ️")
     info_label.setToolTip(tooltip_text)
-    info_label.setStyleSheet("font-size: 14pt; color: white;")
     return info_label
 
 
