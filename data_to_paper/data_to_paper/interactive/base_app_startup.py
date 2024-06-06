@@ -13,6 +13,9 @@ from data_to_paper.env import BASE_FOLDER
 from data_to_paper.interactive.get_app import get_or_create_q_application_if_app_is_pyside
 
 from typing import TYPE_CHECKING
+
+from data_to_paper.interactive.styles import SCROLLBAR_STYLE
+
 if TYPE_CHECKING:
     from data_to_paper.base_steps import BaseStepsRunner
 
@@ -72,7 +75,7 @@ QLineEdit {
     height: 25px; /* Adjust the height here */
     padding: 5px 10px;
 }
-"""
+""" + SCROLLBAR_STYLE
 
 
 text_box_style = "background-color: #151515; color: white;"
