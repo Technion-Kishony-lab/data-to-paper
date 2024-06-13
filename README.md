@@ -61,7 +61,9 @@ or to reproduce example projects (`data-to-paper/projects`)
 
 ### GUI app demo
 
-https://github.com/Technion-Kishony-lab/data-to-paper/assets/65530510/878865a7-45b4-496c-a62f-71d0003ce44b
+
+https://github.com/Technion-Kishony-lab/data-to-paper/assets/65530510/4c10c06d-d7e9-4d7c-b9d4-7dbe904d15de
+
 
 ### Examples
 
