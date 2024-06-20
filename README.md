@@ -53,7 +53,7 @@ See [INSTALL.md](INSTALL.md) for installation instructions.
 ### How to run
 1. Install data-to-paper ([INSTALL](INSTALL.md)).
 2. Run data-to-paper:
-      `python data_to_paper/data_to_paper/run/run.py`
+      `python data_to_paper/data_to_paper/scripts/run.py`
 3. This will open a startup dialog that will allow you to specify your own project, 
 or to reproduce example projects (`data-to-paper/projects`) 
 4. Click "Start" to start the run, with human overseeing and feedback.
