@@ -5,9 +5,11 @@ from typing import Iterable
 
 from data_to_paper.run_gpt_code.base_run_contexts import MultiRunContext
 from data_to_paper.run_gpt_code.attr_replacers import SystematicMethodReplacerContext, \
-    PreventAssignmentToAttrs
+    PreventAssignmentToAttrs, AttrReplacer
 from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue
 from data_to_paper.utils import dedent_triple_quote_str
+
+from ..pvalue import convert_to_p_value, TrackPValueCreationFuncs
 
 
 @dataclass
@@ -39,6 +41,22 @@ class SklearnFitOverride(SystematicMethodReplacerContext):
             return result
 
         return wrapped
+
+
+def _f_regression(*args, original_func=None, **kwargs):
+    p = original_func(*args, **kwargs)
+    return (p[0], convert_to_p_value(p[1], created_by='f_regression'))
+
+
+@dataclass
+class SklearnPValue(AttrReplacer, TrackPValueCreationFuncs):
+    """
+    f_regression should return array of PValue objects instead of floats.
+    """
+    obj_import_str: str = 'sklearn.feature_selection'
+    attr: str = 'f_regression'
+    wrapper: callable = _f_regression
+    send_original_to_wrapper: bool = True
 
 
 @dataclass
