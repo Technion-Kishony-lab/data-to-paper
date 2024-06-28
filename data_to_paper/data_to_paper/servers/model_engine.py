@@ -15,7 +15,7 @@ class ModelEngine(IndexOrderedEnum):
 
     DEFAULT = None
     GPT35_TURBO = "gpt-3.5-turbo-0613"  # latest version that supports better system prompt adherence
-    GPT35_TURBO_16 = "gpt-3.5-turbo-16k-0613"
+    GPT35_TURBO_16 = "gpt-3.5-turbo-16k-1106"
     GPT4 = "gpt-4"
     GPT4_TURBO = "gpt-4-1106-preview"
     # GPT4_32 = "gpt-4-32k"
