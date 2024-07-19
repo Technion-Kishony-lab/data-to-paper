@@ -53,10 +53,7 @@ def extract_text_between_tags(text: str, left_tag: str, right_tag: str = None, k
                 return text[start:end + len(right_tag)]
             return text[start + len(left_tag):end]
         else:
-            # use extract_text_between_brackets to extract the text between the brackets
-            if keep_tags:
-                return left_tag + extract_text_between_brackets(text, left_bracket) + right_tag
-            return extract_text_between_brackets(text, left_bracket)
+            return extract_text_between_brackets(text, left_tag, leave_brackets=keep_tags)
     else:
         # right tag is None, so we return the text from the left tag to the end of the text
         start = find_str(text, left_tag, case_sensitive=case_sensitive)
@@ -67,27 +64,29 @@ def extract_text_between_tags(text: str, left_tag: str, right_tag: str = None, k
         return text[start + len(left_tag):]
 
 
-def extract_text_between_brackets(text: str, open_bracket: str, leave_brackets: bool = False):
+def extract_text_between_brackets(text: str, open_tag: str, leave_brackets: bool = False):
     """
     use stack to find matching closing bracket for the first open bracket, use stack to find matching closing bracket.
     return the text between the first open bracket and the matching closing bracket without the brackets.
     """
-    start = text.find(open_bracket)
+    start = text.find(open_tag)
     if start == -1:
-        raise ValueError(f'Could not find open bracket {open_bracket} in text')
-    end = start + 1
+        raise ValueError(f'Could not find open bracket {open_tag} in text')
+    end = start + len(open_tag)
+    open_bracket = open_tag[-1]
+    close_bracket = FROM_OPEN_BRACKET_TO_CLOSE_BRACKET[open_bracket]
     stack = [open_bracket]
     while len(stack) > 0:
         if end == len(text):
             raise ValueError(f'Could not find matching closing bracket for open bracket {open_bracket} in text')
         if text[end] == open_bracket:
             stack.append(open_bracket)
-        elif text[end] == FROM_OPEN_BRACKET_TO_CLOSE_BRACKET[open_bracket]:
+        elif text[end] == close_bracket:
             stack.pop()
         end += 1
     if leave_brackets:
         return text[start:end]
-    return text[start + 1:end - 1]
+    return text[start + len(open_tag):end - 1]
 
 
 def extract_all_external_brackets(text: str, open_bracket: str, close_bracket: str = None, open_phrase: str = None):

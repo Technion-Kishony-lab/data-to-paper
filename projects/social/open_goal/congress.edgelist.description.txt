@@ -1,9 +1,0 @@
-This file provides a sparse representation of the interaction matrix between members of the 115th US Congress on Twitter.
-Downloaded from: `https://snap.stanford.edu/data/congress-twitter`
-
-The file contains the list of weighted, directed edges for the Congressional network, in NetworkX format, which can be read with `nx.read_edgelist("congress.edgelist", create_using=nx.DiGraph())`. The 'weight' attribute of an edge from j to i is the fraction of member j's tweets that are engaging with member i (see definition of weight[i,j] above).
-
-INTERPRETATION OF THE WEIGHTS:
-The network uses a sparse matrix representation, storing only edges with weight[i,j] > 0.
-
-Since weight[i,j] is defined as N_Engaging_Tweets[i,j] / N_Tweets[j] and N_Tweets[j] is the number of ALL tweets of member j (including those not engaging with Congress members), `sum(weight[i,j])` across all i does not necessarily equal 1. This out-strength of node j represents member j's overall Congress engagement, namely the fraction of tweets by member j that engage with Congress members.

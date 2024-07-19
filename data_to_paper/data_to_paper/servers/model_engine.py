@@ -14,11 +14,9 @@ class ModelEngine(IndexOrderedEnum):
     _ignore_ = ['DEFAULT']
 
     DEFAULT = None
-    GPT35_TURBO = "gpt-3.5-turbo-0613"  # latest version that supports better system prompt adherence
-    GPT35_TURBO_16 = "gpt-3.5-turbo-16k-0613"
+    GPT35_TURBO = "gpt-3.5-turbo"
     GPT4 = "gpt-4"
-    GPT4_TURBO = "gpt-4-1106-preview"
-    # GPT4_32 = "gpt-4-32k"
+    GPT4_TURBO = "gpt-4-turbo"
     LLAMA_2_7b = "meta-llama/Llama-2-7b-chat-hf"
     LLAMA_2_70b = "meta-llama/Llama-2-70b-chat-hf"
     CODELLAMA = "codellama/CodeLlama-34b-Instruct-hf"
@@ -57,8 +55,7 @@ class ModelEngine(IndexOrderedEnum):
 ModelEngine.DEFAULT = ModelEngine.GPT35_TURBO
 
 ModelEngine.MODELS_TO_MORE_CONTEXT = {
-    ModelEngine.GPT35_TURBO: ModelEngine.GPT35_TURBO_16,
-    ModelEngine.GPT35_TURBO_16: ModelEngine.GPT4_TURBO,
+    ModelEngine.GPT35_TURBO: ModelEngine.GPT4_TURBO,
     ModelEngine.GPT4: ModelEngine.GPT4_TURBO,
     ModelEngine.GPT4_TURBO: None,
     ModelEngine.LLAMA_2_7b: None,
@@ -69,7 +66,6 @@ ModelEngine.MODELS_TO_MORE_CONTEXT = {
 
 ModelEngine.MODELS_TO_MORE_STRENGTH = {
     ModelEngine.GPT35_TURBO: ModelEngine.GPT4_TURBO,
-    ModelEngine.GPT35_TURBO_16: ModelEngine.GPT4_TURBO,
     ModelEngine.GPT4: ModelEngine.GPT4_TURBO,
     ModelEngine.GPT4_TURBO: None,
     ModelEngine.LLAMA_2_7b: None,
@@ -79,11 +75,9 @@ ModelEngine.MODELS_TO_MORE_STRENGTH = {
 
 
 ModelEngine.MODEL_ENGINE_TO_MAX_TOKENS_AND_IN_OUT_DOLLAR = {
-    ModelEngine.GPT35_TURBO: (4096, 0.0015, 0.002),
-    ModelEngine.GPT35_TURBO_16: (16384, 0.003, 0.004),
-    ModelEngine.GPT4: (8192, 0.03, 0.06),
-    ModelEngine.GPT4_TURBO: (128000, 0.01, 0.03),
-    # "gpt-4-32k": (32768, 0.06, 0.12),
+    ModelEngine.GPT35_TURBO: (16384, 0.0000015, 0.0000005),
+    ModelEngine.GPT4: (8192, 0.00003, 0.00001),
+    ModelEngine.GPT4_TURBO: (128000, 0.00003, 0.00001),
     ModelEngine.LLAMA_2_7b: (4096, 0.0002, 0.0002),
     ModelEngine.LLAMA_2_70b: (4096, 0.0007, 0.001),
     ModelEngine.CODELLAMA: (4096, 0.0006, 0.0006),

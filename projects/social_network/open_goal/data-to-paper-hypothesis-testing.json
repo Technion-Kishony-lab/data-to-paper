@@ -1,8 +1,10 @@
 {
     "data_filenames": [
-        "congress_members.csv", "congress_edges.dat"
+        "../data/congress_members.csv",
+        "../data/congress_edges.dat"
     ],
     "data_files_is_binary": [
+        false,
         false
     ],
     "research_goal": null,

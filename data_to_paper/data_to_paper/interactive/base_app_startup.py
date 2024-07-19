@@ -13,6 +13,9 @@ from data_to_paper.env import BASE_FOLDER
 from data_to_paper.interactive.get_app import get_or_create_q_application_if_app_is_pyside
 
 from typing import TYPE_CHECKING
+
+from data_to_paper.interactive.styles import SCROLLBAR_STYLE
+
 if TYPE_CHECKING:
     from data_to_paper.base_steps import BaseStepsRunner
 
@@ -72,7 +75,7 @@ QLineEdit {
     height: 25px; /* Adjust the height here */
     padding: 5px 10px;
 }
-"""
+""" + SCROLLBAR_STYLE
 
 
 text_box_style = "background-color: #151515; color: white;"
@@ -90,7 +93,6 @@ class PlainTextPasteTextEdit(QTextEdit):
 def create_info_label(tooltip_text):
     info_label = QLabel("ℹ️")
     info_label.setToolTip(tooltip_text)
-    info_label.setStyleSheet("font-size: 14pt; color: white;")
     return info_label
 
 
@@ -493,7 +495,7 @@ class BaseStartDialog(QDialog):
         self.current_config = config
         self._convert_config_to_widgets(config)
         runs_folder = project_directory / 'runs'
-        is_previous_runs = runs_folder.exists() and list(runs_folder.iterdir())
+        is_previous_runs = runs_folder.exists() and bool(list(runs_folder.iterdir()))
         self._lock_project_for_editing(disable=is_previous_runs)
 
     def _convert_config_to_widgets(self, config):

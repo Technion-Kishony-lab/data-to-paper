@@ -149,6 +149,10 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
                 self.send_product_to_client('research_goal', save_to_file=True)
         else:
             products.research_goal = GoalAndHypothesisProduct(value=research_goal)
+            self._app_send_product_of_stage(ScientificStage.LITERATURE_REVIEW_GOAL,
+                                            'This stage was skipped because the goal was provided by the user.')
+            self._app_send_product_of_stage(ScientificStage.ASSESS_NOVELTY,
+                                            'This stage was skipped because the goal was provided by the user.')
             self.send_product_to_client('research_goal', save_to_file=True)
 
         # Plan

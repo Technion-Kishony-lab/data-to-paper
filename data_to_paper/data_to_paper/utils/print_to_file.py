@@ -43,10 +43,10 @@ def print_and_log(text_in_bw: str, text_in_color: Optional[str] = None, color: O
     print(text_in_color, **kwargs)
     if should_log and CONSOLE_LOG_FILE.val is not None:
         file_path_color = CONSOLE_LOG_FILE.val  # pathlib.Path
-        with open(file_path_color, 'a') as f:
+        with open(file_path_color, 'a', encoding='utf-8') as f:
             print(text_in_color, file=f, **kwargs)
         file_path_bw = file_path_color.with_stem(file_path_color.stem + '_bw')
-        with open(file_path_bw, 'a') as f:
+        with open(file_path_bw, 'a', encoding='utf-8') as f:
             print(text_in_bw, file=f, **kwargs)
 
 

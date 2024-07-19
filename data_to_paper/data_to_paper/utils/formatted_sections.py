@@ -12,6 +12,17 @@ class FormattedSection:
     def to_tuple(self):
         return self.label, self.section, self.is_complete
 
+    def to_text(self):
+        if not self.is_block:
+            # regular text
+            return self.section
+        else:
+            # block
+            text = f'```{self.label}{self.section}'
+            if self.is_complete:
+                text += '```'
+            return text
+
     @property
     def is_block(self):
         return self.label is not None
@@ -69,15 +80,7 @@ class FormattedSections(List[FormattedSection]):
     def to_text(self) -> str:
         text = ''
         for i, formatted_section in enumerate(self):
-            label, section, is_complete = formatted_section.to_tuple()
-            if not formatted_section.is_block:
-                # regular text
-                text += section
-            else:
-                # block
-                text += f'```{label}{section}'
-                if is_complete:
-                    text += '```'
+            text += formatted_section.to_text()
         return text
 
     def get_first_block(self) -> Optional[FormattedSection]:

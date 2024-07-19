@@ -1,23 +1,25 @@
-## data-to-paper: AI-driven research from data to human-verifiable research papers
+## Backward-traceable AI-driven Research
 
 <picture>
 <img src="https://github.com/Technion-Kishony-lab/data-to-paper/blob/main/data_to_paper_icon.gif" width="350" align="right">
 </picture>
 
-[*data-to-paper*](https://arxiv.org/abs/2404.17605) is a framework for systematically navigating the power of AI to perform complete end-to-end 
-scientific research, starting from raw data and concluding with comprehensive, transparent, and human-verifiable 
-scientific papers ([example](https://t.co/iz44TDZZHb)).
+*data-to-paper* is a framework that systematically navigates the power of AI through a complete end-to-end 
+scientific research, starting from raw data and concluding with comprehensive, transparent, backward-traceable, 
+human-verifiable scientific papers ([example](https://t.co/iz44TDZZHb)).
 
-Towards this goal, *data-to-paper* systematically guides interacting 
+*Implementation.* Towards this goal, *data-to-paper* systematically guides interacting 
 LLM and rule-based agents through the conventional scientific path, from annotated data, through creating 
 research hypotheses, conducting literature search, writing and debugging data analysis code, 
 interpreting the results, and ultimately the step-by-step writing of a complete research paper.
+Tracking information flow through these steps, the process creates transparent and highly-traceable manuscripts, 
+where results, methodology and data are programmatically linked ([demo](https://youtu.be/HUkJcMXd9x0)).
 
 The *data-to-paper* framework is created as a research project to understand the 
 capacities and limitations of LLM-driven scientific research, and to develop ways of harnessing LLM to accelerate 
 research while maintaining, and even enhancing, key scientific values, such as transparency, traceability and verifiability, 
-and while allowing scientist to oversee and direct the process 
-[see also: [living guidelines](https://www.nature.com/articles/d41586-023-03266-1)].
+and while allowing scientist to oversee and direct the process
+(see also: [living guidelines](https://www.nature.com/articles/d41586-023-03266-1)).
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
 
@@ -31,13 +33,13 @@ The **data-to-paper** framework is described in the following pre-print:
 [arXiv:2404.17605](https://arxiv.org/abs/2404.17605)
 
 ### Key features
+* **Data-chained manuscripts**. The process creates transparent and verifiable manuscripts, where results, 
+methodology and data are programmatically linked 
+(all numeric values can be click-traced back to the code lines that created them).
 * **Field agnostic**. We strive to make the framework as general as possible, so that it can be used across different 
 fields of research.
 * **Open-goal or fixed-goal research.** *data-to-paper* can be used to autonomously raise and test 
 a hypothesis, or to test a specific pre-defined user-provided hypothesis.
-* **Data-chained manuscripts**. The process creates transparent and verifiable manuscripts, where results, 
-methodology and data are programmatically linked 
-(all numeric values can be click-traced back to the code lines that created them).
 * **Coding guardrails.** Standard statistical packages are overridden with multiple guardrails to minimize
 common LLM coding errors.
 * **Human-in-the-loop.** A GUI app allows the user to oversee the process, and to intervene 
@@ -51,7 +53,7 @@ See [INSTALL.md](INSTALL.md) for installation instructions.
 ### How to run
 1. Install data-to-paper ([INSTALL](INSTALL.md)).
 2. Run data-to-paper:
-      `python data_to_paper/data_to_paper/run/run.py`
+      `python data_to_paper/data_to_paper/scripts/run.py`
 3. This will open a startup dialog that will allow you to specify your own project, 
 or to reproduce example projects (`data-to-paper/projects`) 
 4. Click "Start" to start the run, with human overseeing and feedback.
@@ -59,7 +61,9 @@ or to reproduce example projects (`data-to-paper/projects`)
 
 ### GUI app demo
 
-https://github.com/Technion-Kishony-lab/data-to-paper/assets/65530510/878865a7-45b4-496c-a62f-71d0003ce44b
+
+https://github.com/Technion-Kishony-lab/data-to-paper/assets/65530510/4c10c06d-d7e9-4d7c-b9d4-7dbe904d15de
+
 
 ### Examples
 
