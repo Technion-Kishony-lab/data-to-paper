@@ -1,0 +1,23 @@
+The dataset contains 21 columns:
+
+#1 PSEUDOCRID De-identified patient ID, Continuous		
+#2 PSEUDOCENTERID De-identified center ID, Continuous		
+#3 age Recipient age (years), Continuous		
+#4 agegp Recipient age group (years), Categorical (1 = 18-29, 2=30-39, 3=40-49, 4=50-59, 5=60-69, 6=>=70)
+#5 sex Reciepient gender, Categorical (1=Male, 2=Female)
+#6 kps Recipient Karnofsky score, Categorical (0 >=90, 1 =<90, 99= Not reported)
+#7 racen Recipient race, Categorical (1=Caucasian, 2=Other, 99=Missing)
+#8 distat Remission status at HCT, Categorical	(1=CR, 2=PR, 3=Resistant, 5=Untreated/unknown)
+#9 condngp Conditioning regimen, Categorical (1=BEAM, 2=CBV, 3=TBI-based, 4=Others, 99=Not reported)
+#10 systhn Rituximab in maintenance, Categorical (0=No,1=Yes,99=Missing)
+#11 stagedxn Stage of organ involvement at diagnosis	Categorical, (1=I-II,3=III-IV,5=Other organ involvement,99=Not reported)
+#12 boneinv Bone marrow involvement at diagnosis, Categorical (0=No,1=Yes,99=Not reported)
+#13 exnoddxn Extranodal involvement at diagnosis, Categorical (0=No,1=Yes,99=Not reported)
+#14 bulky Bulky disease at HCT, Categorical (0=No,1=Yes,99=Not reported)			
+#15 yeartxgp Year of transplant, Categorical (0=2000-2004,1=2004-2009,2=2010-2014,3=2015-2018)
+#16 dead Overall survival	Categorical	0=Censoring, 1=Event)
+#17 intxsurv, Interval between HCT and death or last follow up, Continuous		
+#18 trm, Non-relapse mortality, Categorical (0=Censoring, 1=Event)
+#19 progrel, Relapse/progression, Categorical (0=Censoring,1=Event)
+#20 intxrel, Interval between HCT and relapse or last follow up, Continuous		
+#21 pfs, Progression-free survival, Categorical (0=Censoring, 1=Event)

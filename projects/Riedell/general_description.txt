@@ -1,0 +1,1 @@
+Data from the Center for International Blood and Marrow Transplant Research database, evaluating the effect of post-autoHCT time to relapse on overall survival (OS) over time in 461 patients who underwent autoHCT within 12 months of MCL diagnosis.

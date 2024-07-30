@@ -1,0 +1,24 @@
+## Statistical considerations:
+### Missing data points:
+The dataset contains missing values represented by codes 99 and 98 that should be addressed by either imputation or exclusion depending on the proportion of missing data in each variable.
+### Confounding variables:
+There may be confounding variables affecting the relationship between the independent and dependent variables. It is important to consider adjusting for potential confounders like race, conditioning regimen, extranodal involvement at diagnosis, and bulky disease at HCT.
+### Dependencies between data points:
+Survival analysis assumes independence between data points. It's important to ensure that each patient's data is independent of the others.
+
+## Hypotheses:
+### Hypothesis:
+1. Older patients and females are likely to have lower overall survival and progression-free survival rates.
+### Test:
+Logistic regression modeling the relationship between age group, gender, and overall survival (or progression-free survival), adjusting for potential confounders like race and conditioning regimen.
+
+### Hypothesis:
+2. Higher Karnofsky scores at the time of transplantation will be associated with higher overall survival and progression-free survival rates.
+### Test:
+Cox proportional hazards regression to analyze the impact of Karnofsky score on overall survival and progression-free survival while considering confounders like disease status at HCT and conditioning regimen.
+
+### Hypothesis:
+3. A higher stage of organ involvement at diagnosis is likely to be associated with lower overall survival and progression-free survival rates.
+### Test:
+Chi-square test or logistic regression to assess the association between the stage of organ involvement and overall survival (or progression-free survival) with adjustments for confounders like age and conditioning regimen.
+
