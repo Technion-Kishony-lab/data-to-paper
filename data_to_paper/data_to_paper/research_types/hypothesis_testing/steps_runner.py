@@ -121,7 +121,7 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
         self._app_send_api_usage_cost(self._pretty_api_usage_cost(
             self._get_path_in_output_directory(self.API_USAGE_COST_FILENAME)))
         if isinstance(stage, Stage):
-            self._add_stage_name_to_api_usage_cost_file(stage.name)
+            self._add_stage_name_to_api_usage_cost_file(stage.value)
         super().advance_stage(stage)
 
     def _run_all_steps(self) -> ScientificProducts:
