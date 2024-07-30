@@ -95,7 +95,7 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
             line = line.strip()
             if line.endswith(':'):
                 if current_step:
-                    result += f'<li style="color:white;">\n<b>{current_step}:</b> {current_cost:.2f}\n</li>\n'
+                    result += f'<li style="color:white;">\n<b>{current_step}:</b> {current_cost:.2f}$\n</li>\n'
                 current_step = line[:-1]
                 current_cost = 0.0
                 step_found = True
@@ -104,7 +104,7 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
                 step_found = True
 
         if current_step:
-            result += f'<li style="color:white;">\n<b>{current_step}:</b> {current_cost:.2f}\n</li>\n'
+            result += f'<li style="color:white;">\n<b>{current_step}:</b> {current_cost:.2f}$\n</li>\n'
 
         return result
 
