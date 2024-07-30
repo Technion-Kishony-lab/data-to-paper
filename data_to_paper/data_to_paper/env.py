@@ -21,6 +21,10 @@ LLM_MODELS_TO_API_KEYS_AND_BASE_URL = dict[Optional[ModelEngine], str]({
         (os.environ.get('OPENAI_API_KEY'), OPENAI_API_BASE),
     ModelEngine.GPT4_TURBO:
         (os.environ.get('OPENAI_API_KEY'), OPENAI_API_BASE),
+    ModelEngine.GPT4o_MINI:
+        (os.environ.get('OPENAI_API_KEY'), OPENAI_API_BASE),
+    ModelEngine.GPT4o:
+        (os.environ.get('OPENAI_API_KEY'), OPENAI_API_BASE),
     ModelEngine.LLAMA_2_7b:
         (os.environ.get('DEEPINFRA_API_KEY'), DEEPINFRA_API_BASE),
     ModelEngine.LLAMA_2_70b:
