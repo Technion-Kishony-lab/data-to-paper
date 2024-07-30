@@ -38,6 +38,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
     CROSSREF_RESPONSES_FILENAME = 'crossref_responses.bin'
     SEMANTIC_SCHOLAR_RESPONSES_FILENAME = 'semantic_scholar_responses.bin'
     CODE_RUNNER_CACHE_FILENAME = 'code_runner_cache.pkl'
+    API_USAGE_COST_FILENAME = 'api_usage_cost.txt'
 
     PROJECT_PARAMETERS_FILENAME = 'data-to-paper.json'
     DEFAULT_PROJECT_PARAMETERS = dict()
@@ -133,7 +134,8 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
                     self.CODE_RUNNER_CACHE_FILENAME,
                     self.OPENAI_RESPONSES_FILENAME,
                     self.CROSSREF_RESPONSES_FILENAME,
-                    self.SEMANTIC_SCHOLAR_RESPONSES_FILENAME]]
+                    self.SEMANTIC_SCHOLAR_RESPONSES_FILENAME,
+                    self.API_USAGE_COST_FILENAME,]]
 
     def _create_or_clean_output_folder(self):
         """
