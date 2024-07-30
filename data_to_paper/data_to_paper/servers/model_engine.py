@@ -6,7 +6,7 @@ from data_to_paper.utils.types import IndexOrderedEnum
 
 class ModelEngine(IndexOrderedEnum):
     """
-    Enum for the different model engines available in openai.
+    Enum for the different model engines available.
     Support comparison operators, according to the order of the enum.
     """
 
@@ -17,6 +17,8 @@ class ModelEngine(IndexOrderedEnum):
     GPT35_TURBO = "gpt-3.5-turbo"
     GPT4 = "gpt-4"
     GPT4_TURBO = "gpt-4-turbo"
+    GPT4o_MINI = "gpt-4o-mini"
+    GPT4o = "gpt-4o"
     LLAMA_2_7b = "meta-llama/Llama-2-7b-chat-hf"
     LLAMA_2_70b = "meta-llama/Llama-2-70b-chat-hf"
     CODELLAMA = "codellama/CodeLlama-34b-Instruct-hf"
@@ -52,12 +54,13 @@ class ModelEngine(IndexOrderedEnum):
         return ModelEngine.MODEL_ENGINE_TO_MAX_TOKENS_AND_IN_OUT_DOLLAR[self][1:]
 
 
-ModelEngine.DEFAULT = ModelEngine.GPT35_TURBO
+ModelEngine.DEFAULT = ModelEngine.GPT4o_MINI
 
 ModelEngine.MODELS_TO_MORE_CONTEXT = {
     ModelEngine.GPT35_TURBO: ModelEngine.GPT4_TURBO,
     ModelEngine.GPT4: ModelEngine.GPT4_TURBO,
     ModelEngine.GPT4_TURBO: None,
+    ModelEngine.GPT4o_MINI: None,
     ModelEngine.LLAMA_2_7b: None,
     ModelEngine.LLAMA_2_70b: None,
     ModelEngine.CODELLAMA: None,
@@ -65,9 +68,11 @@ ModelEngine.MODELS_TO_MORE_CONTEXT = {
 
 
 ModelEngine.MODELS_TO_MORE_STRENGTH = {
-    ModelEngine.GPT35_TURBO: ModelEngine.GPT4_TURBO,
-    ModelEngine.GPT4: ModelEngine.GPT4_TURBO,
-    ModelEngine.GPT4_TURBO: None,
+    ModelEngine.GPT35_TURBO: ModelEngine.GPT4o,
+    ModelEngine.GPT4: ModelEngine.GPT4o,
+    ModelEngine.GPT4_TURBO: ModelEngine.GPT4o,
+    ModelEngine.GPT4o_MINI: ModelEngine.GPT4o,
+    ModelEngine.GPT4o: None,
     ModelEngine.LLAMA_2_7b: None,
     ModelEngine.LLAMA_2_70b: None,
     ModelEngine.CODELLAMA: None,
@@ -75,9 +80,11 @@ ModelEngine.MODELS_TO_MORE_STRENGTH = {
 
 
 ModelEngine.MODEL_ENGINE_TO_MAX_TOKENS_AND_IN_OUT_DOLLAR = {
-    ModelEngine.GPT35_TURBO: (16384, 0.0000015, 0.0000005),
-    ModelEngine.GPT4: (8192, 0.00003, 0.00001),
-    ModelEngine.GPT4_TURBO: (128000, 0.00003, 0.00001),
+    ModelEngine.GPT35_TURBO: (16384, 0.000001, 0.000002),
+    ModelEngine.GPT4: (8192, 0.00003, 0.00006),
+    ModelEngine.GPT4_TURBO: (128000, 0.00001, 0.00003),
+    ModelEngine.GPT4o_MINI: (128000, 1.5e-7, 6e-7),
+    ModelEngine.GPT4o: (128000, 0.000005, 0.000015),
     ModelEngine.LLAMA_2_7b: (4096, 0.0002, 0.0002),
     ModelEngine.LLAMA_2_70b: (4096, 0.0007, 0.001),
     ModelEngine.CODELLAMA: (4096, 0.0006, 0.0006),
