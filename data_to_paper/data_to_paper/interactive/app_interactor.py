@@ -140,3 +140,8 @@ class AppInteractor:
         if self.app is None:
             return
         self.app.set_header(prefix + header)
+
+    def _app_send_api_usage_cost(self, html_content: str):
+        if self.app is None:
+            return
+        self.app.send_api_usage_cost(html_content)

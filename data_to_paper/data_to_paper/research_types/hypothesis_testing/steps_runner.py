@@ -1,3 +1,5 @@
+import os
+import pathlib
 from dataclasses import dataclass, field
 from typing import Tuple, Type, List, Union
 
@@ -21,6 +23,7 @@ from .writing_steps import SectionWriterReviewBackgroundProductsConverser, \
     FirstTitleAbstractSectionWriterReviewGPT, SecondTitleAbstractSectionWriterReviewGPT, \
     MethodsSectionWriterReviewGPT, IntroductionSectionWriterReviewGPT, ResultsSectionWriterReviewGPT, \
     DiscussionSectionWriterReviewGPT
+from ...conversation.stage import Stage
 
 PAPER_SECTIONS_NAMES = ['title', 'abstract', 'introduction', 'results', 'discussion', 'methods']
 SECTIONS_WITH_CITATIONS = ['introduction', 'discussion']
@@ -69,6 +72,58 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
             flattened_paper_sections_to_write.extend(sections)
         assert set(flattened_paper_sections_to_write) == set(template_sections)
 
+    def _add_stage_name_to_api_usage_cost_file(self, stage_name):
+        with open(self._get_path_in_output_directory(self.API_USAGE_COST_FILENAME), 'r') as f:
+            lines = f.readlines()
+            existing_stage_names = set([line.strip()[:-1] for line in lines if line.strip().endswith(':')])
+        if stage_name in existing_stage_names:
+            return
+        with open(self._get_path_in_output_directory(self.API_USAGE_COST_FILENAME), 'a') as f:
+            f.write(f'{stage_name}:\n')
+
+    @staticmethod
+    def _pretty_api_usage_cost(api_usage_cost_file: str) -> str:
+        with open(api_usage_cost_file, 'r') as f:
+            lines = f.readlines()
+
+        result = '<h2>The API usage cost for each step:</h2>\n'
+        current_step = None
+        current_cost = 0.0
+        step_found = False
+
+        for line in lines:
+            line = line.strip()
+            if line.endswith(':'):
+                if current_step:
+                    result += f'<li style="color:white;">\n<b>{current_step}:</b> {current_cost:.2f}\n</li>\n'
+                current_step = line[:-1]
+                current_cost = 0.0
+                step_found = True
+            elif line:
+                current_cost += float(line)
+                step_found = True
+
+        if current_step:
+            result += f'<li style="color:white;">\n<b>{current_step}:</b> {current_cost:.2f}\n</li>\n'
+
+        return result
+
+    def _pre_run_preparations(self):
+        """
+        create the api usage cost file
+        """
+        if not pathlib.Path(self._get_path_in_output_directory(self.API_USAGE_COST_FILENAME)).exists():
+            with open(self._get_path_in_output_directory(self.API_USAGE_COST_FILENAME), 'w') as f:
+                f.write('')
+        super()._pre_run_preparations()
+
+    def advance_stage(self, stage: Union[Stage, bool]):
+        self._app_send_api_usage_cost(self._pretty_api_usage_cost(
+            self._get_path_in_output_directory(self.API_USAGE_COST_FILENAME)))
+        if isinstance(stage, Stage):
+            self._add_stage_name_to_api_usage_cost_file(stage.name)
+        super().advance_stage(stage)
+
     def _run_all_steps(self) -> ScientificProducts:
         products = self.products  # Start with empty products
 
@@ -81,7 +136,6 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
             output_filename='paper.pdf',
             paper_section_names=PAPER_SECTIONS_NAMES,
         )
-
         # Data file descriptions:
         director_converser = DirectorProductGPT.from_(self,
                                                       assistant_agent=ScientificAgent.Director,

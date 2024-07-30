@@ -85,14 +85,18 @@ class OpenaiServerCaller(ListServerCaller):
             else:
                 print_and_log_red('Invalid input. Please choose Y/N.', should_log=False)
 
-    @staticmethod
-    def _check_after_spending_money(content: str, messages: List[Message], model_engine: ModelEngine):
+    def _check_after_spending_money(self, content: str, messages: List[Message], model_engine: ModelEngine):
         tokens_in = count_number_of_tokens_in_message(messages, model_engine)
         tokens_out = count_number_of_tokens_in_message(content, model_engine)
         pricing_in, pricing_out = model_engine.pricing
         print_and_log_red(f'Total: {tokens_in} prompt tokens, {tokens_out} returned tokens, '
-                          f'cost: ${(tokens_in * pricing_in + tokens_out * pricing_out) / 1000:.2f}.',
+                          f'cost: ${(tokens_in * pricing_in + tokens_out * pricing_out) :.2f}.',
                           should_log=False)
+        # write the total cost to the file in one line
+        path_to_api_usage_cost_file = self.file_path.parents[0] / 'api_usage_cost.txt'
+        print(f'Writing the cost to {path_to_api_usage_cost_file}')
+        with open(path_to_api_usage_cost_file, 'a') as f:
+            f.write(f'{tokens_in * pricing_in + tokens_out * pricing_out}\n')
 
     def get_server_response(self, *args, **kwargs) -> Union[LLMResponse, HumanAction, Exception]:
         """
@@ -103,8 +107,7 @@ class OpenaiServerCaller(ListServerCaller):
             action = LLMResponse(action)  # Backward compatibility
         return action
 
-    @staticmethod
-    def _get_server_response(messages: List[Message], model_engine: Union[ModelEngine, Callable], **kwargs
+    def _get_server_response(self, messages: List[Message], model_engine: Union[ModelEngine, Callable], **kwargs
                              ) -> Union[LLMResponse, HumanAction, Exception]:
         """
         Connect with openai to get response to conversation.
@@ -146,7 +149,7 @@ class OpenaiServerCaller(ListServerCaller):
             raise Exception(f'Failed to get response from OPENAI after {MAX_NUM_LLM_ATTEMPTS} attempts.')
 
         content = response['choices'][0]['message']['content']
-        OpenaiServerCaller._check_after_spending_money(content, messages, model_engine)
+        self._check_after_spending_money(content, messages, model_engine)
         return LLMResponse(content)
 
     @staticmethod

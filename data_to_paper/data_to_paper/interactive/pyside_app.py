@@ -33,6 +33,7 @@ class Worker(QThread):
     send_product_of_stage_signal = Signal(Stage, str)
     set_status_signal = Signal(PanelNames, int, str)
     set_header_signal = Signal(str)
+    send_api_usage_cost_signal = Signal(str)
 
     def __init__(self, mutex, condition, func_to_run=None):
         super().__init__()
@@ -83,6 +84,9 @@ class Worker(QThread):
 
     def worker_send_product_of_stage(self, stage: Stage, product_text: str):
         self.send_product_of_stage_signal.emit(stage, product_text)
+
+    def worker_send_api_usage_cost(self, html_content: str):
+        self.send_api_usage_cost_signal.emit(html_content)
 
     @Slot(PanelNames, str)
     def receive_text_signal(self, panel_name, text):
@@ -345,6 +349,30 @@ def create_tabs(names_to_panels: Dict[str, Panel]):
         tabs.addTab(panel, panel_name)
     return tabs
 
+class APIUsageCostDialog(QDialog):
+    def __init__(self, html_content, parent=None):
+        super(APIUsageCostDialog, self).__init__(parent, Qt.WindowType.WindowCloseButtonHint)
+        self.setWindowTitle("API Usage Cost")
+
+        # Layout to organize widgets
+        layout = QVBoxLayout()
+
+        # QLabel to display HTML content
+        label = QTextEdit()
+        label.setReadOnly(True)
+        label.setHtml(f'<style>{CSS}</style>{html_content}')
+
+        layout.addWidget(label)
+
+        # QPushButton to close the dialog
+        self.close_button = QPushButton("Close")
+        self.close_button.clicked.connect(self.close)
+        layout.addWidget(self.close_button)
+
+        self.setLayout(layout)
+        self.setStyleSheet(HTMLPOPUP_STYLE)
+        self.resize(400, 200)
+
 
 class PysideApp(QMainWindow, BaseApp):
     send_text_signal = Signal(str, PanelNames)
@@ -355,6 +383,7 @@ class PysideApp(QMainWindow, BaseApp):
         super().__init__()
         self.products: Dict[Stage, Any] = {}
         self.popups = set()
+        self.api_usage_cost = '<span style="color: white;">Nothing to show yet.</span>'
 
         self.panels = {
             PanelNames.SYSTEM_PROMPT: EditableTextPanel("System Prompt", "", ("Default",)),
@@ -415,6 +444,11 @@ class PysideApp(QMainWindow, BaseApp):
         self.bypass_mission_prompt_checkbox.setStyleSheet(QCHECKBOX_STYLE)
         check_boxes.addWidget(self.bypass_mission_prompt_checkbox)
 
+        # add button with $ sign that opens the pricing dialog, displaying the api usage cost per stage
+        self.pricing_button = QPushButton("API Usage Cost")
+        self.pricing_button.clicked.connect(self.show_pricing_dialog)
+        header_and_checkbox.addWidget(self.pricing_button)
+
         # Splitter with the text panels
         main_splitter = QSplitter(Qt.Orientation.Horizontal)
         left_splitter = QSplitter(Qt.Orientation.Vertical)
@@ -453,6 +487,7 @@ class PysideApp(QMainWindow, BaseApp):
         self.worker.send_product_of_stage_signal.connect(self.upon_send_product_of_stage)
         self.worker.set_status_signal.connect(self.upon_set_status)
         self.worker.set_header_signal.connect(self.upon_set_header)
+        self.worker.send_api_usage_cost_signal.connect(self.upon_send_api_usage_cost)
 
         # Define the request_text and show_text methods
         self.request_panel_continue = self.worker.worker_request_panel_continue
@@ -462,6 +497,7 @@ class PysideApp(QMainWindow, BaseApp):
         self.send_product_of_stage = self.worker.worker_send_product_of_stage
         self._set_status = self.worker.worker_set_status
         self.set_header = self.worker.worker_set_header
+        self.send_api_usage_cost = self.worker.worker_send_api_usage_cost
 
         # Connect UI elements
         for panel_name in PanelNames:
@@ -491,6 +527,9 @@ class PysideApp(QMainWindow, BaseApp):
         elif stage is False:
             stage = -1
         self.worker.worker_advance_stage_int(stage)
+
+    def send_api_usage_cost(self, html_content: str):
+        self.worker.worker_send_api_usage_cost(self.api_usage_cost)
 
     def start_worker(self, func_to_run=None):
         # Start the worker thread
@@ -532,6 +571,16 @@ class PysideApp(QMainWindow, BaseApp):
             open_file_on_os(file_path)
             return
         popup = HtmlPopup(stage.value, product_text)
+        popup.show()
+        self.popups.add(popup)
+        popup.finished.connect(self.popup_closed)
+
+    def show_pricing_dialog(self):
+        """
+        Open a popup window to show the pricing of the API usage per stage.
+        """
+        html_content = self.api_usage_cost
+        popup = APIUsageCostDialog(html_content)
         popup.show()
         self.popups.add(popup)
         popup.finished.connect(self.popup_closed)
@@ -597,3 +646,7 @@ class PysideApp(QMainWindow, BaseApp):
     @Slot(Stage, str)
     def upon_send_product_of_stage(self, stage: Stage, product_text: str):
         self.products[stage] = product_text
+
+    @Slot(str)
+    def upon_send_api_usage_cost(self, html_content: str):
+        self.api_usage_cost = html_content

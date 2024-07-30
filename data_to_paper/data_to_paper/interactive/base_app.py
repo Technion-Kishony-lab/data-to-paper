@@ -109,6 +109,8 @@ class BaseApp:
     def set_header(self, header: str):
         pass
 
+    def send_api_usage_cost(self, html_content: str):
+        pass
 
 class ConsoleApp(BaseApp):
     """
