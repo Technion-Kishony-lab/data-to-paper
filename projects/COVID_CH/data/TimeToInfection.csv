@@ -1,4 +1,4 @@
-ID,group,age,sex,BMI,patient_contact,using_FFP2_mask,negative swab,booster,positive household,months_since_immunisation,time_dose1_to_dose_2,vaccinetype,day_interval_start,day_interval_stop,infection event
+ID,group,age,sex,BMI,patient_contact,using_FFP2_mask,negative_swab,booster,positive_household,months_since_immunisation,time_dose1_to_dose_2,vaccinetype,day_interval_start,day_interval_stop,infection_event
 1,V,38,female,u30,0,0,0,0,no,0.8,1.2,Moderna,0,87,0
 1,V,38,female,u30,0,0,0,0,no,0.8,1.2,Moderna,87,99,0
 1,V,38,female,u30,0,0,0,0,no,0.8,1.2,Moderna,99,113,0
