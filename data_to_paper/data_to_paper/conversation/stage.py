@@ -1,5 +1,5 @@
-from enum import Enum
+from data_to_paper.utils.types import IndexOrderedEnum
 
 
-class Stage(Enum):
+class Stage(IndexOrderedEnum):
     pass

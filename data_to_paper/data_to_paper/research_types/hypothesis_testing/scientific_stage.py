@@ -2,22 +2,28 @@ from data_to_paper.conversation.stage import Stage
 
 
 class ScientificStage(Stage):
-    DATA = "Get Data"
-    EXPLORATION = "Data Exploration"
-    GOAL = "Research Goal"
-    LITERATURE_REVIEW_GOAL = "Lit. Review I"
-    ASSESS_NOVELTY = "Assess Novelty"
-    PLAN = "Hypothesis & Plan"
-    CODE = "Data Analysis"
-    TABLES = "Create Tables"
-    INTERPRETATION = "Draft abstract"
-    LITERATURE_REVIEW_WRITING = "Lit. Review II"
-    WRITING_RESULTS = "Results"
-    WRITING_TITLE_AND_ABSTRACT = "Title and Abstract"
-    WRITING_METHODS = "Methods"
-    WRITING_INTRODUCTION = "Introduction"
-    WRITING_DISCUSSION = "Discussion"
-    COMPILE = "Compile Paper"
+    def __new__(cls, value, resettable):
+        obj = object.__new__(cls)
+        obj._value_ = value
+        obj.resettable = resettable
+        return obj
+
+    DATA = ("Get Data", False)
+    EXPLORATION = ("Data Exploration", True)
+    GOAL = ("Research Goal", True)
+    LITERATURE_REVIEW_GOAL = ("Lit. Review I", False)
+    ASSESS_NOVELTY = ("Assess Novelty", False)
+    PLAN = ("Hypothesis & Plan", True)
+    CODE = ("Data Analysis", True)
+    TABLES = ("Create Tables", True)
+    INTERPRETATION = ("Draft abstract", True)
+    LITERATURE_REVIEW_WRITING = ("Lit. Review II", True)
+    WRITING_RESULTS = ("Results", True)
+    WRITING_TITLE_AND_ABSTRACT = ("Title and Abstract", True)
+    WRITING_METHODS = ("Methods", True)
+    WRITING_INTRODUCTION = ("Introduction", True)
+    WRITING_DISCUSSION = ("Discussion", True)
+    COMPILE = ("Compile Paper", False)
 
 
 SECTION_NAMES_TO_WRITING_STAGES = {
