@@ -4,7 +4,7 @@ from typing import Union
 
 import pytest
 
-from data_to_paper.servers.base_server import ListServerCaller, DictServerCaller, \
+from data_to_paper.servers.base_server import ListServerCaller, ParameterizedQueryServerCaller, \
     NoMoreResponsesToMockError, convert_args_kwargs_to_tuple
 
 
@@ -16,7 +16,7 @@ class MockServer(ListServerCaller):
         return response
 
 
-class DictMockServer(DictServerCaller):
+class ParameterizedQueryMockServer(ParameterizedQueryServerCaller):
     @staticmethod
     def _get_server_response(response: Union[str, Exception] = 'response'):
         if isinstance(response, Exception):
@@ -32,7 +32,7 @@ def test_server_mock_responses():
 
 
 def test_dict_server_mock_responses():
-    server = DictMockServer()
+    server = ParameterizedQueryMockServer()
     with server.mock(old_records={convert_args_kwargs_to_tuple(('arg1', ), {}): 'response1',
                                   convert_args_kwargs_to_tuple(('arg2', ), {}): 'response2'}) as mock:
         assert mock.get_server_response('arg1') == 'response1'
@@ -49,7 +49,7 @@ def test_server_mock_exception_when_no_responses_left():
 
 
 def test_dict_server_mock_exception_when_no_responses_matching():
-    server = DictMockServer()
+    server = ParameterizedQueryMockServer()
     with server.mock(old_records={convert_args_kwargs_to_tuple(('arg1', ), {}): 'response1',
                                   convert_args_kwargs_to_tuple(('arg2', ), {}): 'response2'},
                      record_more_if_needed=False) as mock:
@@ -67,7 +67,7 @@ def test_server_mock_records_when_runs_out_of_responses():
 
 
 def test_dict_server_mock_records_when_args_not_matching_records():
-    server = DictMockServer()
+    server = ParameterizedQueryMockServer()
     with server.mock(old_records={convert_args_kwargs_to_tuple(('arg1', ), {}): 'response1',
                                   convert_args_kwargs_to_tuple(('arg2', ), {}): 'response2'},
                      record_more_if_needed=True) as mock:
