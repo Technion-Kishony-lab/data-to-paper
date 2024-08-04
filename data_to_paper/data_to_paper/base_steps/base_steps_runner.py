@@ -59,6 +59,8 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
     stages: Type[Stage] = Stage
     current_stage: Stage = None
 
+    server_caller = None
+
     failure_message = dedent_triple_quote_str("""
         ## Run Terminated
         Run terminated prematurely during stage `{current_stage}`.
@@ -166,6 +168,8 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         """
         Run all steps and save all created files to the output folder.
         """
+        self.server_caller = OPENAI_SERVER_CALLER
+        self.server_caller.set_step_runner(self) # set the step runner for the openai server caller
 
         @RUN_CACHE_FILEPATH.temporary_set(
             self._get_path_in_output_directory(self.CODE_RUNNER_CACHE_FILENAME))
