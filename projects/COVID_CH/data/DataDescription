@@ -1,7 +1,7 @@
 General description 
 In this prospective, multicentre cohort performed between August 2020 and March 2022, we recruited hospital employees from ten acute/nonacute healthcare networks in Eastern/Northern Switzerland. We determined immune status in September 2021 based on serology and previous SARS-CoV-2 infections/vaccinations: Group N (no immunity); Group V (twice vaccinated, uninfected); Group I (infected, unvaccinated); Group H (hybrid: infected and ≥1 vaccination). The dataset is consisting of two files, one describing vaccination and infection events for all healthworkers, and the secone one describing the symptoms for the healthworkers who tested positive for SARS-CoV-2.
 
-Data in the file "TimeToInfection.csv" is organised in time intervals, from day_interval_start to day_interval_stop. Missing data is shown as "" for not indicated. It contains 16 columns:
+Data in the file "TimeToInfection.csv" is organised in time intervals, from day_interval_start to day_interval_stop. Missing data is shown as "" for not indicated or not relevant (e.g. which vaccine for the non-vaccinated group) . It contains 16 columns:
 ID Unique Identifier, same in both files
 group Vaccination group: "N" (no immunity), "V" (twice vaccinated, uninfected), "I" (infected, unvaccinated), "H" (hybrid: infected and ≥1 vaccination)
 age age in years, 
@@ -14,7 +14,7 @@ booster 1=yes, 0=no (or "" for not indicated)
 positive_household 1=yes, 0=no	
 months_since_immunisation continuous, in months	
 time_dose1_to_dose_2 continuous, in months
-vaccinetype Categorical, "Moderna" or "Pfizer/BioNTech" (or "" for not indicated)	
+vaccinetype Categorical, "Moderna" or "Pfizer_BioNTech" or "" for not vaccinated.	
 day_interval_start day since start of study when the interval starts
 day_interval_stop day since start of study when the interval stops	
 infection_event 1=yes, 0=no
@@ -24,7 +24,7 @@ ID Unique Identifier, same in both files
 group Vaccination group: "N" (no immunity), "V" (twice vaccinated, uninfected), "I" (infected, unvaccinated), "H" (hybrid: infected and ≥1 vaccination)
 age age in years, 
 sex "female", "male" (or "" for not indicated)	
-BMI categorical, ">30" or "<30"	
+BMI categorical, "o30" for >30 or "u30" for under 30	
 comorbidity 1=yes, 0=no	
 using_FFP2_mask 1=yes, 0=no	
 months_until_reinfection time until next infection	
