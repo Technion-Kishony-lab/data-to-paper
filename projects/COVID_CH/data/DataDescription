@@ -4,20 +4,20 @@ In this prospective, multicentre cohort performed between August 2020 and March 
 Data in the file "TimeToInfection.csv" is organised in time intervals, from day_interval_start to day_interval_stop. Missing data is shown as "" for not indicated or not relevant (e.g. which vaccine for the non-vaccinated group) . It contains 16 columns:
 ID Unique Identifier, same in both files
 group Vaccination group: "N" (no immunity), "V" (twice vaccinated, uninfected), "I" (infected, unvaccinated), "H" (hybrid: infected and ≥1 vaccination)
-age age in years, 
+age age in years 
 sex "female", "male" (or "" for not indicated)	
-BMI categorical, ">30" or "<30"	
-patient_contact	1=yes, 0=no 
-using_FFP2_mask 1=yes, 0=no 
-negative_swab 1=yes, 0=no 
-booster 1=yes, 0=no (or "" for not indicated)	
-positive_household 1=yes, 0=no	
-months_since_immunisation continuous, in months	
-time_dose1_to_dose_2 continuous, in months
+BMI categorical, "o30" for over 30  or "u30" for below 30	
+patient_contact	Having contact with patients during work, 1=yes, 0=no 
+using_FFP2_mask Always using protective respiratory masks during work, 1=yes, 0=no 
+negative_swab documentation of ≥1 negative test in the previous month, 1=yes, 0=no 
+booster receipt of booster vaccination, 1=yes, 0=no (or "" for not indicated)	
+positive_household categorical, SARS-CoV-2 infection of a household contact within the same month, 1=yes, 0=no	
+months_since_immunisation continuous, time since last immunization event (infection or vaccination) in months	
+time_dose1_to_dose_2 continuous, time interval between vaccine dose 1 and vaccine dose 2 in months
 vaccinetype Categorical, "Moderna" or "Pfizer_BioNTech" or "" for not vaccinated.	
 day_interval_start day since start of study when the interval starts
 day_interval_stop day since start of study when the interval stops	
-infection_event 1=yes, 0=no
+infection_event If an infection occured during this time interval, 1=yes, 0=no
 
 Data in the file "Symptoms.csv" is organised per infected health care worker. Each worker is only indicated once. It contains 11 columns:
 ID Unique Identifier, same in both files
@@ -26,8 +26,8 @@ age age in years,
 sex "female", "male" (or "" for not indicated)	
 BMI categorical, "o30" for >30 or "u30" for under 30	
 comorbidity 1=yes, 0=no	
-using_FFP2_mask 1=yes, 0=no	
+using_FFP2_mask Always using protective respiratory masks during work, 1=yes, 0=no 
 months_until_reinfection time until next infection	
 variant	categorical, delta or omicron (or "" for not indicated)	
-booster_over7_days_before	
+booster_over7_days_before If a booster was given in the last 7 days	
 symptom_number Number of symptoms during the infection
