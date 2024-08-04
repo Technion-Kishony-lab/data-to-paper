@@ -1,0 +1,33 @@
+General description 
+In this prospective, multicentre cohort performed between August 2020 and March 2022, we recruited hospital employees from ten acute/nonacute healthcare networks in Eastern/Northern Switzerland. We determined immune status in September 2021 based on serology and previous SARS-CoV-2 infections/vaccinations: Group N (no immunity); Group V (twice vaccinated, uninfected); Group I (infected, unvaccinated); Group H (hybrid: infected and ≥1 vaccination). Participants were asked to get tested for SARS-CoV-2 in case of compatible symptoms, according to national recommendations. SARS-CoV-2 was detected by polymerase chain reaction (PCR) or rapid antigen diagnostic (RAD) test, depending on the participating institutions. The dataset is consisting of two files, one describing vaccination and infection events for all healthworkers, and the secone one describing the symptoms for the healthworkers who tested positive for SARS-CoV-2.
+
+Data in the file "TimeToInfection.csv" is organised in time intervals, from day_interval_start to day_interval_stop. Missing data is shown as "" for not indicated or not relevant (e.g. which vaccine for the non-vaccinated group). It is very important to note, that per healthworker (=ID number), several rows (time intervals) can exist, and the length of the intervals can vary (difference between day_interval_start and day_interval_stop). The file contains 16 columns:
+ID	Unique Identifier of each healthworker
+group	Categorical, Vaccination group: "N" (no immunity), "V" (twice vaccinated, uninfected), "I" (infected, unvaccinated), "H" (hybrid: infected and ≥1 vaccination)
+age	Continuous, age in years 
+sex	Categorical, female", "male" (or "" for not indicated)	
+BMI	Categorical, "o30" for over 30  or "u30" for below 30	
+patient_contact	Having contact with patients during work during this interval, 1=yes, 0=no 
+using_FFP2_mask	Always using protective respiratory masks during work, 1=yes, 0=no 
+negative_swab	documentation of ≥1 negative test in the previous month, 1=yes, 0=no 
+booster	receipt of booster vaccination, 1=yes, 0=no (or "" for not indicated)	
+positive_household	categorical, SARS-CoV-2 infection of a household contact within the same month, 1=yes, 0=no	
+months_since_immunisation	continuous, time since last immunization event (infection or vaccination) in months. Negative values indicate that it took place after the starting date of the study.
+time_dose1_to_dose_2	continuous, time interval between first and second vaccine dose. Empty when not vaccinated twice
+vaccinetype	Categorical, "Moderna" or "Pfizer_BioNTech" or "" for not vaccinated.	
+day_interval_start	day since start of study when the interval starts
+day_interval_stop	day since start of study when the interval stops	
+infection_event	If an infection occured during this time interval, 1=yes, 0=no
+
+Data in the file "Symptoms.csv" is organised per infected health care worker. Each worker is only indicated once. It contains 11 columns:
+ID	Unique Identifier, same in both files
+group	Categorical, Vaccination group: "N" (no immunity), "V" (twice vaccinated, uninfected), "I" (infected, unvaccinated), "H" (hybrid: infected and ≥1 vaccination)
+age	Continuous, age in years 
+sex	Categorical, "female", "male" (or "" for not indicated)	
+BMI	Categorical, "o30" for >30 or "u30" for under 30	
+comorbidity catgeorical, if any comorbity pre-existed, 1=yes, 0=no	
+using_FFP2_mask	Always using protective respiratory masks during work, 1=yes, 0=no 
+months_until_reinfection	time until next infection in months	
+variant	Categorical, "delta" or "omicron" (or "" for not indicated)	
+booster_over7_days_before	If a booster was given in the last 7 days before the infection	
+symptom_number	Continous, Number of symptoms which occured after the infection
