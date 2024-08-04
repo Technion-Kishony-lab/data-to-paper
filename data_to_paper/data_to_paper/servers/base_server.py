@@ -2,15 +2,12 @@ import functools
 import os
 import pickle
 import time
-
 from abc import ABC
-
 from pathlib import Path
 from typing import Union, Optional
 
-from .json_dump import dump_to_json, load_from_json
-
 from data_to_paper.env import CHOSEN_APP, DELAY_SERVER_CACHE_RETRIEVAL
+from .json_dump import dump_to_json, load_from_json
 from .serialize_exceptions import serialize_exception, is_exception, de_serialize_exception
 
 
@@ -91,9 +88,15 @@ class ServerCaller(ABC):
         return self._post_process_response(response, args, kwargs)
 
     def _get_response_from_records(self, args, kwargs):
+        """
+        returns the response from the records, if exists.
+        """
         raise NotImplementedError()
 
     def _add_response_to_new_records(self, args, kwargs, response):
+        """
+        adds a response to the new records.
+        """
         raise NotImplementedError()
 
     def _get_raw_server_response(self, *args, **kwargs):
@@ -256,7 +259,80 @@ class ListServerCaller(ServerCaller, ABC):
         return results
 
 
-class DictServerCaller(ServerCaller, ABC):
+class OrderedKeyToListServerCaller(ListServerCaller):
+    """
+    A class for calling a remote server, while allowing recording and replaying server responses.
+    Records are saved as dictionary (key order preserving) of responses with ordered lists as values.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.current_value_index = 0
+        self.last_key = None
+
+    @property
+    def empty_records(self) -> dict:
+        return {}
+
+    @property
+    def all_records(self):
+        old_keys = self.old_records.keys()
+        new_keys = self.new_records.keys()
+        records = {key: self.old_records.get(key, []) + self.new_records.get(key, [])
+                   for key in old_keys}
+        for key in new_keys:
+            if key not in records:
+                records[key] = self.new_records[key]
+        return records
+
+    @property
+    def num_old_records(self):
+        return sum(len(value) for value in self.old_records.values())
+
+    def _get_response_from_records(self, args, kwargs):
+        key = self._generate_key(args, kwargs)
+        if key != self.last_key:
+            self.current_value_index = 0
+            self.last_key = key
+        if key in self.old_records:
+            if self.current_value_index < len(self.old_records[key]):
+                response = self.old_records[key][self.current_value_index]
+                self.current_value_index += 1
+                return response
+        return None
+
+    def _add_response_to_new_records(self, args, kwargs, response):
+        key = self._generate_key(args, kwargs)
+        if key not in self.new_records:
+            self.new_records[key] = [response]
+        else:
+            self.new_records[key].append(response)
+
+    def _generate_key(self, args, kwargs):
+        return convert_args_kwargs_to_tuple(args, kwargs)
+
+    def _save_records(self, records, filepath):
+        serialized_records = \
+            {key: [self._serialize_record(record) for record in value] for key, value in records.items()}
+        dump_to_json(serialized_records, filepath)
+
+    def _load_records(self, filepath):
+        serialized_records = load_from_json(filepath)
+        return {key:
+                 [self._deserialize_record(record) for record in value] for key, value in serialized_records.items()}
+
+    def __enter__(self):
+        self.current_value_index = 0
+        return super().__enter__()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        results = super().__exit__(exc_type, exc_val, exc_tb)
+        if self.fail_if_not_all_responses_used and self.current_value_index < self.num_old_records:
+            raise AssertionError(f'Not all responses were used ({self.__class__.__name__}).')
+        return results
+
+
+class ParameterizedQueryServerCaller(ServerCaller, ABC):
     """
     A base class for calling a remote server, while allowing recording and replaying server responses.
     Records are saved as a dictionary of responses and can be replayed by the arguments and keyword arguments.

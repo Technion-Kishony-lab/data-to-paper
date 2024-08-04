@@ -6,7 +6,7 @@ from unidecode import unidecode
 
 from data_to_paper.exceptions import data_to_paperException
 
-from .base_server import DictServerCaller
+from .base_server import ParameterizedQueryServerCaller
 from .custom_types import Citation
 
 CROSSREF_URL = "https://api.crossref.org/works"
@@ -115,7 +115,7 @@ class CrossrefCitation(Citation):
         return bibtex_id
 
 
-class CrossrefServerCaller(DictServerCaller):
+class CrossrefServerCaller(ParameterizedQueryServerCaller):
     """
     Search for citations in Crossref.
     """

@@ -10,7 +10,7 @@ from typing import List, Dict, Optional, Tuple
 from data_to_paper.env import SEMANTIC_SCHOLAR_API_KEY
 from data_to_paper.exceptions import data_to_paperException
 from data_to_paper.latex.clean_latex import replace_special_latex_chars
-from data_to_paper.servers.base_server import DictServerCaller
+from data_to_paper.servers.base_server import ParameterizedQueryServerCaller
 from data_to_paper.servers.crossref import ServerErrorCitationException
 from data_to_paper.servers.custom_types import Citation
 from data_to_paper.utils.print_to_file import print_and_log_red
@@ -118,7 +118,7 @@ class ServerErrorNoMatchesFoundForQuery(data_to_paperException):
         return f"Server wasn't able to find any matches for the query:\n {self.query}\n please try a different query."
 
 
-class SemanticScholarPaperServerCaller(DictServerCaller):
+class SemanticScholarPaperServerCaller(ParameterizedQueryServerCaller):
     """
     Search for citations with abstracts in Semantic Scholar.
     """
@@ -224,7 +224,7 @@ class SemanticScholarPaperServerCaller(DictServerCaller):
         return citations
 
 
-class SemanticScholarEmbeddingServerCaller(DictServerCaller):
+class SemanticScholarEmbeddingServerCaller(ParameterizedQueryServerCaller):
     """
     Embed "paper" (title + abstract) using SPECTER Semantic Scholar API.
     """

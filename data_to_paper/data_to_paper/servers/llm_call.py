@@ -2,26 +2,22 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass
-from data_to_paper.utils.text_formatting import dedent_triple_quote_str
+from typing import List, Union, Callable
+from typing import TYPE_CHECKING
 
 import openai
-
-from typing import List, Union, Callable
-
 import tiktoken
 
 from data_to_paper.env import LLM_MODELS_TO_API_KEYS_AND_BASE_URL, CHOSEN_APP, FAKE_REQUEST_HUMAN_RESPONSE_ON_PLAYBACK
-from data_to_paper.utils.print_to_file import print_and_log_red, print_and_log
 from data_to_paper.exceptions import TerminateException
-from data_to_paper.utils.serialize import SerializableValue, deserialize_serializable_value
-
-from .base_server import ListServerCaller
-from .model_engine import ModelEngine
-
-from typing import TYPE_CHECKING
-
-from .serialize_exceptions import serialize_exception, is_exception, de_serialize_exception
 from data_to_paper.interactive import HumanAction, BaseApp
+from data_to_paper.utils.print_to_file import print_and_log_red, print_and_log
+from data_to_paper.utils.serialize import SerializableValue, deserialize_serializable_value
+from data_to_paper.utils.text_formatting import dedent_triple_quote_str
+from .base_server import OrderedKeyToListServerCaller
+from .json_dump import dump_to_json, load_from_json
+from .model_engine import ModelEngine
+from .serialize_exceptions import serialize_exception, is_exception, de_serialize_exception
 
 if TYPE_CHECKING:
     from data_to_paper.conversation.message import Message
@@ -61,11 +57,13 @@ class LLMResponse(SerializableValue):
     """
 
 
-class OpenaiServerCaller(ListServerCaller):
+class OpenaiServerCaller(OrderedKeyToListServerCaller):
     """
     Class to call OpenAI API.
     """
     file_extension = '_openai.txt'
+    step_runner = None
+
 
     @staticmethod
     def _check_before_spending_money(messages: List[Message], model_engine: ModelEngine):
@@ -85,18 +83,28 @@ class OpenaiServerCaller(ListServerCaller):
             else:
                 print_and_log_red('Invalid input. Please choose Y/N.', should_log=False)
 
-    def _check_after_spending_money(self, content: str, messages: List[Message], model_engine: ModelEngine):
+    @staticmethod
+    def _check_after_spending_money(content: str, messages: List[Message], model_engine: ModelEngine):
         tokens_in = count_number_of_tokens_in_message(messages, model_engine)
         tokens_out = count_number_of_tokens_in_message(content, model_engine)
         pricing_in, pricing_out = model_engine.pricing
         print_and_log_red(f'Total: {tokens_in} prompt tokens, {tokens_out} returned tokens, '
                           f'cost: ${(tokens_in * pricing_in + tokens_out * pricing_out) :.2f}.',
                           should_log=False)
-        # write the total cost to the file in one line
-        path_to_api_usage_cost_file = self.file_path.parents[0] / 'api_usage_cost.txt'
-        print(f'Writing the cost to {path_to_api_usage_cost_file}')
-        with open(path_to_api_usage_cost_file, 'a') as f:
-            f.write(f'{tokens_in * pricing_in + tokens_out * pricing_out}\n')
+
+    def _log_api_usage_cost(self, content, messages: List[Message], model_engine: ModelEngine):
+        tokens_in = count_number_of_tokens_in_message(messages, model_engine)
+        tokens_out = count_number_of_tokens_in_message(content, model_engine)
+        pricing_in, pricing_out = model_engine.pricing
+        api_usage_cost = load_from_json(self.file_path.parents[0] / 'api_usage_cost.json')
+        api_usage_cost[self.step_runner.current_stage.name] += tokens_in * pricing_in + tokens_out * pricing_out
+        dump_to_json(api_usage_cost, self.file_path.parents[0] / 'api_usage_cost.json')
+
+    def set_step_runner(self, step_runner):
+        self.step_runner = step_runner
+
+    def _generate_key(self, args, kwargs):
+        return self.step_runner.current_stage.name
 
     def get_server_response(self, *args, **kwargs) -> Union[LLMResponse, HumanAction, Exception]:
         """
@@ -105,6 +113,9 @@ class OpenaiServerCaller(ListServerCaller):
         action = super().get_server_response(*args, **kwargs)
         if isinstance(action, str):
             action = LLMResponse(action)  # Backward compatibility
+        if args[0]:
+            self._log_api_usage_cost(action.value, args[0], kwargs['model_engine'])
+            self.step_runner.app_send_api_usage_cost()
         return action
 
     def _get_server_response(self, messages: List[Message], model_engine: Union[ModelEngine, Callable], **kwargs
@@ -151,6 +162,38 @@ class OpenaiServerCaller(ListServerCaller):
         content = response['choices'][0]['message']['content']
         self._check_after_spending_money(content, messages, model_engine)
         return LLMResponse(content)
+
+    def reset_to_step(self, step: str):
+        """
+        Reset the records and the api usage cost files to the records of the given stage
+        """
+        old_record_keys = list(self.old_records.keys())
+        try:
+            stage_index = old_record_keys.index(step)
+        except ValueError:
+            stage_index = -1
+        if stage_index > -1:
+            # delete all records after and including the given stage
+            for key in old_record_keys[stage_index:]:
+                del self.old_records[key]
+        # do the same for the new records
+        new_record_keys = list(self.new_records.keys())
+        try:
+            stage_index = new_record_keys.index(step)
+        except ValueError:
+            stage_index = -1
+        if stage_index > -1:
+            # delete all records after and including the given stage
+            for key in new_record_keys[stage_index:]:
+                del self.new_records[key]
+        self.save_records()
+        # reset the api usage cost to the given stage
+        api_usage_cost = load_from_json(self.file_path.parents[0] / 'api_usage_cost.json')
+        # delete all records after and including the given stage
+        stage_index = list(api_usage_cost.keys()).index(step)
+        for key in list(api_usage_cost.keys())[stage_index:]:
+            del api_usage_cost[key]
+        dump_to_json(api_usage_cost, self.file_path.parents[0] / 'api_usage_cost.json')
 
     @staticmethod
     def _serialize_record(record: Union[SerializableValue, Exception]):
