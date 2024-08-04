@@ -64,6 +64,9 @@ class BaseApp:
                 return ButtonClickedHumanAction(suggestion_name)
         return TextSentHumanAction(text)
 
+    def request_reset_to_step(self, step_name: str):
+        pass
+
     def show_text(self, panel_name: PanelNames, text: str, is_html: bool = False,
                   scroll_to_bottom: bool = False):
         pass

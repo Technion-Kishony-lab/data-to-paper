@@ -179,6 +179,16 @@ QPushButton:pressed {{
 }}
 """
 
+STEP_PANEL_RESET_BUTTON_STYLE = """
+QPushButton {{
+    background-color: {background_color};
+    border-radius: 5px;
+}}
+QPushButton:pressed {{
+    background-color: {pressed_color};
+}}
+"""
+
 MAIN_SPLITTER_STYLE = """
 QSplitter::handle {
     width: 1px;
