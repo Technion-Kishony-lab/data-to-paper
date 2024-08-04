@@ -38,7 +38,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
     CROSSREF_RESPONSES_FILENAME = 'crossref_responses.bin'
     SEMANTIC_SCHOLAR_RESPONSES_FILENAME = 'semantic_scholar_responses.bin'
     CODE_RUNNER_CACHE_FILENAME = 'code_runner_cache.pkl'
-    API_USAGE_COST_FILENAME = 'api_usage_cost.txt'
+    API_USAGE_COST_FILENAME = 'api_usage_cost.json'
 
     PROJECT_PARAMETERS_FILENAME = 'data-to-paper.json'
     DEFAULT_PROJECT_PARAMETERS = dict()
@@ -117,6 +117,13 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
                 stage=self.products.get_stage(product_field),
                 product_text=product,
             )
+
+    def reset_to_step(self, stage: str):
+        """
+        Reset the current state to the given stage.
+        This will delete the openai responses and the api usage cost files up to the given stage.
+        """
+        raise NotImplementedError
 
     def _pre_run_preparations(self):
         self._update_project_parameters()
