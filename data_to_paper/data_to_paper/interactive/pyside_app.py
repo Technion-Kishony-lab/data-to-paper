@@ -724,10 +724,10 @@ class PysideApp(QMainWindow, BaseApp):
 
     @Slot(str)
     def upon_reset_to_step(self, step_name: str):
-        self.step_runner.reset_to_step(step_name)
-
         # delete all product for stages after the reset stage
         stage_index = self.get_stage_index(step_name)
         stages = list(self._get_all_steps())
         for stage in stages[stage_index:]:
             self.products.pop(stage, None)
+
+        self.step_runner.reset_to_step(step_name)

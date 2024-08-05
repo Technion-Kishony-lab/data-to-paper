@@ -119,6 +119,9 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
             self._get_path_in_output_directory(self.API_USAGE_COST_FILENAME)))
 
     def reset_to_step(self, step_name: str):
+        # stop the current step thread by setting the stop_thread flag
+        self.stop_thread.set()
+
         # Reset the server caller to the step
         self.server_caller.reset_to_step(step_name)
 
@@ -134,14 +137,15 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
 
         self.app_send_api_usage_cost()
 
-        # stop the current step thread by setting the stop_thread flag
-        self.stop_thread.set()
 
     def _run_all_steps(self) -> ScientificProducts:
 
         while self.current_step_index < len(self.steps):
             step_name, step_function = self.steps[self.current_step_index]
 
+            # check if the step_running_thread is not None, then stop the thread
+            if isinstance(self.step_running_thread, threading.Thread):
+                self.step_running_thread.join(0.1)
             self.step_running_thread = threading.Thread(target=step_function)
             self.step_running_thread.start()
             while not self.stop_thread.is_set():
