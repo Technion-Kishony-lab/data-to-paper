@@ -296,6 +296,11 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
         if index:
             index_note = dedent_triple_quote_str("""\n
                 - Rename the index labels to shorter names. Use `df.rename(index=...)`
+                \n
+                - Drop unnecessary columns. \t
+                If the index labels cannot be shortened much, consider whether there might be any \t
+                unnecessary columns that we can drop. \t
+                Use `to_latex_with_note(df, filename, columns=...)`.
                 """)
         else:
             index_note = ''

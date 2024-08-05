@@ -1,0 +1,24 @@
+## Statistical considerations:
+### Missing Data:
+There are missing data points in the dataset, especially in variables like age, sex, comorbidity, and vaccination status. Depending on the extent of missing data, imputation or exclusion of incomplete records may be necessary.
+### Confounding Variables:
+Potential confounding variables such as age, sex, BMI, and comorbidities should be considered and controlled for in the analysis to avoid biased results.
+### Dependencies between Data Points:
+There may be dependencies within the dataset due to repeated measurements from the same health worker. The analysis should consider clustering or repeated measures designs to account for this dependency.
+
+## Hypotheses:
+### Hypothesis:
+H1: Healthcare workers who have received at least one vaccination dose have fewer symptoms following infection compared to unvaccinated workers
+### Test:
+Ordinal logistic regression analysis can be conducted with the number of symptoms as the dependent variable and the vaccination status (vaccinated vs. unvaccinated) as the independent variable, while adjusting for potential confounding variables such as age, sex, and comorbidity. This analysis accounts for the ordered nature of the outcome (number of symptoms).
+
+### Hypothesis:
+H2: Comorbidity leads to a higher number of symptoms following a SARS-CoV-2 infection
+### Test:
+To test this hypothesis, a Poisson regression model can be used with the number of symptoms as the outcome variable and the presence of comorbidity as the independent variable. The model should be adjusted for potential confounders such as age, sex, and vaccination status. Poisson regression is suitable for count data (number of symptoms) and can estimate the association between comorbidity and symptom severity.
+
+### Hypothesis:
+H3: Unvaccinated healthcare workers with comorbidities will present a more severe symptom profile following SARS-CoV-2 infection compared to their vaccinated counterparts with comorbidities
+### Test:
+An interaction analysis can be performed using logistic regression, where the binary outcome is the severity of symptoms (e.g., severe vs. mild) and the predictors include vaccination status, comorbidity, and their interaction term. Controlling for confounders is crucial in this analysis to assess the impact of both variables and their interaction on symptom severity.
+
