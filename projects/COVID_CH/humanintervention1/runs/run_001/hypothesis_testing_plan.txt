@@ -1,0 +1,23 @@
+## Statistical considerations:
+### Confounding variables:
+We should adjust for age, sex, BMI, and comorbidity in our analyses to avoid biased results or erroneous conclusions.
+### Missing data points:
+There are missing data points in some variables like sex, age, and vaccination type, which should be addressed appropriately through imputation, exclusion, or sensitivity analysis.
+### Dependencies between data points:
+There might be dependencies between data points for the same health worker, as multiple rows may exist for the same ID. This should be accounted for in the analysis to avoid pseudo-replication.
+### Multiple comparisons:
+Considering multiple comparisons across different groups and variables, we need to adjust the significance level or apply a correction method like Bonferroni correction to reduce the risk of Type I errors.
+### Imbalanced data:
+The distribution of cases across the vaccination groups is imbalanced, with a higher number of participants in Group V compared to Group I and Group H. This should be considered in the analysis to avoid bias in the results.
+
+## Hypotheses:
+### Hypothesis:
+Healthcare workers with hybrid immunity (Group H) will experience longer intervals before reinfection compared to those with only vaccination (Group V) or previous infection (Group I), accounting for varying interval lengths per worker
+### Test:
+To handle varying lengths and number of time intervals per worker: Preprocess the data by calculating the total time at risk for each individual. The "interval_length" variable should be derived as the sum of intervals (day_interval_stop - day_interval_start) for each unique ID corresponding to a health worker. Perform Kaplan-Meier survival analysis using the total time at risk and reinfection event as the outcome, comparing Group H, V, and I. Use Cox proportional hazards regression while adjusting for age, sex, BMI, and comorbidity as covariates to assess hazard ratios for reinfection.
+
+### Hypothesis:
+Data Source
+### Test:
+For this analysis, data will be sourced from the "TimeToInfection.csv" file. The "interval_length" variable calculation will involve summing the day intervals for each health worker ID to ascertain the total time at risk per individual.
+
