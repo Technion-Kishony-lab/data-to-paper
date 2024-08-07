@@ -23,11 +23,12 @@ from ..conversation.stage import Stage
 if TYPE_CHECKING:
     from data_to_paper.conversation.message import Message
 
-
 TIME_LIMIT_FOR_OPENAI_CALL = 300  # seconds
 MAX_NUM_LLM_ATTEMPTS = 5
 DEFAULT_EXPECTED_TOKENS_IN_RESPONSE = 500
 OPENAI_MAX_CONTENT_LENGTH_MESSAGE_CONTAINS = 'maximum context length'
+
+
 # a sub-string that indicates that an openai exception was raised due to the message content being too long
 
 
@@ -64,7 +65,6 @@ class OpenaiServerCaller(OrderedKeyToListServerCaller):
     """
     file_extension = '_openai.txt'
     step_runner = None
-
 
     @staticmethod
     def _check_before_spending_money(messages: List[Message], model_engine: ModelEngine):
@@ -105,6 +105,8 @@ class OpenaiServerCaller(OrderedKeyToListServerCaller):
         self.step_runner = step_runner
 
     def _generate_key(self, args, kwargs):
+        if self.step_runner is None:
+            return "GENERAL"
         return self.step_runner.current_stage.name
 
     def get_server_response(self, *args, **kwargs) -> Union[LLMResponse, HumanAction, Exception]:
@@ -114,7 +116,7 @@ class OpenaiServerCaller(OrderedKeyToListServerCaller):
         action = super().get_server_response(*args, **kwargs)
         if isinstance(action, str):
             action = LLMResponse(action)  # Backward compatibility
-        if args[0]:
+        if args[0] and self.should_log_api_cost:
             self._log_api_usage_cost(action.value, args[0], kwargs['model_engine'])
             self.step_runner.app_send_api_usage_cost()
         return action
@@ -128,7 +130,8 @@ class OpenaiServerCaller(OrderedKeyToListServerCaller):
             # human action:
             return model_engine(messages, **kwargs)
         if CHOSEN_APP == 'console' or CHOSEN_APP == None:  # noqa (Mutable)
-            OpenaiServerCaller._check_before_spending_money(messages, model_engine)
+            # OpenaiServerCaller._check_before_spending_money(messages, model_engine)
+            pass
         print_and_log_red('Calling the LLM-API for real.', should_log=False)
 
         api_key, api_base_url = LLM_MODELS_TO_API_KEYS_AND_BASE_URL[model_engine] \

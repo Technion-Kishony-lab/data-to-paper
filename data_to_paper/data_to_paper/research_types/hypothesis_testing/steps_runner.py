@@ -20,7 +20,6 @@ from .writing_steps import FirstTitleAbstractSectionWriterReviewGPT, SecondTitle
     MethodsSectionWriterReviewGPT, IntroductionSectionWriterReviewGPT, ResultsSectionWriterReviewGPT, \
     DiscussionSectionWriterReviewGPT
 from ...conversation.stage import Stage
-from ...exceptions import ResetStepException
 from ...servers.json_dump import load_from_json, dump_to_json
 
 PAPER_SECTIONS_NAMES = ['title', 'abstract', 'introduction', 'results', 'discussion', 'methods']
@@ -53,7 +52,6 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
     goal_refinement_iteration: int = 0
     re_goal: bool = False
 
-
     def __post_init__(self):
         self.paper_producer = ProduceScientificPaperPDFWithAppendix.from_(
             self,
@@ -80,7 +78,6 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
             ScientificStage.WRITING_DISCUSSION: self._writing_discussion,
             ScientificStage.COMPILE: self._compile_paper,
         }
-
 
     def _create_temp_folder_to_run_in(self):
         return self.temp_folder_to_run_in
@@ -249,8 +246,7 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
         self.products.paper_sections_and_optional_citations['title'], \
             self.products.paper_sections_and_optional_citations['abstract'] = \
             FirstTitleAbstractSectionWriterReviewGPT.from_(
-                self, section_names=['title', 'abstract']
-            ).write_sections_with_citations()
+                self, section_names=['title', 'abstract']).write_sections_with_citations()
         self.send_product_to_client('title_and_abstract_first')
 
     def _literature_review_writing(self):

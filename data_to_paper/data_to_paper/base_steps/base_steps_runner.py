@@ -209,7 +209,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         Run all steps and save all created files to the output folder.
         """
         self.server_caller = OPENAI_SERVER_CALLER
-        self.server_caller.set_step_runner(self) # set the step runner for the openai server caller
+        self.server_caller.set_step_runner(self)  # set the step runner for the openai server caller
 
         @RUN_CACHE_FILEPATH.temporary_set(
             self._get_path_in_output_directory(self.CODE_RUNNER_CACHE_FILENAME))

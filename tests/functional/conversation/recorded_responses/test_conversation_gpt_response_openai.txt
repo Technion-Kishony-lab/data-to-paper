@@ -1,3 +1,5 @@
-[
-    "LLMResponse: As an AI language model, I do not have feelings like humans, but I am functioning properly. Thank you for asking! How may I assist you?"
-]
+{
+    "GENERAL": [
+        "LLMResponse: I'm just a computer program, so I don't have feelings, but I'm here and ready to help you! How can I assist you today?"
+    ]
+}

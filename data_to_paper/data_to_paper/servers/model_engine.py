@@ -58,7 +58,10 @@ ModelEngine.DEFAULT = ModelEngine.GPT4o_MINI
 
 ModelEngine.MODELS_TO_MORE_CONTEXT = dict()
 ModelEngine.MODELS_TO_MORE_CONTEXT[ModelEngine.GPT35_TURBO] = ModelEngine.GPT4_TURBO
-ModelEngine.MODELS_TO_MORE_CONTEXT[ModelEngine.GPT4]= ModelEngine.GPT4_TURBO
+ModelEngine.MODELS_TO_MORE_CONTEXT[ModelEngine.GPT4] = ModelEngine.GPT4_TURBO
+ModelEngine.MODELS_TO_MORE_CONTEXT[ModelEngine.GPT4_TURBO] = ModelEngine.GPT4o
+ModelEngine.MODELS_TO_MORE_CONTEXT[ModelEngine.GPT4o_MINI] = ModelEngine.GPT4o  # same as GPT4o
+ModelEngine.MODELS_TO_MORE_CONTEXT[ModelEngine.GPT4o] = ModelEngine.GPT4o  # same as GPT4o
 
 ModelEngine.MODELS_TO_MORE_STRENGTH = dict()
 ModelEngine.MODELS_TO_MORE_STRENGTH[ModelEngine.GPT35_TURBO] = ModelEngine.GPT4o

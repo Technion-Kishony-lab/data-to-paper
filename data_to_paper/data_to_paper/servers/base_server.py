@@ -177,7 +177,6 @@ class ServerCaller(ABC):
         """
 
         def decorator(func):
-
             if not hasattr(func, '_module_file_path'):
                 func._module_file_path = os.path.dirname(os.path.abspath(func.__code__.co_filename))
 
@@ -203,6 +202,7 @@ class ListServerCaller(ServerCaller, ABC):
     A base class for calling a remote server, while allowing recording and replaying server responses.
     Records are saved as a sequence of responses and can be replayed in the same order (regardless of the arguments).
     """
+
     def __init__(self):
         super().__init__()
         self.index_in_old_records = 0
@@ -265,6 +265,8 @@ class OrderedKeyToListServerCaller(ListServerCaller):
     Records are saved as dictionary (key order preserving) of responses with ordered lists as values.
     """
 
+    should_log_api_cost: bool = True
+
     def __init__(self):
         super().__init__()
         self.current_value_index = 0
@@ -319,14 +321,32 @@ class OrderedKeyToListServerCaller(ListServerCaller):
     def _load_records(self, filepath):
         serialized_records = load_from_json(filepath)
         return {key:
-                 [self._deserialize_record(record) for record in value] for key, value in serialized_records.items()}
+                [self._deserialize_record(record) for record in value] for key, value in serialized_records.items()}
+
+    def mock(self, old_records=None, record_more_if_needed=True, fail_if_not_all_responses_used=True,
+             should_save=False, file_path=None):
+        """
+        Returns a context manager to mock the server responses (specified as old_records).
+        """
+        self.old_records = old_records if isinstance(old_records, dict) else {"GENERAL": old_records} if (
+            old_records) else self.empty_records
+        self.should_log_api_cost = False
+        self.args_kwargs_response_history = []
+        self.record_more_if_needed = record_more_if_needed
+        self.fail_if_not_all_responses_used = fail_if_not_all_responses_used
+        self.should_save = should_save
+        self.file_path = file_path
+        return self
 
     def __enter__(self):
         self.current_value_index = 0
         return super().__enter__()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        results = super().__exit__(exc_type, exc_val, exc_tb)
+        self.is_playing_or_recording = False
+        if self.should_save:
+            self.save_records()
+        results = False  # do not suppress exceptions
         if self.fail_if_not_all_responses_used and self.current_value_index < self.num_old_records:
             raise AssertionError(f'Not all responses were used ({self.__class__.__name__}).')
         return results

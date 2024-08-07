@@ -1,3 +1,4 @@
+import pytest
 from _pytest.fixtures import fixture
 
 from data_to_paper.conversation.conversation_actions import ReplaceLastMessage
@@ -53,6 +54,7 @@ def test_conversation_manager_adding_messages_with_kwargs(manager):
     assert manager.conversation.get_last_response() in ['a', 'b', 'c']
 
 
+@pytest.mark.skip(reason="We don't save the hidden messages anymore")
 def test_conversation_manager_bump_model_then_retry__with_fewer_messages(manager, actions, openai_exception):
     with OPENAI_SERVER_CALLER.mock([
         openai_exception,

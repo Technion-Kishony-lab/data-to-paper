@@ -95,7 +95,6 @@ class Converser(Copier, AppInteractor):
     def conversation(self):
         return self.conversation_manager.conversation
 
-
     def _periodically_check_and_reset(self, interval: float = 1):
         while True:
             self._check_and_reset()
@@ -105,7 +104,6 @@ class Converser(Copier, AppInteractor):
         rest_to_step = self._app_get_step_to_reset_to()
         if rest_to_step:
             raise ResetStepException(rest_to_step)
-
 
     @_raise_if_reset()
     def _print_conversation_header(self):
@@ -141,7 +139,6 @@ class Converser(Copier, AppInteractor):
                 **kwargs)
         else:
             print_and_log_red(comment)
-
 
     @_raise_if_reset()
     def apply_get_and_append_assistant_message(self, tag: Optional[StrOrReplacer] = None,

@@ -138,10 +138,10 @@ class StepsPanel(QWidget):
                 reset_to_step_button = QPushButton('⟳')
                 reset_to_step_button.setFixedWidth(20)
                 reset_to_step_button.setStyleSheet(STEP_PANEL_RESET_BUTTON_STYLE.format(background_color="#909090",
-                                                                                  pressed_color="#707070"))
+                                                                                        pressed_color="#707070"))
                 reset_to_step_button.clicked.connect(partial(self.reset_to_step, name, label))
                 self.step_widgets[label].addWidget(reset_to_step_button)
-            else: # add a spacer to keep the layout consistent
+            else:  # add a spacer to keep the layout consistent
                 spacer = QSpacerItem(20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
                 self.step_widgets[label].addItem(spacer)
             self.layout.addLayout(self.step_widgets[label])
@@ -151,17 +151,20 @@ class StepsPanel(QWidget):
     def refresh(self):
         for i, step in enumerate(self.step_widgets):
             if i == self.current_step:
-                self.step_widgets[step].itemAt(0).widget().setStyleSheet(STEP_PANEL_BUTTON_STYLE.format(background_color=CURRENT_STEP_COLOR,
-                                                                  pressed_color="#003377"))
+                self.step_widgets[step].itemAt(0).widget().setStyleSheet(
+                    STEP_PANEL_BUTTON_STYLE.format(background_color=CURRENT_STEP_COLOR,
+                                                   pressed_color="#003377"))
                 if self.step_widgets[step].itemAt(1).widget() is not None:
                     self.step_widgets[step].itemAt(1).widget().setEnabled(True)
             elif i < self.current_step:
-                self.step_widgets[step].itemAt(0).widget().setStyleSheet(STEP_PANEL_BUTTON_STYLE.format(background_color=SUBMIT_BUTTON_COLOR,
-                                                                  pressed_color="#006400"))
+                self.step_widgets[step].itemAt(0).widget().setStyleSheet(
+                    STEP_PANEL_BUTTON_STYLE.format(background_color=SUBMIT_BUTTON_COLOR,
+                                                   pressed_color="#006400"))
                 if self.step_widgets[step].itemAt(1).widget() is not None:
                     self.step_widgets[step].itemAt(1).widget().setEnabled(True)
             else:
-                self.step_widgets[step].itemAt(0).widget().setStyleSheet(STEP_PANEL_BUTTON_STYLE.format(background_color="#909090", pressed_color="#707070"))
+                self.step_widgets[step].itemAt(0).widget().setStyleSheet(
+                    STEP_PANEL_BUTTON_STYLE.format(background_color="#909090", pressed_color="#707070"))
                 # if the there is a reset button and not a spacer, disable the reset button
                 if self.step_widgets[step].itemAt(1).widget() is not None:
                     self.step_widgets[step].itemAt(1).widget().setEnabled(False)
@@ -200,7 +203,6 @@ class StepsPanel(QWidget):
         dialog.close()
         self.worker.worker_request_reset_to_step(step_name)
         self.set_step(step_name)
-
 
 
 class Panel(QWidget):
@@ -405,6 +407,7 @@ def create_tabs(names_to_panels: Dict[str, Panel]):
         tabs.addTab(panel, panel_name)
     return tabs
 
+
 class APIUsageCostDialog(QDialog):
     def __init__(self, html_content, parent=None):
         super(APIUsageCostDialog, self).__init__(parent, Qt.WindowType.WindowCloseButtonHint)
@@ -603,8 +606,9 @@ class PysideApp(QMainWindow, BaseApp):
         self.worker.start()
 
     def initialize(self, func_to_run=None):
-        self.step_panel.init_ui({(stage.value, stage.name, stage.resettable): partial(self.show_product_for_stage, stage)
-                                 for stage in self._get_all_steps()})
+        self.step_panel.init_ui(
+            {(stage.value, stage.name, stage.resettable): partial(self.show_product_for_stage, stage)
+             for stage in self._get_all_steps()})
         self.show()
         self.start_worker(func_to_run)
         return get_or_create_q_application_if_app_is_pyside().exec()

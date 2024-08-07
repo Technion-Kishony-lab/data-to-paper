@@ -377,7 +377,6 @@ class CheckReferencedNumericReviewBackgroundProductsConverser(CheckExtractionRev
         'The p-value of the regression coefficient of the treatment was [unknown].'
         """)
 
-
     def _get_text_from_which_response_should_be_extracted(self) -> str:
         return '\n'.join(self.products.get_description_for_llm(product_field)
                          for product_field in self.product_fields_from_which_response_is_extracted
