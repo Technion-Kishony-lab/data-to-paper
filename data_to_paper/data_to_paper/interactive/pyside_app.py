@@ -135,7 +135,7 @@ class StepsPanel(QWidget):
             step_button.clicked.connect(func)
             self.step_widgets[label].addWidget(step_button)
             if resettable:
-                reset_to_step_button = QPushButton('⟳')
+                reset_to_step_button = QPushButton('↺')
                 reset_to_step_button.setFixedWidth(20)
                 reset_to_step_button.setStyleSheet(STEP_PANEL_RESET_BUTTON_STYLE.format(background_color="#909090",
                                                                                         pressed_color="#707070"))
