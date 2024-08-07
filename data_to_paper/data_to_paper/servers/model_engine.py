@@ -30,13 +30,13 @@ class ModelEngine(IndexOrderedEnum):
         return hash(self.value)
 
     def get_model_with_more_strength(self):
-        model = ModelEngine.MODELS_TO_MORE_STRENGTH[self]
+        model = ModelEngine.MODELS_TO_MORE_STRENGTH.get(self)
         if model is None:
             raise ValueError(f"Model {self} has no stronger model")
         return model
 
     def get_model_with_more_context(self):
-        model = ModelEngine.MODELS_TO_MORE_CONTEXT[self]
+        model = ModelEngine.MODELS_TO_MORE_CONTEXT.get(self)
         if model is None:
             raise ValueError(f"Model {self} has no model with more context")
         return model
@@ -56,28 +56,15 @@ class ModelEngine(IndexOrderedEnum):
 
 ModelEngine.DEFAULT = ModelEngine.GPT4o_MINI
 
-ModelEngine.MODELS_TO_MORE_CONTEXT = {
-    ModelEngine.GPT35_TURBO: ModelEngine.GPT4_TURBO,
-    ModelEngine.GPT4: ModelEngine.GPT4_TURBO,
-    ModelEngine.GPT4_TURBO: None,
-    ModelEngine.GPT4o_MINI: None,
-    ModelEngine.LLAMA_2_7b: None,
-    ModelEngine.LLAMA_2_70b: None,
-    ModelEngine.CODELLAMA: None,
-}
+ModelEngine.MODELS_TO_MORE_CONTEXT = dict()
+ModelEngine.MODELS_TO_MORE_CONTEXT[ModelEngine.GPT35_TURBO] = ModelEngine.GPT4_TURBO
+ModelEngine.MODELS_TO_MORE_CONTEXT[ModelEngine.GPT4]= ModelEngine.GPT4_TURBO
 
-
-ModelEngine.MODELS_TO_MORE_STRENGTH = {
-    ModelEngine.GPT35_TURBO: ModelEngine.GPT4o,
-    ModelEngine.GPT4: ModelEngine.GPT4o,
-    ModelEngine.GPT4_TURBO: ModelEngine.GPT4o,
-    ModelEngine.GPT4o_MINI: ModelEngine.GPT4o,
-    ModelEngine.GPT4o: None,
-    ModelEngine.LLAMA_2_7b: None,
-    ModelEngine.LLAMA_2_70b: None,
-    ModelEngine.CODELLAMA: None,
-}
-
+ModelEngine.MODELS_TO_MORE_STRENGTH = dict()
+ModelEngine.MODELS_TO_MORE_STRENGTH[ModelEngine.GPT35_TURBO] = ModelEngine.GPT4o
+ModelEngine.MODELS_TO_MORE_STRENGTH[ModelEngine.GPT4] = ModelEngine.GPT4o
+ModelEngine.MODELS_TO_MORE_STRENGTH[ModelEngine.GPT4_TURBO] = ModelEngine.GPT4o
+ModelEngine.MODELS_TO_MORE_STRENGTH[ModelEngine.GPT4o_MINI] = ModelEngine.GPT4o
 
 ModelEngine.MODEL_ENGINE_TO_MAX_TOKENS_AND_IN_OUT_DOLLAR = {
     ModelEngine.GPT35_TURBO: (16384, 0.000001, 0.000002),
