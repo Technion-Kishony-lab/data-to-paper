@@ -1,0 +1,21 @@
+## Statistical considerations:
+### Missing data points:
+There are missing values in variables such as age, sex, patient_contact, using_FFP2_mask, and others in both TimeToInfection.csv and Symptoms.csv. These missing values need to be addressed appropriately to avoid bias in the analysis.
+### Different lengths of time intervals per ID in TimeToInfection.csv:
+The varying lengths of time intervals per healthworker in TimeToInfection.csv can lead to biased results if not accounted for properly, especially when making comparisons between different groups. The data should be summarized per ID/health worker to address this issue.
+### Categorical variables with multiple values and missing data:
+The categorical variables like "group" and "vaccinetype" in TimeToInfection.csv have multiple values and missing data points that may require grouping or adjustment before conducting statistical tests.
+### Time since last immunization and its impact on subsequent infection:
+While examining the impact of time since the last immunization in TimeToInfection.csv on infection severity in Symptoms.csv, the potential confounding variables such as age, sex, BMI, patient contact, and mask use need to be considered to understand the true effect of time elapsed on infection severity.
+
+## Hypotheses:
+### Hypothesis:
+The time since the last immunization event is associated with the severity of a subsequent SARS-CoV-2 infection
+### Test:
+Perform a linear regression using data summarized per ID from TimeToInfection.csv with 'months_since_immunization' as the independent variable and 'symptom_number' from Symptoms.csv as the dependent variable, adjusting for potential confounders such as age, sex, BMI, patient_contact, and using_FFP2_mask.
+
+### Hypothesis:
+The interaction between time since immunization and demographic/professional attributes influences infection severity
+### Test:
+Perform a multiple regression analysis using data summarized per ID from both TimeToInfection.csv and Symptoms.csv. Include 'months_since_immunization', age, sex, BMI, patient_contact, and using_FFP2_mask as independent variables to predict 'symptom_number'. Include interaction terms between 'months_since_immunization' and each demographic/professional attribute to examine their combined effect.
+
