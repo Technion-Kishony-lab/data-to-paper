@@ -5,7 +5,7 @@ import shutil
 from dataclasses import dataclass, field
 
 from pathlib import Path
-from typing import Union, Type, Optional
+from typing import Union, Type, Optional, Dict, Callable
 
 from data_to_paper.base_products.file_descriptions import CreateDataFileDescriptions
 from data_to_paper.env import FOLDER_FOR_RUN
@@ -17,7 +17,7 @@ from data_to_paper.servers.crossref import CROSSREF_SERVER_CALLER
 from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER
 from data_to_paper.conversation.stage import Stage
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
-from data_to_paper.exceptions import TerminateException
+from data_to_paper.exceptions import TerminateException, ResetStepException
 from data_to_paper.base_products import DataFileDescriptions
 from data_to_paper.run_gpt_code.code_runner import RUN_CACHE_FILEPATH
 from data_to_paper.utils import dedent_triple_quote_str
@@ -58,6 +58,9 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
 
     stages: Type[Stage] = Stage
     current_stage: Stage = None
+
+    stage_to_func: Dict[Stage, Callable] = None
+    is_stage_completed: Dict[Stage, bool] = None
 
     server_caller = None
 
@@ -118,7 +121,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
                 product_text=product,
             )
 
-    def reset_to_step(self, stage: str):
+    def reset_to_step(self, stage: Stage):
         """
         Reset the current state to the given stage.
         This will delete the openai responses and the api usage cost files up to the given stage.
@@ -128,11 +131,41 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
     def _pre_run_preparations(self):
         self._update_project_parameters()
 
+    def _get_first_uncompleted_stage(self):
+        for stage in self.stages:
+            if not self.is_stage_completed[stage]:
+                return stage
+        return None
+
+    def _reset_is_stage_completed(self, next_stage: Optional[Stage] = None):
+        """
+        Reset is_stage_completed such that it is completed for all stage before the given stage.
+        """
+        if next_stage is None:
+            self.is_stage_completed = {stage: False for stage in self.stages}
+        else:
+            self.is_stage_completed = {stage: stage < next_stage for stage in self.stages}
+
     def _run_all_steps(self):
         """
         Run all the steps towards the high level goal.
         """
-        raise NotImplementedError
+        self._reset_is_stage_completed()
+        while True:
+            stage = self._get_first_uncompleted_stage()
+            if stage is None:
+                break
+            try:
+                self._run_stage(stage)
+            except ResetStepException as e:
+                print_and_log(f'Resetting to stage {e.stage.name}')
+                self.reset_to_step(e.stage)
+                self._reset_is_stage_completed(next_stage=e.stage)
+                self.app.re_set_reset_to_step()
+
+    def _run_stage(self, stage: Stage):
+        self.is_stage_completed[stage] = True
+        self.stage_to_func[stage]()
 
     def _get_files_to_keep(self):
         """

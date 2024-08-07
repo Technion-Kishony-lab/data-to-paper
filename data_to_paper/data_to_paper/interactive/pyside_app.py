@@ -14,6 +14,7 @@ from data_to_paper.interactive.styles import CURRENT_STEP_COLOR, SUBMIT_BUTTON_C
     STEP_PANEL_BUTTON_STYLE, BACKGROUND_COLOR, CSS, APP_STYLE, TABS_STYLE, HTMLPOPUP_STYLE, \
     MAIN_SPLITTER_STYLE, QCHECKBOX_STYLE, STEP_PANEL_RESET_BUTTON_STYLE
 from data_to_paper.interactive.utils import open_file_on_os
+from data_to_paper.research_types.hypothesis_testing.scientific_stage import ScientificStage
 
 
 def _get_label_height(label: QLabel) -> int:
@@ -723,11 +724,16 @@ class PysideApp(QMainWindow, BaseApp):
         self.api_usage_cost = html_content
 
     @Slot(str)
-    def upon_reset_to_step(self, step_name: str):
+    def upon_reset_to_step(self, stage: str):
+        # imitate a button click if resetting when new stage is waiting for user input
+        if self.panels[PanelNames.MISSION_PROMPT].submit_button.isVisible():
+            self.send_text_signal.emit(PanelNames.MISSION_PROMPT, '')
+
+        stage = ScientificStage[stage]
+        self.reset_to_step = stage
+
         # delete all product for stages after the reset stage
-        stage_index = self.get_stage_index(step_name)
+        stage_index = stage.get_index()
         stages = list(self._get_all_steps())
         for stage in stages[stage_index:]:
             self.products.pop(stage, None)
-
-        self.step_runner.reset_to_step(step_name)

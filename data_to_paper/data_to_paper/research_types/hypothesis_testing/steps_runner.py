@@ -1,5 +1,3 @@
-import time
-import threading
 from dataclasses import dataclass, field
 from typing import Type, Union, Dict
 
@@ -22,11 +20,11 @@ from .writing_steps import FirstTitleAbstractSectionWriterReviewGPT, SecondTitle
     MethodsSectionWriterReviewGPT, IntroductionSectionWriterReviewGPT, ResultsSectionWriterReviewGPT, \
     DiscussionSectionWriterReviewGPT
 from ...conversation.stage import Stage
+from ...exceptions import ResetStepException
 from ...servers.json_dump import load_from_json, dump_to_json
 
 PAPER_SECTIONS_NAMES = ['title', 'abstract', 'introduction', 'results', 'discussion', 'methods']
 SECTIONS_WITH_CITATIONS = ['introduction', 'discussion']
-
 
 
 @dataclass
@@ -50,10 +48,11 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
     products: ScientificProducts = field(default_factory=ScientificProducts)
     stages: Type[ScientificStage] = ScientificStage
 
-    step_running_thread: threading.Thread = None
-    current_step_index: int = 0
-    stop_thread: threading.Event = threading.Event()
     num_conversations_at_each_stage: Dict = field(default_factory=dict)
+
+    goal_refinement_iteration: int = 0
+    re_goal: bool = False
+
 
     def __post_init__(self):
         self.paper_producer = ProduceScientificPaperPDFWithAppendix.from_(
@@ -63,23 +62,25 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
             paper_section_names=PAPER_SECTIONS_NAMES,
         )
 
-        self.steps = [
-            ("DATA", self._data_file_descriptions),
-            ("EXPLORATION", self._data_exploration),
-            ("GOAL", self._goal),
-            ("PLAN", self._hypotheses_testing_plan),
-            ("PREPROCESSING", self._data_preprocessing),
-            ("CODE", self._data_analysis),
-            ("TABLES", self._tables),
-            ("INTERPRETATION", self._interpretation),
-            ("LITERATURE_REVIEW_WRITING", self._literature_review_writing),
-            ("WRITING_RESULTS", self._writing_results),
-            ("WRITING_TITLE_AND_ABSTRACT", self._writing_title_and_abstract),
-            ("WRITING_METHODS", self._writing_methods),
-            ("WRITING_INTRODUCTION", self._writing_introduction),
-            ("WRITING_DISCUSSION", self._writing_discussion),
-            ("COMPILE", self._compile_paper),
-        ]
+        self.stage_to_func = {
+            ScientificStage.DATA: self._data_file_descriptions,
+            ScientificStage.EXPLORATION: self._data_exploration,
+            ScientificStage.GOAL: self._goal,
+            ScientificStage.LITERATURE_REVIEW_GOAL: self._literature_search_goal,
+            ScientificStage.ASSESS_NOVELTY: self._assess_novelty,
+            ScientificStage.PLAN: self._hypotheses_testing_plan,
+            ScientificStage.CODE: self._data_analysis,
+            ScientificStage.TABLES: self._tables,
+            ScientificStage.INTERPRETATION: self._interpretation,
+            ScientificStage.LITERATURE_REVIEW_WRITING: self._literature_review_writing,
+            ScientificStage.WRITING_RESULTS: self._writing_results,
+            ScientificStage.WRITING_TITLE_AND_ABSTRACT: self._writing_title_and_abstract,
+            ScientificStage.WRITING_METHODS: self._writing_methods,
+            ScientificStage.WRITING_INTRODUCTION: self._writing_introduction,
+            ScientificStage.WRITING_DISCUSSION: self._writing_discussion,
+            ScientificStage.COMPILE: self._compile_paper,
+        }
+
 
     def _create_temp_folder_to_run_in(self):
         return self.temp_folder_to_run_in
@@ -118,46 +119,17 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
         self._app_send_api_usage_cost(self._pretty_api_usage_cost(
             self._get_path_in_output_directory(self.API_USAGE_COST_FILENAME)))
 
-    def reset_to_step(self, step_name: str):
-        # stop the current step thread by setting the stop_thread flag
-        self.stop_thread.set()
-
+    def reset_to_step(self, stage: ScientificStage):
         # Reset the server caller to the step
-        self.server_caller.reset_to_step(step_name)
-
-        # Reset the step
-        steps_names = [step[0] for step in self.steps]
-        self.current_step_index = steps_names.index(step_name)
+        self.server_caller.reset_to_step(stage)
 
         # delete all conversations in the actions_and_conversations of the steps after and including the step
         conversation_names = [conversation for conversation in self.actions_and_conversations.conversations]
-        conversations_to_delete = conversation_names[self.num_conversations_at_each_stage[step_name]:]
+        conversations_to_delete = conversation_names[self.num_conversations_at_each_stage[stage.name]:]
         for conversation in conversations_to_delete:
             del self.actions_and_conversations.conversations[conversation]
 
         self.app_send_api_usage_cost()
-
-
-    def _run_all_steps(self) -> ScientificProducts:
-
-        while self.current_step_index < len(self.steps):
-            step_name, step_function = self.steps[self.current_step_index]
-
-            # check if the step_running_thread is not None, then stop the thread
-            if isinstance(self.step_running_thread, threading.Thread):
-                self.step_running_thread.join(0.1)
-            self.step_running_thread = threading.Thread(target=step_function)
-            self.step_running_thread.start()
-            while not self.stop_thread.is_set():
-                time.sleep(0.1)
-                if not self.step_running_thread.is_alive():
-                    self.current_step_index += 1
-                    break
-            else:
-                self.step_running_thread.join(0.1)
-                self.stop_thread.clear()
-
-        return self.products
 
     def _data_file_descriptions(self):
         self.director_converser = DirectorProductGPT.from_(
@@ -183,51 +155,51 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
             ).get_code_and_output_and_descriptions()
             self.send_product_to_client('codes_and_outputs_with_explanations:data_exploration')
 
+    def _literature_search_goal(self):
+        if self.project_parameters['should_do_literature_search']:
+            self.advance_stage(ScientificStage.LITERATURE_REVIEW_GOAL)
+            GoalLiteratureSearchReviewGPT.from_(
+                self, excluded_citation_titles=self.project_parameters['excluded_citation_titles'],
+                literature_search=self.products.literature_search['goal']
+            ).get_literature_search()
+            self.send_product_to_client('literature_search:goal')
+
+    def _assess_novelty(self):
+        self.advance_stage(ScientificStage.ASSESS_NOVELTY)
+        self.products.most_similar_papers = GetMostSimilarCitations.from_(self).run_and_get_valid_result()
+        self.products.novelty_assessment = NoveltyAssessmentReview.from_(self).run_and_get_valid_result()
+        self.send_product_to_client('novelty_assessment')
+        self.goal_refinement_iteration += 1
+        if (not self.products.novelty_assessment['choice'] == 'OK' and
+                self.goal_refinement_iteration < self.project_parameters['max_goal_refinement_iterations']):
+            self.re_goal = True
+            self._reset_is_stage_completed(ScientificStage.GOAL)
+
     def _goal(self):
-        self.advance_stage(ScientificStage.GOAL)
-        research_goal = self.director_converser.get_product_or_no_product_from_director(
-            product_name='Research Goal', returned_product=self.project_parameters['research_goal'],
-            acknowledge_no_product_message="OK. no problem. I will devise the goal myself.")
-        if research_goal is None:
-            self.products.research_goal = GoalReviewGPT.from_(
-                self,
-                project_specific_goal_guidelines=self.project_parameters['project_specific_goal_guidelines']
-            ).run_and_get_valid_result()
-            self.send_product_to_client('research_goal')
-
-            goal_refinement_iteration = 0
-            while True:
-                if self.project_parameters['should_do_literature_search']:
-                    self.advance_stage(ScientificStage.LITERATURE_REVIEW_GOAL)
-                    GoalLiteratureSearchReviewGPT.from_(
-                        self, excluded_citation_titles=self.project_parameters['excluded_citation_titles'],
-                        literature_search=self.products.literature_search['goal']
-                    ).get_literature_search()
-                    self.send_product_to_client('literature_search:goal')
-
-                if goal_refinement_iteration == self.project_parameters['max_goal_refinement_iterations']:
-                    break
-
-                self.advance_stage(ScientificStage.ASSESS_NOVELTY)
-                self.products.most_similar_papers = GetMostSimilarCitations.from_(self).run_and_get_valid_result()
-                self.products.novelty_assessment = NoveltyAssessmentReview.from_(self).run_and_get_valid_result()
-                self.send_product_to_client('novelty_assessment')
-                if self.products.novelty_assessment['choice'] == 'OK':
-                    break
-
-                goal_refinement_iteration += 1
-                self.advance_stage(ScientificStage.GOAL)
-                self.products.research_goal = ReGoalReviewGPT.from_(
+        if not self.re_goal:
+            self.advance_stage(ScientificStage.GOAL)
+            research_goal = self.director_converser.get_product_or_no_product_from_director(
+                product_name='Research Goal', returned_product=self.project_parameters['research_goal'],
+                acknowledge_no_product_message="OK. no problem. I will devise the goal myself.")
+            if research_goal is None:
+                self.products.research_goal = GoalReviewGPT.from_(
                     self,
                     project_specific_goal_guidelines=self.project_parameters['project_specific_goal_guidelines']
                 ).run_and_get_valid_result()
+                self.send_product_to_client('research_goal')
+            else:
+                self.products.research_goal = GoalAndHypothesisProduct(value=research_goal)
+                self._app_send_product_of_stage(ScientificStage.LITERATURE_REVIEW_GOAL,
+                                                'This stage was skipped because the goal was provided by the user.')
+                self._app_send_product_of_stage(ScientificStage.ASSESS_NOVELTY,
+                                                'This stage was skipped because the goal was provided by the user.')
                 self.send_product_to_client('research_goal', save_to_file=True)
         else:
-            self.products.research_goal = GoalAndHypothesisProduct(value=research_goal)
-            self._app_send_product_of_stage(ScientificStage.LITERATURE_REVIEW_GOAL,
-                                            'This stage was skipped because the goal was provided by the user.')
-            self._app_send_product_of_stage(ScientificStage.ASSESS_NOVELTY,
-                                            'This stage was skipped because the goal was provided by the user.')
+            self.advance_stage(ScientificStage.GOAL)
+            self.products.research_goal = ReGoalReviewGPT.from_(
+                self,
+                project_specific_goal_guidelines=self.project_parameters['project_specific_goal_guidelines']
+            ).run_and_get_valid_result()
             self.send_product_to_client('research_goal', save_to_file=True)
 
     def _hypotheses_testing_plan(self):

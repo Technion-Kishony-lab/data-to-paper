@@ -145,3 +145,13 @@ class AppInteractor:
         if self.app is None:
             return
         self.app.send_api_usage_cost(html_content)
+
+    def _app_get_step_to_reset_to(self):
+        if self.app is None:
+            return
+        return self.app.reset_to_step
+
+    def _app_re_set_reset_to_step(self):
+        if self.app is None:
+            return
+        self.app.re_set_reset_to_step()

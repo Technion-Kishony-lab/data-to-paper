@@ -1,6 +1,8 @@
 from abc import abstractmethod, ABCMeta
 from dataclasses import dataclass, is_dataclass, fields
 
+from data_to_paper.conversation.stage import Stage
+
 
 class data_to_paperException(Exception, metaclass=ABCMeta):
     """
@@ -31,3 +33,11 @@ class TerminateException(data_to_paperException):
         if self.reason is None:
             return f"{type(self).__name__}"
         return f"{type(self).__name__}: {self.reason}"
+
+
+@dataclass
+class ResetStepException(Exception):
+    """
+    An exception to reset the step.
+    """
+    stage: Stage  # reset to this stage
