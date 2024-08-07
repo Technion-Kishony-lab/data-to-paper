@@ -18,6 +18,7 @@ from .base_server import OrderedKeyToListServerCaller
 from .json_dump import dump_to_json, load_from_json
 from .model_engine import ModelEngine
 from .serialize_exceptions import serialize_exception, is_exception, de_serialize_exception
+from ..conversation.stage import Stage
 
 if TYPE_CHECKING:
     from data_to_paper.conversation.message import Message
@@ -163,35 +164,34 @@ class OpenaiServerCaller(OrderedKeyToListServerCaller):
         self._check_after_spending_money(content, messages, model_engine)
         return LLMResponse(content)
 
-    def reset_to_step(self, step: str):
+    def reset_to_step(self, stage: Stage):
         """
         Reset the records and the api usage cost files to the records of the given stage
         """
-        old_record_keys = list(self.old_records.keys())
-        try:
-            stage_index = old_record_keys.index(step)
-        except ValueError:
-            stage_index = -1
-        if stage_index > -1:
-            # delete all records after and including the given stage
-            for key in old_record_keys[stage_index:]:
-                del self.old_records[key]
-        # do the same for the new records
-        new_record_keys = list(self.new_records.keys())
-        try:
-            stage_index = new_record_keys.index(step)
-        except ValueError:
-            stage_index = -1
-        if stage_index > -1:
-            # delete all records after and including the given stage
-            for key in new_record_keys[stage_index:]:
-                del self.new_records[key]
+        stage_class = stage.__class__
+
+        keys_to_delete_in_old = []
+        for key in self.old_records.keys():
+            if stage_class[key] >= stage:
+                keys_to_delete_in_old.append(key)
+        for key in keys_to_delete_in_old:
+            del self.old_records[key]
+
+        keys_to_delete_in_new = []
+        for key in self.new_records.keys():
+            if stage_class[key] >= stage:
+                keys_to_delete_in_new.append(key)
+        for key in keys_to_delete_in_new:
+            del self.new_records[key]
         self.save_records()
+
         # reset the api usage cost to the given stage
         api_usage_cost = load_from_json(self.file_path.parents[0] / 'api_usage_cost.json')
-        # delete all records after and including the given stage
-        stage_index = list(api_usage_cost.keys()).index(step)
-        for key in list(api_usage_cost.keys())[stage_index:]:
+        keys_to_delete_in_api_usage_cost = []
+        for key in api_usage_cost.keys():
+            if stage_class[key] >= stage:
+                keys_to_delete_in_api_usage_cost.append(key)
+        for key in keys_to_delete_in_api_usage_cost:
             del api_usage_cost[key]
         dump_to_json(api_usage_cost, self.file_path.parents[0] / 'api_usage_cost.json')
 
