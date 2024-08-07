@@ -1,0 +1,24 @@
+## Statistical considerations:
+### Missing data points:
+The datasets have missing values that need to be handled appropriately, either through imputation or by excluding incomplete rows based on the analysis being performed.
+### Confounding variables:
+There are several potential confounding variables such as age, sex, BMI, patient contact, and mask usage that may need to be adjusted for in the statistical analyses to avoid biased results.
+### Dependencies between data points:
+There is a temporal element in the data, especially in the TimeToInfection dataset where multiple time intervals per health worker exist. This temporal dependency should be considered in the analysis to avoid incorrect conclusions.
+
+## Hypotheses:
+### Hypothesis:
+Vaccinated healthcare workers have a longer time interval before reinfection compared to unvaccinated individuals
+### Test:
+Survival analysis (e.g., Cox proportional hazards model) to assess the time until reinfection based on vaccination status while adjusting for potential confounders like age, BMI, patient contact, and mask usage.
+
+### Hypothesis:
+Vaccinated healthcare workers manifest fewer symptoms upon reinfection compared to unvaccinated individuals
+### Test:
+Linear regression to examine the relationship between vaccination status and the number of symptoms at reinfection, adjusting for potential confounders like age, BMI, patient contact, and mask usage.
+
+### Hypothesis:
+Interaction effect between mask usage and patient contact on reinfection rates and symptom severity based on vaccination status
+### Test:
+Logistic regression for reinfection rates and negative binomial regression for symptom severity, including interaction terms between mask usage, patient contact, and vaccination status. Adjustment for confounders like age, BMI would also be required.
+

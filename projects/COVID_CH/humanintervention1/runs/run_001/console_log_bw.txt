@@ -8477,7 +8477,7 @@ Here is the updated code. It creates the files: ['table_1.pkl', 'table_2.pkl', '
 +    'AIC of model with Total Time at Risk Among Infected Individuals': result2.aic
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<14> - <-1> [1 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -8616,7 +8616,7 @@ dataframe for the third analysis. Here's the revised code:
 +df3 = grouped_df[['infection_rate']]
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<11> - <-1> [6 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Adding the debugged code as if it was the original response.
@@ -8877,7 +8877,7 @@ The changes have been made in the sections "#PREPROCESSING" and "#ANALYSIS". Now
 In Analysis, we include 'group_N' as a predictor variable in the model for Table 2, and calculate infection rate for 'N' group as well in Table 3.
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<14> - <-1> [1 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -9012,7 +9012,7 @@ one of them if the correlation is too high. Here's the revised python code:
 +model2 = OLS.from_formula('total_time_at_risk ~ group_V + group_I + group_H', df_infected)
 ======================================================================================================================================================
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 DeleteMessages(<11> - <-1> [6 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Adding the debugged code as if it was the original response.
@@ -9637,7 +9637,7 @@ to_latex_with_note(
     legend=legend3)
 ======================================================================================================================================================
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 DeleteMessages(<12> - <-1> [1 MESSAGES]) -> LaTeX Table Design Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -9815,7 +9815,7 @@ In this revised code, we removed 'Total Time at Risk' from the legend of `table_
 added the abbreviations 'H', 'I', 'N', and 'V' to the mapping, providing both row names and legends.
 ======================================================================================================================================================
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 DeleteMessages(<11> - <-1> [4 MESSAGES]) -> LaTeX Table Design Code
 
 AppendMessage, Adding the debugged code as if it was the original response.

@@ -8374,7 +8374,7 @@ Here is the updated code. It creates the files: ['table_1.pkl', 'table_2.pkl', '
 [38;5;197m+[39m[38;5;15m    [39m[38;5;186m'[39m[38;5;186mAIC of model with Total Time at Risk Among Infected Individuals[39m[38;5;186m'[39m[38;5;15m:[39m[38;5;15m [39m[38;5;15mresult2[39m[38;5;197m.[39m[38;5;15maic[39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<14> - <-1> [1 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -8511,7 +8511,7 @@ dataframe for the third analysis. Here's the revised code:
 [38;5;197m+[39m[38;5;15mdf3[39m[38;5;15m [39m[38;5;197m=[39m[38;5;15m [39m[38;5;15mgrouped_df[39m[38;5;15m[[39m[38;5;15m[[39m[38;5;186m'[39m[38;5;186minfection_rate[39m[38;5;186m'[39m[38;5;15m][39m[38;5;15m][39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<11> - <-1> [6 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Adding the debugged code as if it was the original response.[0m
@@ -8767,7 +8767,7 @@ The changes have been made in the sections "#PREPROCESSING" and "#ANALYSIS". Now
 In Analysis, we include 'group_N' as a predictor variable in the model for Table 2, and calculate infection rate for 'N' group as well in Table 3.[0m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<14> - <-1> [1 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -8900,7 +8900,7 @@ one of them if the correlation is too high. Here's the revised python code:
 [38;5;197m+[39m[38;5;15mmodel2[39m[38;5;15m [39m[38;5;197m=[39m[38;5;15m [39m[38;5;15mOLS[39m[38;5;197m.[39m[38;5;15mfrom_formula[39m[38;5;15m([39m[38;5;186m'[39m[38;5;186mtotal_time_at_risk ~ group_V + group_I + group_H[39m[38;5;186m'[39m[38;5;15m,[39m[38;5;15m [39m[38;5;15mdf_infected[39m[38;5;15m)[39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<11> - <-1> [6 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Adding the debugged code as if it was the original response.[0m
@@ -9512,7 +9512,7 @@ CONTEXT TOTAL (3924 tokens):
 [38;5;15m    [39m[38;5;15mlegend[39m[38;5;197m=[39m[38;5;15mlegend3[39m[38;5;15m)[39m
 [36m======================================================================================================================================================[0m
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 [31mDeleteMessages(<12> - <-1> [1 MESSAGES]) -> LaTeX Table Design Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -9689,7 +9689,7 @@ In this revised code, we removed 'Total Time at Risk' from the legend of `table_
 added the abbreviations 'H', 'I', 'N', and 'V' to the mapping, providing both row names and legends.[0m
 [36m======================================================================================================================================================[0m
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 [31mDeleteMessages(<11> - <-1> [4 MESSAGES]) -> LaTeX Table Design Code[0m
 
 [31mAppendMessage, Adding the debugged code as if it was the original response.[0m
