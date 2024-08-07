@@ -5,6 +5,7 @@ from data_to_paper.base_steps.base_products_conversers import ReviewBackgroundPr
 
 from typing import Any, Dict, Optional, get_origin, Collection, Iterable
 
+from data_to_paper.base_steps.converser import _raise_if_reset
 from data_to_paper.base_steps.result_converser import Rewind
 from data_to_paper.run_gpt_code.code_utils import extract_content_of_triple_quote_block, FailedExtractingBlock, \
     NoBlocksFailedExtractingBlock, IncompleteBlockFailedExtractingBlock
@@ -126,6 +127,7 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
                 error_message=e.message)
         return response_value
 
+    @_raise_if_reset()
     def _check_response_value(self, response_value: Any) -> Any:
         """
         Check that the response value is valid.
