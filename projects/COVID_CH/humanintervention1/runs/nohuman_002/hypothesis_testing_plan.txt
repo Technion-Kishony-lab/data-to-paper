@@ -1,0 +1,12 @@
+## Statistical considerations:
+### Missing data points:
+There are missing values for variables such as age, sex, patient contact, FFP2 mask usage, months since immunization, time between vaccine doses, vaccinetype, comorbidity, and variant. Depending on the impact of these variables on the hypotheses, we may need to handle missing data appropriately, such as imputation, exclusion or grouping missing values.
+### Confounding variables:
+Demographic factors like age, sex, and BMI, as well as workplace-related factors such as patient contact and FFP2 mask usage, may act as confounding variables and need to be adjusted for to ensure we are testing the direct effect of vaccination type and infection on symptoms.
+
+## Hypotheses:
+### Hypothesis:
+Individuals in the Hybrid category exhibit a lower number of symptoms compared to infected-only or vaccinated-only groups
+### Test:
+An analysis of covariance (ANCOVA) could be used to compare the mean symptom number between the different vaccination groups (Hybrid, Infected-only, Vaccinated-only) while controlling for potential confounding variables like age, sex, BMI, patient contact, and FFP2 mask usage.
+

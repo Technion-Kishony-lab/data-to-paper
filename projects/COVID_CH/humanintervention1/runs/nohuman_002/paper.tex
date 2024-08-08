@@ -1,0 +1,769 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{fancyvrb}
+\usepackage{color}
+\usepackage{listings}
+\usepackage{sectsty}
+\sectionfont{\Large}
+\subsectionfont{\normalsize}
+\subsubsectionfont{\normalsize}
+
+% Default fixed font does not support bold face
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{12} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{12}  % for normal
+
+% Custom colors
+\usepackage{color}
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+\definecolor{cyan}{rgb}{0.0,0.6,0.6}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+
+% Python style for highlighting
+\newcommand\pythonstyle{\lstset{
+language=Python,
+basicstyle=\ttfamily\footnotesize,
+morekeywords={self, import, as, from, if, for, while},              % Add keywords here
+keywordstyle=\color{deepblue},
+stringstyle=\color{deepred},
+commentstyle=\color{cyan},
+breaklines=true,
+escapeinside={(*@}{@*)},            % Define escape delimiters
+postbreak=\mbox{\textcolor{deepgreen}{$\hookrightarrow$}\space},
+showstringspaces=false
+}}
+
+
+% Python environment
+\lstnewenvironment{python}[1][]
+{
+\pythonstyle
+\lstset{#1}
+}
+{}
+
+% Python for external files
+\newcommand\pythonexternal[2][]{{
+\pythonstyle
+\lstinputlisting[#1]{#2}}}
+
+% Python for inline
+\newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
+
+
+% Code output style for highlighting
+\newcommand\outputstyle{\lstset{
+    language=,
+    basicstyle=\ttfamily\footnotesize\color{gray},
+    breaklines=true,
+    showstringspaces=false,
+    escapeinside={(*@}{@*)},            % Define escape delimiters
+}}
+
+% Code output environment
+\lstnewenvironment{codeoutput}[1][]
+{
+    \outputstyle
+    \lstset{#1}
+}
+{}
+
+
+\title{Hybrid Immunity Reduces COVID-19 Symptom Severity Among Healthcare Workers}
+\author{data-to-paper}
+\begin{document}
+\maketitle
+\begin{abstract}
+COVID-19 continues to present global challenges, particularly for frontline healthcare workers. Understanding the role of prior exposure to the virus and vaccinations on disease severity is paramount. Recent literature highlights a significant concern regarding the transmission and symptomatology of COVID-19 among healthcare workers, indicating a gap in understanding the protective effects of combined infection and vaccination—termed hybrid immunity. Our study addresses this by analyzing symptom severity related to immune status among 2,947 Swiss healthcare employees during the delta and omicron variant predominance period. Employing statistical analyses like t-tests and ANCOVA, participants were categorized into non-immune, vaccinated, previously infected, and hybrid groups. Results revealed that hybrid immune status was associated with the least severe symptoms compared to the vaccinated-only or infected-only statuses. Age and comorbidities were significant factors increasing symptom severity, regardless of immune status. These findings underscore the potential of hybrid immunity in mitigating clinical outcomes of SARS-CoV-2 infection, although our study's limitation to a specific demographic and geographical location may affect the generalizability of the results. The implications are vital for healthcare policy and vaccination strategies, suggesting a potentially adjusted approach to boosting immunity among those at highest risk.
+\end{abstract}
+\section*{Introduction}
+
+The COVID-19 pandemic continues to pose severe global challenges, with healthcare workers at the forefront of risk due to their exposure to the virus and transmission potential to patients \cite{Ali2020RiskAO, GmezOchoa2020COVID19IH, Nguyen2020RiskOC}. More specifically, the infection and subsequent transmission rates among these frontline workers are alarmingly high, necessitating urgent preventive strategies. A significant element of infection prevention and control lies in understanding the interplay between the disease's symptomatology and potential protective factors such as previous SARS-CoV-2 infections and vaccinations or their combination, often referred to as hybrid immunity \cite{Ali2020RiskAO, Huang2020ASR}.
+
+Hybrid immunity, a relatively novel notion, signifies the state of having been both previously infected by SARS-CoV-2 and vaccinated \cite{Azkur2020ImmuneRT}. Although ample evidence underscores the individual protective effects of vaccinations and previous infections, research exploring the symptom severity associated with hybrid immunity among healthcare workers remains sparse and inconclusive \cite{Vishnoi2023SeverityAO, Braud2022ImpactOV}. The complications due to risk factors such as age and comorbidities have been broadly studied \cite{Munywoki2014InfluenceOA, Zhang2022RiskAP}. Still, there is a lack of comprehensive understanding of their effects on symptom severity among healthcare professionals holding various immune statuses. 
+
+Our research addresses these gaps by using a robust dataset from a multicentric cohort comprising nearly 3000 healthcare workers across various healthcare networks in Switzerland \cite{Memish2014ScreeningFM, Regina2020EpidemiologyRF}. Employing rigorous statistical measures, including t-tests and Analysis of Covariance (ANCOVA), we comprehensively analyze the differences in symptom numbers among individuals categorized into various groups based on the source of their immunity—non-immune, vaccinated, previous infection, and hybrid \cite{Schwarz2017AnalysisOM, Tsanas2011NonlinearSA}. Moreover, we delve into how age and comorbidities influence symptom severity across these groups.
+
+By leveraging such an analysis, our research brings critical insights on the protective role of hybrid immunity against symptom severity in SARS-CoV-2 infections. Our findings hold potential implications in informing healthcare policy and strategies to bolster resilience and protection against COVID-19 among the critically important healthcare workforce.
+
+\section*{Results}
+
+First, to understand the basic characteristics of our dataset, we conducted descriptive statistical analysis. The dataset comprises \hyperlink{R0a}{2947} healthcare workers with a mean age of \hyperlink{R1a}{41.82} years (SD = \hyperlink{R2a}{10.49}). The analysis focused on two primary measurements: symptom number and age of the participants (Table \ref{table:descriptive_statistics}). The average number of symptoms reported was \hyperlink{A0a}{3.69} with a standard deviation of \hyperlink{A1a}{2.12}. Furthermore, the 95\% confidence interval for the mean symptom number was \hyperlink{A3a}{0.0764}, indicating precision in the estimate of the mean symptom number in our cohort.
+
+% This latex table was generated from: `table_0.pkl`
+\begin{table}[h]
+\caption{\protect\hyperlink{file-table-0-pkl}{Descriptive Statistics of the dataset}}
+\label{table:descriptive_statistics}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrr}
+\toprule
+ & Symptom Number & age \\
+\midrule
+\textbf{Mean} & \raisebox{2ex}{\hypertarget{A0a}{}}3.69 & \raisebox{2ex}{\hypertarget{A0b}{}}41.8 \\
+\textbf{Standard Deviation} & \raisebox{2ex}{\hypertarget{A1a}{}}2.12 & \raisebox{2ex}{\hypertarget{A1b}{}}10.5 \\
+\textbf{Count} & \raisebox{2ex}{\hypertarget{A2a}{}}2947 & \raisebox{2ex}{\hypertarget{A2b}{}}2947 \\
+\textbf{Confidence Interval} & \raisebox{2ex}{\hypertarget{A3a}{}}0.0764 & \raisebox{2ex}{\hypertarget{A3b}{}}0.379 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{Mean}: Average value
+\item \textbf{Standard Deviation}: Measure of the amount of variation or dispersion of a set of values
+\item \textbf{Count}: Total number of observations
+\item \textbf{Confidence Interval}: \raisebox{2ex}{\hypertarget{A4a}{}}95\% confidence interval around the mean
+\item \textbf{Symptom Number}: Number of symptoms after infection
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+Then, to investigate the relationship between vaccination status and symptom severity, we performed t-tests among three distinct groups: Vaccinated-only, Infected-only, and Hybrid (both vaccinated and infected). As noted in Table \ref{table:association_test}, the mean symptom numbers across the groups were \hyperlink{B0a}{3.75} for Vaccinated, \hyperlink{B0b}{4.08} for Infected, and \hyperlink{B0c}{3.08} for Hybrid. Notably, the t-test results indicated a statistically significant lower symptom severity in the Hybrid group compared to both the Vaccinated group (\textit{t} = \hyperlink{B4b}{6.21}, \textit{p} $<$ \hyperlink{B5b}{$10^{-6}$}) and the Infected group (\textit{t} = \hyperlink{B4c}{-4.75}, \textit{p} = \hyperlink{B5c}{$2.59\ 10^{-6}$}). The comparison between the Vaccinated and Infected groups yielded a non-significant result (\textit{t} = \hyperlink{B4a}{-1.71}, \textit{p} = \hyperlink{B5a}{0.0881}).
+
+% This latex table was generated from: `table_1.pkl`
+\begin{table}[h]
+\caption{\protect\hyperlink{file-table-1-pkl}{Test of association between vaccination status and symptom numbers}}
+\label{table:association_test}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lllllll}
+\toprule
+ & Vaccinated & Infected & Hybrid & V vs I & V vs H & H vs I \\
+\midrule
+\textbf{Mean} & \raisebox{2ex}{\hypertarget{B0a}{}}3.75 & \raisebox{2ex}{\hypertarget{B0b}{}}4.08 & \raisebox{2ex}{\hypertarget{B0c}{}}3.08 & - & - & - \\
+\textbf{Standard Deviation} & \raisebox{2ex}{\hypertarget{B1a}{}}2.09 & \raisebox{2ex}{\hypertarget{B1b}{}}1.87 & \raisebox{2ex}{\hypertarget{B1c}{}}2.11 & - & - & - \\
+\textbf{Count} & \raisebox{2ex}{\hypertarget{B2a}{}}2196 & \raisebox{2ex}{\hypertarget{B2b}{}}121 & \raisebox{2ex}{\hypertarget{B2c}{}}459 & - & - & - \\
+\textbf{Confidence Interval} & \raisebox{2ex}{\hypertarget{B3a}{}}0.0875 & \raisebox{2ex}{\hypertarget{B3b}{}}0.334 & \raisebox{2ex}{\hypertarget{B3c}{}}0.193 & - & - & - \\
+\textbf{T-Statistic} & - & - & - & \raisebox{2ex}{\hypertarget{B4a}{}}-1.71 & \raisebox{2ex}{\hypertarget{B4b}{}}6.21 & \raisebox{2ex}{\hypertarget{B4c}{}}-4.75 \\
+\textbf{P-Value} & - & - & - & \raisebox{2ex}{\hypertarget{B5a}{}}0.0881 & $<$\raisebox{2ex}{\hypertarget{B5b}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{B5c}{}}$2.59\ 10^{-6}$ \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item Test comparing Vaccinated, Infected and Hybrid groups
+\item \textbf{Vaccinated}: Only vaccinated group
+\item \textbf{Infected}: Only infected group
+\item \textbf{Hybrid}: Infected and vaccinated group
+\item \textbf{Mean}: Average value
+\item \textbf{Standard Deviation}: Measure of the amount of variation or dispersion of a set of values
+\item \textbf{Count}: Total number of observations
+\item \textbf{Confidence Interval}: \raisebox{2ex}{\hypertarget{B6a}{}}95\% confidence interval around the mean
+\item \textbf{T-Statistic}: Measure of the size of the difference relative to the variation in your sample data
+\item \textbf{P-Value}: The probability that the results from your sample data occurred by chance
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+Finally, to further examine the effects of age and comorbidity on symptom severity, we employed an Analysis of Covariance (ANCOVA). The results, displayed in Table \ref{table:ancova}, identified age and comorbidity as significant predictors. Specifically, the regression coefficient for age was \hyperlink{C1a}{-0.0168}, signifying a modest decrease in symptom number with increasing age, while comorbidity presence was linked to an increase in symptoms, denoted by a coefficient of \hyperlink{C2a}{0.602}. Both predictors were statistically compelling (\textit{p} values $<$ \hyperlink{C1c}{$1.17\ 10^{-5}$} and $<$ \hyperlink{C2c}{$10^{-6}$} respectively).
+
+% This latex table was generated from: `table_2.pkl`
+\begin{table}[h]
+\caption{\protect\hyperlink{file-table-2-pkl}{ANCOVA of symptom number on age and comorbidity}}
+\label{table:ancova}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{llll}
+\toprule
+ & Coefficient & Standard Error & P-Value \\
+\midrule
+\textbf{Intercept} & \raisebox{2ex}{\hypertarget{C0a}{}}4.16 & \raisebox{2ex}{\hypertarget{C0b}{}}0.164 & $<$\raisebox{2ex}{\hypertarget{C0c}{}}$10^{-6}$ \\
+\textbf{age} & \raisebox{2ex}{\hypertarget{C1a}{}}-0.0168 & \raisebox{2ex}{\hypertarget{C1b}{}}0.00383 & \raisebox{2ex}{\hypertarget{C1c}{}}$1.17\ 10^{-5}$ \\
+\textbf{comorbidity} & \raisebox{2ex}{\hypertarget{C2a}{}}0.602 & \raisebox{2ex}{\hypertarget{C2b}{}}0.0821 & $<$\raisebox{2ex}{\hypertarget{C2c}{}}$10^{-6}$ \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item Conducting ANCOVA to determine the effect of age and comorbidity on symptom number
+\item \textbf{Coefficient}: Measure of the relationship between the dependent and an independent variable
+\item \textbf{Standard Error}: Measure of the statistical accuracy of an estimate
+\item \textbf{P-Value}: The hypothesis test which measures the statistical significance of the regression coefficient
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+In summary, these results underscore significant variability in symptom severity among healthcare workers based on their immune status. Hybrid immunity is associated with the mildest symptoms, while factors such as age and comorbidity significantly influence COVID-19 symptomatology in this cohort.
+
+\section*{Discussion}
+
+Our investigation centered on elucidating the implications of immunological status due to prior infection and vaccination, or both, on the severity of COVID-19 symptoms in a high-risk group of healthcare workers \cite{Ali2020RiskAO, GmezOchoa2020COVID19IH}. This has emerged as a crucial area of research in light of the significant burden of COVID-19 infection on healthcare professionals \cite{Ali2020RiskAO}, and the evolving understanding of the protective role of previously acquired SARS-CoV-2 infections and vaccinations \cite{Huang2020ASR, Azkur2020ImmuneRT}. 
+
+Using comprehensive statistical analyses, we sought to assess the symptom severity across different immune statuses: those without immunity, those with immunity through vaccination only, those with immunity through infection only, and those with hybrid immunity acquired through both infection and vaccination \cite{Schwarz2017AnalysisOM, Tsanas2011NonlinearSA}. Our results revealed a significantly reduced symptom severity in the group with hybrid immunity compared to solely vaccinated or infected individuals. This finding is consistent with and extends the work of prior studies, which have indicated a correlation between hybrid immunity and a lesser degree of COVID-19 severity \cite{Vishnoi2023SeverityAO, Braud2022ImpactOV}. 
+
+In addition to immune status, our analysis affirmed the influential role of demographic and clinical factors, like age and comorbidities, on COVID-19 symptomatology. The understated impact of aging on reducing symptom numbers in this specific group is in line with the evidence outlined by Munywoki et al \cite{Munywoki2014InfluenceOA}. Similarly, our findings concur with the previous literature correlating comorbidities with increased symptom severity in COVID-19 patients \cite{Zhang2022RiskAP}.
+
+Notwithstanding these results, our study is not without limitations. Our research population was confined to healthcare workers in Switzerland—a specific demographic within a particular geographical and healthcare context. This raises pertinent questions about the representativeness and broader applicability of our findings, given the wide-ranging global healthcare settings and diverse factors influencing COVID-19 exposure and protective measures \cite{Ali2020RiskAO, GmezOchoa2020COVID19IH}. Furthermore, the continuous emergence of new SARS-CoV-2 variants necessitates continual reassessment of the role and potential benefits of hybrid immunity. Methodologically, the self-reporting nature of symptoms could bias the reported severity and number of symptoms.
+
+Conclusively, our study highlights the potential benefits of fostering hybrid immunity to attenuate COVID-19 symptoms among healthcare professionals. Although our results need to be interpreted in light of the geographical specificity of our sample, they set forth an imperative direction for future investigations. It gives impetus to longitudinal studies across diverse populations to validate the protective effect of hybrid immunity and understand its implications for vaccination strategies. Additionally, continued research is recommended to ascertain the long-term impacts of a hybrid immune status and its correlation with novel virus variants, thereby informing measures to safeguard healthcare providers in their critical role against the ongoing pandemic.
+
+\section*{Methods}
+
+\subsection*{Data Source}
+Our study employed a comprehensive dataset involving hospital employees across ten healthcare networks in Switzerland. The dataset represented an array of demographic, clinical, and professional variables spanning a follow-up period from August 2020 to March 2022. This period included the emergence and predominance of the delta and omicron variants of SARS-CoV-2. Individuals participating in the study were stratified into four groups based on their immunity status due to previous infections and vaccination history, and data were collected on their infection events and symptom severity.
+
+\subsection*{Data Preprocessing}
+Initial data processing involved merging two primary datasets based on participant identification and relevant factors such as age, sex, and BMI to align the information on vaccination, infection events, and symptom details. In preparation for analysis, categorical variables like sex and BMI were transformed into dummy variables, facilitating their use in the statistical models deployed. These steps served to consolidate the information into a single framework appropriate for detailed statistical analysis.
+
+\subsection*{Data Analysis}
+Our analysis focused on comparing the number of symptoms experienced by different immunity groups and identifying factors influencing symptom severity. Descriptive statistics were first generated to understand the basic distribution of symptom numbers and participant age. We then conducted t-tests to assess the differences in symptom numbers between the non-immune, vaccinated, previously infected, and hybrid groups. Subsequently, we employed an Analysis of Covariance (ANCOVA) model, adjusting for age and comorbidities to analyze their impact on symptom severity across different immune statuses. This two-pronged analysis approach allowed us to dissect the contributions of immunity origin and demographic as well as clinical factors to the clinical outcomes of COVID-19.\subsection*{Code Availability}
+
+Custom code used to perform the data preprocessing and analysis, as well as the raw code outputs, are provided in Supplementary Methods.
+
+
+\bibliographystyle{unsrt}
+\bibliography{citations}
+
+
+\clearpage
+\appendix
+
+\section{Data Description} \label{sec:data_description} Here is the data description, as provided by the user:
+
+\begin{codeoutput}
+\#\# General Description
+(*@\raisebox{2ex}{\hypertarget{S}{}}@*)General description 
+In this prospective, multicentre cohort performed between August (*@\raisebox{2ex}{\hypertarget{S0a}{}}@*)2020 and March (*@\raisebox{2ex}{\hypertarget{S0b}{}}@*)2022, we recruited hospital employees from ten acute/nonacute healthcare networks in Eastern/Northern Switzerland, consisting of (*@\raisebox{2ex}{\hypertarget{S0c}{}}@*)2,595 participants (median follow-up (*@\raisebox{2ex}{\hypertarget{S0d}{}}@*)171 days). The study comprises infections with the delta and the omicron variant. We determined immune status in September (*@\raisebox{2ex}{\hypertarget{S0e}{}}@*)2021 based on serology and previous SARS-CoV-2 infections/vaccinations: Group N (no immunity); Group V (twice vaccinated, uninfected); Group I (infected, unvaccinated); Group H (hybrid: infected and $\geq$1 vaccination). Participants were asked to get tested for SARS-CoV-2 in case of compatible symptoms, according to national recommendations. SARS-CoV-2 was detected by polymerase chain reaction (PCR) or rapid antigen diagnostic (RAD) test, depending on the participating institutions. The dataset is consisting of two files, one describing vaccination and infection events for all healthworkers, and the secone one describing the symptoms for the healthworkers who tested positive for SARS-CoV-2.
+\#\# Data Files
+The dataset consists of 2 data files:
+
+\#\#\# File 1: "TimeToInfection.csv"
+(*@\raisebox{2ex}{\hypertarget{T}{}}@*)Data in the file "TimeToInfection.csv" is organised in time intervals, from day\_interval\_start to day\_interval\_stop. Missing data is shown as "" for not indicated or not relevant (e.g. which vaccine for the non-vaccinated group). It is very important to note, that per healthworker (=ID number), several rows (time intervals) can exist, and the length of the intervals can vary (difference between day\_interval\_start and day\_interval\_stop). This can lead to biased results if not taken into account, e.g. when running a statistical comparison between two columns. It can also lead to biases when merging the two files, which therefore should be avoided. The file contains (*@\raisebox{2ex}{\hypertarget{T0a}{}}@*)16 columns:
+
+ID	Unique Identifier of each healthworker
+group	Categorical, Vaccination group: "N" (no immunity), "V" (twice vaccinated, uninfected), "I" (infected, unvaccinated), "H" (hybrid: infected and $\geq$1 vaccination)
+age	Continuous, age in years 
+sex	Categorical, female", "male" (or "" for not indicated)	
+BMI	Categorical, "o30" for over (*@\raisebox{2ex}{\hypertarget{T1a}{}}@*)30  or "u30" for below (*@\raisebox{2ex}{\hypertarget{T1b}{}}@*)30	
+patient\_contact	Having contact with patients during work during this interval, (*@\raisebox{2ex}{\hypertarget{T2a}{}}@*)1=yes, (*@\raisebox{2ex}{\hypertarget{T2b}{}}@*)0=no 
+using\_FFP2\_mask	Always using protective respiratory masks during work, (*@\raisebox{2ex}{\hypertarget{T3a}{}}@*)1=yes, (*@\raisebox{2ex}{\hypertarget{T3b}{}}@*)0=no 
+negative\_swab	documentation of $\geq$1 negative test in the previous month, (*@\raisebox{2ex}{\hypertarget{T4a}{}}@*)1=yes, (*@\raisebox{2ex}{\hypertarget{T4b}{}}@*)0=no 
+booster	receipt of booster vaccination, (*@\raisebox{2ex}{\hypertarget{T5a}{}}@*)1=yes, (*@\raisebox{2ex}{\hypertarget{T5b}{}}@*)0=no (or "" for not indicated)	
+positive\_household	categorical, SARS-CoV-2 infection of a household contact within the same month, (*@\raisebox{2ex}{\hypertarget{T6a}{}}@*)1=yes, (*@\raisebox{2ex}{\hypertarget{T6b}{}}@*)0=no	
+months\_since\_immunisation	continuous, time since last immunization event (infection or vaccination) in months. Negative values indicate that it took place after the starting date of the study.
+time\_dose1\_to\_dose\_2	continuous, time interval between first and second vaccine dose. Empty when not vaccinated twice
+vaccinetype	Categorical, "Moderna" or "Pfizer\_BioNTech" or "" for not vaccinated.	
+day\_interval\_start	day since start of study when the interval starts
+day\_interval\_stop	day since start of study when the interval stops	
+infection\_event	If an infection occured during this time interval, (*@\raisebox{2ex}{\hypertarget{T7a}{}}@*)1=yes, (*@\raisebox{2ex}{\hypertarget{T7b}{}}@*)0=no
+
+Here are the first few lines of the file:
+```output
+ID,group,age,sex,BMI,patient\_contact,using\_FFP2\_mask,negative\_swab,booster,positive\_household,months\_since\_immunisation,time\_dose1\_to\_dose\_2,vaccinetype,day\_interval\_start,day\_interval\_stop,infection\_event
+1,V,38,female,u30,0,0,0,0,no,0.8,1.2,Moderna,0,87,0
+1,V,38,female,u30,0,0,0,0,no,0.8,1.2,Moderna,87,99,0
+1,V,38,female,u30,0,0,0,0,no,0.8,1.2,Moderna,99,113,0
+
+```
+
+\#\#\# File 2: "Symptoms.csv"
+(*@\raisebox{2ex}{\hypertarget{U}{}}@*)Data in the file "Symptoms.csv" is organised per infection event, consisting in total of (*@\raisebox{2ex}{\hypertarget{U0a}{}}@*)764 events. Each worker is only indicated once. It contains (*@\raisebox{2ex}{\hypertarget{U0b}{}}@*)11 columns:
+ID	Unique Identifier, same in both files
+group	Categorical, Vaccination group: "N" (no immunity), "V" (twice vaccinated, uninfected), "I" (infected, unvaccinated), "H" (hybrid: infected and $\geq$1 vaccination)
+age	Continuous, age in years 
+sex	Categorical, "female", "male" (or "" for not indicated)	
+BMI	Categorical, "o30" for $>$30 or "u30" for under (*@\raisebox{2ex}{\hypertarget{U1a}{}}@*)30	
+comorbidity catgeorical, if any comorbity pre-existed, (*@\raisebox{2ex}{\hypertarget{U2a}{}}@*)1=yes, (*@\raisebox{2ex}{\hypertarget{U2b}{}}@*)0=no	
+using\_FFP2\_mask	Always using protective respiratory masks during work, (*@\raisebox{2ex}{\hypertarget{U3a}{}}@*)1=yes, (*@\raisebox{2ex}{\hypertarget{U3b}{}}@*)0=no 
+months\_until\_reinfection	time until next infection in months	
+variant	Categorical, "delta" or "omicron" (or "" for not indicated)	
+booster\_over7\_days\_before	If a booster was given in the last (*@\raisebox{2ex}{\hypertarget{U4a}{}}@*)7 days before the infection	
+symptom\_number	Continous, Number of symptoms which occured after the infection
+
+Here are the first few lines of the file:
+```output
+ID,group,age,sex,BMI,comorbidity,using\_FFP2\_mask,months\_until\_reinfection,variant,booster\_over7\_days\_before,symptom\_number
+2,N,45,female,u30,0,0,2.5,delta,0,11
+3,V,58,female,u30,1,0,4.2,omicron,0,6
+7,V,32,female,u30,0,1,4.5,omicron,1,5
+
+```
+
+
+\end{codeoutput}
+
+\section{Data Exploration}
+\subsection{{Code}}
+The Data Exploration was carried out using the following custom code:
+
+\begin{python}
+
+# Import required libraries
+import pandas as pd
+import numpy as np
+
+# Load the datasets
+TimeToInfection = pd.read_csv('TimeToInfection.csv')
+Symptoms = pd.read_csv('Symptoms.csv')
+
+# OPEN the output file to write the exploration summary
+(*@\raisebox{2ex}{\hypertarget{code-Data Exploration-data-exploration-txt}{}}@*)file = open('data_exploration.txt','a')
+
+########################################
+# -- Data Size
+# Write the number of rows and columns of the datasets to the output file
+file.write('# Data Size\n\n')
+
+size_TTI = TimeToInfection.shape 
+size_S = Symptoms.shape 
+
+file.write(f'TimeToInfection.csv: {size_TTI[0]} rows, {size_TTI[1]} columns\n')
+file.write(f'Symptoms.csv: {size_S[0]} rows, {size_S[1]} columns\n\n')
+
+########################################
+# -- Summary Statistics
+# Write summary statistics of continuous variables
+file.write('# Summary Statistics\n\n')
+
+summary_age_TTI = TimeToInfection['age'].describe()
+summary_age_S = Symptoms['age'].describe()
+
+file.write(f'TimeToInfection.csv variable "age":\n{summary_age_TTI}\n')
+file.write(f'Symptoms.csv variable "age":\n{summary_age_S}\n\n')
+
+########################################
+# -- Categorical Variables
+# Write the most common value of each categorical variable 
+file.write('# Categorical Variables\n\n')
+
+most_common_TTI = TimeToInfection.select_dtypes(['object']).mode().iloc[0]
+most_common_S = Symptoms.select_dtypes(['object']).mode().iloc[0]
+
+file.write(f'TimeToInfection.csv most common values:\n{most_common_TTI}\n')
+file.write(f'Symptoms.csv most common values:\n{most_common_S}\n\n')
+
+########################################
+# -- Missing Values
+# Write the count of missing values in the datasets 
+file.write('# Missing Values\n\n')
+
+missing_TTI = TimeToInfection.isna().sum()
+missing_S = Symptoms.isna().sum()
+
+file.write(f'TimeToInfection.csv missing values:\n{missing_TTI[missing_TTI > 0]}\n')
+file.write(f'Symptoms.csv missing values:\n{missing_S[missing_S > 0]}\n\n')
+
+###################################################
+# -- Close the file
+file.close()
+
+\end{python}
+
+\subsection{Code Description}
+
+The provided Python code conducts data exploration on two datasets, "TimeToInfection.csv" and "Symptoms.csv". It begins by reporting the size of each dataset in terms of rows and columns. Next, summary statistics, such as mean, standard deviation, minimum, and maximum values, are calculated for the continuous variable "age" in both datasets. The code then identifies the most common values for each categorical variable and highlights any missing values in the datasets.
+
+The analysis steps aim to provide an overview of the datasets, including their dimensions, distribution of age, most common categorical values, and the presence of missing data. 
+
+The results of the data exploration are written into the "data\_exploration.txt" file, which includes:
+- Data Size: Number of rows and columns in each dataset.
+- Summary Statistics: Descriptive statistics for the "age" variable in both datasets.
+- Categorical Variables: Most common values for categorical variables in each dataset.
+- Missing Values: Counts of missing values in the datasets.
+
+\subsection{Code Output}\hypertarget{file-data-exploration-txt}{}
+
+\subsubsection*{\hyperlink{code-Data Exploration-data-exploration-txt}{data\_exploration.txt}}
+
+\begin{codeoutput}
+\# Data Size
+
+TimeToInfection.csv: 12086 rows, 16 columns
+Symptoms.csv: 764 rows, 11 columns
+
+\# Summary Statistics
+
+TimeToInfection.csv variable "age":
+count   12065
+mean    44.03
+std     11.01
+min        17
+25\%        35
+50\%        44
+75\%        53
+max        73
+Name: age, dtype: float64
+Symptoms.csv variable "age":
+count     764
+mean    41.45
+std     10.69
+min        17
+25\%        33
+50\%        41
+75\%     49.25
+max        68
+Name: age, dtype: float64
+
+\# Categorical Variables
+
+TimeToInfection.csv most common values:
+group                               V
+sex                            female
+BMI                               u30
+positive\_household                 no
+vaccinetype           Pfizer\_BioNTech
+Name: 0, dtype: object
+Symptoms.csv most common values:
+group            V
+sex         female
+BMI            u30
+variant    omicron
+Name: 0, dtype: object
+
+\# Missing Values
+
+TimeToInfection.csv missing values:
+age                            21
+sex                            99
+patient\_contact               400
+using\_FFP2\_mask               400
+months\_since\_immunisation     627
+time\_dose1\_to\_dose\_2         2754
+vaccinetype                  2051
+dtype: int64
+Symptoms.csv missing values:
+sex                 5
+comorbidity        45
+using\_FFP2\_mask    30
+dtype: int64
+\end{codeoutput}
+
+\section{Data Analysis}
+\subsection{{Code}}
+The Data Analysis was carried out using the following custom code:
+
+\begin{python}
+
+# IMPORT
+import pandas as pd
+import numpy as np
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+import pickle
+import scipy.stats as stats
+
+# LOAD DATA
+time_to_infection = pd.read_csv('TimeToInfection.csv')
+symptoms = pd.read_csv('Symptoms.csv')
+
+# DATASET PREPARATIONS
+# Merge datasets on ID and adequate fields
+merged_data = pd.merge(time_to_infection, symptoms, on = ["ID", "group", "age", "sex", "BMI"], how = 'inner')
+
+# PREPROCESSING
+# Create dummy variables for 'group', 'sex', and 'BMI'
+merged_data = pd.get_dummies(merged_data, columns = ['sex', 'BMI'], prefix = ['sex', 'BMI'], drop_first = True)
+
+# DESCRIPTIVE STATISTICS
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-0-pkl}{}}@*)## Table 0: Descriptive statistics of the merged dataset
+df0 = merged_data[['symptom_number', 'age']].agg(['mean', 'std', 'count'])
+df0.loc['ci', :] = df0.loc['std', :] / np.sqrt(df0.loc['count', :]) * 1.96  # 95% CI
+df0.to_pickle('table_0.pkl')
+
+# ANALYSIS
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-1-pkl}{}}@*)## Table 1: Test of association between vaccination status and symptom numbers for vaccinated-only, infected-only and hybrid groups
+merged_data_grouped = merged_data.groupby('group')
+group_V = merged_data_grouped.get_group('V')['symptom_number']
+group_I = merged_data_grouped.get_group('I')['symptom_number']
+group_H = merged_data_grouped.get_group('H')['symptom_number']
+test_V_I = stats.ttest_ind(group_V, group_I)
+test_V_H = stats.ttest_ind(group_V, group_H)
+test_H_I = stats.ttest_ind(group_H, group_I)
+
+df1 = pd.DataFrame({
+    'group_V': [group_V.mean(), group_V.std(), len(group_V), group_V.std() / np.sqrt(len(group_V)) * 1.96],
+    'group_I': [group_I.mean(), group_I.std(), len(group_I), group_I.std() / np.sqrt(len(group_I)) * 1.96],
+    'group_H': [group_H.mean(), group_H.std(), len(group_H), group_H.std() / np.sqrt(len(group_H)) * 1.96],
+}, index=['mean', 'std', 'count', 'ci'])
+
+df1_tests = pd.DataFrame({
+    'V vs I': [test_V_I.statistic, test_V_I.pvalue], 
+    'V vs H': [test_V_H.statistic, test_V_H.pvalue], 
+    'H vs I': [test_H_I.statistic, test_H_I.pvalue]
+}, index=['t-statistic', 'p-value'])
+
+df1 = pd.concat([df1, df1_tests]).fillna('-')
+df1.to_pickle('table_1.pkl')
+
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-2-pkl}{}}@*)## Table 2: ANCOVA of symptom number on age and comorbidity
+model = smf.ols('symptom_number ~ age + comorbidity', data=merged_data).fit()
+summary_table = model.summary2().tables[1]
+df2 = pd.DataFrame(summary_table.values, columns=summary_table.columns, index=summary_table.index)[['Coef.', 'Std.Err.', 'P>|t|']]
+df2.to_pickle('table_2.pkl')
+
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-additional-results-pkl}{}}@*)# SAVE ADDITIONAL RESULTS
+additional_results = {
+    'total observations': len(merged_data),
+    'mean age': merged_data['age'].mean(),
+    'std age': merged_data['age'].std(),
+}
+
+with open('additional_results.pkl', 'wb') as f:
+    pickle.dump(additional_results, f)
+
+\end{python}
+
+\subsection{Code Description}
+
+The provided code conducts a comprehensive data analysis on the merged dataset obtained by combining "TimeToInfection.csv" and "Symptoms.csv". The analysis includes preprocessing steps like creating dummy variables and descriptive statistics calculation. 
+
+Three main analysis steps are performed:
+1. Test of association between vaccination status and symptom numbers for different groups (vaccinated-only, infected-only, and hybrid).
+2. ANCOVA analysis to evaluate the effect of age and comorbidity on the symptom number.
+3. The code writes the calculated statistics into pickle files, including tables of descriptive statistics, test results for the association between groups, and ANCOVA summary.
+
+Additionally, the code saves additional results in the "additional\_results.pkl" file, including the total number of observations, mean age, and standard deviation of the participants' age in the merged dataset.
+
+\subsection{Code Output}\hypertarget{file-table-0-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-table-0-pkl}{table\_0.pkl}}
+
+\begin{codeoutput}
+       symptom\_number    age
+mean             3.69  41.82
+std             2.116  10.49
+count            2947   2947
+ci             0.0764 0.3789
+\end{codeoutput}\hypertarget{file-table-1-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-table-1-pkl}{table\_1.pkl}}
+
+\begin{codeoutput}
+            group\_V group\_I group\_H  V vs I    V vs H    H vs I
+mean          3.751   4.083   3.083       -         -         -
+std           2.093   1.873   2.107       -         -         -
+count          2196     121     459       -         -         -
+ci          0.08754  0.3338  0.1927       -         -         -
+t-statistic       -       -       -  -1.706     6.213    -4.748
+p-value           -       -       -  0.0881  6.02e-10  2.59e-06
+\end{codeoutput}\hypertarget{file-table-2-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-table-2-pkl}{table\_2.pkl}}
+
+\begin{codeoutput}
+              Coef.  Std.Err.      P$>$\textbar{}t\textbar{}
+Intercept     4.157    0.1642  1.97e-127
+age         -0.0168  0.003825   1.17e-05
+comorbidity   0.602   0.08213      3e-13
+\end{codeoutput}\hypertarget{file-additional-results-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-additional-results-pkl}{additional\_results.pkl}}
+
+\begin{codeoutput}
+{
+    'total observations': (*@\raisebox{2ex}{\hypertarget{R0a}{}}@*)2947,
+    'mean age': (*@\raisebox{2ex}{\hypertarget{R1a}{}}@*)41.82             ,
+    'std age': (*@\raisebox{2ex}{\hypertarget{R2a}{}}@*)10.49             ,
+}
+\end{codeoutput}
+
+\section{LaTeX Table Design}
+\subsection{{Code}}
+The LaTeX Table Design was carried out using the following custom code:
+
+\begin{python}
+
+# IMPORT
+import pandas as pd
+from my_utils import to_latex_with_note, is_str_in_df, split_mapping, AbbrToNameDef
+
+# PREPARATION FOR ALL TABLES
+shared_mapping: AbbrToNameDef = {
+    'group_V': ('Vaccinated', 'Only vaccinated group'),
+    'group_I': ('Infected', 'Only infected group'),
+    'group_H': ('Hybrid', 'Infected and vaccinated group'),
+    'mean': ('Mean', 'Average value'),
+    'std': ('Standard Deviation', 'Measure of the amount of variation or dispersion of a set of values'),
+    'count': ('Count', 'Total number of observations'),
+    'ci': ('Confidence Interval', '95% confidence interval around the mean'),
+    't-statistic': ('T-Statistic', 'Measure of the size of the difference relative to the variation in your sample data'),
+    'p-value': ('P-Value', 'The probability that the results from your sample data occurred by chance'),
+    'Coef.': ('Coefficient', 'Measure of the relationship between the dependent and an independent variable'),
+    'Std.Err.': ('Standard Error', 'Measure of the statistical accuracy of an estimate'),
+    'P>|t|': ('P-Value', 'The hypothesis test which measures the statistical significance of the regression coefficient'),
+    'symptom_number': ('Symptom Number', 'Number of symptoms after infection')
+}
+
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-0-tex}{}}@*)# TABLE 0:
+df0 = pd.read_pickle('table_0.pkl')
+mapping0 = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df0, k))
+abbrs_to_names0, legend0 = split_mapping(mapping0)
+df0 = df0.rename(columns=abbrs_to_names0, index=abbrs_to_names0)
+
+# SAVE AS LATEX: Table 0
+to_latex_with_note(
+    df0, 'table_0.tex',
+    caption = "Descriptive Statistics of the dataset",
+    label = 'table:descriptive_statistics',
+    note = None,
+    legend = legend0)
+
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-1-tex}{}}@*)# TABLE 1:
+df1 = pd.read_pickle('table_1.pkl')
+mapping1 = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df1, k))
+abbrs_to_names1, legend1 = split_mapping(mapping1)
+df1 = df1.rename(columns=abbrs_to_names1, index=abbrs_to_names1)
+
+# SAVE AS LATEX: Table 1
+to_latex_with_note(
+    df1, 'table_1.tex',
+    caption = "Test of association between vaccination status and symptom numbers",
+    label = 'table:association_test',
+    note = "Test comparing Vaccinated, Infected and Hybrid groups",
+    legend = legend1)
+
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-2-tex}{}}@*)# TABLE 2:
+df2 = pd.read_pickle('table_2.pkl')
+mapping2 = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df2, k))
+abbrs_to_names2, legend2 = split_mapping(mapping2)
+df2 = df2.rename(columns=abbrs_to_names2, index=abbrs_to_names2)
+
+# SAVE AS LATEX: Table 2
+to_latex_with_note(
+    df2, 'table_2.tex',
+    caption = "ANCOVA of symptom number on age and comorbidity",
+    label = 'table:ancova',
+    note = "Conducting ANCOVA to determine the effect of age and comorbidity on symptom number",
+    legend = legend2)
+
+\end{python}
+
+\subsection{Provided Code}
+The code above is using the following provided functions:
+
+\begin{python}
+def to_latex_with_note(df, filename: str, caption: str, label: str, note: str = None, legend: Dict[str, str] = None, **kwargs):
+    """
+    Converts a DataFrame to a LaTeX table with optional note and legend added below the table.
+
+    Parameters:
+    - df, filename, caption, label: as in `df.to_latex`.
+    - note (optional): Additional note below the table.
+    - legend (optional): Dictionary mapping abbreviations to full names.
+    - **kwargs: Additional arguments for `df.to_latex`.
+    """
+
+def is_str_in_df(df: pd.DataFrame, s: str):
+    return any(s in level for level in getattr(df.index, 'levels', [df.index]) + getattr(df.columns, 'levels', [df.columns]))
+
+AbbrToNameDef = Dict[Any, Tuple[Optional[str], Optional[str]]]
+
+def split_mapping(abbrs_to_names_and_definitions: AbbrToNameDef):
+    abbrs_to_names = {abbr: name for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if name is not None}
+    names_to_definitions = {name or abbr: definition for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if definition is not None}
+    return abbrs_to_names, names_to_definitions
+
+\end{python}
+
+
+
+\subsection{Code Output}
+
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-0-tex}{table\_0.tex}}
+
+\begin{codeoutput}
+\% This latex table was generated from: `table\_0.pkl`
+\begin{table}[h]
+\caption{Descriptive Statistics of the dataset}
+\label{table:descriptive\_statistics}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{\%
+\begin{tabular}{lrr}
+\toprule
+ \& Symptom Number \& age \\
+\midrule
+\textbf{Mean} \& 3.69 \& 41.8 \\
+\textbf{Standard Deviation} \& 2.12 \& 10.5 \\
+\textbf{Count} \& 2947 \& 2947 \\
+\textbf{Confidence Interval} \& 0.0764 \& 0.379 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{Mean}: Average value
+\item \textbf{Standard Deviation}: Measure of the amount of variation or dispersion of a set of values
+\item \textbf{Count}: Total number of observations
+\item \textbf{Confidence Interval}: 95\% confidence interval around the mean
+\item \textbf{Symptom Number}: Number of symptoms after infection
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+\end{codeoutput}
+
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-1-tex}{table\_1.tex}}
+
+\begin{codeoutput}
+\% This latex table was generated from: `table\_1.pkl`
+\begin{table}[h]
+\caption{Test of association between vaccination status and symptom numbers}
+\label{table:association\_test}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{\%
+\begin{tabular}{lllllll}
+\toprule
+ \& Vaccinated \& Infected \& Hybrid \& V vs I \& V vs H \& H vs I \\
+\midrule
+\textbf{Mean} \& 3.75 \& 4.08 \& 3.08 \& - \& - \& - \\
+\textbf{Standard Deviation} \& 2.09 \& 1.87 \& 2.11 \& - \& - \& - \\
+\textbf{Count} \& 2196 \& 121 \& 459 \& - \& - \& - \\
+\textbf{Confidence Interval} \& 0.0875 \& 0.334 \& 0.193 \& - \& - \& - \\
+\textbf{T-Statistic} \& - \& - \& - \& -1.71 \& 6.21 \& -4.75 \\
+\textbf{P-Value} \& - \& - \& - \& 0.0881 \& \$$<$\$1e-06 \& 2.59e-06 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item Test comparing Vaccinated, Infected and Hybrid groups
+\item \textbf{Vaccinated}: Only vaccinated group
+\item \textbf{Infected}: Only infected group
+\item \textbf{Hybrid}: Infected and vaccinated group
+\item \textbf{Mean}: Average value
+\item \textbf{Standard Deviation}: Measure of the amount of variation or dispersion of a set of values
+\item \textbf{Count}: Total number of observations
+\item \textbf{Confidence Interval}: 95\% confidence interval around the mean
+\item \textbf{T-Statistic}: Measure of the size of the difference relative to the variation in your sample data
+\item \textbf{P-Value}: The probability that the results from your sample data occurred by chance
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+\end{codeoutput}
+
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-2-tex}{table\_2.tex}}
+
+\begin{codeoutput}
+\% This latex table was generated from: `table\_2.pkl`
+\begin{table}[h]
+\caption{ANCOVA of symptom number on age and comorbidity}
+\label{table:ancova}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{\%
+\begin{tabular}{llll}
+\toprule
+ \& Coefficient \& Standard Error \& P-Value \\
+\midrule
+\textbf{Intercept} \& 4.16 \& 0.164 \& \$$<$\$1e-06 \\
+\textbf{age} \& -0.0168 \& 0.00383 \& 1.17e-05 \\
+\textbf{comorbidity} \& 0.602 \& 0.0821 \& \$$<$\$1e-06 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item Conducting ANCOVA to determine the effect of age and comorbidity on symptom number
+\item \textbf{Coefficient}: Measure of the relationship between the dependent and an independent variable
+\item \textbf{Standard Error}: Measure of the statistical accuracy of an estimate
+\item \textbf{P-Value}: The hypothesis test which measures the statistical significance of the regression coefficient
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+\end{codeoutput}
+
+\end{document}
