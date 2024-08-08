@@ -59,9 +59,8 @@ def to_latex_with_note(df: pd.DataFrame, filename: Optional[str], caption: str =
     Create a latex table with a note.
     Same as df.to_latex, but with a note and legend.
     """
-
     with OnStrPValue(pvalue_on_str):
-        regular_latex_table = df.to_latex(None, caption=None, label=None, **kwargs)
+        regular_latex_table = df.to_latex(None, caption=None, label=None, multirow=False, multicolumn=False, **kwargs)
 
     pvalue_on_str_html = OnStr.SMALLER_THAN if pvalue_on_str == OnStr.LATEX_SMALLER_THAN else pvalue_on_str
     with OnStrPValue(pvalue_on_str_html):

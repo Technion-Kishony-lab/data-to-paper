@@ -40,6 +40,8 @@ CHARS = {
 NON_UTF8_CHARS = {
     '–': r'--',
     '’': r"",
+    '≤': r'$\leq$',
+    '≥': r'$\geq$',
 }
 
 assert all(len(c) == 1 for c in CHARS.keys())
