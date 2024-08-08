@@ -198,7 +198,7 @@ Also note, if the "missing data" is represented by anything other than 'NaN' in 
 running this script. Define those conditions according to your needs by checking dataset description.
 ======================================================================================================================================================
 
-CodeRunner: Using cached output.
+CodeRunner: Running and caching output.
 DeleteMessages(<5> - <-1> [2 MESSAGES]) -> Data Exploration Code
 
 AppendMessage, Adding the debugged code as if it was the original response.
@@ -482,7 +482,7 @@ script:
 This code will now include more detailed output for the variables "group" and "vaccinetype", considering "" as "not vaccinated" in the "vaccinetype".
 ======================================================================================================================================================
 
-CodeRunner: Using cached output.
+CodeRunner: Running and caching output.
 DeleteMessages(<5> - <-1> [4 MESSAGES]) -> Data Exploration Code
 
 AppendMessage, Adding the debugged code as if it was the original response.
@@ -777,7 +777,7 @@ the most common (mode) value for each ID (patient). Then I compute value_counts(
 and then summing Boolean values returned by isnull(), and then I sum those counts over all IDs (patients).
 ======================================================================================================================================================
 
-CodeRunner: Using cached output.
+CodeRunner: Running and caching output.
 DeleteMessages(<8> - <-1> [1 MESSAGES]) -> Data Exploration Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -890,7 +890,7 @@ code where such cases are handled.
 +        f.write(time_to_infection.groupby('ID')[col].apply(safe_mode).replace('', 'not vaccinated').value_counts().to_string())
 ======================================================================================================================================================
 
-CodeRunner: Using cached output.
+CodeRunner: Running and caching output.
 DeleteMessages(<5> - <-1> [6 MESSAGES]) -> Data Exploration Code
 
 AppendMessage, Adding the debugged code as if it was the original response.
@@ -1192,7 +1192,7 @@ Please ensure that the headers in your files match those in the script. This scr
 dataset description above.
 ======================================================================================================================================================
 
-CodeRunner: Using cached output.
+CodeRunner: Running and caching output.
 DeleteMessages(<5> - <-1> [4 MESSAGES]) -> Data Exploration Code
 
 AppendMessage, Adding the debugged code as if it was the original response.
@@ -4021,7 +4021,7 @@ that the actual script will depend on aspects of the dataset not detailed here, 
 assumes that your data is located in the same directory as your script and that your dataset parameters match those described in your question.
 ======================================================================================================================================================
 
-CodeRunner: Using cached output.
+CodeRunner: Running and caching output.
 DeleteMessages(<12> - <-1> [1 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -4169,7 +4169,7 @@ performed. Hence I explicitly added suffixes `'_inf'` for TimeToInfection.csv an
 column came from. Then I adjusted the rest of the code accordingly.
 ======================================================================================================================================================
 
-CodeRunner: Using cached output.
+CodeRunner: Running and caching output.
 DeleteMessages(<12> - <-1> [3 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -4337,7 +4337,7 @@ with open('additional_results.pkl', 'wb') as f:
 The changes requested were made and I've made sure to use the `summary2` function instead of the `summary` function in the statsmodels packages.
 ======================================================================================================================================================
 
-CodeRunner: Using cached output.
+CodeRunner: Running and caching output.
 DeleteMessages(<12> - <-1> [3 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -4530,7 +4530,7 @@ with open('additional_results.pkl', 'wb') as f:
     pickle.dump(additional_results, f)
 ======================================================================================================================================================
 
-CodeRunner: Using cached output.
+CodeRunner: Running and caching output.
 DeleteMessages(<12> - <-1> [3 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -4651,7 +4651,7 @@ category.
 +model3 = smf.ols(formula='symptom_number ~ age_inf + sex_inf_cat_female + sex_inf_cat_male + BMI_inf_cat_o30', data=data_all).fit()
 ======================================================================================================================================================
 
-CodeRunner: Using cached output.
+CodeRunner: Running and caching output.
 DeleteMessages(<11> - <-1> [4 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Adding the debugged code as if it was the original response.
@@ -4873,7 +4873,7 @@ data=data_all).fit()
 I hope this helps!
 ======================================================================================================================================================
 
-CodeRunner: Using cached output.
+CodeRunner: Running and caching output.
 DeleteMessages(<14> - <-1> [1 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -4996,7 +4996,7 @@ data=data_all).fit()
 data=data_all).fit()
 ======================================================================================================================================================
 
-CodeRunner: Using cached output.
+CodeRunner: Running and caching output.
 DeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -5118,7 +5118,7 @@ data=data_all).fit()
 +model3 = smf.ols(formula='symptom_number ~ age_inf + sex_inf_cat_female + sex_inf_cat_male + BMI_inf_cat_o30 + BMI_inf_cat_u30', data=data_all).fit()
 ======================================================================================================================================================
 
-CodeRunner: Using cached output.
+CodeRunner: Running and caching output.
 DeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -5235,7 +5235,7 @@ Here is the code to perform the requested analysis. The issue with redundancy in
 +model3 = smf.ols(formula='symptom_number ~ age_inf + sex_inf_cat_female + BMI_inf_cat_o30', data=data_all).fit()
 ======================================================================================================================================================
 
-CodeRunner: Using cached output.
+CodeRunner: Running and caching output.
 DeleteMessages(<11> - <-1> [6 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Adding the debugged code as if it was the original response.
@@ -5568,7 +5568,7 @@ Standardization of data is also done for 'age_inf', 'months_since_immunisation',
 `statsmodels.formula.api` is used instead of `smf.ols()`.
 ======================================================================================================================================================
 
-CodeRunner: Using cached output.
+CodeRunner: Running and caching output.
 DeleteMessages(<14> - <-1> [1 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -5699,7 +5699,7 @@ Absolutely, here is the updated code implementing a new series to host the stand
 +model3 = ols('symptom_number ~ scaled_age + sex_inf_cat_female + BMI_inf_cat_o30', data=data_all).fit()
 ======================================================================================================================================================
 
-CodeRunner: Using cached output.
+CodeRunner: Running and caching output.
 DeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -5830,7 +5830,7 @@ should have been converted into a boolean or integer. Here is the corrected code
 +data_all['positive_household'] = data_all['positive_household'].map({'yes': 1, 'no': 0})  # conversion to integer
 ======================================================================================================================================================
 
-CodeRunner: Using cached output.
+CodeRunner: Running and caching output.
 DeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -5959,7 +5959,7 @@ Here is the code with the requested issue corrected:
 +    'Number of positive household contacts': data_all['positive_household_binary'].sum()
 ======================================================================================================================================================
 
-CodeRunner: Using cached output.
+CodeRunner: Running and caching output.
 DeleteMessages(<11> - <-1> [6 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Adding the debugged code as if it was the original response.
@@ -6558,7 +6558,7 @@ CoV-2 i.e., they had symptoms.
 +data_all = data_all[data_all['symptom_number'] > 0]
 ======================================================================================================================================================
 
-CodeRunner: Using cached output.
+CodeRunner: Running and caching output.
 DeleteMessages(<11> - <-1> [4 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Adding the debugged code as if it was the original response.
@@ -6889,7 +6889,7 @@ with open('additional_results.pkl', 'wb') as f:
 Please let me know if there are any further changes needed.
 ======================================================================================================================================================
 
-CodeRunner: Using cached output.
+CodeRunner: Running and caching output.
 DeleteMessages(<14> - <-1> [1 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -7077,7 +7077,7 @@ with open('additional_results.pkl', 'wb') as f:
     pickle.dump(additional_results, f)
 ======================================================================================================================================================
 
-CodeRunner: Using cached output.
+CodeRunner: Running and caching output.
 DeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -7211,7 +7211,7 @@ Here is the corrected code:
 +numeric_vars = ['age_inf', 'months_since_immunisation', 'time_dose1_to_dose_2', 'symptom_number', 'patient_contact']
 ======================================================================================================================================================
 
-CodeRunner: Using cached output.
+CodeRunner: Running and caching output.
 DeleteMessages(<11> - <-1> [6 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Adding the debugged code as if it was the original response.
@@ -7513,7 +7513,7 @@ This code corrects the problem. It adjusts the data merge and calculations to re
 number of infection events (764), not the total number of health workers.
 ======================================================================================================================================================
 
-CodeRunner: Using cached output.
+CodeRunner: Running and caching output.
 DeleteMessages(<14> - <-1> [1 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -7651,7 +7651,7 @@ I apologize for the mistake. The error occurred because the merge operation appe
 +    'Number of unique health workers': data_all['ID'].nunique(),
 ======================================================================================================================================================
 
-CodeRunner: Using cached output.
+CodeRunner: Running and caching output.
 DeleteMessages(<11> - <-1> [6 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Adding the debugged code as if it was the original response.
@@ -7902,7 +7902,7 @@ This code includes a descriptive statistics table that contains infection events
 infection.
 ======================================================================================================================================================
 
-CodeRunner: Using cached output.
+CodeRunner: Running and caching output.
 DeleteMessages(<14> - <-1> [1 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -8045,7 +8045,7 @@ corrected code.
 +model2 = ols('symptom_number ~ patient_contact + using_FFP2_mask + positive_household_binary', data=data_all).fit()
 ======================================================================================================================================================
 
-CodeRunner: Using cached output.
+CodeRunner: Running and caching output.
 DeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -8184,7 +8184,7 @@ is the corrected code with the appropriate column names:
 +model2 = ols('symptom_number ~ patient_contact + using_FFP2_mask_x + positive_household_binary', data=data_all).fit()
 ======================================================================================================================================================
 
-CodeRunner: Using cached output.
+CodeRunner: Running and caching output.
 DeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -8323,7 +8323,7 @@ Here is the corrected code.
 +df0.loc['N', 'MeanMonthsSinceImm'] = '-'
 ======================================================================================================================================================
 
-CodeRunner: Using cached output.
+CodeRunner: Running and caching output.
 DeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -8458,7 +8458,7 @@ Here is the code to perform the requested analysis:
 This version of the code ensures that the entries in table 0 for group N that are not defined are replaced by dashes ('-').
 ======================================================================================================================================================
 
-CodeRunner: Using cached output.
+CodeRunner: Running and caching output.
 DeleteMessages(<11> - <-1> [6 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Adding the debugged code as if it was the original response.
@@ -8729,7 +8729,7 @@ statistics are created, the missing values are handled during preprocessing wher
 specific models handle missing values.
 ======================================================================================================================================================
 
-CodeRunner: Using cached output.
+CodeRunner: Running and caching output.
 DeleteMessages(<11> - <-1> [4 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Adding the debugged code as if it was the original response.
@@ -9009,7 +9009,7 @@ In the code above, I corrected the issue by adding code to filter only the recor
 workers based on the 'ID' column. The analysis for Table 1 and 2 is performed on this filtered data, i.e., only on infected health workers.
 ======================================================================================================================================================
 
-CodeRunner: Using cached output.
+CodeRunner: Running and caching output.
 DeleteMessages(<11> - <-1> [4 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Adding the debugged code as if it was the original response.
@@ -9270,7 +9270,7 @@ Sure, I have made the necessary change.
 Now the code calculates the number of infected health workers and saves it in the `additional_results.pkl` file.
 ======================================================================================================================================================
 
-CodeRunner: Using cached output.
+CodeRunner: Running and caching output.
 DeleteMessages(<11> - <-1> [4 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Adding the debugged code as if it was the original response.
@@ -9534,7 +9534,7 @@ Sure, here is the corrected code:
 +    'Number of infected health workers': len(data_all_infected),
 ======================================================================================================================================================
 
-CodeRunner: Using cached output.
+CodeRunner: Running and caching output.
 DeleteMessages(<11> - <-1> [4 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Adding the debugged code as if it was the original response.
@@ -9819,7 +9819,7 @@ Here is the updated code, taking into account your valuable feedback:
 +    'Number of infected health workers': len(data_all_infected_without_n),
 ======================================================================================================================================================
 
-CodeRunner: Using cached output.
+CodeRunner: Running and caching output.
 DeleteMessages(<11> - <-1> [4 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Adding the debugged code as if it was the original response.
@@ -10144,7 +10144,7 @@ with open('additional_results.pkl', 'wb') as f:
 
 ======================================================================================================================================================
 
-CodeRunner: Using cached output.
+CodeRunner: Running and caching output.
 DeleteMessages(<11> - <-1> [4 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Adding the debugged code as if it was the original response.
@@ -10408,7 +10408,7 @@ group_I:scaled_months_since_immunisation + group_H:scaled_months_since_immunisat
 This revised code now adds 'group' and its interaction with 'months_since_immunisation' as variables to the regression model for Table 1.
 ======================================================================================================================================================
 
-CodeRunner: Using cached output.
+CodeRunner: Running and caching output.
 DeleteMessages(<14> - <-1> [1 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -10557,7 +10557,7 @@ group_I:scaled_months_since_immunisation + group_H:scaled_months_since_immunisat
 +model1 = ols('symptom_number ~ scaled_months_since_immunisation + group_V + group_I + group_H', data=data_infected_immunised).fit()
 ======================================================================================================================================================
 
-CodeRunner: Using cached output.
+CodeRunner: Running and caching output.
 DeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -10699,7 +10699,7 @@ drop any columns this time. Here's the code:
 I hope this code solves the issue.  Let me know if I can provide any additional help.
 ======================================================================================================================================================
 
-CodeRunner: Using cached output.
+CodeRunner: Running and caching output.
 DeleteMessages(<14> - <-1> [3 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Code is freshly re-posted, as if it was the FIRST response.
@@ -10837,7 +10837,7 @@ category against which others are compared is 'group_H', helping to eliminate th
 version.
 ======================================================================================================================================================
 
-CodeRunner: Using cached output.
+CodeRunner: Running and caching output.
 DeleteMessages(<11> - <-1> [6 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Adding the debugged code as if it was the original response.
@@ -11110,7 +11110,7 @@ Here is the corrected code:
 +              data=data_infected_immunised).fit()
 ======================================================================================================================================================
 
-CodeRunner: Using cached output.
+CodeRunner: Running and caching output.
 DeleteMessages(<11> - <-1> [4 MESSAGES]) -> Data Analysis Code
 
 AppendMessage, Adding the debugged code as if it was the original response.
@@ -17661,4 +17661,24 @@ DeleteMessages(<19> - <-1> [4 MESSAGES]) -> Writing: Discussion
 
 [20] SURROGATE {Performer} -> "Writing: Discussion"  : 
 latex \section{Discussion}  COVID-19 has spotlighted the heightened vulnerability of frontline [...] settings to validate these findings further.
+
+----- COMPLETED RUN ------
+## Completed
+This *data-to-paper* research cycle is now completed.
+The manuscript is ready. 
+
+The created manuscript and all other output files are saved in:
+/home/talifargan/git_projects/data-to-paper/projects/COVID_CH/humanintervention1/runs/run_003
+
+You can click "Compile Paper" stage button to open the manuscript.
+
+Please check the created manuscript rigorously and carefully.
+
+
+*Remember that the process is not error-free and the responsibility for the final manuscript remains with you.*
+
+
+You can close the app now.
+
+----------------------------
 

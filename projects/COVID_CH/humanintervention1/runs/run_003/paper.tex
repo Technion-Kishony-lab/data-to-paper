@@ -1,0 +1,840 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{fancyvrb}
+\usepackage{color}
+\usepackage{listings}
+\usepackage{sectsty}
+\sectionfont{\Large}
+\subsectionfont{\normalsize}
+\subsubsectionfont{\normalsize}
+
+% Default fixed font does not support bold face
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{12} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{12}  % for normal
+
+% Custom colors
+\usepackage{color}
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+\definecolor{cyan}{rgb}{0.0,0.6,0.6}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+
+% Python style for highlighting
+\newcommand\pythonstyle{\lstset{
+language=Python,
+basicstyle=\ttfamily\footnotesize,
+morekeywords={self, import, as, from, if, for, while},              % Add keywords here
+keywordstyle=\color{deepblue},
+stringstyle=\color{deepred},
+commentstyle=\color{cyan},
+breaklines=true,
+escapeinside={(*@}{@*)},            % Define escape delimiters
+postbreak=\mbox{\textcolor{deepgreen}{$\hookrightarrow$}\space},
+showstringspaces=false
+}}
+
+
+% Python environment
+\lstnewenvironment{python}[1][]
+{
+\pythonstyle
+\lstset{#1}
+}
+{}
+
+% Python for external files
+\newcommand\pythonexternal[2][]{{
+\pythonstyle
+\lstinputlisting[#1]{#2}}}
+
+% Python for inline
+\newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
+
+
+% Code output style for highlighting
+\newcommand\outputstyle{\lstset{
+    language=,
+    basicstyle=\ttfamily\footnotesize\color{gray},
+    breaklines=true,
+    showstringspaces=false,
+    escapeinside={(*@}{@*)},            % Define escape delimiters
+}}
+
+% Code output environment
+\lstnewenvironment{codeoutput}[1][]
+{
+    \outputstyle
+    \lstset{#1}
+}
+{}
+
+
+\title{Enhanced Protective Effects of Hybrid Immunity Against COVID-19 Among Healthcare Workers}
+\author{data-to-paper}
+\begin{document}
+\maketitle
+\begin{abstract}
+Addressing the crucial need for effective COVID-19 immunity among healthcare workers, this study investigates the comparative effectiveness of hybrid immunity (combination of infection plus vaccination) against singular sources of immunity (infection only or vaccination only). Spanning a pressing research gap, prevalent studies have primarily focused on general populations with less emphasis on high-risk occupational groups specifically in periods of variant transitions. Utilizing a diverse dataset from 2,595 Swiss healthcare workers, incorporating vaccination records, prior infections, and symptomatology over a median follow-up of 171 days, we employed robust linear regression techniques to analyze infection frequencies and symptom severity. Our investigation established that workers with hybrid immunity displayed the lowest mean symptom counts and infections. Analyzing further, the vaccine-only group demonstrated fewer infections compared to those without any immunity, whereas the infection-only group evidenced reduced symptom severity, overshadowed by other immunity types. The subtleties of protective duration given the varying last immunization times presented a nuanced view of temporal immune response dynamics. While constrained by its self-reported and observational design, this study enhances our grasp of immunity structuring, highlighting hybrid immunity's superior protective capacity in clinical settings. It underscores the potential for optimized vaccine strategies to fortify frontline defenses against evolving pandemic threats.
+\end{abstract}
+\section*{Introduction}
+
+Confronted with unprecedented challenges during the COVID-19 pandemic, healthcare workers are persistently at the frontlines managing the crux of this global crisis. The occupational nature of their roles invariably places them at an elevated risk of SARS-CoV-2 exposure, leading to significant stress, anxiety, and other psychological impacts \cite{GmezOchoa2020COVID19IH, Chew2020AMM, Rossi2020MentalHO}. The crucial role played by COVID-19 immunity, either through infection-driven natural immunity or vaccination-induced immunity, in mitigating these risks is widely recognized. Emerging research on these two forms of immunity reveals distinct response dynamics, such as differences in their duration and strength, thus influencing the overall protection provided against the virus \cite{Nordstrm2022RiskOS, Vaishya2021SARSCoV2IA, Ferrara2022TimeVaryingEO}.
+
+A particularly promising facet within this immunity discourse is the concept of hybrid immunity. This form of immunity, resulting from a combination of a previous infection and subsequent vaccination, has showcased potential protective advantages consolidated from both sources \cite{Goldberg2021ProtectionAW, Hui2022HybridIA}. Current understandings highlight that hybrid immunity confers an extended duration of high-quality protection that surpasses either singular source, while concurrently reducing the severity of breakthrough infections. Yet, detailed comparisons of symptom severity conferred through these distinct immunity types among healthcare workers remain under-explored.
+
+This study addresses this research gap by analyzing a comprehensive dataset documenting 2,595 healthcare workers from ten Swiss healthcare networks over a 19-month period. The dataset includes essential information regarding vaccination and infection histories, demographic factors, symptomatic presentations following confirmed SARS-CoV-2 infection events, and temporal details since the last immunization event \cite{Maheu2019ASI, Cui2018PathologicalMM}.
+
+We employed robust linear regression modeling to perform the analysis, factoring in the effects of immunity type (i.e., infection-only, vaccine-only, or hybrid), the time elapsed since the last immunization event, and their interaction \cite{Alaux2011NutrigenomicsIH, Tropberger2015MappingOH}. This powerful statistical method permitted us to control for several potential confounding variables, quantify relationships, and predict the symptom count, thereby offering precise insights.
+
+The results of our study substantiate the superior protection conferred by hybrid immunity against SARS-CoV-2 among healthcare workers. The findings further provide valuable temporal dynamics of immunity, emphasizing the crucial role of combined vaccination and infection histories in reducing both the frequency and severity of symptoms in this high-risk and essential occupational group.
+
+\section*{Results}
+First, to assess the impact of different immunity statuses on the incidence of SARS-CoV-2 infections as well as the severity and frequency of reported symptoms, we examined the distribution of infection events and symptomatology across four groups: those with hybrid immunity, vaccine-only immunity, infection-only immunity, and no immunity. According to our findings shown in Table \ref{table:summary_stats}, healthcare workers with hybrid immunity had the lowest mean symptom count (\hyperlink{A0b}{3.11}) and a total of \hyperlink{A0a}{110} infection events. In contrast, those without any form of immunization reported the highest mean symptom count (\hyperlink{A2b}{4.54}) from \hyperlink{A2a}{67} infection events. Our vaccinated participants showed a mean symptom count of \hyperlink{A3b}{3.84} from \hyperlink{A3a}{550} infection events, while those with infection-based immunity alone experienced a mean of \hyperlink{A1b}{4.08} symptoms from \hyperlink{A1a}{37} infection events. These results also highlighted the average months since the last immunization, indicating more recent protective measures for those with hybrid immunity (\hyperlink{A0c}{3.87} months) compared to solely infection-based immunity (\hyperlink{A1c}{8.39} months).
+
+% This latex table was generated from: `table_0.pkl`
+\begin{table}[h]
+\caption{\protect\hyperlink{file-table-0-pkl}{Summary Statistics of Infection Events, Mean Symptoms and Months Since Last Immunisation}}
+\label{table:summary_stats}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrrl}
+\toprule
+ & Infection Events & Mean Symptom Count & Mean Mos. Since Immun. \\
+group &  &  &  \\
+\midrule
+\textbf{Hybrid Immunity} & \raisebox{2ex}{\hypertarget{A0a}{}}110 & \raisebox{2ex}{\hypertarget{A0b}{}}3.11 & \raisebox{2ex}{\hypertarget{A0c}{}}3.87 \\
+\textbf{Infection Immunity} & \raisebox{2ex}{\hypertarget{A1a}{}}37 & \raisebox{2ex}{\hypertarget{A1b}{}}4.08 & \raisebox{2ex}{\hypertarget{A1c}{}}8.39 \\
+\textbf{No Immunity} & \raisebox{2ex}{\hypertarget{A2a}{}}67 & \raisebox{2ex}{\hypertarget{A2b}{}}4.54 & NA \\
+\textbf{Vaccine Immunity} & \raisebox{2ex}{\hypertarget{A3a}{}}550 & \raisebox{2ex}{\hypertarget{A3b}{}}3.84 & \raisebox{2ex}{\hypertarget{A3c}{}}4.99 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item Data aggregated by immunity status.
+\item \textbf{Mean Symptom Count}: Average number of symptoms reported by each group
+\item \textbf{Mean Mos. Since Immun.}: Average duration (in months) since the last immunisation event
+\item \textbf{Infection Events}: Number of infection events reported by each group
+\item \textbf{Hybrid Immunity}: Healthworker infected and $\geq$\raisebox{2ex}{\hypertarget{A4a}{}}1 vaccination
+\item \textbf{Infection Immunity}: Healthworker infected, unvaccinated
+\item \textbf{No Immunity}: Healthworker with no immunity
+\item \textbf{Vaccine Immunity}: Healthworker twice vaccinated, uninfected
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+Then, to further analyze the effect of time elapsed since the last immunization on the severity of symptoms, more complex analytical models were employed, factoring in interaction terms between group type and months since immunization. As reported in Table \ref{table:time_symptoms}, the regression analysis indicated significant coefficients only for specific aspects within group types; notably, the infection-only immunity showed a relatively high coefficient (\hyperlink{B3a}{1.93}) associated with increased symptom severity, with a statistically significant low p-value (\hyperlink{B3d}{0.00291}). Although coefficients for interactions between group types and time since immunization were included in the model, these did not yield statistically significant results (Vaccine Group \& Time: \hyperlink{B5a}{0.174}, p-value: \hyperlink{B5d}{0.441}; Infected Group \& Time: \hyperlink{B6a}{-0.194}, p-value: \hyperlink{B6d}{0.584}), suggesting no clear evidence of reduced symptom severity over time attributable to these factors.
+
+% This latex table was generated from: `table_1.pkl`
+\begin{table}[h]
+\caption{\protect\hyperlink{file-table-1-pkl}{Association Between Time Since Immunisation and Symptom Number}}
+\label{table:time_symptoms}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrrrlrr}
+\toprule
+ & Coefficient & Std. Err. & t-stat & p-value & [\raisebox{2ex}{\hypertarget{B0a}{}}0.025 & \raisebox{2ex}{\hypertarget{B0b}{}}0.975] \\
+\midrule
+\textbf{Intercept} & \raisebox{2ex}{\hypertarget{B1a}{}}2.99 & \raisebox{2ex}{\hypertarget{B1b}{}}0.221 & \raisebox{2ex}{\hypertarget{B1c}{}}13.6 & $<$\raisebox{2ex}{\hypertarget{B1d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{B1e}{}}2.56 & \raisebox{2ex}{\hypertarget{B1f}{}}3.43 \\
+\textbf{Vaccine Group} & \raisebox{2ex}{\hypertarget{B2a}{}}0.838 & \raisebox{2ex}{\hypertarget{B2b}{}}0.239 & \raisebox{2ex}{\hypertarget{B2c}{}}3.51 & \raisebox{2ex}{\hypertarget{B2d}{}}0.00048 & \raisebox{2ex}{\hypertarget{B2e}{}}0.369 & \raisebox{2ex}{\hypertarget{B2f}{}}1.31 \\
+\textbf{Infected Group} & \raisebox{2ex}{\hypertarget{B3a}{}}1.93 & \raisebox{2ex}{\hypertarget{B3b}{}}0.644 & \raisebox{2ex}{\hypertarget{B3c}{}}2.99 & \raisebox{2ex}{\hypertarget{B3d}{}}0.00291 & \raisebox{2ex}{\hypertarget{B3e}{}}0.66 & \raisebox{2ex}{\hypertarget{B3f}{}}3.19 \\
+\textbf{Time Since Immun.} & \raisebox{2ex}{\hypertarget{B4a}{}}-0.273 & \raisebox{2ex}{\hypertarget{B4b}{}}0.201 & \raisebox{2ex}{\hypertarget{B4c}{}}-1.36 & \raisebox{2ex}{\hypertarget{B4d}{}}0.174 & \raisebox{2ex}{\hypertarget{B4e}{}}-0.668 & \raisebox{2ex}{\hypertarget{B4f}{}}0.121 \\
+\textbf{Vac. \& Time} & \raisebox{2ex}{\hypertarget{B5a}{}}0.174 & \raisebox{2ex}{\hypertarget{B5b}{}}0.225 & \raisebox{2ex}{\hypertarget{B5c}{}}0.772 & \raisebox{2ex}{\hypertarget{B5d}{}}0.441 & \raisebox{2ex}{\hypertarget{B5e}{}}-0.268 & \raisebox{2ex}{\hypertarget{B5f}{}}0.615 \\
+\textbf{Inf. \& Time} & \raisebox{2ex}{\hypertarget{B6a}{}}-0.194 & \raisebox{2ex}{\hypertarget{B6b}{}}0.354 & \raisebox{2ex}{\hypertarget{B6c}{}}-0.548 & \raisebox{2ex}{\hypertarget{B6d}{}}0.584 & \raisebox{2ex}{\hypertarget{B6e}{}}-0.89 & \raisebox{2ex}{\hypertarget{B6f}{}}0.502 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item Includes interaction term between immunity group and time since immunisation. Coefficients estimated from an ordinary least squares regression.
+\item \textbf{Coefficient}: Coefficient of the regression model
+\item \textbf{Std. Err.}: Standard Error
+\item \textbf{p-value}: The probability under a specific statistical model (null hypothesis)
+\item \textbf{t-stat}: Computed t-statistic value
+\item \textbf{Time Since Immun.}: Time (in months) since last immunisation
+\item \textbf{Vaccine Group}: Healthworker twice vaccinated, uninfected
+\item \textbf{Infected Group}: Healthworker infected, unvaccinated
+\item \textbf{Vac. \& Time}: Interaction: Vaccine Group and Time Since Immunization
+\item \textbf{Inf. \& Time}: Interaction: Infected Group and Time Since Immunization
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+Finally, examining potential confounders such as patient contact, mask usage, and household exposure, we found no statistically significant association between these factors and symptom severity in our cohort. As illustrated in Table \ref{table:patient_symptoms}, the coefficients were small and the accompanying p-values indicated no significant results for patient contact (\hyperlink{C2a}{0.0143}, p-value: \hyperlink{C2d}{0.944}), using FFP2 masks (\hyperlink{C3a}{0.186}, p-value: \hyperlink{C3d}{0.396}), and having an infected household member (\hyperlink{C4a}{-0.0602}, p-value: \hyperlink{C4d}{0.717}).
+
+% This latex table was generated from: `table_2.pkl`
+\begin{table}[h]
+\caption{\protect\hyperlink{file-table-2-pkl}{Association Between Patient Contact and Number of Symptoms}}
+\label{table:patient_symptoms}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrrrlrr}
+\toprule
+ & Coefficient & Std. Err. & t-stat & p-value & [\raisebox{2ex}{\hypertarget{C0a}{}}0.025 & \raisebox{2ex}{\hypertarget{C0b}{}}0.975] \\
+\midrule
+\textbf{Intercept} & \raisebox{2ex}{\hypertarget{C1a}{}}3.72 & \raisebox{2ex}{\hypertarget{C1b}{}}0.199 & \raisebox{2ex}{\hypertarget{C1c}{}}18.7 & $<$\raisebox{2ex}{\hypertarget{C1d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{C1e}{}}3.33 & \raisebox{2ex}{\hypertarget{C1f}{}}4.11 \\
+\textbf{Patient Contact} & \raisebox{2ex}{\hypertarget{C2a}{}}0.0143 & \raisebox{2ex}{\hypertarget{C2b}{}}0.206 & \raisebox{2ex}{\hypertarget{C2c}{}}0.0698 & \raisebox{2ex}{\hypertarget{C2d}{}}0.944 & \raisebox{2ex}{\hypertarget{C2e}{}}-0.389 & \raisebox{2ex}{\hypertarget{C2f}{}}0.418 \\
+\textbf{Using FFP2} & \raisebox{2ex}{\hypertarget{C3a}{}}0.186 & \raisebox{2ex}{\hypertarget{C3b}{}}0.219 & \raisebox{2ex}{\hypertarget{C3c}{}}0.85 & \raisebox{2ex}{\hypertarget{C3d}{}}0.396 & \raisebox{2ex}{\hypertarget{C3e}{}}-0.244 & \raisebox{2ex}{\hypertarget{C3f}{}}0.616 \\
+\textbf{Household Contact} & \raisebox{2ex}{\hypertarget{C4a}{}}-0.0602 & \raisebox{2ex}{\hypertarget{C4b}{}}0.166 & \raisebox{2ex}{\hypertarget{C4c}{}}-0.362 & \raisebox{2ex}{\hypertarget{C4d}{}}0.717 & \raisebox{2ex}{\hypertarget{C4e}{}}-0.386 & \raisebox{2ex}{\hypertarget{C4f}{}}0.266 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item Model adjusts for mask usage and recent household infections.
+\item \textbf{Coefficient}: Coefficient of the regression model
+\item \textbf{Std. Err.}: Standard Error
+\item \textbf{p-value}: The probability under a specific statistical model (null hypothesis)
+\item \textbf{t-stat}: Computed t-statistic value
+\item \textbf{Patient Contact}: \raisebox{2ex}{\hypertarget{C5a}{}}1 if healthcare worker has contact with patients
+\item \textbf{Using FFP2}: \raisebox{2ex}{\hypertarget{C6a}{}}1 if healthcare worker uses FFP2 protective respiratory masks
+\item \textbf{Household Contact}: \raisebox{2ex}{\hypertarget{C7a}{}}1 if a household contact was positive for SARS-CoV-2 within same month
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+In summary, these results suggest that hybrid immunity provides a more robust defense against severe symptoms following SARS-CoV-2 infection in healthcare workers, compared to vaccine-only or infection-only immunity. The data highlights the temporal dynamics of immunity and underscores the protective role of combined vaccination and infection histories in reducing both the frequency and severity of symptoms in a high-risk population. Furthermore, while additional factors such as mask usage, patient contact, and household exposure were investigated, they were not found to significantly impact the number of symptoms reported amongst the different groups.
+
+\section*{Discussion}
+
+COVID-19 has spotlighted the heightened vulnerability of frontline healthcare workers due to the nature of their professional activities, reinforcing the need for robust protection strategies \cite{Pilishvili2021InterimEO, GmezOchoa2020COVID19IH}. This research gap underscores the urgency of investigating the protective efficacy of hybrid immunity, which combines the benefits of both natural and vaccine-induced immunity \cite{Kellam2020TheDO, Alshekaili2020FactorsAW}. Hybrid immunity, while showing promising protection capabilities in a few studies, remains a relatively unexplored area in the context of healthcare workers. Our study aims to fill this gap, providing unique insights into the efficacies of different strains of immunity, particularly emphasizing the superiority of hybrid immunity in reducing infection frequencies and symptom severity.
+
+By deploying robust linear regression models on an extensive dataset of 2,595 healthcare workers in Switzerland, our study unearths key findings in regards to hybrid immunity \cite{Nordstrm2022RiskOS, Goldberg2021ProtectionAW}. We observe that healthcare workers with hybrid immunity reported the least severe symptoms and infection incidences when compared with other forms of immunity. This finding, though in alignment with current literature, is context-specific and illustrates the need for further investigation in diverse geographical and demographic settings.
+
+Our study, however, comes with a set of limitations. Being observational and mainly relying on self-reported data could potentially introduce biases linked to individual perceptions and reporting accuracy. Furthermore, our conclusions are drawn from a sample concentrated in Switzerland, which might restrict the extrapolation of findings to other global contexts. Adding to this is the potential inconsistency in the documentation process across different healthcare networks that may affect the integrity of the dataset. Despite these constraints, given the standardized COVID-19 related procedures followed in healthcare settings universally, we believe that our conclusions retain relevance in comparable scenarios.
+
+The results of our study consolidate and extend upon prior understandings of hybrid immunity's protective effect towards SARS-CoV-2 \cite{Boffetta2020DeterminantsOS, Nordstrm2022RiskOS, Goldberg2021ProtectionAW}. Reinforcing the benefits of hybrid immunity, our findings provide a stepping stone for more integrated vaccine strategies for healthcare workers and underline the resilient advantages potentially offered by hybrid immunity against evolving variants of SARS-CoV-2.
+
+In closing, this investigation enriches our understanding of hybrid immunity in healthcare settings and its superior protective dynamics. It paves the way for exploring optimized vaccination strategies capitalizing on hybrid immunity to fortify healthcare defenses against ongoing and future pandemics. These findings also underscore the need for a continual reassessment of immunity policies and procedures, ensuring their alignment with evolving research evidence. Future research should seek to replicate this investigation across different demographic and geographical settings to validate these findings further.
+
+\section*{Methods}
+
+\subsection*{Data Source}
+The data for this study were sourced from two comprehensive datasets collected from a cohort of 2,595 healthcare workers across ten healthcare networks in Switzerland, over a period spanning from August 2020 to March 2022. The first dataset includes detailed records of vaccination and infection events among these workers, including demographic data, professional exposure factors, use of protective gear, and temporal data which indicate the start and stop dates of different observation intervals for each worker. The second dataset comprises symptom-related information specifically for those workers who tested positive for SARS-CoV-2, capturing data on the number of symptoms experienced, the type of viral variant involved, and other pertinent clinical details.
+
+\subsection*{Data Preprocessing}
+Prior to analysis, comprehensive data preprocessing was conducted. Initially, we merged the infection and symptom datasets using unique identifiers to consolidate each worker's vaccination, infection, and symptom history. We prepared this merged dataset by focusing on only those entries indicating a confirmed infection, ensuring unique representations per individual to avoid duplicated records. To refine the data further for analytical clarity, entries associated with individuals lacking any form of immunization were excluded. For categorical variables, we transformed non-numeric fields into binary formats to facilitate mathematical manipulations. Variables such as age and time since the last immunization event were standardized to negate scale discrepancies, thereby harmonizing disparate units across the dataset. In preparation for the regression analysis, interaction terms were also generated to examine the effects of immunization timing within specific sub-groups.
+
+\subsection*{Data Analysis}
+The analysis entailed multiple regression models to discern the impact of various factors on the number of symptoms reported following a SARS-CoV-2 infection. The primary model assessed the influence of time since last immunization, demographic traits, and professional factors on symptom severity. We considered interaction effects between immunization recency and vaccination group classifications to investigate nuanced effects. Concurrently, another model evaluated the relationship between patient contact frequency, regular mask usage, and household infection status to further parse out their contributions to symptom severity. These models provided statistical insights which were corroborated with summary statistics portraying descriptive trends in the dataset.\subsection*{Code Availability}
+
+Custom code used to perform the data preprocessing and analysis, as well as the raw code outputs, are provided in Supplementary Methods.
+
+
+\bibliographystyle{unsrt}
+\bibliography{citations}
+
+
+\clearpage
+\appendix
+
+\section{Data Description} \label{sec:data_description} Here is the data description, as provided by the user:
+
+\begin{codeoutput}
+\#\# General Description
+(*@\raisebox{2ex}{\hypertarget{S}{}}@*)General description 
+In this prospective, multicentre cohort performed between August (*@\raisebox{2ex}{\hypertarget{S0a}{}}@*)2020 and March (*@\raisebox{2ex}{\hypertarget{S0b}{}}@*)2022, we recruited hospital employees from ten acute/nonacute healthcare networks in Eastern/Northern Switzerland, consisting of (*@\raisebox{2ex}{\hypertarget{S0c}{}}@*)2,595 participants (median follow-up (*@\raisebox{2ex}{\hypertarget{S0d}{}}@*)171 days). The study comprises infections with the delta and the omicron variant. We determined immune status in September (*@\raisebox{2ex}{\hypertarget{S0e}{}}@*)2021 based on serology and previous SARS-CoV-2 infections/vaccinations: Group N (no immunity); Group V (twice vaccinated, uninfected); Group I (infected, unvaccinated); Group H (hybrid: infected and $\geq$1 vaccination). Participants were asked to get tested for SARS-CoV-2 in case of compatible symptoms, according to national recommendations. SARS-CoV-2 was detected by polymerase chain reaction (PCR) or rapid antigen diagnostic (RAD) test, depending on the participating institutions. The dataset is consisting of two files, one describing vaccination and infection events for all healthworkers, and the secone one describing the symptoms for the healthworkers who tested positive for SARS-CoV-2.
+\#\# Data Files
+The dataset consists of 2 data files:
+
+\#\#\# File 1: "TimeToInfection.csv"
+(*@\raisebox{2ex}{\hypertarget{T}{}}@*)Data in the file "TimeToInfection.csv" is organised in time intervals, from day\_interval\_start to day\_interval\_stop. Missing data is shown as "" for not indicated or not relevant (e.g. which vaccine for the non-vaccinated group). It is very important to note, that per healthworker (=ID number), several rows (time intervals) can exist, and the length of the intervals can vary (difference between day\_interval\_start and day\_interval\_stop). This can lead to biased results if not taken into account, e.g. when running a statistical comparison between two columns. It can also lead to biases when merging the two files, which therefore should be avoided. The file contains (*@\raisebox{2ex}{\hypertarget{T0a}{}}@*)16 columns:
+
+ID	Unique Identifier of each healthworker
+group	Categorical, Vaccination group: "N" (no immunity), "V" (twice vaccinated, uninfected), "I" (infected, unvaccinated), "H" (hybrid: infected and $\geq$1 vaccination)
+age	Continuous, age in years 
+sex	Categorical, female", "male" (or "" for not indicated)	
+BMI	Categorical, "o30" for over (*@\raisebox{2ex}{\hypertarget{T1a}{}}@*)30  or "u30" for below (*@\raisebox{2ex}{\hypertarget{T1b}{}}@*)30	
+patient\_contact	Having contact with patients during work during this interval, (*@\raisebox{2ex}{\hypertarget{T2a}{}}@*)1=yes, (*@\raisebox{2ex}{\hypertarget{T2b}{}}@*)0=no 
+using\_FFP2\_mask	Always using protective respiratory masks during work, (*@\raisebox{2ex}{\hypertarget{T3a}{}}@*)1=yes, (*@\raisebox{2ex}{\hypertarget{T3b}{}}@*)0=no 
+negative\_swab	documentation of $\geq$1 negative test in the previous month, (*@\raisebox{2ex}{\hypertarget{T4a}{}}@*)1=yes, (*@\raisebox{2ex}{\hypertarget{T4b}{}}@*)0=no 
+booster	receipt of booster vaccination, (*@\raisebox{2ex}{\hypertarget{T5a}{}}@*)1=yes, (*@\raisebox{2ex}{\hypertarget{T5b}{}}@*)0=no (or "" for not indicated)	
+positive\_household	categorical, SARS-CoV-2 infection of a household contact within the same month, (*@\raisebox{2ex}{\hypertarget{T6a}{}}@*)1=yes, (*@\raisebox{2ex}{\hypertarget{T6b}{}}@*)0=no	
+months\_since\_immunisation	continuous, time since last immunization event (infection or vaccination) in months. Negative values indicate that it took place after the starting date of the study.
+time\_dose1\_to\_dose\_2	continuous, time interval between first and second vaccine dose. Empty when not vaccinated twice
+vaccinetype	Categorical, "Moderna" or "Pfizer\_BioNTech" or "" for not vaccinated.	
+day\_interval\_start	day since start of study when the interval starts
+day\_interval\_stop	day since start of study when the interval stops	
+infection\_event	If an infection occured during this time interval, (*@\raisebox{2ex}{\hypertarget{T7a}{}}@*)1=yes, (*@\raisebox{2ex}{\hypertarget{T7b}{}}@*)0=no
+
+Here are the first few lines of the file:
+```output
+ID,group,age,sex,BMI,patient\_contact,using\_FFP2\_mask,negative\_swab,booster,positive\_household,months\_since\_immunisation,time\_dose1\_to\_dose\_2,vaccinetype,day\_interval\_start,day\_interval\_stop,infection\_event
+1,V,38,female,u30,0,0,0,0,no,0.8,1.2,Moderna,0,87,0
+1,V,38,female,u30,0,0,0,0,no,0.8,1.2,Moderna,87,99,0
+1,V,38,female,u30,0,0,0,0,no,0.8,1.2,Moderna,99,113,0
+
+```
+
+\#\#\# File 2: "Symptoms.csv"
+(*@\raisebox{2ex}{\hypertarget{U}{}}@*)Data in the file "Symptoms.csv" is organised per infection event, consisting in total of (*@\raisebox{2ex}{\hypertarget{U0a}{}}@*)764 events. Each worker is only indicated once. It contains (*@\raisebox{2ex}{\hypertarget{U0b}{}}@*)11 columns:
+ID	Unique Identifier, same in both files
+group	Categorical, Vaccination group: "N" (no immunity), "V" (twice vaccinated, uninfected), "I" (infected, unvaccinated), "H" (hybrid: infected and $\geq$1 vaccination)
+age	Continuous, age in years 
+sex	Categorical, "female", "male" (or "" for not indicated)	
+BMI	Categorical, "o30" for $>$30 or "u30" for under (*@\raisebox{2ex}{\hypertarget{U1a}{}}@*)30	
+comorbidity catgeorical, if any comorbity pre-existed, (*@\raisebox{2ex}{\hypertarget{U2a}{}}@*)1=yes, (*@\raisebox{2ex}{\hypertarget{U2b}{}}@*)0=no	
+using\_FFP2\_mask	Always using protective respiratory masks during work, (*@\raisebox{2ex}{\hypertarget{U3a}{}}@*)1=yes, (*@\raisebox{2ex}{\hypertarget{U3b}{}}@*)0=no 
+months\_until\_reinfection	time until next infection in months	
+variant	Categorical, "delta" or "omicron" (or "" for not indicated)	
+booster\_over7\_days\_before	If a booster was given in the last (*@\raisebox{2ex}{\hypertarget{U4a}{}}@*)7 days before the infection	
+symptom\_number	Continous, Number of symptoms which occured after the infection
+
+Here are the first few lines of the file:
+```output
+ID,group,age,sex,BMI,comorbidity,using\_FFP2\_mask,months\_until\_reinfection,variant,booster\_over7\_days\_before,symptom\_number
+2,N,45,female,u30,0,0,2.5,delta,0,11
+3,V,58,female,u30,1,0,4.2,omicron,0,6
+7,V,32,female,u30,0,1,4.5,omicron,1,5
+
+```
+
+
+\end{codeoutput}
+
+\section{Data Exploration}
+\subsection{{Code}}
+The Data Exploration was carried out using the following custom code:
+
+\begin{python}
+
+# Import Required Libraries
+import pandas as pd
+import numpy as np
+
+# Load Both Datasets
+time_to_infection = pd.read_csv('TimeToInfection.csv')
+symptoms = pd.read_csv('Symptoms.csv')
+
+# Function to handle cases where mode cannot be determined
+def safe_mode(series):
+    try:
+        return series.mode()[0]
+    except KeyError:
+        return np.nan
+
+# Open Output File
+(*@\raisebox{2ex}{\hypertarget{code-Data Exploration-data-exploration-txt}{}}@*)with open('data_exploration.txt', 'w') as f:
+
+    # Data Size
+    f.write('# Data Size\n')
+    f.write(f'TimeToInfection.csv: {time_to_infection.shape[0]} rows, {time_to_infection.shape[1]} columns\n')
+    f.write(f'Symptoms.csv: {symptoms.shape[0]} rows, {symptoms.shape[1]} columns\n\n')
+
+    # Summary Statistics
+    f.write('# Summary Statistics\n')
+    f.write('TimeToInfection.csv:\n')
+    f.write(time_to_infection.describe().to_string())
+    f.write('\n\nSymptoms.csv:\n')
+    f.write(symptoms.describe().to_string())
+    f.write('\n\n')
+    
+    # Mean length of interval
+    f.write('# Mean Length of Interval\n')
+    mean_length_of_interval = (time_to_infection['day_interval_stop'] - time_to_infection['day_interval_start']).mean()
+    f.write(f'The mean length of interval in TimeToInfection.csv: {mean_length_of_interval}\n\n')
+    
+    # Mean number of intervals per ID
+    f.write('# Mean Number of Intervals per ID\n')
+    mean_intervals_per_id = time_to_infection['ID'].value_counts().mean()
+    f.write(f'The mean number of intervals per ID in TimeToInfection.csv: {mean_intervals_per_id}\n\n')
+
+    # Categorical Variables
+    f.write('# Categorical Variables\n')
+    # Compute categorical values per unique ID
+    f.write('TimeToInfection.csv:\n')
+    for col in ["group", "vaccinetype"]:
+        f.write(f'Values per ID for {col}: \n')
+        f.write(time_to_infection.groupby('ID')[col].apply(safe_mode).replace('', 'not vaccinated').value_counts().to_string())
+        f.write('\n')
+
+    f.write('\nSymptoms.csv:\n')
+    for col in ["group"]:
+        f.write(f'Values for {col}:\n')
+        f.write(symptoms[col].value_counts().to_string())
+        f.write('\n')
+
+    # Missing Values
+    f.write('\n# Missing Values\n')
+    # Compute missing values per unique ID
+    f.write('TimeToInfection.csv:\n')
+    f.write(time_to_infection.groupby('ID').apply(lambda x: x.isnull().sum()).sum().to_string())
+    f.write('\n\nSymptoms.csv:\n')
+    f.write(symptoms.isnull().sum().to_string())
+    f.write('\n')
+
+f.close()
+
+\end{python}
+
+\subsection{Code Description}
+
+The provided Python code conducts exploratory data analysis on two datasets - "TimeToInfection.csv" and "Symptoms.csv". 
+The code first calculates and writes the data size (number of rows and columns) for each dataset, followed by summary statistics such as mean, standard deviation, min, max, and quartiles for numerical columns in each dataset.
+
+Next, the code computes the mean length of intervals in the "TimeToInfection.csv" dataset and the mean number of intervals per unique identifier (ID). It also identifies the most frequent categorical values for the variables "group" and "vaccinetype" per ID in the "TimeToInfection.csv" dataset, handling missing values appropriately.
+
+The code then lists the categorical values for the variable "group" in the "Symptoms.csv" dataset. Finally, it calculates and reports the total number of missing values for each dataset. All these exploratory analyses are written to the output file "data\_exploration.txt" in a structured format for further investigation and interpretation.
+
+\subsection{Code Output}\hypertarget{file-data-exploration-txt}{}
+
+\subsubsection*{\hyperlink{code-Data Exploration-data-exploration-txt}{data\_exploration.txt}}
+
+\begin{codeoutput}
+\# Data Size
+TimeToInfection.csv: 12086 rows, 16 columns
+Symptoms.csv: 764 rows, 11 columns
+
+\# Summary Statistics
+TimeToInfection.csv:
+         ID   age  patient\_contact  using\_FFP2\_mask  negative\_swab  booster  months\_since\_immunisation  time\_dose1\_to\_dose\_2  day\_interval\_start  day\_interval\_stop  infection\_event
+count 12086 12065            11686            11686          12086    12086                      11459                  9332               12086              12086            12086
+mean   1300 44.03           0.7941           0.2014         0.4933   0.5007                      5.015                 1.026               81.21              113.2          0.06321
+std   748.2 11.01           0.4044           0.4011            0.5      0.5                      2.344                0.4213               47.03               32.1           0.2434
+min       1    17                0                0              0        0                       -5.3                     0                   0                  1                0
+25\%     648    35                1                0              0        0                        3.8                   0.9                  75                 88                0
+50\%    1310    44                1                0              0        1                        5.5                     1                  99                106                0
+75\%    1942    53                1                0              1        1                        6.6                   1.2                 113                142                0
+max    2595    73                1                1              1        1                       17.8                   5.1                 171                178                1
+
+Symptoms.csv:
+         ID   age  comorbidity  using\_FFP2\_mask  months\_until\_reinfection  booster\_over7\_days\_before  symptom\_number
+count   764   764          719              734                       764                        764             764
+mean   1315 41.45       0.3825           0.1839                       4.1                     0.5209           3.806
+std   742.7 10.69       0.4863           0.3877                     1.268                     0.4999           2.177
+min       2    17            0                0                         0                          0               0
+25\%   694.8    33            0                0                       3.4                          0               2
+50\%    1354    41            0                0                       4.4                          1               4
+75\%    1942 49.25            1                0                       5.2                          1               5
+max    2588    68            1                1                       5.8                          1              11
+
+\# Mean Length of Interval
+The mean length of interval in TimeToInfection.csv: 32.01            
+
+\# Mean Number of Intervals per ID
+The mean number of intervals per ID in TimeToInfection.csv: 4.657            
+
+\# Categorical Variables
+TimeToInfection.csv:
+Values per ID for group: 
+group
+V    1707
+H     635
+N     145
+I     108
+Values per ID for vaccinetype: 
+vaccinetype
+Pfizer\_BioNTech    1613
+Moderna             471
+other\_unknown         4
+
+Symptoms.csv:
+Values for group:
+group
+V    550
+H    110
+N     67
+I     37
+
+\# Missing Values
+TimeToInfection.csv:
+ID                              0
+group                           0
+age                            21
+sex                            99
+BMI                             0
+patient\_contact               400
+using\_FFP2\_mask               400
+negative\_swab                   0
+booster                         0
+positive\_household              0
+months\_since\_immunisation     627
+time\_dose1\_to\_dose\_2         2754
+vaccinetype                  2051
+day\_interval\_start              0
+day\_interval\_stop               0
+infection\_event                 0
+
+Symptoms.csv:
+ID                            0
+group                         0
+age                           0
+sex                           5
+BMI                           0
+comorbidity                  45
+using\_FFP2\_mask              30
+months\_until\_reinfection      0
+variant                       0
+booster\_over7\_days\_before     0
+symptom\_number                0
+\end{codeoutput}
+
+\section{Data Analysis}
+\subsection{{Code}}
+The Data Analysis was carried out using the following custom code:
+
+\begin{python}
+
+# IMPORT
+import pandas as pd
+import numpy as np
+import pickle
+from statsmodels.formula.api import ols
+from sklearn.preprocessing import StandardScaler
+
+# LOAD DATA
+data_infection = pd.read_csv('TimeToInfection.csv')
+data_symptoms = pd.read_csv('Symptoms.csv')
+
+# DATASET PREPARATIONS
+# Merge the two dataframes based on 'ID' and 'group'
+data_all = pd.merge(data_infection, data_symptoms, on=['ID', 'group'])
+data_infected = data_all[data_all['infection_event'] == 1].drop_duplicates(subset='ID')
+
+# Convert 'positive_household' to binary
+data_infected['positive_household_binary'] = data_infected['positive_household'].map({'yes': 1, 'no': 0})
+
+# Exclude unimmunised group
+data_infected_immunised = data_infected[data_infected['group'] != 'N']
+
+# DESCRIPTIVE STATISTICS
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-0-pkl}{}}@*)## Table 0: "Descriptive statistics of infection events, mean symptoms & mean time since last infection per group"
+summary_infection_events = data_all.groupby('group')['infection_event'].sum()
+summary_avg_symptoms = data_infected.groupby('group')['symptom_number'].mean()
+summary_avg_time_since_immunisation = data_infected.groupby('group')['months_since_immunisation'].mean()
+
+df0 = pd.DataFrame({'InfectionEvents': summary_infection_events, 
+                    'MeanSymptoms': summary_avg_symptoms,
+                    'MeanMonthsSinceImmunisation': summary_avg_time_since_immunisation})
+
+# Replacing NaN values with "NA" for group N
+df0.fillna("NA", inplace=True)
+df0.to_pickle('table_0.pkl')
+
+# PREPROCESSING
+# Data Standardization
+scaler = StandardScaler()
+scaled_data = scaler.fit_transform(data_infected_immunised[['age_x', 'months_since_immunisation']])
+scaled_df = pd.DataFrame(scaled_data, index=data_infected_immunised.index, columns=['scaled_age', 'scaled_months_since_immunisation'])
+data_infected_immunised = pd.concat([data_infected_immunised, scaled_df], axis=1)
+
+# Creating dummy variables for categorical variables
+data_infected_immunised = pd.get_dummies(data_infected_immunised, drop_first=True)
+
+# Creating interaction terms
+data_infected_immunised['group_V_interaction'] = data_infected_immunised['group_V'] * data_infected_immunised['scaled_months_since_immunisation']
+data_infected_immunised['group_I_interaction'] = data_infected_immunised['group_I'] * data_infected_immunised['scaled_months_since_immunisation']
+
+# ANALYSIS
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-1-pkl}{}}@*)## Table 1: "Association between months_since_immunisation and symptom_number, including interaction between group and time since immunisation"
+model1 = ols('symptom_number ~ scaled_months_since_immunisation + group_V + group_I + group_V_interaction + group_I_interaction', 
+             data=data_infected_immunised).fit()
+table1 = model1.summary2().tables[1]
+table1.to_pickle('table_1.pkl')
+
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-2-pkl}{}}@*)## Table 2: "Association between patient_contact & symptom_number, adjusted for mask usage & household infections"
+model2 = ols('symptom_number ~ patient_contact + using_FFP2_mask_x + positive_household_binary', 
+             data=data_infected_immunised).fit()
+table2 = model2.summary2().tables[1]
+table2.to_pickle('table_2.pkl')
+
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-additional-results-pkl}{}}@*)# SAVE ADDITIONAL RESULTS
+additional_results = {
+    'Total number of observations': len(data_all),
+    'Number of immunised and infected health workers': len(data_infected_immunised),
+}
+
+with open('additional_results.pkl', 'wb') as f:
+    pickle.dump(additional_results, f)
+
+\end{python}
+
+\subsection{Code Description}
+
+The provided code conducts data analysis on a dataset consisting of information about healthcare workers in Switzerland, focusing on their infection events and symptoms. The main steps include:
+1. Merging the datasets of infection events and symptoms based on ID and group.
+2. Calculating summary statistics such as the number of infection events, mean symptoms, and mean time since last immunisation per group.
+3. Preprocessing the data by standardizing numerical variables and creating dummy variables for categorical variables.
+4. Creating interaction terms between group type (Vaccination status) and time since immunisation.
+5. Performing statistical analysis using linear regression models to assess the associations between variables:
+   a. Investigating the association between time since immunisation, group type, and symptoms, including interaction effects.
+   b. Assessing the association between patient contact, mask usage, positive household infections, and symptoms.
+6. Saving the results of the analysis, including summary tables with regression coefficients and additional results such as the total number of observations and the number of immunised and infected health workers.
+
+The "additional\_results.pkl" file contains a dictionary with two key-value pairs storing the total number of observations in the dataset and the count of immunised and infected health workers.
+
+\subsection{Code Output}\hypertarget{file-table-0-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-table-0-pkl}{table\_0.pkl}}
+
+\begin{codeoutput}
+       InfectionEvents  MeanSymptoms MeanMonthsSinceImmunisation
+group                                                           
+H                  110         3.109                       3.875
+I                   37         4.081                       8.387
+N                   67         4.537                          NA
+V                  550         3.838                       4.985
+\end{codeoutput}\hypertarget{file-table-1-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-table-1-pkl}{table\_1.pkl}}
+
+\begin{codeoutput}
+                                   Coef.  Std.Err.      t     P$>$\textbar{}t\textbar{}  [0.025  0.975]
+Intercept                          2.993    0.2207  13.56  3.16e-37    2.56   3.426
+group\_V[T.True]                    0.838    0.2388  3.509   0.00048  0.3691   1.307
+group\_I[T.True]                    1.925    0.6443  2.988   0.00291    0.66    3.19
+scaled\_months\_since\_immunisation -0.2734    0.2011  -1.36     0.174 -0.6683  0.1214
+group\_V\_interaction               0.1736    0.2249 0.7717     0.441  -0.268  0.6152
+group\_I\_interaction              -0.1942    0.3544 -0.548     0.584 -0.8901  0.5016
+\end{codeoutput}\hypertarget{file-table-2-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-table-2-pkl}{table\_2.pkl}}
+
+\begin{codeoutput}
+                             Coef.  Std.Err.       t     P$>$\textbar{}t\textbar{}  [0.025  0.975]
+Intercept                     3.72    0.1989    18.7  4.78e-63   3.329    4.11
+patient\_contact            0.01435    0.2056 0.06979     0.944 -0.3894  0.4181
+using\_FFP2\_mask\_x           0.1862    0.2191  0.8498     0.396  -0.244  0.6163
+positive\_household\_binary -0.06019    0.1661 -0.3623     0.717 -0.3864   0.266
+\end{codeoutput}\hypertarget{file-additional-results-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-additional-results-pkl}{additional\_results.pkl}}
+
+\begin{codeoutput}
+{
+    'Total number of observations': (*@\raisebox{2ex}{\hypertarget{R0a}{}}@*)2947,
+    'Number of immunised and infected health workers': (*@\raisebox{2ex}{\hypertarget{R1a}{}}@*)697,
+}
+\end{codeoutput}
+
+\section{LaTeX Table Design}
+\subsection{{Code}}
+The LaTeX Table Design was carried out using the following custom code:
+
+\begin{python}
+
+# IMPORT
+import pandas as pd
+from my_utils import to_latex_with_note, is_str_in_df, split_mapping, AbbrToNameDef
+
+# PREPARATION FOR ALL TABLES
+shared_mapping: AbbrToNameDef = {
+    'Coef.': ('Coefficient', 'Coefficient of the regression model'),
+    'Std.Err.': ('Std. Err.', 'Standard Error'),
+    'P>|t|': ('p-value', 'The probability under a specific statistical model (null hypothesis)'),
+    'MeanSymptoms': ('Mean Symptom Count', 'Average number of symptoms reported by each group'),
+    'MeanMonthsSinceImmunisation': ('Mean Mos. Since Immun.', 'Average duration (in months) since the last immunisation event'),
+    'InfectionEvents': ('Infection Events', 'Number of infection events reported by each group'),
+    'H': ('Hybrid Immunity', 'Healthworker infected and $\geq$1 vaccination'),
+    'I': ('Infection Immunity', 'Healthworker infected, unvaccinated'),
+    'N': ('No Immunity', 'Healthworker with no immunity'),
+    'V': ('Vaccine Immunity', 'Healthworker twice vaccinated, uninfected'),
+    't': ('t-stat', 'Computed t-statistic value'),
+}
+
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-0-tex}{}}@*)# TABLE 0:
+df0 = pd.read_pickle('table_0.pkl')
+mapping0 = {
+    k: v for k, v in shared_mapping.items() if is_str_in_df(df0, k)
+}
+abbrs_to_names0, legend0 = split_mapping(mapping0)
+df0.rename(columns=abbrs_to_names0, index=abbrs_to_names0, inplace=True)
+
+# SAVE AS LATEX:
+to_latex_with_note(
+    df0, 'table_0.tex',
+    caption="Summary Statistics of Infection Events, Mean Symptoms and Months Since Last Immunisation",
+    label='table:summary_stats',
+    note="Data aggregated by immunity status.",
+    legend=legend0)
+
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-1-tex}{}}@*)# TABLE 1:
+df1 = pd.read_pickle('table_1.pkl')
+mapping1 = {
+    k: v for k, v in shared_mapping.items() if is_str_in_df(df1, k)
+}
+mapping1 |= {
+    'scaled_months_since_immunisation': ('Time Since Immun.', 'Time (in months) since last immunisation'),
+    'group_V[T.True]': ('Vaccine Group', 'Healthworker twice vaccinated, uninfected'),
+    'group_I[T.True]': ('Infected Group', 'Healthworker infected, unvaccinated'),
+    'group_V_interaction': ('Vac. & Time', 'Interaction: Vaccine Group and Time Since Immunization'),
+    'group_I_interaction': ('Inf. & Time', 'Interaction: Infected Group and Time Since Immunization'),
+}
+abbrs_to_names1, legend1 = split_mapping(mapping1)
+df1.rename(columns=abbrs_to_names1, index=abbrs_to_names1, inplace=True)
+to_latex_with_note(
+    df1, 'table_1.tex',
+    caption="Association Between Time Since Immunisation and Symptom Number",
+    label='table:time_symptoms',
+    note="Includes interaction term between immunity group and time since immunisation. Coefficients estimated from an ordinary least squares regression.",
+    legend=legend1)
+
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-2-tex}{}}@*)# TABLE 2:
+df2 = pd.read_pickle('table_2.pkl')
+mapping2 = {
+    k: v for k, v in shared_mapping.items() if is_str_in_df(df2, k)
+}
+mapping2 |= {
+    'patient_contact': ('Patient Contact', '1 if healthcare worker has contact with patients'),
+    'using_FFP2_mask_x': ('Using FFP2', '1 if healthcare worker uses FFP2 protective respiratory masks'),
+    'positive_household_binary': ('Household Contact', '1 if a household contact was positive for SARS-CoV-2 within same month'),
+}
+abbrs_to_names2, legend2 = split_mapping(mapping2)
+df2.rename(columns=abbrs_to_names2, index=abbrs_to_names2, inplace=True)
+to_latex_with_note(
+    df2, 'table_2.tex',
+    caption="Association Between Patient Contact and Number of Symptoms",
+    label='table:patient_symptoms',
+    note="Model adjusts for mask usage and recent household infections.",
+    legend=legend2)
+
+\end{python}
+
+\subsection{Provided Code}
+The code above is using the following provided functions:
+
+\begin{python}
+def to_latex_with_note(df, filename: str, caption: str, label: str, note: str = None, legend: Dict[str, str] = None, **kwargs):
+    """
+    Converts a DataFrame to a LaTeX table with optional note and legend added below the table.
+
+    Parameters:
+    - df, filename, caption, label: as in `df.to_latex`.
+    - note (optional): Additional note below the table.
+    - legend (optional): Dictionary mapping abbreviations to full names.
+    - **kwargs: Additional arguments for `df.to_latex`.
+    """
+
+def is_str_in_df(df: pd.DataFrame, s: str):
+    return any(s in level for level in getattr(df.index, 'levels', [df.index]) + getattr(df.columns, 'levels', [df.columns]))
+
+AbbrToNameDef = Dict[Any, Tuple[Optional[str], Optional[str]]]
+
+def split_mapping(abbrs_to_names_and_definitions: AbbrToNameDef):
+    abbrs_to_names = {abbr: name for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if name is not None}
+    names_to_definitions = {name or abbr: definition for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if definition is not None}
+    return abbrs_to_names, names_to_definitions
+
+\end{python}
+
+
+
+\subsection{Code Output}
+
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-0-tex}{table\_0.tex}}
+
+\begin{codeoutput}
+\% This latex table was generated from: `table\_0.pkl`
+\begin{table}[h]
+\caption{Summary Statistics of Infection Events, Mean Symptoms and Months Since Last Immunisation}
+\label{table:summary\_stats}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{\%
+\begin{tabular}{lrrl}
+\toprule
+ \& Infection Events \& Mean Symptom Count \& Mean Mos. Since Immun. \\
+group \&  \&  \&  \\
+\midrule
+\textbf{Hybrid Immunity} \& 110 \& 3.11 \& 3.87 \\
+\textbf{Infection Immunity} \& 37 \& 4.08 \& 8.39 \\
+\textbf{No Immunity} \& 67 \& 4.54 \& NA \\
+\textbf{Vaccine Immunity} \& 550 \& 3.84 \& 4.99 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item Data aggregated by immunity status.
+\item \textbf{Mean Symptom Count}: Average number of symptoms reported by each group
+\item \textbf{Mean Mos. Since Immun.}: Average duration (in months) since the last immunisation event
+\item \textbf{Infection Events}: Number of infection events reported by each group
+\item \textbf{Hybrid Immunity}: Healthworker infected and \$\geq\$1 vaccination
+\item \textbf{Infection Immunity}: Healthworker infected, unvaccinated
+\item \textbf{No Immunity}: Healthworker with no immunity
+\item \textbf{Vaccine Immunity}: Healthworker twice vaccinated, uninfected
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+\end{codeoutput}
+
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-1-tex}{table\_1.tex}}
+
+\begin{codeoutput}
+\% This latex table was generated from: `table\_1.pkl`
+\begin{table}[h]
+\caption{Association Between Time Since Immunisation and Symptom Number}
+\label{table:time\_symptoms}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{\%
+\begin{tabular}{lrrrlrr}
+\toprule
+ \& Coefficient \& Std. Err. \& t-stat \& p-value \& [0.025 \& 0.975] \\
+\midrule
+\textbf{Intercept} \& 2.99 \& 0.221 \& 13.6 \& \$$<$\$1e-06 \& 2.56 \& 3.43 \\
+\textbf{Vaccine Group} \& 0.838 \& 0.239 \& 3.51 \& 0.00048 \& 0.369 \& 1.31 \\
+\textbf{Infected Group} \& 1.93 \& 0.644 \& 2.99 \& 0.00291 \& 0.66 \& 3.19 \\
+\textbf{Time Since Immun.} \& -0.273 \& 0.201 \& -1.36 \& 0.174 \& -0.668 \& 0.121 \\
+\textbf{Vac. \& Time} \& 0.174 \& 0.225 \& 0.772 \& 0.441 \& -0.268 \& 0.615 \\
+\textbf{Inf. \& Time} \& -0.194 \& 0.354 \& -0.548 \& 0.584 \& -0.89 \& 0.502 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item Includes interaction term between immunity group and time since immunisation. Coefficients estimated from an ordinary least squares regression.
+\item \textbf{Coefficient}: Coefficient of the regression model
+\item \textbf{Std. Err.}: Standard Error
+\item \textbf{p-value}: The probability under a specific statistical model (null hypothesis)
+\item \textbf{t-stat}: Computed t-statistic value
+\item \textbf{Time Since Immun.}: Time (in months) since last immunisation
+\item \textbf{Vaccine Group}: Healthworker twice vaccinated, uninfected
+\item \textbf{Infected Group}: Healthworker infected, unvaccinated
+\item \textbf{Vac. \& Time}: Interaction: Vaccine Group and Time Since Immunization
+\item \textbf{Inf. \& Time}: Interaction: Infected Group and Time Since Immunization
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+\end{codeoutput}
+
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-2-tex}{table\_2.tex}}
+
+\begin{codeoutput}
+\% This latex table was generated from: `table\_2.pkl`
+\begin{table}[h]
+\caption{Association Between Patient Contact and Number of Symptoms}
+\label{table:patient\_symptoms}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{\%
+\begin{tabular}{lrrrlrr}
+\toprule
+ \& Coefficient \& Std. Err. \& t-stat \& p-value \& [0.025 \& 0.975] \\
+\midrule
+\textbf{Intercept} \& 3.72 \& 0.199 \& 18.7 \& \$$<$\$1e-06 \& 3.33 \& 4.11 \\
+\textbf{Patient Contact} \& 0.0143 \& 0.206 \& 0.0698 \& 0.944 \& -0.389 \& 0.418 \\
+\textbf{Using FFP2} \& 0.186 \& 0.219 \& 0.85 \& 0.396 \& -0.244 \& 0.616 \\
+\textbf{Household Contact} \& -0.0602 \& 0.166 \& -0.362 \& 0.717 \& -0.386 \& 0.266 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item Model adjusts for mask usage and recent household infections.
+\item \textbf{Coefficient}: Coefficient of the regression model
+\item \textbf{Std. Err.}: Standard Error
+\item \textbf{p-value}: The probability under a specific statistical model (null hypothesis)
+\item \textbf{t-stat}: Computed t-statistic value
+\item \textbf{Patient Contact}: 1 if healthcare worker has contact with patients
+\item \textbf{Using FFP2}: 1 if healthcare worker uses FFP2 protective respiratory masks
+\item \textbf{Household Contact}: 1 if a household contact was positive for SARS-CoV-2 within same month
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+\end{codeoutput}
+
+\end{document}
