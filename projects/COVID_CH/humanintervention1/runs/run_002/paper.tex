@@ -1,0 +1,903 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{fancyvrb}
+\usepackage{color}
+\usepackage{listings}
+\usepackage{sectsty}
+\sectionfont{\Large}
+\subsectionfont{\normalsize}
+\subsubsectionfont{\normalsize}
+
+% Default fixed font does not support bold face
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{12} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{12}  % for normal
+
+% Custom colors
+\usepackage{color}
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+\definecolor{cyan}{rgb}{0.0,0.6,0.6}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+
+% Python style for highlighting
+\newcommand\pythonstyle{\lstset{
+language=Python,
+basicstyle=\ttfamily\footnotesize,
+morekeywords={self, import, as, from, if, for, while},              % Add keywords here
+keywordstyle=\color{deepblue},
+stringstyle=\color{deepred},
+commentstyle=\color{cyan},
+breaklines=true,
+escapeinside={(*@}{@*)},            % Define escape delimiters
+postbreak=\mbox{\textcolor{deepgreen}{$\hookrightarrow$}\space},
+showstringspaces=false
+}}
+
+
+% Python environment
+\lstnewenvironment{python}[1][]
+{
+\pythonstyle
+\lstset{#1}
+}
+{}
+
+% Python for external files
+\newcommand\pythonexternal[2][]{{
+\pythonstyle
+\lstinputlisting[#1]{#2}}}
+
+% Python for inline
+\newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
+
+
+% Code output style for highlighting
+\newcommand\outputstyle{\lstset{
+    language=,
+    basicstyle=\ttfamily\footnotesize\color{gray},
+    breaklines=true,
+    showstringspaces=false,
+    escapeinside={(*@}{@*)},            % Define escape delimiters
+}}
+
+% Code output environment
+\lstnewenvironment{codeoutput}[1][]
+{
+    \outputstyle
+    \lstset{#1}
+}
+{}
+
+
+\title{Influence of Immunity Status and SARS-CoV-2 Variants on Symptom Severity Among Healthcare Workers}
+\author{data-to-paper}
+\begin{document}
+\maketitle
+\begin{abstract}
+Addressing the clinical impact of previous immunity and the emergence of viral variants is critical in the ongoing global management of COVID-19. Research into how prior infections and vaccinations mitigate the effects of subsequent virus exposures, particularly with the more recent variants, is still evolving. We analyzed data from a cohort of 2,595 healthcare workers in Switzerland tracked from August 2020 through March 2022. Participants were categorized based on their immunity status into four groups: no immunity, vaccination only, infection only, and hybrid (both vaccinated and previously infected). The clinical manifestations following SARS-CoV-2 exposures were tested using PCR and RAD tests, based on symptoms. Our findings indicate that hybrid immunity was most effective at reducing symptom severity, and those with no immunity suffered more severe symptoms, especially when infected with the delta variant. While omicron generally caused milder symptoms across all groups, it was more pronounced in those with some form of immunity. This study's unique compartmentalization of immunity status provides significant insights into the dynamic interplay between different types of immunities and variant-specific risks. However, its focus on healthcare workers may limit the generalizability to the broader population. These insights are crucial for guiding vaccination strategies and public health policies, emphasizing the substantial benefits of vaccination and potential advantages of gaining hybrid immunity.
+\end{abstract}
+\section*{Introduction}
+
+The clinical impact of SARS-CoV-2 continues to pose significant challenges worldwide. The emergence of different COVID-19 variants and the accumulating data on recovered and vaccinated individuals' immune responses necessitate continuous research into the interplay of these factors \cite{Lee2022SARSCoV2VI, Levin2021WaningIH, Weigang2021WithinhostEO}. Understanding the impact of previously acquired immunity whether through natural infection or vaccination, specifically in mitigating disease severity in subsequent infections with new viral variants, is crucial to guiding vaccination strategies and public health measures \cite{Lavine2021ImmunologicalCG, Jiang2021LastingAA, Reynolds2022ImmuneBB}.
+
+Several reports have provided insights into how SARS-CoV-2 variants, specifically delta and omicron, influence the presentation and severity of the disease \cite{Whitaker2022VariantspecificSO, Quintero2022DifferencesIS, Florensa2022SeverityOC}. However, there remains a knowledge gap in understanding how prior immunity status modulates the subsequent clinical manifestation of these different variants. Yet, understanding this aspect is essential as immunity status is a variable feature in the population, determined by vaccination rates, infection recency, and the likelihood of hybrid immunity due to previous infection and vaccination \cite{Kim2020SARSCoV2SpecificAA, Chen2020DiseaseSD}. 
+
+This study leverages a unique comprehensive dataset of healthcare workers in Switzerland, persistently tracked from August 2020 through March 2022, to elucidate this interplay between immunity status and viral variants \cite{Baskin2021HealthcareWR, Hall2021EffectivenessOB}. This population presents an opportunity to capture a mix of immunity statuses, considering that healthcare workers are at higher risk of exposure and thus infection. Moreover, the timing and context of data collection have enabled coverage of the key period of delta and omicron variants' prevalence, thereby enriching data relevance \cite{Brehm2021SARSCoV2RI, Shreffler2020TheIO}. 
+
+In the present analysis, we stratified participants according to their immunity status (no immunity, infection only, vaccination only, and hybrid state), and we systematically evaluated the effect of these statuses on the severity of symptoms elicited by both delta and omicron variants. We employed robust statistical methods tiered from descriptive and basic regression analyses to more refined models with interaction terms to rigorously test the associations and related hypotheses \cite{Harrison2020ComorbiditiesAW, Mesas2020PredictorsOI, Corpechot2014BaselineVA}. Our findings contribute to the existing knowledge on how immunity status and viral variants interactively shape the clinical expression and severity of COVID-19.
+
+\section*{Results}
+
+First, to understand how symptom severity varies based on immunity status and viral variants, we analyzed the distribution of symptom numbers for infected individuals only, segregated by their immunity group and the variant type. This descriptive analysis, detailed in Table \ref{table:dist_symp}, showed that the average number of symptoms was least among those with hybrid immunity infected with the omicron variant, presenting on average \hyperlink{A1a}{3.07} symptoms. In comparison, those with no immunity infected by the delta variant experienced more severe symptoms averaging at \hyperlink{A4a}{4.83}. This suggests that not only does the type of immunity impact symptom severity, but the variant type further modifies this effect.
+
+% This latex table was generated from: `table_0.pkl`
+\begin{table}[h]
+\caption{\protect\hyperlink{file-table-0-pkl}{Avg. symptom no. by immunity group \& variant}}
+\label{table:dist_symp}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{llrrr}
+\toprule
+ &  & Avg. Symp. & Std. Dev. & Count \\
+Group & Variant &  &  &  \\
+\midrule
+\textbf{Hyb.} & \textbf{delta} & \raisebox{2ex}{\hypertarget{A0a}{}}3.33 & \raisebox{2ex}{\hypertarget{A0b}{}}2.25 & \raisebox{2ex}{\hypertarget{A0c}{}}6 \\
+\textbf{} & \textbf{omicron} & \raisebox{2ex}{\hypertarget{A1a}{}}3.07 & \raisebox{2ex}{\hypertarget{A1b}{}}2.06 & \raisebox{2ex}{\hypertarget{A1c}{}}103 \\
+\textbf{Inf. Only} & \textbf{delta} & \raisebox{2ex}{\hypertarget{A2a}{}}4.43 & \raisebox{2ex}{\hypertarget{A2b}{}}2.76 & \raisebox{2ex}{\hypertarget{A2c}{}}7 \\
+\textbf{} & \textbf{omicron} & \raisebox{2ex}{\hypertarget{A3a}{}}4.07 & \raisebox{2ex}{\hypertarget{A3b}{}}1.77 & \raisebox{2ex}{\hypertarget{A3c}{}}29 \\
+\textbf{No Imm.} & \textbf{delta} & \raisebox{2ex}{\hypertarget{A4a}{}}4.83 & \raisebox{2ex}{\hypertarget{A4b}{}}2.36 & \raisebox{2ex}{\hypertarget{A4c}{}}30 \\
+\textbf{} & \textbf{omicron} & \raisebox{2ex}{\hypertarget{A5a}{}}4.31 & \raisebox{2ex}{\hypertarget{A5b}{}}2.33 & \raisebox{2ex}{\hypertarget{A5c}{}}36 \\
+\textbf{Vac. Only} & \textbf{delta} & \raisebox{2ex}{\hypertarget{A6a}{}}4.33 & \raisebox{2ex}{\hypertarget{A6b}{}}2.32 & \raisebox{2ex}{\hypertarget{A6c}{}}129 \\
+\textbf{} & \textbf{omicron} & \raisebox{2ex}{\hypertarget{A7a}{}}3.68 & \raisebox{2ex}{\hypertarget{A7b}{}}2.09 & \raisebox{2ex}{\hypertarget{A7c}{}}419 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item Includes only positive cases.
+\item \textbf{No Imm.}: No immunity
+\item \textbf{Inf. Only}: Infected, unvaccinated
+\item \textbf{Vac. Only}: Twice vaccinated, uninfected
+\item \textbf{Hyb.}: Hybrid: Infected \& Vaccinated
+\item \textbf{delta}: Delta Variant
+\item \textbf{omicron}: Omicron Variant
+\item \textbf{Avg. Symp.}: Average Number of Symptoms
+\item \textbf{Std. Dev.}: Standard Deviation of Symptoms
+\item \textbf{Count}: Total number of infected individuals in each group and variant
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+Then, to test whether these variations in symptom numbers can be statistically explained by different immunity statuses, adjusting for age, sex, and the presence of comorbidities, we performed a regression analysis. Results presented in Table \ref{table:symp_grp} showed a significant association between the group status and the number of symptoms observed. Specifically, individuals with no immunity had, on average, \hyperlink{B2a}{1.49} more symptoms than hybrid-immune individuals, adjusted for other factors (P-value: \hyperlink{B2b}{$1.98\ 10^{-5}$}). This reinforces the protective effect of vaccination and previous infection against severity as noted in the descriptive analysis.
+
+% This latex table was generated from: `table_1.pkl`
+\begin{table}[h]
+\caption{\protect\hyperlink{file-table-1-pkl}{Association between symptom numbers and immunity group}}
+\label{table:symp_grp}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrl}
+\toprule
+ & coef & p-value \\
+\midrule
+\textbf{Intercept} & \raisebox{2ex}{\hypertarget{B0a}{}}3.39 & $<$\raisebox{2ex}{\hypertarget{B0b}{}}$10^{-6}$ \\
+\textbf{Inf. Only} & \raisebox{2ex}{\hypertarget{B1a}{}}1.08 & \raisebox{2ex}{\hypertarget{B1b}{}}0.0115 \\
+\textbf{No Imm.} & \raisebox{2ex}{\hypertarget{B2a}{}}1.49 & \raisebox{2ex}{\hypertarget{B2b}{}}$1.98\ 10^{-5}$ \\
+\textbf{Vac. Only} & \raisebox{2ex}{\hypertarget{B3a}{}}0.808 & \raisebox{2ex}{\hypertarget{B3b}{}}0.000537 \\
+\textbf{Sex (M)} & \raisebox{2ex}{\hypertarget{B4a}{}}-0.375 & \raisebox{2ex}{\hypertarget{B4b}{}}0.0707 \\
+\textbf{Age} & \raisebox{2ex}{\hypertarget{B5a}{}}-0.0125 & \raisebox{2ex}{\hypertarget{B5b}{}}0.108 \\
+\textbf{Comorb.} & \raisebox{2ex}{\hypertarget{B6a}{}}0.57 & \raisebox{2ex}{\hypertarget{B6b}{}}0.000582 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item Adjusted for age, sex, and comorbidities
+\item \textbf{Sex (M)}: Male Sex
+\item \textbf{Comorb.}: \raisebox{2ex}{\hypertarget{B7a}{}}1: Yes, \raisebox{2ex}{\hypertarget{B7b}{}}0: No
+\item \textbf{Inf. Only}: Infected, unvaccinated
+\item \textbf{No Imm.}: No immunity
+\item \textbf{Vac. Only}: Twice vaccinated, uninfected
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+Finally, to further verify the effect of the interaction between immunity status and viral variant, we explored this relationship while controlling for age, sex, and comorbidities. The results in Table \ref{table:symp_inter} indicate that the interaction terms were not statistically significant, suggesting that the main effects of immunity status and variant type on symptom numbers dominate. This is crucial for understanding the independent effects of these factors without overlapping influences.
+
+% This latex table was generated from: `table_2.pkl`
+\begin{table}[h]
+\caption{\protect\hyperlink{file-table-2-pkl}{Symptom numbers, immunity group, variant, interaction}}
+\label{table:symp_inter}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrl}
+\toprule
+ & coef & p-value \\
+\midrule
+\textbf{Intercept} & \raisebox{2ex}{\hypertarget{C0a}{}}3.86 & \raisebox{2ex}{\hypertarget{C0b}{}}$4.71\ 10^{-5}$ \\
+\textbf{Inf. Only} & \raisebox{2ex}{\hypertarget{C1a}{}}0.509 & \raisebox{2ex}{\hypertarget{C1b}{}}0.68 \\
+\textbf{No Imm.} & \raisebox{2ex}{\hypertarget{C2a}{}}1.28 & \raisebox{2ex}{\hypertarget{C2b}{}}0.186 \\
+\textbf{Vac. Only} & \raisebox{2ex}{\hypertarget{C3a}{}}0.798 & \raisebox{2ex}{\hypertarget{C3b}{}}0.37 \\
+\textbf{Var. (O)} & \raisebox{2ex}{\hypertarget{C4a}{}}-0.475 & \raisebox{2ex}{\hypertarget{C4b}{}}0.597 \\
+\textbf{Sex (M)} & \raisebox{2ex}{\hypertarget{C5a}{}}-0.405 & \raisebox{2ex}{\hypertarget{C5b}{}}0.0514 \\
+\textbf{Inf. Only * O} & \raisebox{2ex}{\hypertarget{C6a}{}}0.623 & \raisebox{2ex}{\hypertarget{C6b}{}}0.636 \\
+\textbf{No Imm. * O} & \raisebox{2ex}{\hypertarget{C7a}{}}0.0455 & \raisebox{2ex}{\hypertarget{C7b}{}}0.966 \\
+\textbf{Vac. Only * O} & \raisebox{2ex}{\hypertarget{C8a}{}}-0.0882 & \raisebox{2ex}{\hypertarget{C8b}{}}0.924 \\
+\textbf{Age} & \raisebox{2ex}{\hypertarget{C9a}{}}-0.013 & \raisebox{2ex}{\hypertarget{C9b}{}}0.0936 \\
+\textbf{Comorb.} & \raisebox{2ex}{\hypertarget{C10a}{}}0.569 & \raisebox{2ex}{\hypertarget{C10b}{}}0.000573 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item Adjusted for age, sex, and comorbidities
+\item \textbf{Sex (M)}: Male Sex
+\item \textbf{Comorb.}: \raisebox{2ex}{\hypertarget{C11a}{}}1: Yes, \raisebox{2ex}{\hypertarget{C11b}{}}0: No
+\item \textbf{Var. (O)}: Omicron Variant
+\item \textbf{Inf. Only * O}: Interaction term for Infected Only and Omicron Variant
+\item \textbf{No Imm. * O}: Interaction term for No Immunity and Omicron Variant
+\item \textbf{Vac. Only * O}: Interaction term for Vaccinated Only and Omicron Variant
+\item \textbf{Inf. Only}: Infected, unvaccinated
+\item \textbf{No Imm.}: No immunity
+\item \textbf{Vac. Only}: Twice vaccinated, uninfected
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+In summary, these results suggest that both the type of immunity and the viral variant significantly impact the clinical severity of COVID-19 among healthcare workers, with hybrid immunity generally providing the most protection against severe symptoms. The \hyperlink{R0a}{759} observations obtained from healthcare workers across different regions and times provide a robust data set for evaluating these effects.
+
+\section*{Discussion}
+
+This study explored the clinical impact of immunity status and the predominating SARS-CoV-2 variants on symptom severity among healthcare workers. Building upon previous research \cite{Lee2022SARSCoV2VI, Levin2021WaningIH, Weigang2021WithinhostEO, Lavine2021ImmunologicalCG, Jiang2021LastingAA, Reynolds2022ImmuneBB}, we aimed to understand how prior immunity status, human responses to vaccination, and encounters with SARS-CoV-2 interactively shape symptomatic manifestation.
+
+To this end, we conducted a robust analysis of a multicentre prospective cohort in Switzerland, covering the critical period when delta and omicron variants circulated dominantly. We stratified participants based on their immunity status and evaluated associations between these statuses and symptom severity after controlling for demographic and health factors. The findings revealed that those with hybrid immunity (infection plus vaccination) reported the least average symptom numbers, especially when dealing with the omicron variant. In contrast, individuals without any immunity exhibited more severe symptoms, particularly when infected with the delta variant. 
+
+When compared to previous research \cite{Kim2020SARSCoV2SpecificAA, Chen2020DiseaseSD, Maier2021AnIC, Jesek2020ImmunePA, Whitaker2022VariantspecificSO}, these findings underscore the significant impact of immunity status on symptom severity, and further enhance knowledge about how the delta and omicron variants induce distinct symptomatic responses.
+
+Despite the significant implications of these findings, a few potential limitations could influence the interpretation. As the study population primarily consisted of healthcare workers, individuals under high and constant risk of infection, the results may be skewed towards a portion of the population already representing a mixing of different immunity statuses and variants. Therefore, extrapolation of these findings to the broader population must be approached with caution. Additionally, factors such as the number of exposure incidents, exposure intensity, and the potential presence of other health conditions could not be accounted for in the analyses and might affect the variance in symptom presentation.
+
+In conclusion, this study provides compelling insights into how hybrid immunity appears to offer the most reliable protection against severe symptoms in subsequent SARS-CoV-2 infections, irrespective of the variant. Simultaneously, it underlines the higher susceptibility of those lacking any immunity to experiencing more severe symptoms, particularly dealing with the delta variant. This understanding is crucial for guiding ongoing and future efforts to promote vaccination campaigns, prophylactic interventions, and public health strategies. Further investigations are warranted to explore the long-term effects of vaccination, infection recency, and hybrid immunity on symptom severity as new variants emerge.
+
+\section*{Methods}
+
+\subsection*{Data Source}
+The dataset for this study originates from a prospective, multicentre cohort of healthcare workers across ten healthcare networks in Switzerland, tracking 2,595 participants from August 2020 to March 2022. This cohort includes both acute and nonacute sectors and encompasses infections with delta and omicron variants of SARS-CoV-2. The dataset is segmented into two main components: one recording vaccination, infection events, and other related variables for all participants, and a second dedicated to symptoms of the participants who tested positive for SARS-CoV-2. The data capture several intervals per participant, tracking various factors including vaccination status, infection events, and personal demographics such as age and body mass index.
+
+\subsection*{Data Preprocessing}
+Initial preprocessing involved the removal of rows with missing gender data from both primary datasets to ensure the completeness and reliability of the subsequent analysis. In our analytic process, these datasets were then merged based on multiple identifiers, including participant ID, age, sex, BMI, among others, for those records indicating a confirmed infection event. This merge was fundamental to align the infection data with corresponding symptoms data, thereby providing a comprehensive view for further analysis.
+
+\subsection*{Data Analysis}
+Our analytical approach began with descriptive statistics to explore the distribution of symptom numbers, vaccination groups, and belonging to either the delta or omicron variant groups. Further, we utilized linear regressions to investigate the associations between the number of symptoms and distinct immune statuses, adjusting simultaneously for age, sex, and comorbidity. In a more intricate analysis, we included interaction terms between immunity status groups and virus variants to assess their combined impact on symptomatology. These models were pivotal for understanding the differential impact of delta and omicron variants across various immunity landscapes. The fitted models provided coefficients estimating the change in symptom numbers associated with each factor, alongside their statistical significance, offering insights into which conditions might mitigate symptom severity effectively.\subsection*{Code Availability}
+
+Custom code used to perform the data preprocessing and analysis, as well as the raw code outputs, are provided in Supplementary Methods.
+
+
+\bibliographystyle{unsrt}
+\bibliography{citations}
+
+
+\clearpage
+\appendix
+
+\section{Data Description} \label{sec:data_description} Here is the data description, as provided by the user:
+
+\begin{codeoutput}
+\#\# General Description
+(*@\raisebox{2ex}{\hypertarget{S}{}}@*)General description 
+In this prospective, multicentre cohort performed between August (*@\raisebox{2ex}{\hypertarget{S0a}{}}@*)2020 and March (*@\raisebox{2ex}{\hypertarget{S0b}{}}@*)2022, we recruited hospital employees from ten acute/nonacute healthcare networks in Eastern/Northern Switzerland, consisting of (*@\raisebox{2ex}{\hypertarget{S0c}{}}@*)2,595 participants (median follow-up (*@\raisebox{2ex}{\hypertarget{S0d}{}}@*)171 days). The study comprises infections with the delta and the omicron variant. We determined immune status in September (*@\raisebox{2ex}{\hypertarget{S0e}{}}@*)2021 based on serology and previous SARS-CoV-2 infections/vaccinations: Group N (no immunity); Group V (twice vaccinated, uninfected); Group I (infected, unvaccinated); Group H (hybrid: infected and $\geq$1 vaccination). Participants were asked to get tested for SARS-CoV-2 in case of compatible symptoms, according to national recommendations. SARS-CoV-2 was detected by polymerase chain reaction (PCR) or rapid antigen diagnostic (RAD) test, depending on the participating institutions. The dataset is consisting of two files, one describing vaccination and infection events for all healthworkers, and the secone one describing the symptoms for the healthworkers who tested positive for SARS-CoV-2.
+\#\# Data Files
+The dataset consists of 2 data files:
+
+\#\#\# File 1: "TimeToInfection.csv"
+(*@\raisebox{2ex}{\hypertarget{T}{}}@*)Data in the file "TimeToInfection.csv" is organised in time intervals, from day\_interval\_start to day\_interval\_stop. Missing data is shown as "" for not indicated or not relevant (e.g. which vaccine for the non-vaccinated group). It is very important to note, that per healthworker (=ID number), several rows (time intervals) can exist, and the length of the intervals can vary (difference between day\_interval\_start and day\_interval\_stop). This can lead to biased results if not taken into account, e.g. when running a statistical comparison between two columns. It can also lead to biases when merging the two files, which therefore should be avoided. The file contains (*@\raisebox{2ex}{\hypertarget{T0a}{}}@*)16 columns:
+
+ID	Unique Identifier of each healthworker
+group	Categorical, Vaccination group: "N" (no immunity), "V" (twice vaccinated, uninfected), "I" (infected, unvaccinated), "H" (hybrid: infected and $\geq$1 vaccination)
+age	Continuous, age in years 
+sex	Categorical, female", "male" (or "" for not indicated)	
+BMI	Categorical, "o30" for over (*@\raisebox{2ex}{\hypertarget{T1a}{}}@*)30  or "u30" for below (*@\raisebox{2ex}{\hypertarget{T1b}{}}@*)30	
+patient\_contact	Having contact with patients during work during this interval, (*@\raisebox{2ex}{\hypertarget{T2a}{}}@*)1=yes, (*@\raisebox{2ex}{\hypertarget{T2b}{}}@*)0=no 
+using\_FFP2\_mask	Always using protective respiratory masks during work, (*@\raisebox{2ex}{\hypertarget{T3a}{}}@*)1=yes, (*@\raisebox{2ex}{\hypertarget{T3b}{}}@*)0=no 
+negative\_swab	documentation of $\geq$1 negative test in the previous month, (*@\raisebox{2ex}{\hypertarget{T4a}{}}@*)1=yes, (*@\raisebox{2ex}{\hypertarget{T4b}{}}@*)0=no 
+booster	receipt of booster vaccination, (*@\raisebox{2ex}{\hypertarget{T5a}{}}@*)1=yes, (*@\raisebox{2ex}{\hypertarget{T5b}{}}@*)0=no (or "" for not indicated)	
+positive\_household	categorical, SARS-CoV-2 infection of a household contact within the same month, (*@\raisebox{2ex}{\hypertarget{T6a}{}}@*)1=yes, (*@\raisebox{2ex}{\hypertarget{T6b}{}}@*)0=no	
+months\_since\_immunisation	continuous, time since last immunization event (infection or vaccination) in months. Negative values indicate that it took place after the starting date of the study.
+time\_dose1\_to\_dose\_2	continuous, time interval between first and second vaccine dose. Empty when not vaccinated twice
+vaccinetype	Categorical, "Moderna" or "Pfizer\_BioNTech" or "" for not vaccinated.	
+day\_interval\_start	day since start of study when the interval starts
+day\_interval\_stop	day since start of study when the interval stops	
+infection\_event	If an infection occured during this time interval, (*@\raisebox{2ex}{\hypertarget{T7a}{}}@*)1=yes, (*@\raisebox{2ex}{\hypertarget{T7b}{}}@*)0=no
+
+Here are the first few lines of the file:
+```output
+ID,group,age,sex,BMI,patient\_contact,using\_FFP2\_mask,negative\_swab,booster,positive\_household,months\_since\_immunisation,time\_dose1\_to\_dose\_2,vaccinetype,day\_interval\_start,day\_interval\_stop,infection\_event
+1,V,38,female,u30,0,0,0,0,no,0.8,1.2,Moderna,0,87,0
+1,V,38,female,u30,0,0,0,0,no,0.8,1.2,Moderna,87,99,0
+1,V,38,female,u30,0,0,0,0,no,0.8,1.2,Moderna,99,113,0
+
+```
+
+\#\#\# File 2: "Symptoms.csv"
+(*@\raisebox{2ex}{\hypertarget{U}{}}@*)Data in the file "Symptoms.csv" is organised per infection event, consisting in total of (*@\raisebox{2ex}{\hypertarget{U0a}{}}@*)764 events. Each worker is only indicated once. It contains (*@\raisebox{2ex}{\hypertarget{U0b}{}}@*)11 columns:
+ID	Unique Identifier, same in both files
+group	Categorical, Vaccination group: "N" (no immunity), "V" (twice vaccinated, uninfected), "I" (infected, unvaccinated), "H" (hybrid: infected and $\geq$1 vaccination)
+age	Continuous, age in years 
+sex	Categorical, "female", "male" (or "" for not indicated)	
+BMI	Categorical, "o30" for $>$30 or "u30" for under (*@\raisebox{2ex}{\hypertarget{U1a}{}}@*)30	
+comorbidity catgeorical, if any comorbity pre-existed, (*@\raisebox{2ex}{\hypertarget{U2a}{}}@*)1=yes, (*@\raisebox{2ex}{\hypertarget{U2b}{}}@*)0=no	
+using\_FFP2\_mask	Always using protective respiratory masks during work, (*@\raisebox{2ex}{\hypertarget{U3a}{}}@*)1=yes, (*@\raisebox{2ex}{\hypertarget{U3b}{}}@*)0=no 
+months\_until\_reinfection	time until next infection in months	
+variant	Categorical, "delta" or "omicron" (or "" for not indicated)	
+booster\_over7\_days\_before	If a booster was given in the last (*@\raisebox{2ex}{\hypertarget{U4a}{}}@*)7 days before the infection	
+symptom\_number	Continous, Number of symptoms which occured after the infection
+
+Here are the first few lines of the file:
+```output
+ID,group,age,sex,BMI,comorbidity,using\_FFP2\_mask,months\_until\_reinfection,variant,booster\_over7\_days\_before,symptom\_number
+2,N,45,female,u30,0,0,2.5,delta,0,11
+3,V,58,female,u30,1,0,4.2,omicron,0,6
+7,V,32,female,u30,0,1,4.5,omicron,1,5
+
+```
+
+
+\end{codeoutput}
+
+\section{Data Exploration}
+\subsection{{Code}}
+The Data Exploration was carried out using the following custom code:
+
+\begin{python}
+
+
+import pandas as pd
+
+# Load the data files into pandas DataFrames
+time_to_infection = pd.read_csv("TimeToInfection.csv")
+symptoms = pd.read_csv("Symptoms.csv")
+
+# Create or open the output file
+(*@\raisebox{2ex}{\hypertarget{code-Data Exploration-data-exploration-txt}{}}@*)output_file = open("data_exploration.txt", 'w')
+
+# Data Size
+output_file.write("# Data Size\n")
+output_file.write(f"TimeToInfection.csv - Rows: {time_to_infection.shape[0]}, Columns: {time_to_infection.shape[1]}\n")
+output_file.write(f"Symptoms.csv - Rows: {symptoms.shape[0]}, Columns: {symptoms.shape[1]}\n\n")
+
+# Summary Statistics
+output_file.write("# Summary Statistics\n")
+output_file.write("## TimeToInfection.csv\n")
+output_file.write(time_to_infection.describe().to_string())
+output_file.write("\n\n")
+output_file.write("## Symptoms.csv\n")
+output_file.write(symptoms.describe().to_string())
+output_file.write("\n\n")
+
+# Categorical Variables
+output_file.write("# Categorical Variables\n")
+output_file.write("## TimeToInfection.csv\n")
+for col in time_to_infection.select_dtypes(include='object'):
+    output_file.write(f"{col}:\n{time_to_infection[col].value_counts().head().to_string()}\n") 
+output_file.write("\n")
+
+output_file.write("## Symptoms.csv\n")
+for col in symptoms.select_dtypes(include='object'):
+    output_file.write(f"{col}:\n{symptoms[col].value_counts().head().to_string()}\n")
+output_file.write("\n")
+
+# Calculate and add interval lengths to "time_to_infection" DataFrame
+time_to_infection['interval_length'] = time_to_infection['day_interval_stop'] - time_to_infection['day_interval_start']
+
+# Write summary of interval lengths
+output_file.write("# Interval Lengths for TimeToInfection.csv\n")
+output_file.write(time_to_infection['interval_length'].describe().to_string())
+output_file.write("\n\n")
+
+# Missing Values
+output_file.write("# Missing Values\n")
+output_file.write("## TimeToInfection.csv\n")
+output_file.write(time_to_infection.replace('', np.nan).isna().sum().to_string())
+output_file.write("\n\n")
+output_file.write("## Symptoms.csv\n")
+output_file.write(symptoms.isna().sum().to_string())
+output_file.write("\n\n")
+
+number_of_unvaccinated_people = time_to_infection[(time_to_infection['group'] == 'N') | (time_to_infection['group'] == 'I')].shape[0]
+output_file.write("# Number of unvaccinated people\n")
+output_file.write(f"{number_of_unvaccinated_people}\n")
+
+output_file.close()
+
+\end{python}
+
+\subsection{Code Description}
+
+The provided Python code conducts data exploration on two datasets, "TimeToInfection.csv" and "Symptoms.csv". 
+
+It begins by loading the datasets into pandas DataFrames and determining the size (rows and columns) of each dataset. Summary statistics are then computed for both datasets, which include measures such as mean, standard deviation, minimum, maximum, and quartiles.
+
+The code then examines categorical variables in both datasets, showcasing the top values and their corresponding frequencies. For the "TimeToInfection.csv" dataset, it calculates the length of each time interval, appending this information as a new column. The code proceeds to generate a summary of the interval lengths.
+
+Furthermore, the code identifies missing values in both datasets and indicates the total count of unvaccinated individuals in the "TimeToInfection.csv" dataset.
+
+The outcomes of the data exploration, encompassing data size, summary statistics, analysis of categorical variables, interval lengths, missing values, and the count of unvaccinated individuals, are detailed in the "data\_exploration.txt" file for future reference.
+
+\subsection{Code Output}\hypertarget{file-data-exploration-txt}{}
+
+\subsubsection*{\hyperlink{code-Data Exploration-data-exploration-txt}{data\_exploration.txt}}
+
+\begin{codeoutput}
+\# Data Size
+TimeToInfection.csv - Rows: 12086, Columns: 16
+Symptoms.csv - Rows: 764, Columns: 11
+
+\# Summary Statistics
+\#\# TimeToInfection.csv
+         ID   age  patient\_contact  using\_FFP2\_mask  negative\_swab  booster  months\_since\_immunisation  time\_dose1\_to\_dose\_2  day\_interval\_start  day\_interval\_stop  infection\_event
+count 12086 12065            11686            11686          12086    12086                      11459                  9332               12086              12086            12086
+mean   1300 44.03           0.7941           0.2014         0.4933   0.5007                      5.015                 1.026               81.21              113.2          0.06321
+std   748.2 11.01           0.4044           0.4011            0.5      0.5                      2.344                0.4213               47.03               32.1           0.2434
+min       1    17                0                0              0        0                       -5.3                     0                   0                  1                0
+25\%     648    35                1                0              0        0                        3.8                   0.9                  75                 88                0
+50\%    1310    44                1                0              0        1                        5.5                     1                  99                106                0
+75\%    1942    53                1                0              1        1                        6.6                   1.2                 113                142                0
+max    2595    73                1                1              1        1                       17.8                   5.1                 171                178                1
+
+\#\# Symptoms.csv
+         ID   age  comorbidity  using\_FFP2\_mask  months\_until\_reinfection  booster\_over7\_days\_before  symptom\_number
+count   764   764          719              734                       764                        764             764
+mean   1315 41.45       0.3825           0.1839                       4.1                     0.5209           3.806
+std   742.7 10.69       0.4863           0.3877                     1.268                     0.4999           2.177
+min       2    17            0                0                         0                          0               0
+25\%   694.8    33            0                0                       3.4                          0               2
+50\%    1354    41            0                0                       4.4                          1               4
+75\%    1942 49.25            1                0                       5.2                          1               5
+max    2588    68            1                1                       5.8                          1              11
+
+\# Categorical Variables
+\#\# TimeToInfection.csv
+group:
+group
+V    8157
+H    2996
+I     469
+N     464
+sex:
+sex
+female    9617
+male      2370
+BMI:
+BMI
+u30    10625
+o30     1461
+positive\_household:
+positive\_household
+no     10584
+yes     1502
+vaccinetype:
+vaccinetype
+Pfizer\_BioNTech    7816
+Moderna            2201
+other\_unknown        18
+
+\#\# Symptoms.csv
+group:
+group
+V    550
+H    110
+N     67
+I     37
+sex:
+sex
+female    620
+male      139
+BMI:
+BMI
+u30    679
+o30     85
+variant:
+variant
+omicron    591
+delta      173
+
+\# Interval Lengths for TimeToInfection.csv
+count   12086
+mean    32.01
+std     26.43
+min         1
+25\%        14
+50\%        24
+75\%        34
+max        99
+
+\# Missing Values
+\#\# TimeToInfection.csv
+ID                              0
+group                           0
+age                            21
+sex                            99
+BMI                             0
+patient\_contact               400
+using\_FFP2\_mask               400
+negative\_swab                   0
+booster                         0
+positive\_household              0
+months\_since\_immunisation     627
+time\_dose1\_to\_dose\_2         2754
+vaccinetype                  2051
+day\_interval\_start              0
+day\_interval\_stop               0
+infection\_event                 0
+interval\_length                 0
+
+\#\# Symptoms.csv
+ID                            0
+group                         0
+age                           0
+sex                           5
+BMI                           0
+comorbidity                  45
+using\_FFP2\_mask              30
+months\_until\_reinfection      0
+variant                       0
+booster\_over7\_days\_before     0
+symptom\_number                0
+
+\# Number of unvaccinated people
+933
+\end{codeoutput}
+
+\section{Data Analysis}
+\subsection{{Code}}
+The Data Analysis was carried out using the following custom code:
+
+\begin{python}
+
+# IMPORT
+import pandas as pd
+import numpy as np
+from scipy import stats
+import statsmodels.formula.api as smf
+import pickle
+
+# LOAD DATA
+TimeToInfection = pd.read_csv("TimeToInfection.csv")
+Symptoms = pd.read_csv("Symptoms.csv")
+
+# DATASET PREPARATIONS
+# Drop the rows that contain missing value in the 'sex' column
+TimeToInfection.dropna(subset=['sex'], inplace=True)
+Symptoms.dropna(subset=['sex'], inplace=True)
+
+# Join Data files
+df = pd.merge(TimeToInfection[TimeToInfection.infection_event == 1], Symptoms, on=['ID', 'group', 'age', 'sex', 'BMI'], suffixes=('_x', '_y'))
+
+# DESCRIPTIVE STATISTICS
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-0-pkl}{}}@*)## Table 0: "Distribution of group, symptom number and variant for infected individuals only"
+grouped_df = df.groupby(['group', 'variant']).agg({'symptom_number': ['mean', 'std', 'count']}).reset_index()
+df0 = pd.DataFrame(grouped_df)
+df0.columns = ['Group', 'Variant', 'Average Symptom Number', 'Standard Deviation', 'Count']
+df0.set_index(['Group', 'Variant'], inplace=True)
+df0.to_pickle('table_0.pkl')
+
+# PREPROCESSING
+# No preprocessing is needed in this case
+
+# ANALYSIS
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-1-pkl}{}}@*)## Table 1: "Association between symptom numbers and group, adjusting for age, sex and comorbidity for infected individuals only"
+formula1 = 'symptom_number ~ group + age + sex + comorbidity'
+model1 = smf.ols(formula1, data=df)
+results1 = model1.fit()
+table1 = pd.DataFrame({'coef': results1.params, 'p-value': results1.pvalues})
+table1.to_pickle('table_1.pkl')
+
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-2-pkl}{}}@*)## Table 2: "Association between symptom numbers and variant, adjusting for age, sex and comorbidity and interaction between group and variant for infected individuals only"
+formula2 = 'symptom_number ~ group + variant + group:variant + age + sex + comorbidity' # Create interaction term
+model2 = smf.ols(formula2, data=df)
+results2 = model2.fit()
+# Include interaction term in the result table
+table2 = pd.DataFrame({'coef': results2.params, 'p-value': results2.pvalues})
+table2.to_pickle('table_2.pkl')
+
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-additional-results-pkl}{}}@*)# SAVE ADDITIONAL RESULTS
+additional_results = {
+    'Total number of observations': df.shape[0],
+    'Number of comorbidity cases': df['comorbidity'].sum(),
+    'Number of people using FFP2 mask': df['using_FFP2_mask_y'].sum()
+}
+
+with open('additional_results.pkl', 'wb') as f:
+    pickle.dump(additional_results, f)
+
+\end{python}
+
+\subsection{Code Description}
+
+The provided code conducts data analysis on the merged dataset of health workers who tested positive for SARS-CoV-2. The analysis involves descriptive statistics, preprocessing, and regression analysis to investigate the association between vaccination status, symptoms, and variants of the virus. 
+
+1. Descriptive Statistics:
+   - The code calculates the mean, standard deviation, and count of symptom numbers for different vaccination groups and virus variants, focusing on infected individuals only. The results are stored in "table\_0.pkl".
+
+2. Regression Analysis:
+   - An ordinary least squares (OLS) regression is performed to assess the association between symptom numbers and vaccination groups while adjusting for age, sex, and comorbidity. The results are stored in "table\_1.pkl".
+   - Another OLS regression is conducted to analyze the association between symptom numbers and virus variants, considering the interaction between vaccination groups and variants, while adjusting for age, sex, and comorbidity. The results, including the interaction term, are saved in "table\_2.pkl".
+
+3. Additional Results:
+   - The code also computes and saves additional results in "additional\_results.pkl", including the total number of observations, the number of comorbidity cases, and the count of individuals using an FFP2 mask in the dataset.
+
+\subsection{Code Output}\hypertarget{file-table-0-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-table-0-pkl}{table\_0.pkl}}
+
+\begin{codeoutput}
+               Average Symptom Number  Standard Deviation  Count
+Group Variant                                                   
+H     delta                     3.333               2.251      6
+      omicron                   3.068               2.064    103
+I     delta                     4.429                2.76      7
+      omicron                   4.069               1.771     29
+N     delta                     4.833               2.365     30
+      omicron                   4.306               2.328     36
+V     delta                     4.333                2.32    129
+      omicron                   3.683               2.089    419
+\end{codeoutput}\hypertarget{file-table-1-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-table-1-pkl}{table\_1.pkl}}
+
+\begin{codeoutput}
+                coef   p-value
+Intercept      3.386  1.35e-19
+group[T.I]     1.082    0.0115
+group[T.N]      1.49  1.98e-05
+group[T.V]    0.8078  0.000537
+sex[T.male]  -0.3747    0.0707
+age         -0.01245     0.108
+comorbidity   0.5698  0.000582
+\end{codeoutput}\hypertarget{file-table-2-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-table-2-pkl}{table\_2.pkl}}
+
+\begin{codeoutput}
+                                  coef   p-value
+Intercept                         3.86  4.71e-05
+group[T.I]                      0.5089      0.68
+group[T.N]                       1.277     0.186
+group[T.V]                      0.7977      0.37
+variant[T.omicron]             -0.4751     0.597
+sex[T.male]                    -0.4048    0.0514
+group[T.I]:variant[T.omicron]   0.6232     0.636
+group[T.N]:variant[T.omicron]  0.04547     0.966
+group[T.V]:variant[T.omicron] -0.08818     0.924
+age                             -0.013    0.0936
+comorbidity                     0.5695  0.000573
+\end{codeoutput}\hypertarget{file-additional-results-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-additional-results-pkl}{additional\_results.pkl}}
+
+\begin{codeoutput}
+{
+    'Total number of observations': (*@\raisebox{2ex}{\hypertarget{R0a}{}}@*)759,
+    'Number of comorbidity cases': (*@\raisebox{2ex}{\hypertarget{R1a}{}}@*)272.0,
+    'Number of people using FFP2 mask': (*@\raisebox{2ex}{\hypertarget{R2a}{}}@*)134.0,
+}
+\end{codeoutput}
+
+\section{LaTeX Table Design}
+\subsection{{Code}}
+The LaTeX Table Design was carried out using the following custom code:
+
+\begin{python}
+
+# IMPORT
+import pandas as pd
+from my_utils import to_latex_with_note, is_str_in_df, split_mapping, AbbrToNameDef
+
+# PREPARATION FOR ALL TABLES
+shared_mapping: AbbrToNameDef = {
+    'N': ('No Imm.', 'No immunity'),
+    'I': ('Inf. Only', 'Infected, unvaccinated'),
+    'V': ('Vac. Only', 'Twice vaccinated, uninfected'),
+    'H': ('Hyb.', 'Hybrid: Infected & Vaccinated'),
+    'delta': (None, 'Delta Variant'),
+    'omicron': (None, 'Omicron Variant'),
+    'coef': ('Coeff.', None),
+    'p-value': ('P-val', None),
+}
+
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-0-tex}{}}@*)# TABLE 0:
+df0 = pd.read_pickle('table_0.pkl')
+
+# RENAME ROWS AND COLUMNS 
+mapping0 = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df0, k)) 
+mapping0 |= {
+    'Average Symptom Number': ('Avg. Symp.', 'Average Number of Symptoms'),
+    'Standard Deviation': ('Std. Dev.', 'Standard Deviation of Symptoms'),
+    'Count': ('Count', 'Total number of infected individuals in each group and variant'),
+}
+abbrs_to_names0, legend0 = split_mapping(mapping0)
+df0 = df0.rename(columns=abbrs_to_names0, index=abbrs_to_names0)
+
+# SAVE AS LATEX:
+to_latex_with_note(
+    df0, 'table_0.tex',
+    caption="Avg. symptom no. by immunity group & variant", 
+    label='table:dist_symp',
+    note="Includes only positive cases.",
+    legend=legend0)
+
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-1-tex}{}}@*)# TABLE 1:
+df1 = pd.read_pickle('table_1.pkl')
+
+# RENAME ROWS AND COLUMNS 
+mapping1 = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df1, k)) 
+mapping1 |= {
+    'Intercept': ('Intercept', None),
+    'age': ('Age', None),
+    'sex[T.male]': ('Sex (M)', 'Male Sex'),
+    'comorbidity': ('Comorb.', '1: Yes, 0: No'),
+    'group[T.I]': ('Inf. Only', 'Infected, unvaccinated'),
+    'group[T.N]': ('No Imm.', 'No immunity'),
+    'group[T.V]': ('Vac. Only', 'Twice vaccinated, uninfected'),
+}
+abbrs_to_names1, legend1 = split_mapping(mapping1)
+df1 = df1.rename(index=abbrs_to_names1)
+
+# SAVE AS LATEX:
+to_latex_with_note(
+    df1, 'table_1.tex',
+    caption="Association between symptom numbers and immunity group", 
+    label='table:symp_grp',
+    note="Adjusted for age, sex, and comorbidities",
+    legend=legend1)
+
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-2-tex}{}}@*)# TABLE 2:
+df2 = pd.read_pickle('table_2.pkl')
+
+# RENAME ROWS AND COLUMNS 
+mapping2 = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df2, k)) 
+mapping2 |= {
+    'Intercept': ('Intercept', None),
+    'age': ('Age', None),
+    'sex[T.male]': ('Sex (M)', 'Male Sex'),
+    'comorbidity': ('Comorb.', '1: Yes, 0: No'),
+    'variant[T.omicron]': ('Var. (O)', 'Omicron Variant'),
+    'group[T.I]:variant[T.omicron]': ('Inf. Only * O', 'Interaction term for Infected Only and Omicron Variant'),
+    'group[T.N]:variant[T.omicron]': ('No Imm. * O', 'Interaction term for No Immunity and Omicron Variant'),
+    'group[T.V]:variant[T.omicron]': ('Vac. Only * O', 'Interaction term for Vaccinated Only and Omicron Variant'),
+    'group[T.I]': ('Inf. Only', 'Infected, unvaccinated'),
+    'group[T.N]': ('No Imm.', 'No immunity'),
+    'group[T.V]': ('Vac. Only', 'Twice vaccinated, uninfected'),
+}
+abbrs_to_names2, legend2 = split_mapping(mapping2)
+df2 = df2.rename(index=abbrs_to_names2)
+
+# SAVE AS LATEX:
+to_latex_with_note(
+    df2, 'table_2.tex',
+    caption="Symptom numbers, immunity group, variant, interaction", 
+    label='table:symp_inter',
+    note="Adjusted for age, sex, and comorbidities",
+    legend=legend2)
+
+\end{python}
+
+\subsection{Provided Code}
+The code above is using the following provided functions:
+
+\begin{python}
+def to_latex_with_note(df, filename: str, caption: str, label: str, note: str = None, legend: Dict[str, str] = None, **kwargs):
+    """
+    Converts a DataFrame to a LaTeX table with optional note and legend added below the table.
+
+    Parameters:
+    - df, filename, caption, label: as in `df.to_latex`.
+    - note (optional): Additional note below the table.
+    - legend (optional): Dictionary mapping abbreviations to full names.
+    - **kwargs: Additional arguments for `df.to_latex`.
+    """
+
+def is_str_in_df(df: pd.DataFrame, s: str):
+    return any(s in level for level in getattr(df.index, 'levels', [df.index]) + getattr(df.columns, 'levels', [df.columns]))
+
+AbbrToNameDef = Dict[Any, Tuple[Optional[str], Optional[str]]]
+
+def split_mapping(abbrs_to_names_and_definitions: AbbrToNameDef):
+    abbrs_to_names = {abbr: name for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if name is not None}
+    names_to_definitions = {name or abbr: definition for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if definition is not None}
+    return abbrs_to_names, names_to_definitions
+
+\end{python}
+
+
+
+\subsection{Code Output}
+
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-0-tex}{table\_0.tex}}
+
+\begin{codeoutput}
+\% This latex table was generated from: `table\_0.pkl`
+\begin{table}[h]
+\caption{Avg. symptom no. by immunity group \& variant}
+\label{table:dist\_symp}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{\%
+\begin{tabular}{llrrr}
+\toprule
+ \&  \& Avg. Symp. \& Std. Dev. \& Count \\
+Group \& Variant \&  \&  \&  \\
+\midrule
+\textbf{Hyb.} \& \textbf{delta} \& 3.33 \& 2.25 \& 6 \\
+\textbf{} \& \textbf{omicron} \& 3.07 \& 2.06 \& 103 \\
+\textbf{Inf. Only} \& \textbf{delta} \& 4.43 \& 2.76 \& 7 \\
+\textbf{} \& \textbf{omicron} \& 4.07 \& 1.77 \& 29 \\
+\textbf{No Imm.} \& \textbf{delta} \& 4.83 \& 2.36 \& 30 \\
+\textbf{} \& \textbf{omicron} \& 4.31 \& 2.33 \& 36 \\
+\textbf{Vac. Only} \& \textbf{delta} \& 4.33 \& 2.32 \& 129 \\
+\textbf{} \& \textbf{omicron} \& 3.68 \& 2.09 \& 419 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item Includes only positive cases.
+\item \textbf{No Imm.}: No immunity
+\item \textbf{Inf. Only}: Infected, unvaccinated
+\item \textbf{Vac. Only}: Twice vaccinated, uninfected
+\item \textbf{Hyb.}: Hybrid: Infected \& Vaccinated
+\item \textbf{delta}: Delta Variant
+\item \textbf{omicron}: Omicron Variant
+\item \textbf{Avg. Symp.}: Average Number of Symptoms
+\item \textbf{Std. Dev.}: Standard Deviation of Symptoms
+\item \textbf{Count}: Total number of infected individuals in each group and variant
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+\end{codeoutput}
+
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-1-tex}{table\_1.tex}}
+
+\begin{codeoutput}
+\% This latex table was generated from: `table\_1.pkl`
+\begin{table}[h]
+\caption{Association between symptom numbers and immunity group}
+\label{table:symp\_grp}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{\%
+\begin{tabular}{lrl}
+\toprule
+ \& coef \& p-value \\
+\midrule
+\textbf{Intercept} \& 3.39 \& \$$<$\$1e-06 \\
+\textbf{Inf. Only} \& 1.08 \& 0.0115 \\
+\textbf{No Imm.} \& 1.49 \& 1.98e-05 \\
+\textbf{Vac. Only} \& 0.808 \& 0.000537 \\
+\textbf{Sex (M)} \& -0.375 \& 0.0707 \\
+\textbf{Age} \& -0.0125 \& 0.108 \\
+\textbf{Comorb.} \& 0.57 \& 0.000582 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item Adjusted for age, sex, and comorbidities
+\item \textbf{Sex (M)}: Male Sex
+\item \textbf{Comorb.}: 1: Yes, 0: No
+\item \textbf{Inf. Only}: Infected, unvaccinated
+\item \textbf{No Imm.}: No immunity
+\item \textbf{Vac. Only}: Twice vaccinated, uninfected
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+\end{codeoutput}
+
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-2-tex}{table\_2.tex}}
+
+\begin{codeoutput}
+\% This latex table was generated from: `table\_2.pkl`
+\begin{table}[h]
+\caption{Symptom numbers, immunity group, variant, interaction}
+\label{table:symp\_inter}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{\%
+\begin{tabular}{lrl}
+\toprule
+ \& coef \& p-value \\
+\midrule
+\textbf{Intercept} \& 3.86 \& 4.71e-05 \\
+\textbf{Inf. Only} \& 0.509 \& 0.68 \\
+\textbf{No Imm.} \& 1.28 \& 0.186 \\
+\textbf{Vac. Only} \& 0.798 \& 0.37 \\
+\textbf{Var. (O)} \& -0.475 \& 0.597 \\
+\textbf{Sex (M)} \& -0.405 \& 0.0514 \\
+\textbf{Inf. Only * O} \& 0.623 \& 0.636 \\
+\textbf{No Imm. * O} \& 0.0455 \& 0.966 \\
+\textbf{Vac. Only * O} \& -0.0882 \& 0.924 \\
+\textbf{Age} \& -0.013 \& 0.0936 \\
+\textbf{Comorb.} \& 0.569 \& 0.000573 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item Adjusted for age, sex, and comorbidities
+\item \textbf{Sex (M)}: Male Sex
+\item \textbf{Comorb.}: 1: Yes, 0: No
+\item \textbf{Var. (O)}: Omicron Variant
+\item \textbf{Inf. Only * O}: Interaction term for Infected Only and Omicron Variant
+\item \textbf{No Imm. * O}: Interaction term for No Immunity and Omicron Variant
+\item \textbf{Vac. Only * O}: Interaction term for Vaccinated Only and Omicron Variant
+\item \textbf{Inf. Only}: Infected, unvaccinated
+\item \textbf{No Imm.}: No immunity
+\item \textbf{Vac. Only}: Twice vaccinated, uninfected
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+\end{codeoutput}
+
+\end{document}
