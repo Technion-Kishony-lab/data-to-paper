@@ -16,8 +16,8 @@ df_time_to_infection['interval_length'] = df_time_to_infection['day_interval_sto
 
 # Aggregate data by ID to get total time at risk and whether an infection occured
 df_time_to_infection = df_time_to_infection.groupby('ID').agg({'interval_length':'sum', 'group':'first',
-                                                                'age':'first', 'sex':'first', 'BMI': 'first',
-                                                                'infection_event':'max'}).reset_index()
+  'age':'first', 'sex':'first', 'BMI': 'first',
+  'infection_event':'max'}).reset_index()
 df_time_to_infection.rename(columns={'interval_length': 'total_time_at_risk'}, inplace=True)
 
 # DESCRIPTIVE STATISTICS

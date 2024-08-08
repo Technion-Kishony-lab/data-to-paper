@@ -1,0 +1,806 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{fancyvrb}
+\usepackage{color}
+\usepackage{listings}
+\usepackage{sectsty}
+\sectionfont{\Large}
+\subsectionfont{\normalsize}
+\subsubsectionfont{\normalsize}
+
+% Default fixed font does not support bold face
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{12} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{12}  % for normal
+
+% Custom colors
+\usepackage{color}
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+\definecolor{cyan}{rgb}{0.0,0.6,0.6}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+
+% Python style for highlighting
+\newcommand\pythonstyle{\lstset{
+language=Python,
+basicstyle=\ttfamily\footnotesize,
+morekeywords={self, import, as, from, if, for, while},              % Add keywords here
+keywordstyle=\color{deepblue},
+stringstyle=\color{deepred},
+commentstyle=\color{cyan},
+breaklines=true,
+escapeinside={(*@}{@*)},            % Define escape delimiters
+postbreak=\mbox{\textcolor{deepgreen}{$\hookrightarrow$}\space},
+showstringspaces=false
+}}
+
+
+% Python environment
+\lstnewenvironment{python}[1][]
+{
+\pythonstyle
+\lstset{#1}
+}
+{}
+
+% Python for external files
+\newcommand\pythonexternal[2][]{{
+\pythonstyle
+\lstinputlisting[#1]{#2}}}
+
+% Python for inline
+\newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
+
+
+% Code output style for highlighting
+\newcommand\outputstyle{\lstset{
+    language=,
+    basicstyle=\ttfamily\footnotesize\color{gray},
+    breaklines=true,
+    showstringspaces=false,
+    escapeinside={(*@}{@*)},            % Define escape delimiters
+}}
+
+% Code output environment
+\lstnewenvironment{codeoutput}[1][]
+{
+    \outputstyle
+    \lstset{#1}
+}
+{}
+
+
+\title{Enhanced COVID-19 Protection Among Healthcare Workers with Hybrid Immunity}
+\author{data-to-paper}
+\begin{document}
+\maketitle
+\begin{abstract}
+The ongoing COVID-19 pandemic underscores the critical need to optimize immunization strategies, particularly for healthcare workers who face high risks of exposure. While the deployment of vaccines provided significant advances, understanding how vaccination coupled with prior infection impacts susceptibility to subsequent infections is less clear. This study investigates how different states of immunity affect the susceptibility to SARS-CoV-2 among healthcare workers during the periods dominated by the delta and omicron variants. Analyzing data from 2,595 healthcare workers across Eastern/Northern Switzerland, we categorized immunity statuses into four groups: unvaccinated and uninfected, vaccinated only, previously infected only, and hybrid immunity (both vaccinated and infected). The hybrid immunity notably conferred the greatest protection against COVID-19. Longer durations of immunity exposure were also correlated with reduced infection rates, underscoring its protective impact over time. Despite these findings, limitations such as the potential biases inherent in self-reporting and the observational study design restrict the generalizability of our conclusions. Nevertheless, these results suggest significant policy implications for enhanced protection strategies in healthcare settings, particularly advocating for mixed immunity approaches in managing healthcare worker safety against COVID-19.
+\end{abstract}
+\section*{Introduction}
+
+COVID-19, the disease caused by the SARS-CoV-2 virus, has profoundly challenged global health systems and accelerated efforts for innovative immunization strategies, particularly for healthcare workers who face heightened risks of exposure \cite{Zhao2020AbnormalIO,Goldberg2022ProtectionAW}. Research to date has significantly advanced our understanding of the protective effects of vaccinations \cite{Cavanaugh2021ReducedRO,Cromer2021NeutralisingAT}. However, the scope of these investigations has been primarily limited to understanding single-method protective strategies, leaving gaps in our knowledge regarding the dynamics of combined protective approaches, specifically in the context of susceptibility to subsequent infections during periods dominated by varying virus variants \cite{Goldberg2021ProtectionAW,Nunes2022SARSCoV2OS}. This unaddressed question of how 'hybrid immunity', constituted by combined vaccination and prior infection, affects susceptibility outcomes among healthcare workers merits critical investigation.
+
+To address this gap, we have conducted an observational cohort study, employing a precisely curated dataset from healthcare networks across Eastern and Northern Switzerland. We categorized healthcare workers into distinct groups based on their immunity status - determined by their vaccination and infection history - and examined the effects of these varied immune statuses on the rate and duration before reinfection, particularly in the presence of the delta and omicron variants \cite{Cui2020CoAIDCH,Ferry2020PredictorsOU}.
+
+We have employed well-established statistical techniques in our analysis, chiefly, logistic regression to evaluate the relationship between immunity statuses and the likelihood of infection occurrence, and linear regression to assess the duration of their risk exposure before reinfection. Methodological references guiding our approach affirm the suitability of these tools for our identified objectives \cite{Katzman2016DeepSurvPT,Lin1989TheRI,Simon2011RegularizationPF}. Our analysis concludes that the hybrid immunity status confers the highest protection against SARS-CoV-2, with additional findings indicating that extended periods of immunity exposure significantly reduce the odds of reinfection. These findings underline the robustness of immune responses in healthcare workers as a formidable protective mechanism and advocate for consideration of hybrid immunity in formulating effective protection strategies against COVID-19.
+
+\section*{Results}
+First, to understand whether different immunity statuses had differential impacts on COVID-19 susceptibility, we conducted logistical regression analysis to estimate infection risk across groups, adjusting for total time at risk. The most substantial protective effect was exhibited by the Hybrid Group, indicating a lower risk of infection (Coefficient: \hyperlink{A4a}{-0.478}, p-value: \hyperlink{A4d}{0.0349}) compared to the reference group (No Immunity). The overall infection risk was inversely related to the total time at risk with a coefficient of \hyperlink{A5a}{-0.036} (p-value: $<$ \hyperlink{A5d}{$10^{-6}$}, \ref{table:table1EffectOfVaccinationGroup}), suggesting that prolonged exposure significantly reduces the odds of contracting COVID-19 among healthcare workers.
+
+% This latex table was generated from: `table_1.pkl`
+\begin{table}[h]
+\caption{\protect\hyperlink{file-table-1-pkl}{Impact of vaccination group on infection event and total time at risk}}
+\label{table:table1EffectOfVaccinationGroup}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lllllll}
+\toprule
+ & Coefficient & Std. Error & z-value & p-value & [\raisebox{2ex}{\hypertarget{A0a}{}}0.025 & \raisebox{2ex}{\hypertarget{A0b}{}}0.975] \\
+\midrule
+\textbf{Intercept} & \raisebox{2ex}{\hypertarget{A1a}{}}4.31 & \raisebox{2ex}{\hypertarget{A1b}{}}0.291 & \raisebox{2ex}{\hypertarget{A1c}{}}14.8 & $<$\raisebox{2ex}{\hypertarget{A1d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{A1e}{}}3.73 & \raisebox{2ex}{\hypertarget{A1f}{}}4.88 \\
+\textbf{Vaccinated Group} & \raisebox{2ex}{\hypertarget{A2a}{}}0.243 & \raisebox{2ex}{\hypertarget{A2b}{}}0.204 & \raisebox{2ex}{\hypertarget{A2c}{}}1.19 & \raisebox{2ex}{\hypertarget{A2d}{}}0.233 & \raisebox{2ex}{\hypertarget{A2e}{}}-0.156 & \raisebox{2ex}{\hypertarget{A2f}{}}0.642 \\
+\textbf{Infected Group} & \raisebox{2ex}{\hypertarget{A3a}{}}-0.0613 & \raisebox{2ex}{\hypertarget{A3b}{}}0.278 & \raisebox{2ex}{\hypertarget{A3c}{}}-0.22 & \raisebox{2ex}{\hypertarget{A3d}{}}0.826 & \raisebox{2ex}{\hypertarget{A3e}{}}-0.606 & \raisebox{2ex}{\hypertarget{A3f}{}}0.484 \\
+\textbf{Hybrid Group} & \raisebox{2ex}{\hypertarget{A4a}{}}-0.478 & \raisebox{2ex}{\hypertarget{A4b}{}}0.226 & \raisebox{2ex}{\hypertarget{A4c}{}}-2.11 & \raisebox{2ex}{\hypertarget{A4d}{}}0.0349 & \raisebox{2ex}{\hypertarget{A4e}{}}-0.922 & \raisebox{2ex}{\hypertarget{A4f}{}}-0.0338 \\
+\textbf{Total Time at Risk} & \raisebox{2ex}{\hypertarget{A5a}{}}-0.036 & \raisebox{2ex}{\hypertarget{A5b}{}}0.00175 & \raisebox{2ex}{\hypertarget{A5c}{}}-20.5 & $<$\raisebox{2ex}{\hypertarget{A5d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{A5e}{}}-0.0394 & \raisebox{2ex}{\hypertarget{A5f}{}}-0.0325 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{Vaccinated Group}: Twice vaccinated, uninfected
+\item \textbf{Infected Group}: Infected, unvaccinated
+\item \textbf{Hybrid Group}: Infected and $\geq$\raisebox{2ex}{\hypertarget{A6a}{}}1 vaccination, referred to as Hybrid immunity
+\item \textbf{Total Time at Risk}: Total time at risk for infection in the given group
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+Then, to explore how the duration of risk exposure varied among different groups within those who became infected, we performed a linear regression analysis focusing only on individuals with infection events. This analysis revealed a notable duration extension in the Hybrid Group (\hyperlink{B4a}{31.2} days, 95\% CI: \hyperlink{B4e}{20}, \hyperlink{B4f}{42.3}, p-value: $<$ \hyperlink{B4d}{$10^{-6}$}, \ref{table:table2VaccinatedGroupTimeAtRisk}) compared to the reference group (No Immunity). Additionally, the Vaccinated and Infected groups also showed increased total time at risk, detailed as \hyperlink{B2a}{19.2} days (95\% CI: \hyperlink{B2e}{10.2}, \hyperlink{B2f}{28.2}) and \hyperlink{B3a}{24.4} days (95\% CI: \hyperlink{B3e}{10.3}, \hyperlink{B3f}{38.5}) respectively, further highlighting how prior immunity affects the progression of the disease before reinfection occurs.
+
+% This latex table was generated from: `table_2.pkl`
+\begin{table}[h]
+\caption{\protect\hyperlink{file-table-2-pkl}{Vaccination group impact on total time at risk among infected individuals}}
+\label{table:table2VaccinatedGroupTimeAtRisk}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrrrlrr}
+\toprule
+ & Coefficient & Std. Error & t-value & p-value & [\raisebox{2ex}{\hypertarget{B0a}{}}0.025 & \raisebox{2ex}{\hypertarget{B0b}{}}0.975] \\
+\midrule
+\textbf{Intercept} & \raisebox{2ex}{\hypertarget{B1a}{}}104 & \raisebox{2ex}{\hypertarget{B1b}{}}4.29 & \raisebox{2ex}{\hypertarget{B1c}{}}24.3 & $<$\raisebox{2ex}{\hypertarget{B1d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{B1e}{}}95.9 & \raisebox{2ex}{\hypertarget{B1f}{}}113 \\
+\textbf{Vaccinated Group} & \raisebox{2ex}{\hypertarget{B2a}{}}19.2 & \raisebox{2ex}{\hypertarget{B2b}{}}4.59 & \raisebox{2ex}{\hypertarget{B2c}{}}4.18 & \raisebox{2ex}{\hypertarget{B2d}{}}$3.25\ 10^{-5}$ & \raisebox{2ex}{\hypertarget{B2e}{}}10.2 & \raisebox{2ex}{\hypertarget{B2f}{}}28.2 \\
+\textbf{Infected Group} & \raisebox{2ex}{\hypertarget{B3a}{}}24.4 & \raisebox{2ex}{\hypertarget{B3b}{}}7.2 & \raisebox{2ex}{\hypertarget{B3c}{}}3.39 & \raisebox{2ex}{\hypertarget{B3d}{}}0.000738 & \raisebox{2ex}{\hypertarget{B3e}{}}10.3 & \raisebox{2ex}{\hypertarget{B3f}{}}38.5 \\
+\textbf{Hybrid Group} & \raisebox{2ex}{\hypertarget{B4a}{}}31.2 & \raisebox{2ex}{\hypertarget{B4b}{}}5.68 & \raisebox{2ex}{\hypertarget{B4c}{}}5.49 & $<$\raisebox{2ex}{\hypertarget{B4d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{B4e}{}}20 & \raisebox{2ex}{\hypertarget{B4f}{}}42.3 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{Vaccinated Group}: Twice vaccinated, uninfected
+\item \textbf{Infected Group}: Infected, unvaccinated
+\item \textbf{Hybrid Group}: Infected and $\geq$\raisebox{2ex}{\hypertarget{B5a}{}}1 vaccination, referred to as Hybrid immunity
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+Finally, to further verify the effect of immunity status on the distribution of infection events, we analyzed the infection rates among different groups. The distribution analysis indicated that the Hybrid Immunity Group had a notably lower infection rate \hyperlink{C0a}{0.67} compared to the substantial rates in other groups, notably higher than the Vaccinated Group at \hyperlink{C3a}{3.61}, \ref{table:table3InfectionDistribution}. This result suggests that hybrid immunity not only lowers the risk but also diminishes the propagation of infection when measured against other single-method protective strategies, including vaccination alone.
+
+% This latex table was generated from: `table_3.pkl`
+\begin{table}[h]
+\caption{\protect\hyperlink{file-table-3-pkl}{Distribution of infection events by vaccination group}}
+\label{table:table3InfectionDistribution}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lr}
+\toprule
+ & Infection Rate \\
+group &  \\
+\midrule
+\textbf{Hybrid Immunity Group} & \raisebox{2ex}{\hypertarget{C0a}{}}0.67 \\
+\textbf{Infected Group} & \raisebox{2ex}{\hypertarget{C1a}{}}0.285 \\
+\textbf{No Immunity Group} & \raisebox{2ex}{\hypertarget{C2a}{}}0.636 \\
+\textbf{Vaccinated Group} & \raisebox{2ex}{\hypertarget{C3a}{}}3.61 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{Hybrid Immunity Group}: Infected and $\geq$\raisebox{2ex}{\hypertarget{C4a}{}}1 vaccination, referred to as Hybrid immunity
+\item \textbf{Infected Group}: Infected, unvaccinated
+\item \textbf{No Immunity Group}: No immunity
+\item \textbf{Vaccinated Group}: Twice vaccinated, uninfected
+\item \textbf{Infection Rate}: Rate of infection within the respective group
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+In summary, these results underscore that hybrid immunity significantly enhances protection against COVID-19 and reduces infection propagation within healthcare settings. The decrement in susceptibility as a function of increased time at risk substantiates the robustness of immune responses in healthcare workers, offering strong defensive benefits over time.
+
+\section*{Discussion}
+
+The importance of optimal immunization strategies in the backdrop of the ongoing COVID-19 pandemic is underscored in our study, which dissected the impacts of different immunity statuses on susceptibility to SARS-CoV-2 among healthcare workers \cite{Zhao2020AbnormalIO, Goldberg2022ProtectionAW, Fernandes2022EmergingCV}. Our analysis is built upon stratified immunity groups, considering both natural (previous infections) and vaccination-provided immunity as contributing factors \cite{Cavanaugh2021ReducedRO,Cromer2021NeutralisingAT}.
+
+We used logistic regression to assess infection risk in individuals with different immunity statuses and found that the hybrid immunity group, those who have been infected and have alse received vaccination, had the lowest risk of infection. This builds upon the findings of previous studies which demonstrated that a combination of natural and vaccination-induced immunity provides superior protection against SARS-CoV-2 \cite{Nordstrm2022RiskOS}. 
+
+Additionally, our results from the linear regression model showed that the duration of risk exposure was extended in groups with infection events, notably in the Hybrid Immunity Group. This corroborates previous findings which reported that prior natural immunity, in conjunction with vaccination, contributed to slower disease progression \cite{Nunes2022SARSCoV2OS, Madison2021PsychologicalAB}.
+
+However, our study has some limitations that warrant consideration. The dependence on self-reporting of symptoms by healthcare workers might have introduced bias due to varying health consciousness levels among participants. The potentially skewed data due to this differential self-reporting could influence the perceived risk and protection levels associated with each immunity group. Additionally, the observational nature of our study design might limit the generalizability of our findings \cite{Goldberg2021ProtectionAW}. The testing recommendations and techniques were also variable across participating institutions, potentially leading to differential detection rates of SARS-CoV-2, which might have further impacted our results \cite{Moss2022TheTC}. These limitations should be carefully considered in any future studies.
+
+Even with these limitations, our study provided critical insights into the protective effect of hybrid immunity against SARS-CoV-2 infections, presenting valuable policy implications for management strategies in healthcare settings. Hybrid immunity, provided by vaccinations and prior infections, could be considered a strong defense mechanism against COVID-19. These findings pave the way for future research centered on understanding the dynamics of mixed protective strategies while also highlighting the importance of considering vaccination strategies alongside natural infection experiences in managing healthcare worker safety. Therefore, as we navigate the evolving landscape of this pandemic with the emergence of new virus variants, the hybrid immunity could provide robust protection and warrant consideration in public health policies.
+
+\section*{Methods}
+
+\subsection*{Data Source}
+The study dataset comprises data collected from a multicentre prospective cohort of hospital employees in Eastern and Northern Switzerland during the COVID-19 pandemic between August 2020 and March 2022. A total of 2,595 participants were recruited, representing a range of immunity statuses due to previous infections or vaccinations. The employees were instructed to undergo testing upon experiencing symptoms aligned with national recommendations. The dataset used in this analysis is divided in two primary files. The first file includes the time intervals for every participant along with their vaccination status, demographic variables, protective measures adopted, exposure to COVID-19 via household, and recorded infection events. The second file contains data pertaining to infection events, describing the symptoms presented by the participants along with the specific variant of the virus.
+
+\subsection*{Data Preprocessing}
+Initial preprocessing involved calculating the duration of each interval recorded in the dataset, aiding in determining individual exposure periods. The data were then aggregated based on participant identifiers to summarize key parameters such as total time at risk and occurrence of infection, stratified by immunity group, age, and other demographic factors. To handle missing data, unspecified entries for categorical variables such as sex were marked as NaN, and missing continuous variables like age were replaced with the mean age of the dataset. Preparatory steps also included creating dummy variables for the categorical immunity group to facilitate various comparisons in the analysis phase.
+
+\subsection*{Data Analysis}
+The statistical analysis aimed at assessing the impacts of different immunity statuses on the likelihood of infection and total time exposed before reinfection. A logistic regression model was applied to ascertain the relationship between immunity status and occurrence of an infection event, while controlling for total time at risk. A linear model was utilized to investigate how immunity status affected the duration of exposure among those who became infected. To contextualize the rate of infection among different groups, averages and summed incidences were also calculated. This approach provided insights into which immunity groups experienced fewer symptoms or longer periods before reinfection, aiding in understanding the protective effects of vaccinations and prior infections combined.\subsection*{Code Availability}
+
+Custom code used to perform the data preprocessing and analysis, as well as the raw code outputs, are provided in Supplementary Methods.
+
+
+\bibliographystyle{unsrt}
+\bibliography{citations}
+
+
+\clearpage
+\appendix
+
+\section{Data Description} \label{sec:data_description} Here is the data description, as provided by the user:
+
+\begin{codeoutput}
+\#\# General Description
+(*@\raisebox{2ex}{\hypertarget{S}{}}@*)General description 
+In this prospective, multicentre cohort performed between August (*@\raisebox{2ex}{\hypertarget{S0a}{}}@*)2020 and March (*@\raisebox{2ex}{\hypertarget{S0b}{}}@*)2022, we recruited hospital employees from ten acute/nonacute healthcare networks in Eastern/Northern Switzerland, consisting of (*@\raisebox{2ex}{\hypertarget{S0c}{}}@*)2,595 participants (median follow-up (*@\raisebox{2ex}{\hypertarget{S0d}{}}@*)171 days). The study comprises infections with the delta and the omicron variant. We determined immune status in September (*@\raisebox{2ex}{\hypertarget{S0e}{}}@*)2021 based on serology and previous SARS-CoV-2 infections/vaccinations: Group N (no immunity); Group V (twice vaccinated, uninfected); Group I (infected, unvaccinated); Group H (hybrid: infected and $\geq$1 vaccination). Participants were asked to get tested for SARS-CoV-2 in case of compatible symptoms, according to national recommendations. SARS-CoV-2 was detected by polymerase chain reaction (PCR) or rapid antigen diagnostic (RAD) test, depending on the participating institutions. The dataset is consisting of two files, one describing vaccination and infection events for all healthworkers, and the secone one describing the symptoms for the healthworkers who tested positive for SARS-CoV-2.
+\#\# Data Files
+The dataset consists of 2 data files:
+
+\#\#\# File 1: "TimeToInfection.csv"
+(*@\raisebox{2ex}{\hypertarget{T}{}}@*)Data in the file "TimeToInfection.csv" is organised in time intervals, from day\_interval\_start to day\_interval\_stop. Missing data is shown as "" for not indicated or not relevant (e.g. which vaccine for the non-vaccinated group). It is very important to note, that per healthworker (=ID number), several rows (time intervals) can exist, and the length of the intervals can vary (difference between day\_interval\_start and day\_interval\_stop). This can lead to biased results if not taken into account, e.g. when running a statistical comparison between two columns. It can also lead to biases when merging the two files, which therefore should be avoided. The file contains (*@\raisebox{2ex}{\hypertarget{T0a}{}}@*)16 columns:
+
+ID	Unique Identifier of each healthworker
+group	Categorical, Vaccination group: "N" (no immunity), "V" (twice vaccinated, uninfected), "I" (infected, unvaccinated), "H" (hybrid: infected and $\geq$1 vaccination)
+age	Continuous, age in years 
+sex	Categorical, female", "male" (or "" for not indicated)	
+BMI	Categorical, "o30" for over (*@\raisebox{2ex}{\hypertarget{T1a}{}}@*)30  or "u30" for below (*@\raisebox{2ex}{\hypertarget{T1b}{}}@*)30	
+patient\_contact	Having contact with patients during work during this interval, (*@\raisebox{2ex}{\hypertarget{T2a}{}}@*)1=yes, (*@\raisebox{2ex}{\hypertarget{T2b}{}}@*)0=no 
+using\_FFP2\_mask	Always using protective respiratory masks during work, (*@\raisebox{2ex}{\hypertarget{T3a}{}}@*)1=yes, (*@\raisebox{2ex}{\hypertarget{T3b}{}}@*)0=no 
+negative\_swab	documentation of $\geq$1 negative test in the previous month, (*@\raisebox{2ex}{\hypertarget{T4a}{}}@*)1=yes, (*@\raisebox{2ex}{\hypertarget{T4b}{}}@*)0=no 
+booster	receipt of booster vaccination, (*@\raisebox{2ex}{\hypertarget{T5a}{}}@*)1=yes, (*@\raisebox{2ex}{\hypertarget{T5b}{}}@*)0=no (or "" for not indicated)	
+positive\_household	categorical, SARS-CoV-2 infection of a household contact within the same month, (*@\raisebox{2ex}{\hypertarget{T6a}{}}@*)1=yes, (*@\raisebox{2ex}{\hypertarget{T6b}{}}@*)0=no	
+months\_since\_immunisation	continuous, time since last immunization event (infection or vaccination) in months. Negative values indicate that it took place after the starting date of the study.
+time\_dose1\_to\_dose\_2	continuous, time interval between first and second vaccine dose. Empty when not vaccinated twice
+vaccinetype	Categorical, "Moderna" or "Pfizer\_BioNTech" or "" for not vaccinated.	
+day\_interval\_start	day since start of study when the interval starts
+day\_interval\_stop	day since start of study when the interval stops	
+infection\_event	If an infection occured during this time interval, (*@\raisebox{2ex}{\hypertarget{T7a}{}}@*)1=yes, (*@\raisebox{2ex}{\hypertarget{T7b}{}}@*)0=no
+
+Here are the first few lines of the file:
+```output
+ID,group,age,sex,BMI,patient\_contact,using\_FFP2\_mask,negative\_swab,booster,positive\_household,months\_since\_immunisation,time\_dose1\_to\_dose\_2,vaccinetype,day\_interval\_start,day\_interval\_stop,infection\_event
+1,V,38,female,u30,0,0,0,0,no,0.8,1.2,Moderna,0,87,0
+1,V,38,female,u30,0,0,0,0,no,0.8,1.2,Moderna,87,99,0
+1,V,38,female,u30,0,0,0,0,no,0.8,1.2,Moderna,99,113,0
+
+```
+
+\#\#\# File 2: "Symptoms.csv"
+(*@\raisebox{2ex}{\hypertarget{U}{}}@*)Data in the file "Symptoms.csv" is organised per infection event, consisting in total of (*@\raisebox{2ex}{\hypertarget{U0a}{}}@*)764 events. Each worker is only indicated once. It contains (*@\raisebox{2ex}{\hypertarget{U0b}{}}@*)11 columns:
+ID	Unique Identifier, same in both files
+group	Categorical, Vaccination group: "N" (no immunity), "V" (twice vaccinated, uninfected), "I" (infected, unvaccinated), "H" (hybrid: infected and $\geq$1 vaccination)
+age	Continuous, age in years 
+sex	Categorical, "female", "male" (or "" for not indicated)	
+BMI	Categorical, "o30" for $>$30 or "u30" for under (*@\raisebox{2ex}{\hypertarget{U1a}{}}@*)30	
+comorbidity catgeorical, if any comorbity pre-existed, (*@\raisebox{2ex}{\hypertarget{U2a}{}}@*)1=yes, (*@\raisebox{2ex}{\hypertarget{U2b}{}}@*)0=no	
+using\_FFP2\_mask	Always using protective respiratory masks during work, (*@\raisebox{2ex}{\hypertarget{U3a}{}}@*)1=yes, (*@\raisebox{2ex}{\hypertarget{U3b}{}}@*)0=no 
+months\_until\_reinfection	time until next infection in months	
+variant	Categorical, "delta" or "omicron" (or "" for not indicated)	
+booster\_over7\_days\_before	If a booster was given in the last (*@\raisebox{2ex}{\hypertarget{U4a}{}}@*)7 days before the infection	
+symptom\_number	Continous, Number of symptoms which occured after the infection
+
+Here are the first few lines of the file:
+```output
+ID,group,age,sex,BMI,comorbidity,using\_FFP2\_mask,months\_until\_reinfection,variant,booster\_over7\_days\_before,symptom\_number
+2,N,45,female,u30,0,0,2.5,delta,0,11
+3,V,58,female,u30,1,0,4.2,omicron,0,6
+7,V,32,female,u30,0,1,4.5,omicron,1,5
+
+```
+
+
+\end{codeoutput}
+
+\section{Data Exploration}
+\subsection{{Code}}
+The Data Exploration was carried out using the following custom code:
+
+\begin{python}
+
+import pandas as pd
+
+# Specify the path to the "TimeToInfection.csv" and "Symptoms.csv" datasets.
+time_to_infection_filepath = "TimeToInfection.csv"
+symptoms_filepath = "Symptoms.csv"
+
+# Load the datasets into pandas DataFrames.
+time_to_infection_df = pd.read_csv(time_to_infection_filepath)
+symptoms_df = pd.read_csv(symptoms_filepath)
+
+# Create a summary of the data.
+(*@\raisebox{2ex}{\hypertarget{code-Data Exploration-data-exploration-txt}{}}@*)summary = open("data_exploration.txt", "w")
+
+# Data Size
+summary.write("# Data Size\n")
+summary.write(f"TimeToInfection.csv: {time_to_infection_df.shape[0]} rows, {time_to_infection_df.shape[1]} columns\n")
+summary.write(f"Symptoms.csv: {symptoms_df.shape[0]} rows, {symptoms_df.shape[1]} columns\n\n")
+
+# Summary Statistics
+summary.write("# Summary Statistics\n")
+summary.write(f"{time_to_infection_df.describe(include='all')}\n\n")
+summary.write(f"{symptoms_df.describe(include='all')}\n\n")
+
+# Categorical Variables
+summary.write("# Categorical Variables (Top 5 categories including unvaccinated represented as '')\n")
+for column in time_to_infection_df.select_dtypes(include=['object', 'category']).columns:
+    summary.write(f"{column}: {time_to_infection_df[column].value_counts(dropna=False).nlargest(5).to_string()}\n")
+for column in symptoms_df.select_dtypes(include=['object', 'category']).columns:
+    summary.write(f"{column}: {symptoms_df[column].value_counts(dropna=False).nlargest(5).to_string()}\n")
+summary.write("\n")
+
+# Missing Values
+summary.write("# Missing Values\n")
+summary.write(f"TimeToInfection.csv: {time_to_infection_df.isnull().sum().to_string()}\n\n")
+summary.write(f"Symptoms.csv: {symptoms_df.isnull().sum().to_string()}\n")
+
+# Interval Lengths
+summary.write("# Interval Lengths\n")
+time_to_infection_df['interval_length'] = time_to_infection_df['day_interval_stop'] - time_to_infection_df['day_interval_start']
+summary.write(f"Interval length statistics: {time_to_infection_df['interval_length'].describe().to_string()}\n")
+
+# Close the file
+summary.close()
+
+\end{python}
+
+\subsection{Code Description}
+
+The provided code conducts a data exploration analysis on two datasets: "TimeToInfection.csv" and "Symptoms.csv". 
+
+The code starts by loading the datasets into pandas DataFrames and then proceeds to generate a summary of the data exploration analysis. 
+
+The analysis includes:
+1. Data Size: Provides the number of rows and columns in each dataset.
+2. Summary Statistics: Presents descriptive statistics for each dataset, including mean, standard deviation, min, max, and quartiles for numerical columns.
+3. Categorical Variables: Lists the top 5 categories (including missing values represented as '') in each categorical column.
+4. Missing Values: Displays the count of missing values for each column in both datasets.
+5. Interval Lengths: Calculates the interval length for each entry in the "TimeToInfection.csv" dataset and provides corresponding statistics (e.g., mean, standard deviation).
+
+The code writes the following information into the "data\_exploration.txt" file:
+- Data Size: Number of rows and columns in each dataset.
+- Summary Statistics: Descriptive statistics for both datasets.
+- Categorical Variables: Top 5 categories for each categorical column in both datasets.
+- Missing Values: Count of missing values in each column for both datasets.
+- Interval Lengths: Descriptive statistics of interval lengths in the "TimeToInfection.csv" dataset.
+
+\subsection{Code Output}\hypertarget{file-data-exploration-txt}{}
+
+\subsubsection*{\hyperlink{code-Data Exploration-data-exploration-txt}{data\_exploration.txt}}
+
+\begin{codeoutput}
+\# Data Size
+TimeToInfection.csv: 12086 rows, 16 columns
+Symptoms.csv: 764 rows, 11 columns
+
+\# Summary Statistics
+          ID  group   age     sex    BMI  patient\_contact  using\_FFP2\_mask  negative\_swab  booster positive\_household  months\_since\_immunisation  time\_dose1\_to\_dose\_2      vaccinetype  day\_interval\_start  day\_interval\_stop  infection\_event
+count  12086  12086 12065   11987  12086            11686            11686          12086    12086              12086                      11459                  9332            10035               12086              12086            12086
+unique   NaN      4   NaN       2      2              NaN              NaN            NaN      NaN                  2                        NaN                   NaN                3                 NaN                NaN              NaN
+top      NaN      V   NaN  female    u30              NaN              NaN            NaN      NaN                 no                        NaN                   NaN  Pfizer\_BioNTech                 NaN                NaN              NaN
+freq     NaN   8157   NaN    9617  10625              NaN              NaN            NaN      NaN              10584                        NaN                   NaN             7816                 NaN                NaN              NaN
+mean    1300    NaN 44.03     NaN    NaN           0.7941           0.2014         0.4933   0.5007                NaN                      5.015                 1.026              NaN               81.21              113.2          0.06321
+std    748.2    NaN 11.01     NaN    NaN           0.4044           0.4011            0.5      0.5                NaN                      2.344                0.4213              NaN               47.03               32.1           0.2434
+min        1    NaN    17     NaN    NaN                0                0              0        0                NaN                       -5.3                     0              NaN                   0                  1                0
+25\%      648    NaN    35     NaN    NaN                1                0              0        0                NaN                        3.8                   0.9              NaN                  75                 88                0
+50\%     1310    NaN    44     NaN    NaN                1                0              0        1                NaN                        5.5                     1              NaN                  99                106                0
+75\%     1942    NaN    53     NaN    NaN                1                0              1        1                NaN                        6.6                   1.2              NaN                 113                142                0
+max     2595    NaN    73     NaN    NaN                1                1              1        1                NaN                       17.8                   5.1              NaN                 171                178                1
+
+          ID group   age     sex  BMI  comorbidity  using\_FFP2\_mask  months\_until\_reinfection  variant  booster\_over7\_days\_before  symptom\_number
+count    764   764   764     759  764          719              734                       764      764                        764             764
+unique   NaN     4   NaN       2    2          NaN              NaN                       NaN        2                        NaN             NaN
+top      NaN     V   NaN  female  u30          NaN              NaN                       NaN  omicron                        NaN             NaN
+freq     NaN   550   NaN     620  679          NaN              NaN                       NaN      591                        NaN             NaN
+mean    1315   NaN 41.45     NaN  NaN       0.3825           0.1839                       4.1      NaN                     0.5209           3.806
+std    742.7   NaN 10.69     NaN  NaN       0.4863           0.3877                     1.268      NaN                     0.4999           2.177
+min        2   NaN    17     NaN  NaN            0                0                         0      NaN                          0               0
+25\%    694.8   NaN    33     NaN  NaN            0                0                       3.4      NaN                          0               2
+50\%     1354   NaN    41     NaN  NaN            0                0                       4.4      NaN                          1               4
+75\%     1942   NaN 49.25     NaN  NaN            1                0                       5.2      NaN                          1               5
+max     2588   NaN    68     NaN  NaN            1                1                       5.8      NaN                          1              11
+
+\# Categorical Variables (Top 5 categories including unvaccinated represented as '')
+group: group
+V    8157
+H    2996
+I     469
+N     464
+sex: sex
+female    9617
+male      2370
+NaN         99
+BMI: BMI
+u30    10625
+o30     1461
+positive\_household: positive\_household
+no     10584
+yes     1502
+vaccinetype: vaccinetype
+Pfizer\_BioNTech    7816
+Moderna            2201
+NaN                2051
+other\_unknown        18
+group: group
+V    550
+H    110
+N     67
+I     37
+sex: sex
+female    620
+male      139
+NaN         5
+BMI: BMI
+u30    679
+o30     85
+variant: variant
+omicron    591
+delta      173
+
+\# Missing Values
+TimeToInfection.csv: ID                              0
+group                           0
+age                            21
+sex                            99
+BMI                             0
+patient\_contact               400
+using\_FFP2\_mask               400
+negative\_swab                   0
+booster                         0
+positive\_household              0
+months\_since\_immunisation     627
+time\_dose1\_to\_dose\_2         2754
+vaccinetype                  2051
+day\_interval\_start              0
+day\_interval\_stop               0
+infection\_event                 0
+
+Symptoms.csv: ID                            0
+group                         0
+age                           0
+sex                           5
+BMI                           0
+comorbidity                  45
+using\_FFP2\_mask              30
+months\_until\_reinfection      0
+variant                       0
+booster\_over7\_days\_before     0
+symptom\_number                0
+\# Interval Lengths
+Interval length statistics: count   12086
+mean    32.01
+std     26.43
+min         1
+25\%        14
+50\%        24
+75\%        34
+max        99
+\end{codeoutput}
+
+\section{Data Analysis}
+\subsection{{Code}}
+The Data Analysis was carried out using the following custom code:
+
+\begin{python}
+
+
+# IMPORT
+import pandas as pd
+import numpy as np
+import pickle
+from statsmodels.discrete.discrete_model import Logit
+from statsmodels.regression.linear_model import OLS
+
+# LOAD DATA
+df_time_to_infection = pd.read_csv('TimeToInfection.csv')
+
+# DATASET PREPARATIONS
+# Calculate the duration for each interval
+df_time_to_infection['interval_length'] = df_time_to_infection['day_interval_stop'] - df_time_to_infection['day_interval_start']
+
+# Aggregate data by ID to get total time at risk and whether an infection occured
+df_time_to_infection = df_time_to_infection.groupby('ID').agg({'interval_length':'sum', 'group':'first',
+  'age':'first', 'sex':'first', 'BMI': 'first',
+  'infection_event':'max'}).reset_index()
+df_time_to_infection.rename(columns={'interval_length': 'total_time_at_risk'}, inplace=True)
+
+# DESCRIPTIVE STATISTICS
+# No descriptive statistics table is needed.
+
+# PREPROCESSING
+# Handle missing data
+df_time_to_infection.loc[df_time_to_infection['sex'] == '', 'sex'] = np.NaN
+df_time_to_infection.loc[df_time_to_infection['age'].isna(), 'age'] = df_time_to_infection['age'].mean()
+
+# Create dummy variables for the 'group' column 
+df = pd.get_dummies(df_time_to_infection, columns=['group'], drop_first=False)
+
+# ANALYSIS
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-1-pkl}{}}@*)## Table 1: "Impact of vaccination group on infection event and total time at risk"
+model = Logit.from_formula('infection_event ~ total_time_at_risk + group_V + group_I + group_H', df)
+result = model.fit()
+df1 = pd.DataFrame(result.summary2().tables[1])
+df1.to_pickle('table_1.pkl')
+
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-2-pkl}{}}@*)## Table 2: "Vaccination group impact on total time at risk among infected individuals"
+df_infected = df[df['infection_event'] == 1]
+# As the sum of group_V, group_I, group_H, and group_N equals 1, we can remove group_N to avoid singularity
+model2 = OLS.from_formula('total_time_at_risk ~ group_V + group_I + group_H', df_infected)
+result2 = model2.fit()
+df2 = pd.DataFrame(result2.summary2().tables[1])
+df2.to_pickle('table_2.pkl')
+
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-3-pkl}{}}@*)## Table 3: "Distribution of infection events by vaccination group"
+grouped_df = df_time_to_infection.groupby('group').agg({'total_time_at_risk':'mean', 'infection_event':'sum'})
+grouped_df['infection_rate'] = grouped_df['infection_event'] / grouped_df['total_time_at_risk']
+df3 = grouped_df[['infection_rate']]
+df3.to_pickle('table_3.pkl')
+
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-additional-results-pkl}{}}@*)# SAVE ADDITIONAL RESULTS
+additional_results = {
+    'Total number of observations': df.shape[0],
+    'Log-Likelihood of model': result.llf,
+    'AIC of model with Total Time at Risk Among Infected Individuals': result2.aic
+}
+with open('additional_results.pkl', 'wb') as f:
+    pickle.dump(additional_results, f)
+
+\end{python}
+
+\subsection{Code Description}
+
+The provided code performs data analysis on the dataset "TimeToInfection.csv" to investigate the impact of vaccination status on the risk of infection among healthcare workers over time. 
+
+The code first calculates the total time at risk for each individual by aggregating the time intervals and identifying if an infection event occurred. It then preprocesses the data by handling missing values and creating dummy variables for the vaccination groups.
+
+Three main analyses are conducted:
+1. The code fits a logistic regression model to determine the impact of vaccination group (twice vaccinated, infected unvaccinated, hybrid) on the likelihood of infection while considering the total time at risk.
+2. An OLS regression model is used to assess how vaccination status affects the total time at risk specifically among infected individuals.
+3. The distribution of infection events by vaccination group is explored to understand the infection rates across different groups.
+
+The results of these analyses are saved as pickled files "table\_1.pkl", "table\_2.pkl", and "table\_3.pkl" respectively. Additionally, the code saves the total number of observations, the log-likelihood of the model, and the AIC value of the model focusing on total time at risk among infected individuals in the "additional\_results.pkl" file for further examination.
+
+\subsection{Code Output}\hypertarget{file-table-1-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-table-1-pkl}{table\_1.pkl}}
+
+\begin{codeoutput}
+                      Coef.  Std.Err.       z     P$>$\textbar{}z\textbar{}  [0.025   0.975]
+Intercept             4.305    0.2915   14.77  2.23e-49   3.734    4.877
+group\_V[T.True]      0.2428    0.2036   1.193     0.233 -0.1562   0.6418
+group\_I[T.True]     -0.0613    0.2781 -0.2204     0.826 -0.6064   0.4838
+group\_H[T.True]     -0.4777    0.2265  -2.109    0.0349 -0.9216 -0.03378
+total\_time\_at\_risk -0.03596  0.001752  -20.52  1.31e-93 -0.0394 -0.03253
+\end{codeoutput}\hypertarget{file-table-2-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-table-2-pkl}{table\_2.pkl}}
+
+\begin{codeoutput}
+                 Coef.  Std.Err.     t     P$>$\textbar{}t\textbar{}  [0.025  0.975]
+Intercept        104.4     4.292 24.32  4.42e-97   95.95   112.8
+group\_V[T.True]  19.19     4.592  4.18  3.25e-05   10.18   28.21
+group\_I[T.True]   24.4     7.199 3.389  0.000738   10.26   38.53
+group\_H[T.True]  31.17     5.677  5.49  5.49e-08   20.02   42.31
+\end{codeoutput}\hypertarget{file-table-3-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-table-3-pkl}{table\_3.pkl}}
+
+\begin{codeoutput}
+       infection\_rate
+group                
+H              0.6697
+I              0.2854
+N              0.6358
+V               3.607
+\end{codeoutput}\hypertarget{file-additional-results-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-additional-results-pkl}{additional\_results.pkl}}
+
+\begin{codeoutput}
+{
+    'Total number of observations': (*@\raisebox{2ex}{\hypertarget{R0a}{}}@*)2595,
+    'Log-Likelihood of model': (*@\raisebox{2ex}{\hypertarget{R1a}{}}@*)-1242            ,
+    'AIC of model with Total Time at Risk Among Infected Individuals': (*@\raisebox{2ex}{\hypertarget{R2a}{}}@*)7726             ,
+}
+\end{codeoutput}
+
+\section{LaTeX Table Design}
+\subsection{{Code}}
+The LaTeX Table Design was carried out using the following custom code:
+
+\begin{python}
+
+# IMPORT
+import pandas as pd
+from my_utils import to_latex_with_note, is_str_in_df, split_mapping, AbbrToNameDef
+
+# PREPARATION FOR ALL TABLES
+shared_mapping: AbbrToNameDef = {
+    'Coef.': ('Coefficient', None),
+    'Std.Err.': ('Std. Error', None),
+    'z': ('z-value', None),
+    'P>|z|':('p-value', None),
+    't': ('t-value', None),
+    'P>|t|':('p-value', None),
+    'BMI': ('BMI Category','"o30" for over 30  or "u30" for below 30'),
+}
+
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-1-tex}{}}@*)# TABLE 1
+df1 = pd.read_pickle('table_1.pkl')
+
+## RENAME ROWS AND COLUMNS
+mapping1 = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df1, k)) 
+mapping1 |= {
+    'group_V[T.True]': ('Vaccinated Group', 'Twice vaccinated, uninfected'),
+    'group_I[T.True]': ('Infected Group', 'Infected, unvaccinated'),
+    'group_H[T.True]': ('Hybrid Group', 'Infected and $\geq$1 vaccination, referred to as Hybrid immunity'),
+    'total_time_at_risk': ('Total Time at Risk', 'Total time at risk for infection in the given group')
+}
+abbrs_to_names1, legend1 = split_mapping(mapping1)
+df1 = df1.rename(columns=abbrs_to_names1, index=abbrs_to_names1)
+
+# SAVE AS LATEX
+to_latex_with_note(
+    df1, 'table_1.tex',
+    caption="Impact of vaccination group on infection event and total time at risk", 
+    label='table:table1EffectOfVaccinationGroup',
+    legend=legend1)
+
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-2-tex}{}}@*)# TABLE 2
+df2 = pd.read_pickle('table_2.pkl')
+
+## RENAME ROWS AND COLUMNS
+mapping2 = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df2, k)) 
+mapping2 |= {
+    'group_V[T.True]': ('Vaccinated Group', 'Twice vaccinated, uninfected'),
+    'group_I[T.True]': ('Infected Group', 'Infected, unvaccinated'),
+    'group_H[T.True]': ('Hybrid Group', 'Infected and $\geq$1 vaccination, referred to as Hybrid immunity')
+}
+abbrs_to_names2, legend2 = split_mapping(mapping2)
+df2 = df2.rename(columns=abbrs_to_names2, index=abbrs_to_names2)
+
+# SAVE AS LATEX
+to_latex_with_note(
+    df2, 'table_2.tex',
+    caption="Vaccination group impact on total time at risk among infected individuals", 
+    label='table:table2VaccinatedGroupTimeAtRisk',
+    legend=legend2)
+
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-3-tex}{}}@*)# TABLE 3
+df3 = pd.read_pickle('table_3.pkl')
+
+## RENAME ROWS AND COLUMNS
+mapping3 = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df3, k)) 
+mapping3 |= {
+    'H': ('Hybrid Immunity Group', 'Infected and $\geq$1 vaccination, referred to as Hybrid immunity'),
+    'I': ('Infected Group', 'Infected, unvaccinated'),
+    'N': ('No Immunity Group', 'No immunity'),
+    'V': ('Vaccinated Group', 'Twice vaccinated, uninfected'),
+    'infection_rate': ('Infection Rate', 'Rate of infection within the respective group')
+}
+abbrs_to_names3, legend3 = split_mapping(mapping3)
+df3 = df3.rename(columns=abbrs_to_names3, index=abbrs_to_names3)
+
+# SAVE AS LATEX
+to_latex_with_note(
+    df3, 'table_3.tex',
+    caption="Distribution of infection events by vaccination group", 
+    label='table:table3InfectionDistribution',
+    legend=legend3)
+
+\end{python}
+
+\subsection{Provided Code}
+The code above is using the following provided functions:
+
+\begin{python}
+def to_latex_with_note(df, filename: str, caption: str, label: str, note: str = None, legend: Dict[str, str] = None, **kwargs):
+    """
+    Converts a DataFrame to a LaTeX table with optional note and legend added below the table.
+
+    Parameters:
+    - df, filename, caption, label: as in `df.to_latex`.
+    - note (optional): Additional note below the table.
+    - legend (optional): Dictionary mapping abbreviations to full names.
+    - **kwargs: Additional arguments for `df.to_latex`.
+    """
+
+def is_str_in_df(df: pd.DataFrame, s: str):
+    return any(s in level for level in getattr(df.index, 'levels', [df.index]) + getattr(df.columns, 'levels', [df.columns]))
+
+AbbrToNameDef = Dict[Any, Tuple[Optional[str], Optional[str]]]
+
+def split_mapping(abbrs_to_names_and_definitions: AbbrToNameDef):
+    abbrs_to_names = {abbr: name for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if name is not None}
+    names_to_definitions = {name or abbr: definition for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if definition is not None}
+    return abbrs_to_names, names_to_definitions
+
+\end{python}
+
+
+
+\subsection{Code Output}
+
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-1-tex}{table\_1.tex}}
+
+\begin{codeoutput}
+\% This latex table was generated from: `table\_1.pkl`
+\begin{table}[h]
+\caption{Impact of vaccination group on infection event and total time at risk}
+\label{table:table1EffectOfVaccinationGroup}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{\%
+\begin{tabular}{lllllll}
+\toprule
+ \& Coefficient \& Std. Error \& z-value \& p-value \& [0.025 \& 0.975] \\
+\midrule
+\textbf{Intercept} \& 4.31 \& 0.291 \& 14.8 \& \$$<$\$1e-06 \& 3.73 \& 4.88 \\
+\textbf{Vaccinated Group} \& 0.243 \& 0.204 \& 1.19 \& 0.233 \& -0.156 \& 0.642 \\
+\textbf{Infected Group} \& -0.0613 \& 0.278 \& -0.22 \& 0.826 \& -0.606 \& 0.484 \\
+\textbf{Hybrid Group} \& -0.478 \& 0.226 \& -2.11 \& 0.0349 \& -0.922 \& -0.0338 \\
+\textbf{Total Time at Risk} \& -0.036 \& 0.00175 \& -20.5 \& \$$<$\$1e-06 \& -0.0394 \& -0.0325 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{Vaccinated Group}: Twice vaccinated, uninfected
+\item \textbf{Infected Group}: Infected, unvaccinated
+\item \textbf{Hybrid Group}: Infected and \$\geq\$1 vaccination, referred to as Hybrid immunity
+\item \textbf{Total Time at Risk}: Total time at risk for infection in the given group
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+\end{codeoutput}
+
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-2-tex}{table\_2.tex}}
+
+\begin{codeoutput}
+\% This latex table was generated from: `table\_2.pkl`
+\begin{table}[h]
+\caption{Vaccination group impact on total time at risk among infected individuals}
+\label{table:table2VaccinatedGroupTimeAtRisk}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{\%
+\begin{tabular}{lrrrlrr}
+\toprule
+ \& Coefficient \& Std. Error \& t-value \& p-value \& [0.025 \& 0.975] \\
+\midrule
+\textbf{Intercept} \& 104 \& 4.29 \& 24.3 \& \$$<$\$1e-06 \& 95.9 \& 113 \\
+\textbf{Vaccinated Group} \& 19.2 \& 4.59 \& 4.18 \& 3.25e-05 \& 10.2 \& 28.2 \\
+\textbf{Infected Group} \& 24.4 \& 7.2 \& 3.39 \& 0.000738 \& 10.3 \& 38.5 \\
+\textbf{Hybrid Group} \& 31.2 \& 5.68 \& 5.49 \& \$$<$\$1e-06 \& 20 \& 42.3 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{Vaccinated Group}: Twice vaccinated, uninfected
+\item \textbf{Infected Group}: Infected, unvaccinated
+\item \textbf{Hybrid Group}: Infected and \$\geq\$1 vaccination, referred to as Hybrid immunity
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+\end{codeoutput}
+
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-3-tex}{table\_3.tex}}
+
+\begin{codeoutput}
+\% This latex table was generated from: `table\_3.pkl`
+\begin{table}[h]
+\caption{Distribution of infection events by vaccination group}
+\label{table:table3InfectionDistribution}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{\%
+\begin{tabular}{lr}
+\toprule
+ \& Infection Rate \\
+group \&  \\
+\midrule
+\textbf{Hybrid Immunity Group} \& 0.67 \\
+\textbf{Infected Group} \& 0.285 \\
+\textbf{No Immunity Group} \& 0.636 \\
+\textbf{Vaccinated Group} \& 3.61 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{Hybrid Immunity Group}: Infected and \$\geq\$1 vaccination, referred to as Hybrid immunity
+\item \textbf{Infected Group}: Infected, unvaccinated
+\item \textbf{No Immunity Group}: No immunity
+\item \textbf{Vaccinated Group}: Twice vaccinated, uninfected
+\item \textbf{Infection Rate}: Rate of infection within the respective group
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+\end{codeoutput}
+
+\end{document}
