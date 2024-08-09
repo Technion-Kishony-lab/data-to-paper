@@ -65,6 +65,12 @@ class OpenaiServerCaller(OrderedKeyToListServerCaller):
     """
     file_extension = '_openai.txt'
     step_runner = None
+    should_log_api_cost: bool = True
+
+    def mock(self, old_records=None, record_more_if_needed=True, fail_if_not_all_responses_used=True,
+             should_save=False, file_path=None):
+        self.should_log_api_cost = False
+        return super().mock(old_records, record_more_if_needed, fail_if_not_all_responses_used, should_save, file_path)
 
     @staticmethod
     def _check_before_spending_money(messages: List[Message], model_engine: ModelEngine):

@@ -265,8 +265,6 @@ class OrderedKeyToListServerCaller(ListServerCaller):
     Records are saved as dictionary (key order preserving) of responses with ordered lists as values.
     """
 
-    should_log_api_cost: bool = True
-
     def __init__(self):
         super().__init__()
         self.current_value_index = 0
@@ -330,7 +328,6 @@ class OrderedKeyToListServerCaller(ListServerCaller):
         """
         self.old_records = old_records if isinstance(old_records, dict) else {"GENERAL": old_records} if (
             old_records) else self.empty_records
-        self.should_log_api_cost = False
         self.args_kwargs_response_history = []
         self.record_more_if_needed = record_more_if_needed
         self.fail_if_not_all_responses_used = fail_if_not_all_responses_used
