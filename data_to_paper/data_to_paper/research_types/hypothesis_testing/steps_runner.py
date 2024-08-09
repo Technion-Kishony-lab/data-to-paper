@@ -117,9 +117,9 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
         self._app_send_api_usage_cost(self._pretty_api_usage_cost(
             self._get_path_in_output_directory(self.API_USAGE_COST_FILENAME)))
 
-    def reset_to_step(self, stage: ScientificStage):
+    def reset_to_stage(self, stage: ScientificStage):
         # Reset the server caller to the step
-        self.server_caller.reset_to_step(stage)
+        self.server_caller.reset_to_stage(stage)
 
         # delete all conversations in the actions_and_conversations of the steps after and including the step
         conversation_names = list(self.actions_and_conversations.conversations.keys())

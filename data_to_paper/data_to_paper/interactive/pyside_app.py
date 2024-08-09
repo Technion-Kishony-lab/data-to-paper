@@ -139,7 +139,7 @@ class StepsPanel(QWidget):
                 reset_to_step_button.setFixedWidth(20)
                 reset_to_step_button.setStyleSheet(STEP_PANEL_RESET_BUTTON_STYLE.format(background_color="#909090",
                                                                                         pressed_color="#707070"))
-                reset_to_step_button.clicked.connect(partial(self.reset_to_step, name, label))
+                reset_to_step_button.clicked.connect(partial(self.confirm_and_perform_reset_to_step, name, label))
                 self.step_widgets[label].addWidget(reset_to_step_button)
             else:  # add a spacer to keep the layout consistent
                 spacer = QSpacerItem(20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
@@ -182,7 +182,7 @@ class StepsPanel(QWidget):
         self.current_step = step_index
         self.refresh()
 
-    def reset_to_step(self, step_name: str, label: str):
+    def confirm_and_perform_reset_to_step(self, step_name: str, label: str):
         dialog = QDialog(self)
         dialog.setWindowTitle("Reset to Step")
         layout = QVBoxLayout(dialog)
@@ -728,7 +728,7 @@ class PysideApp(QMainWindow, BaseApp):
             self.send_text_signal.emit(PanelNames.MISSION_PROMPT, '')
 
         stage = ScientificStage[stage]
-        self.reset_to_step = stage
+        self.stage_to_reset_to = stage
 
         # delete all product for stages after the reset stage
         stage_index = stage.get_index()

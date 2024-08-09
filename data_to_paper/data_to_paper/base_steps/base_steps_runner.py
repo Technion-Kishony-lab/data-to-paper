@@ -12,7 +12,7 @@ from data_to_paper.env import FOLDER_FOR_RUN
 from data_to_paper.interactive.base_app_startup import BaseStartDialog
 from data_to_paper.utils.file_utils import clear_directory
 from data_to_paper.utils.print_to_file import print_and_log, console_log_file_context
-from data_to_paper.servers.llm_call import OPENAI_SERVER_CALLER
+from data_to_paper.servers.llm_call import OPENAI_SERVER_CALLER, OpenaiServerCaller
 from data_to_paper.servers.crossref import CROSSREF_SERVER_CALLER
 from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER
 from data_to_paper.conversation.stage import Stage
@@ -62,7 +62,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
     stage_to_func: Dict[Stage, Callable] = None
     is_stage_completed: Dict[Stage, bool] = None
 
-    server_caller = None
+    server_caller: OpenaiServerCaller = None
 
     failure_message = dedent_triple_quote_str("""
         ## Run Terminated
@@ -121,7 +121,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
                 product_text=product,
             )
 
-    def reset_to_step(self, stage: Stage):
+    def reset_to_stage(self, stage: Stage):
         """
         Reset the current state to the given stage.
         This will delete the openai responses and the api usage cost files up to the given stage.
@@ -159,7 +159,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
                 self._run_stage(stage)
             except ResetStepException as e:
                 print_and_log(f'Resetting to stage {e.stage.name}')
-                self.reset_to_step(e.stage)
+                self.reset_to_stage(e.stage)
                 self._reset_is_stage_completed(next_stage=e.stage)
                 self.app.re_set_reset_to_step()
 

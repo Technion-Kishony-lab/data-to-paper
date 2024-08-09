@@ -174,7 +174,7 @@ class OpenaiServerCaller(OrderedKeyToListServerCaller):
         self._check_after_spending_money(content, messages, model_engine)
         return LLMResponse(content)
 
-    def reset_to_step(self, stage: Stage):
+    def reset_to_stage(self, stage: Stage):
         """
         Reset the records and the api usage cost files to the records of the given stage
         """

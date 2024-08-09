@@ -95,9 +95,9 @@ class Converser(Copier, AppInteractor):
         return self.conversation_manager.conversation
 
     def _check_and_reset(self):
-        rest_to_step = self._app_get_step_to_reset_to()
-        if rest_to_step:
-            raise ResetStepException(rest_to_step)
+        stage_to_reset_to = self._app_get_stage_to_reset_to()
+        if stage_to_reset_to:
+            raise ResetStepException(stage_to_reset_to)
 
     @_raise_if_reset()
     def _print_conversation_header(self):
