@@ -2,6 +2,9 @@ from dataclasses import dataclass, field
 from typing import Type, Union, Dict
 
 from data_to_paper.base_steps import DirectorProductGPT, CheckLatexCompilation, DataStepRunner
+from data_to_paper.conversation.stage import Stage
+from data_to_paper.servers.json_dump import load_from_json, dump_to_json
+
 from .app_startup import HypothesisTestingStartDialog
 from .cast import ScientificAgent
 from .coding.after_coding import RequestCodeExplanation, RequestCodeProducts
@@ -19,8 +22,6 @@ from .scientific_stage import ScientificStage, SECTION_NAMES_TO_WRITING_STAGES
 from .writing_steps import FirstTitleAbstractSectionWriterReviewGPT, SecondTitleAbstractSectionWriterReviewGPT, \
     MethodsSectionWriterReviewGPT, IntroductionSectionWriterReviewGPT, ResultsSectionWriterReviewGPT, \
     DiscussionSectionWriterReviewGPT
-from ...conversation.stage import Stage
-from ...servers.json_dump import load_from_json, dump_to_json
 
 PAPER_SECTIONS_NAMES = ['title', 'abstract', 'introduction', 'results', 'discussion', 'methods']
 SECTIONS_WITH_CITATIONS = ['introduction', 'discussion']
@@ -121,7 +122,7 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
         self.server_caller.reset_to_step(stage)
 
         # delete all conversations in the actions_and_conversations of the steps after and including the step
-        conversation_names = [conversation for conversation in self.actions_and_conversations.conversations]
+        conversation_names = list(self.actions_and_conversations.conversations.keys())
         conversations_to_delete = conversation_names[self.num_conversations_at_each_stage[stage.name]:]
         for conversation in conversations_to_delete:
             del self.actions_and_conversations.conversations[conversation]

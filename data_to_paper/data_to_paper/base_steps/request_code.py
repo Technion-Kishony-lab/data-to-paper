@@ -14,14 +14,14 @@ from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.utils.replacer import Replacer
 from data_to_paper.code_and_output_files.file_view_params import ContentViewPurpose
-from .converser import _raise_if_reset
+from data_to_paper.interactive import Symbols
 
+from .converser import _raise_if_reset
 from .debugger import DebuggerConverser
 from .base_products_conversers import BackgroundProductsConverser
 from .exceptions import FailedCreatingProductException
 from .request_python_value import PythonDictReviewBackgroundProductsConverser
 from .result_converser import Rewind
-from ..interactive.symbols import Symbols
 
 
 class CodeReviewPrompt(NamedTuple):

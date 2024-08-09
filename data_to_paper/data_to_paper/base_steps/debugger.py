@@ -21,14 +21,13 @@ from data_to_paper.run_gpt_code.code_runner import CodeRunner, BaseCodeRunner
 from data_to_paper.run_gpt_code.code_utils import FailedExtractingBlock, IncompleteBlockFailedExtractingBlock
 from data_to_paper.run_gpt_code.exceptions import FailedRunningCode, UnAllowedFilesCreated, \
     CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule
-from data_to_paper.interactive import PanelNames
+from data_to_paper.interactive import PanelNames, Symbols
 
 from data_to_paper.base_cast import Agent
 from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
 
 from .base_products_conversers import BackgroundProductsConverser
 from .converser import _raise_if_reset
-from ..interactive.symbols import Symbols
 
 KNOWN_MIS_IMPORTS = {
     'Mediation': 'statsmodels.stats.mediation',
