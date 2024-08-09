@@ -594,12 +594,6 @@ class PysideApp(QMainWindow, BaseApp):
             stage = -1
         self.worker.worker_advance_stage_int(stage)
 
-    def send_api_usage_cost(self, html_content: str):
-        self.worker.worker_send_api_usage_cost(self.api_usage_cost)
-
-    def request_reset_to_step(self, step_name: str):
-        self.worker.worker_request_reset_to_step(step_name)
-
     def start_worker(self, func_to_run=None):
         # Start the worker thread
         self.worker.func_to_run = func_to_run or self._run_all_steps
