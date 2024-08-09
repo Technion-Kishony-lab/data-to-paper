@@ -10,6 +10,7 @@ from typing import Union, Type, Optional, Dict, Callable
 from data_to_paper.base_products.file_descriptions import CreateDataFileDescriptions
 from data_to_paper.env import FOLDER_FOR_RUN
 from data_to_paper.interactive.base_app_startup import BaseStartDialog
+from data_to_paper.servers.json_dump import load_from_json, dump_to_json
 from data_to_paper.utils.file_utils import clear_directory
 from data_to_paper.utils.print_to_file import print_and_log, console_log_file_context
 from data_to_paper.servers.llm_call import OPENAI_SERVER_CALLER, OpenaiServerCaller
@@ -52,6 +53,8 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
     actions_and_conversations: ActionsAndConversations = field(default_factory=ActionsAndConversations)
     should_remove_temp_folder: bool = True
 
+    stages_to_conversations_lens: Dict = field(default_factory=dict)
+
     app: Optional[BaseApp] = None
     cast = None  # Type[Agent]
     should_mock: Union[bool, str] = True
@@ -59,7 +62,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
     stages: Type[Stage] = Stage
     current_stage: Stage = None
 
-    stage_to_func: Dict[Stage, Callable] = None
+    stages_to_funcs: Dict[Stage, Callable] = None
     is_stage_completed: Dict[Stage, bool] = None
 
     server_caller: OpenaiServerCaller = None
@@ -105,6 +108,9 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         """
         self.current_stage = stage
         self._app_advance_stage(stage)
+        self._add_stage_name_to_api_usage_cost_file(stage.name)
+        if stage.name not in self.stages_to_conversations_lens:
+            self.stages_to_conversations_lens[stage.name] = len(self.actions_and_conversations.conversations)
 
     def send_product_to_client(self, product_field: str, save_to_file: bool = False):
         """
@@ -126,10 +132,19 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         Reset the current state to the given stage.
         This will delete the openai responses and the api usage cost files up to the given stage.
         """
-        raise NotImplementedError
+        self.server_caller.reset_to_stage(stage)
+
+        # delete all conversations in the actions_and_conversations of the steps after and including the step
+        conversation_names = list(self.actions_and_conversations.conversations.keys())
+        conversations_to_delete = conversation_names[self.stages_to_conversations_lens[stage.name]:]
+        for conversation in conversations_to_delete:
+            del self.actions_and_conversations.conversations[conversation]
+
+        self.app_send_api_usage_cost()
 
     def _pre_run_preparations(self):
         self._update_project_parameters()
+        dump_to_json({}, self._get_path_in_output_directory(self.API_USAGE_COST_FILENAME))
 
     def _get_first_uncompleted_stage(self):
         for stage in self.stages:
@@ -165,7 +180,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
 
     def _run_stage(self, stage: Stage):
         self.is_stage_completed[stage] = True
-        self.stage_to_func[stage]()
+        self.stages_to_funcs[stage]()
 
     def _get_files_to_keep(self):
         """
@@ -295,6 +310,26 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         Get the project parameters from the project directory.
         """
         self.project_parameters = self.get_project_parameters_from_project_directory(self.project_directory)
+
+    @staticmethod
+    def _pretty_api_usage_cost(api_usage_cost_file: str) -> str:
+        data = load_from_json(api_usage_cost_file)
+
+        result = '<h2>The API usage cost for each step:</h2>\n'
+
+        for step, cost in data.items():
+            result += f'<li style="color:white;">\n<b>{step}:</b> {cost:.2f}$\n</li>\n'
+
+        return result
+
+    def _add_stage_name_to_api_usage_cost_file(self, stage_name):
+        data = load_from_json(self._get_path_in_output_directory(self.API_USAGE_COST_FILENAME))
+        data[stage_name] = 0
+        dump_to_json(data, self._get_path_in_output_directory(self.API_USAGE_COST_FILENAME))
+
+    def app_send_api_usage_cost(self):
+        self._app_send_api_usage_cost(self._pretty_api_usage_cost(
+            self._get_path_in_output_directory(self.API_USAGE_COST_FILENAME)))
 
 
 @dataclass

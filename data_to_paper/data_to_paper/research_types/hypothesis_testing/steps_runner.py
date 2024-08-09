@@ -1,9 +1,7 @@
 from dataclasses import dataclass, field
-from typing import Type, Union, Dict
+from typing import Type, Dict
 
 from data_to_paper.base_steps import DirectorProductGPT, CheckLatexCompilation, DataStepRunner
-from data_to_paper.conversation.stage import Stage
-from data_to_paper.servers.json_dump import load_from_json, dump_to_json
 
 from .app_startup import HypothesisTestingStartDialog
 from .cast import ScientificAgent
@@ -48,8 +46,6 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
     products: ScientificProducts = field(default_factory=ScientificProducts)
     stages: Type[ScientificStage] = ScientificStage
 
-    num_conversations_at_each_stage: Dict = field(default_factory=dict)
-
     goal_refinement_iteration: int = 0
     re_goal: bool = False
 
@@ -80,54 +76,9 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
             ScientificStage.COMPILE: self._compile_paper,
         }
 
-    def _create_temp_folder_to_run_in(self):
-        return self.temp_folder_to_run_in
-
-    @staticmethod
-    def _pretty_api_usage_cost(api_usage_cost_file: str) -> str:
-        data = load_from_json(api_usage_cost_file)
-
-        result = '<h2>The API usage cost for each step:</h2>\n'
-
-        for step, cost in data.items():
-            result += f'<li style="color:white;">\n<b>{step}:</b> {cost:.2f}$\n</li>\n'
-
-        return result
-
-    def _pre_run_preparations(self):
-        """
-        create the api usage cost file
-        """
-        dump_to_json({}, self._get_path_in_output_directory(self.API_USAGE_COST_FILENAME))
-        super()._pre_run_preparations()
-
-    def _add_stage_name_to_api_usage_cost_file(self, stage_name):
-        data = load_from_json(self._get_path_in_output_directory(self.API_USAGE_COST_FILENAME))
-        data[stage_name] = 0
-        dump_to_json(data, self._get_path_in_output_directory(self.API_USAGE_COST_FILENAME))
-
-    def advance_stage(self, stage: Union[Stage, bool]):
-        if isinstance(stage, Stage):
-            self._add_stage_name_to_api_usage_cost_file(stage.name)
-            if stage.name not in self.num_conversations_at_each_stage:
-                self.num_conversations_at_each_stage[stage.name] = len(self.actions_and_conversations.conversations)
-        super().advance_stage(stage)
-
-    def app_send_api_usage_cost(self):
-        self._app_send_api_usage_cost(self._pretty_api_usage_cost(
-            self._get_path_in_output_directory(self.API_USAGE_COST_FILENAME)))
-
-    def reset_to_stage(self, stage: ScientificStage):
-        # Reset the server caller to the step
-        self.server_caller.reset_to_stage(stage)
-
-        # delete all conversations in the actions_and_conversations of the steps after and including the step
-        conversation_names = list(self.actions_and_conversations.conversations.keys())
-        conversations_to_delete = conversation_names[self.num_conversations_at_each_stage[stage.name]:]
-        for conversation in conversations_to_delete:
-            del self.actions_and_conversations.conversations[conversation]
-
-        self.app_send_api_usage_cost()
+    """
+    Stage functions
+    """
 
     def _data_file_descriptions(self):
         self.director_converser = DirectorProductGPT.from_(
