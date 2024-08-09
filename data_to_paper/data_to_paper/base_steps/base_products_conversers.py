@@ -16,7 +16,6 @@ from data_to_paper.conversation import Message, GeneralMessageDesignation
 from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.code_and_output_files.ref_numeric_values import find_hyperlinks, find_numeric_values, \
     find_matching_reference, replace_hyperlinks_with_values, TARGET, LINK
-from .converser import _raise_if_reset
 
 from .result_converser import ResultConverser, Rewind, BumpModel
 from .dual_converser import ReviewDialogDualConverserGPT
@@ -87,7 +86,6 @@ class BackgroundProductsConverser(ProductsConverser):
             return None
         return self._get_available_background_product_fields(self.background_product_fields)
 
-    @_raise_if_reset()
     def _get_available_background_product_fields(self, product_fields: Tuple[str, ...]) -> Tuple[str, ...]:
         return tuple(product_field for product_field in product_fields
                      if self.products.is_product_available(product_field))
@@ -111,28 +109,23 @@ class BackgroundProductsConverser(ProductsConverser):
         return NiceList([name for name in self.actual_background_product_names],
                         wrap_with='', separator='\n', empty_str='NO BACKGROUND PRODUCTS')
 
-    @_raise_if_reset()
     def _get_product_tags(self, product_field: str) -> Tuple[str, str]:
         return f'background_{product_field}', f'background_thanks_{product_field}',
 
-    @_raise_if_reset()
     def _get_acknowledgement_and_tag(self, product_field: str) -> Tuple[str, str]:
         thank_you_message = self.product_acknowledgement.format(self.products.get_name(product_field))
         _, tag = self._get_product_tags(product_field)
         return thank_you_message, tag
 
-    @_raise_if_reset()
     def get_product_description_and_tag(self, product_field: str) -> Tuple[str, str]:
         product_description = self.products.get_description_for_llm(product_field)
         tag, _ = self._get_product_tags(product_field)
         return product_description, tag
 
-    @_raise_if_reset()
     def _add_acknowledgement(self, product_field: str, is_last: bool = False):
         acknowledgement, tag = self._get_acknowledgement_and_tag(product_field)
         self.apply_append_surrogate_message(acknowledgement, tag=tag, is_background=True)
 
-    @_raise_if_reset()
     def _add_product_description(self, product_field: str):
         product_description, tag = self.get_product_description_and_tag(product_field)
         self.apply_append_user_message(product_description, tag=tag, is_background=True)
@@ -206,14 +199,12 @@ class ReviewBackgroundProductsConverser(BackgroundProductsConverser, ReviewDialo
                 self._add_other_acknowledgement(product_field, is_last=is_last)
         return super()._pre_populate_other_background()
 
-    @_raise_if_reset()
     def _add_other_acknowledgement(self, product_field: str, is_last: bool = False):
         acknowledgement, tag = self._get_acknowledgement_and_tag(product_field)
         other_mission_prompt = self.other_mission_prompt or self.mission_prompt
         acknowledgement += f'\n{other_mission_prompt}' if is_last else ''
         self.apply_to_other_append_surrogate_message(acknowledgement, tag=tag, is_background=True)
 
-    @_raise_if_reset()
     def _add_other_product_description(self, product_field: str):
         product_description, tag = self.get_product_description_and_tag(product_field)
         self.apply_to_other_append_user_message(product_description, tag=tag, is_background=True)
@@ -269,7 +260,6 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
         "The regression coefficient for the anti-cancer drugs was [unknown]."
         """)
 
-    @_raise_if_reset()
     def _get_text_from_which_response_should_be_extracted(self) -> str:
         return '\n'.join(self.products.get_description(product_field)
                          for product_field in self.product_fields_from_which_response_is_extracted
@@ -282,7 +272,6 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
                         wrap_with='"',
                         last_separator=' and ')
 
-    @_raise_if_reset()
     def _check_extracted_numbers(self, text: str,
                                  ignore_int_below: int = 100,
                                  remove_trailing_zeros: bool = True,
@@ -324,7 +313,6 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
                     bump_model=BumpModel.HIGHER_STRENGTH,
                 )
 
-    @_raise_if_reset()
     def _check_url_in_text(self, text: str) -> str:
         """
         Check that the text does not contain a URL. If it does raise an error.
@@ -382,7 +370,6 @@ class CheckReferencedNumericReviewBackgroundProductsConverser(CheckExtractionRev
                          for product_field in self.product_fields_from_which_response_is_extracted
                          if self.products.is_product_available(product_field))
 
-    @_raise_if_reset()
     def _replace_product_field_from_self_to_other(self, product_field: str) -> str:
         if not self.should_apply_numeric_referencing_to_other:
             self_products_to_other_products = dict(self.self_products_to_other_products)

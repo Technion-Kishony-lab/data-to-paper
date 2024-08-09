@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import time
 from dataclasses import dataclass, field
 from functools import wraps
 
@@ -94,11 +93,6 @@ class Converser(Copier, AppInteractor):
     @property
     def conversation(self):
         return self.conversation_manager.conversation
-
-    def _periodically_check_and_reset(self, interval: float = 1):
-        while True:
-            self._check_and_reset()
-            time.sleep(interval)
 
     def _check_and_reset(self):
         rest_to_step = self._app_get_step_to_reset_to()

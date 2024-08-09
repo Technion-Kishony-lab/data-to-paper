@@ -14,11 +14,12 @@ from data_to_paper.interactive import HumanAction, BaseApp
 from data_to_paper.utils.print_to_file import print_and_log_red, print_and_log
 from data_to_paper.utils.serialize import SerializableValue, deserialize_serializable_value
 from data_to_paper.utils.text_formatting import dedent_triple_quote_str
+from data_to_paper.conversation.stage import Stage
+
 from .base_server import OrderedKeyToListServerCaller
 from .json_dump import dump_to_json, load_from_json
 from .model_engine import ModelEngine
 from .serialize_exceptions import serialize_exception, is_exception, de_serialize_exception
-from ..conversation.stage import Stage
 
 if TYPE_CHECKING:
     from data_to_paper.conversation.message import Message
