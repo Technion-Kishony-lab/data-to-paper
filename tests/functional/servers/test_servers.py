@@ -61,9 +61,10 @@ def test_ordered_key_server_mock_responses():
 
 def test_ordered_key_server_mock_responses_raise_on_incorrect_key():
     server = TestOrderedKeyToListServerCaller()
-    with server.mock(old_records={'key1': ['response1', 'response2'], 'key2': ['response3']}) as mock:
+    with server.mock(old_records={'key1': ['response1', 'response2'], 'key2': ['response3']},
+                     fail_if_not_all_responses_used=False) as mock:
         assert mock.get_server_response('key1') == 'response1'
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             mock.get_server_response('key2')
 
 
