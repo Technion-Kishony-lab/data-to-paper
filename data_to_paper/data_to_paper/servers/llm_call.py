@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass
-from typing import List, Union, Callable
+from typing import List, Union, Callable, Tuple
 from typing import TYPE_CHECKING
 
 import openai
@@ -92,20 +92,26 @@ class OpenaiServerCaller(OrderedKeyToListServerCaller):
                 print_and_log_red('Invalid input. Please choose Y/N.', should_log=False)
 
     @staticmethod
-    def _check_after_spending_money(content: str, messages: List[Message], model_engine: ModelEngine):
+    def _get_cost_of_api_call(content: str, messages: List[Message], model_engine: ModelEngine
+                              ) -> Tuple[int, int, float]:
+        """
+        Return the number of tokens in the input and output messages and the total cost of the API call.
+        """
         tokens_in = count_number_of_tokens_in_message(messages, model_engine)
         tokens_out = count_number_of_tokens_in_message(content, model_engine)
         pricing_in, pricing_out = model_engine.pricing
-        print_and_log_red(f'Total: {tokens_in} prompt tokens, {tokens_out} returned tokens, '
-                          f'cost: ${(tokens_in * pricing_in + tokens_out * pricing_out) :.2f}.',
+        return tokens_in, tokens_out, tokens_in * pricing_in + tokens_out * pricing_out
+
+    @staticmethod
+    def _check_after_spending_money(content: str, messages: List[Message], model_engine: ModelEngine):
+        tokens_in, tokens_out, cost = OpenaiServerCaller._get_cost_of_api_call(content, messages, model_engine)
+        print_and_log_red(f'Total: {tokens_in} prompt tokens, {tokens_out} returned tokens, cost: ${cost :.2f}.',
                           should_log=False)
 
     def _log_api_usage_cost(self, content, messages: List[Message], model_engine: ModelEngine):
-        tokens_in = count_number_of_tokens_in_message(messages, model_engine)
-        tokens_out = count_number_of_tokens_in_message(content, model_engine)
-        pricing_in, pricing_out = model_engine.pricing
+        tokens_in, tokens_out, cost = self._get_cost_of_api_call(content, messages, model_engine)
         api_usage_cost = load_from_json(self.file_path.parents[0] / 'api_usage_cost.json')
-        api_usage_cost[self.step_runner.current_stage.name] += tokens_in * pricing_in + tokens_out * pricing_out
+        api_usage_cost[self.step_runner.current_stage.name] += cost
         dump_to_json(api_usage_cost, self.file_path.parents[0] / 'api_usage_cost.json')
 
     def set_step_runner(self, step_runner):
@@ -237,12 +243,9 @@ def count_number_of_tokens_in_message(messages: Union[List[Message], str], model
         encoding = tiktoken.encoding_for_model(model_engine.value)
     except KeyError:
         encoding = tiktoken.encoding_for_model(ModelEngine.GPT35_TURBO.value)
-    if isinstance(messages, str):
-        num_tokens = len(encoding.encode(messages))
-    else:
-        num_tokens = len(encoding.encode('\n'.join([message.content for message in messages])))
-
-    return num_tokens
+    if not isinstance(messages, str):
+        messages = '\n'.join([message.content for message in messages])
+    return len(encoding.encode(messages))
 
 
 def try_get_llm_response(messages: List[Message],
