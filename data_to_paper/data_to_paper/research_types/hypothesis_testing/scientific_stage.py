@@ -2,12 +2,6 @@ from data_to_paper.conversation.stage import Stage
 
 
 class ScientificStage(Stage):
-    def __new__(cls, value, resettable):
-        obj = object.__new__(cls)
-        obj._value_ = value
-        obj.resettable = resettable
-        return obj
-
     DATA = ("Get Data", False)
     EXPLORATION = ("Data Exploration", True)
     GOAL = ("Research Goal", True)
@@ -33,3 +27,5 @@ SECTION_NAMES_TO_WRITING_STAGES = {
     "results": ScientificStage.WRITING_RESULTS,
     "discussion": ScientificStage.WRITING_DISCUSSION,
 }
+
+print(ScientificStage.DATA.resettable)
