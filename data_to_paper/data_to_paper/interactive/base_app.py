@@ -1,4 +1,4 @@
-from typing import Dict, Optional, Union
+from typing import Dict, Optional, Union, Type
 
 import colorama
 
@@ -95,9 +95,9 @@ class BaseApp:
     def _run_all_steps(self):
         self.step_runner.run_all_steps()
 
-    def _get_all_steps(self):
+    def _get_all_steps(self) -> Type[Stage]:
         if self.step_runner is None:
-            return []
+            return Stage
         return self.step_runner.stages
 
     def _set_status(self, panel_name: PanelNames, position: int, status: str = ''):

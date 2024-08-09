@@ -14,7 +14,6 @@ from data_to_paper.interactive.styles import CURRENT_STEP_COLOR, SUBMIT_BUTTON_C
     STEP_PANEL_BUTTON_STYLE, BACKGROUND_COLOR, CSS, APP_STYLE, TABS_STYLE, HTMLPOPUP_STYLE, \
     MAIN_SPLITTER_STYLE, QCHECKBOX_STYLE, STEP_PANEL_RESET_BUTTON_STYLE
 from data_to_paper.interactive.utils import open_file_on_os
-from data_to_paper.research_types.hypothesis_testing.scientific_stage import ScientificStage
 
 
 def _get_label_height(label: QLabel) -> int:
@@ -35,7 +34,6 @@ class Worker(QThread):
     set_status_signal = Signal(PanelNames, int, str)
     set_header_signal = Signal(str)
     send_api_usage_cost_signal = Signal(str)
-    request_reset_to_step_signal = Signal(str)
 
     def __init__(self, mutex, condition, func_to_run=None):
         super().__init__()
@@ -90,9 +88,6 @@ class Worker(QThread):
     def worker_send_api_usage_cost(self, html_content: str):
         self.send_api_usage_cost_signal.emit(html_content)
 
-    def worker_request_reset_to_step(self, step_name: str):
-        self.request_reset_to_step_signal.emit(step_name)
-
     @Slot(PanelNames, str)
     def receive_text_signal(self, panel_name, text):
         self.mutex.lock()
@@ -117,29 +112,25 @@ class Worker(QThread):
 class StepsPanel(QWidget):
     def __init__(self):
         super().__init__()
-        self.worker = None
         self.labels_to_callbacks = None
         self.current_step = 0
         self.layout = QVBoxLayout(self)
         self.step_widgets = {}
 
-    def set_worker(self, worker):
-        self.worker = worker
-
-    def init_ui(self, labels_to_callbacks: Dict[Tuple[str, str, bool], Callable]):
+    def init_ui(self, labels_to_callbacks: Dict[Tuple[str, str, bool], Tuple[Callable, Callable]]):
         self.labels_to_callbacks = labels_to_callbacks
-        for (label, name, resettable), func in self.labels_to_callbacks.items():
+        for (label, name, resettable), (step_callback, reset_callback) in self.labels_to_callbacks.items():
             self.step_widgets[label] = QHBoxLayout()
             step_button = QPushButton(label)
             step_button.setFixedWidth(130)
-            step_button.clicked.connect(func)
+            step_button.clicked.connect(step_callback)
             self.step_widgets[label].addWidget(step_button)
             if resettable:
                 reset_to_step_button = QPushButton('↺')
                 reset_to_step_button.setFixedWidth(20)
                 reset_to_step_button.setStyleSheet(STEP_PANEL_RESET_BUTTON_STYLE.format(background_color="#909090",
                                                                                         pressed_color="#707070"))
-                reset_to_step_button.clicked.connect(partial(self.confirm_and_perform_reset_to_step, name, label))
+                reset_to_step_button.clicked.connect(reset_callback)
                 self.step_widgets[label].addWidget(reset_to_step_button)
             else:  # add a spacer to keep the layout consistent
                 spacer = QSpacerItem(20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
@@ -169,40 +160,9 @@ class StepsPanel(QWidget):
                 if self.step_widgets[step].itemAt(1).widget() is not None:
                     self.step_widgets[step].itemAt(1).widget().setEnabled(False)
 
-    def _get_step_index(self, step_name: str):
-        all_steps = self.labels_to_callbacks.keys()
-        all_steps_names = [stage[1] for stage in all_steps]
-        step_name_index = all_steps_names.index(step_name)
-        return step_name_index
-
-    def set_step(self, step_name: str):
-        self.set_step_by_index(self._get_step_index(step_name))
-
     def set_step_by_index(self, step_index: int):
         self.current_step = step_index
         self.refresh()
-
-    def confirm_and_perform_reset_to_step(self, step_name: str, label: str):
-        dialog = QDialog(self)
-        dialog.setWindowTitle("Reset to Step")
-        layout = QVBoxLayout(dialog)
-        label = QLabel(f"Are you sure you want to reset to the '{label}' step?\n"
-                       f"This will irrevocably delete all progress after this step.")
-        layout.addWidget(label)
-        buttons_layout = QHBoxLayout()
-        layout.addLayout(buttons_layout)
-        yes_button = QPushButton("Yes")
-        yes_button.clicked.connect(partial(self.confirm_reset_to_step, dialog, step_name))
-        no_button = QPushButton("No")
-        no_button.clicked.connect(dialog.close)
-        buttons_layout.addWidget(yes_button)
-        buttons_layout.addWidget(no_button)
-        dialog.exec()
-
-    def confirm_reset_to_step(self, dialog: QDialog, step_name: str):
-        dialog.close()
-        self.worker.worker_request_reset_to_step(step_name)
-        self.set_step(step_name)
 
 
 class Panel(QWidget):
@@ -436,7 +396,6 @@ class APIUsageCostDialog(QDialog):
 class PysideApp(QMainWindow, BaseApp):
     send_text_signal = Signal(str, PanelNames)
     send_panel_continue_signal = Signal(PanelNames)
-    send_reset_to_step_signal = Signal(str)
     a_application = None
 
     def __init__(self, mutex, condition, step_runner=None):
@@ -548,7 +507,6 @@ class PysideApp(QMainWindow, BaseApp):
         self.worker.set_status_signal.connect(self.upon_set_status)
         self.worker.set_header_signal.connect(self.upon_set_header)
         self.worker.send_api_usage_cost_signal.connect(self.upon_send_api_usage_cost)
-        self.worker.request_reset_to_step_signal.connect(self.upon_reset_to_step)
 
         # Define the request_text and show_text methods
         self.request_panel_continue = self.worker.worker_request_panel_continue
@@ -559,7 +517,6 @@ class PysideApp(QMainWindow, BaseApp):
         self._set_status = self.worker.worker_set_status
         self.set_header = self.worker.worker_set_header
         self.send_api_usage_cost = self.worker.worker_send_api_usage_cost
-        self.request_reset_to_step = self.worker.worker_request_reset_to_step
 
         # Connect UI elements
         for panel_name in PanelNames:
@@ -572,10 +529,6 @@ class PysideApp(QMainWindow, BaseApp):
         # Connect the MainWindow signal to the worker's slot
         self.send_text_signal.connect(self.worker.receive_text_signal)
         self.send_panel_continue_signal.connect(self.worker.receive_panel_continue_signal)
-        self.send_reset_to_step_signal.connect(self.worker.worker_request_reset_to_step)
-
-        # set the worker for the steps panel
-        self.step_panel.set_worker(self.worker)
 
     @classmethod
     def get_instance(cls):
@@ -601,17 +554,15 @@ class PysideApp(QMainWindow, BaseApp):
 
     def initialize(self, func_to_run=None):
         self.step_panel.init_ui(
-            {(stage.value, stage.name, stage.resettable): partial(self.show_product_for_stage, stage)
-             for stage in self._get_all_steps()})
+            {(stage.value, stage.name, stage.resettable):
+                (
+                    partial(self.show_product_for_stage, stage),
+                    partial(self.confirm_and_perform_reset_to_stage, stage)
+                )
+                for stage in self._get_all_steps()})
         self.show()
         self.start_worker(func_to_run)
         return get_or_create_q_application_if_app_is_pyside().exec()
-
-    def get_stage_index(self, stage_name: str):
-        all_stages = self._get_all_steps()
-        all_stages_names = [stage.name for stage in all_stages]
-        stage_name_index = all_stages_names.index(stage_name)
-        return stage_name_index
 
     @Slot(PanelNames, int, str)
     def upon_set_status(self, panel_name: PanelNames, position: int, status: str = ''):
@@ -721,13 +672,27 @@ class PysideApp(QMainWindow, BaseApp):
     def upon_send_api_usage_cost(self, html_content: str):
         self.api_usage_cost = html_content
 
-    @Slot(str)
-    def upon_reset_to_step(self, stage: str):
-        # imitate a button click if resetting when new stage is waiting for user input
-        if self.panels[PanelNames.MISSION_PROMPT].submit_button.isVisible():
-            self.send_text_signal.emit(PanelNames.MISSION_PROMPT, '')
+    def confirm_and_perform_reset_to_stage(self, stage: Stage):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Reset to Step")
+        layout = QVBoxLayout(dialog)
+        label = QLabel(f"Are you sure you want to reset to the '{stage.value}' step?\n"
+                       f"This will irrevocably delete all progress after this step.")
+        layout.addWidget(label)
+        buttons_layout = QHBoxLayout()
+        layout.addLayout(buttons_layout)
+        yes_button = QPushButton("Yes")
+        yes_button.clicked.connect(partial(self.perform_reset_to_stage, stage, dialog))
+        no_button = QPushButton("No")
+        no_button.clicked.connect(dialog.close)
+        buttons_layout.addWidget(yes_button)
+        buttons_layout.addWidget(no_button)
+        dialog.exec()
 
-        stage = ScientificStage[stage]
+    def perform_reset_to_stage(self, stage: Stage, dialog: Optional[QDialog] = None):
+        if dialog is not None:
+            dialog.close()
+
         self.stage_to_reset_to = stage
 
         # delete all product for stages after the reset stage
@@ -735,3 +700,9 @@ class PysideApp(QMainWindow, BaseApp):
         stages = list(self._get_all_steps())
         for stage in stages[stage_index:]:
             self.products.pop(stage, None)
+
+        # imitate a button click if resetting when waiting for user input
+        for panel in self.panels.values():
+            for button in [panel.submit_button, panel.continue_button]:
+                if button.isVisible():
+                    button.click()
