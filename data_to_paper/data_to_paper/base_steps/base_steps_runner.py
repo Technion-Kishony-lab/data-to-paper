@@ -262,6 +262,8 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
             try:
                 run()
             finally:
+                self.server_caller.set_current_stage_callback()
+                self.server_caller.set_api_cost_callback()
                 if self.should_remove_temp_folder:
                     # remove temp folder and all its content:
                     shutil.rmtree(self.temp_folder_to_run_in, ignore_errors=True)

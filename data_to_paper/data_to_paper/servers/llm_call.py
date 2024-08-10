@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass
-from typing import List, Union, Callable, Tuple
+from typing import List, Union, Callable, Tuple, Optional
 from typing import TYPE_CHECKING
 
 import openai
@@ -71,10 +71,10 @@ class OpenaiServerCaller(OrderedKeyToListServerCaller):
         self.current_stage_callback = None
         self.api_cost_callback = None
 
-    def set_current_stage_callback(self, callback):
+    def set_current_stage_callback(self, callback: Optional[Callable] = None):
         self.current_stage_callback = callback
 
-    def set_api_cost_callback(self, callback):
+    def set_api_cost_callback(self, callback: Optional[Callable] = None):
         self.api_cost_callback = callback
 
     def get_current_stage(self) -> str:
