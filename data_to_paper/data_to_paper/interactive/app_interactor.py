@@ -20,22 +20,29 @@ from .enum_types import PanelNames
 from .human_actions import HumanAction, ButtonClickedHumanAction, TextSentHumanAction
 
 
+def _skip_if_no_app(func):
+    def wrapper(self, *args, **kwargs):
+        if self.app is None:
+            return
+        return func(self, *args, **kwargs)
+
+    return wrapper
+
+
 @dataclass
 class AppInteractor:
 
     app: Optional[BaseApp] = field(default_factory=get_app)
 
+    @_skip_if_no_app
     def _app_clear_panels(self, panel_name: Union[PanelNames, Iterable[PanelNames]] = PanelNames):
-        if self.app is None:
-            return
         panel_names = panel_name if isinstance(panel_name, Iterable) else [panel_name]
         for panel_name in panel_names:
             self.app.show_text(panel_name, '')
             self._app_set_panel_status(panel_name, '')
 
+    @_skip_if_no_app
     def _app_request_panel_continue(self, panel_name: PanelNames, sleep_for: Union[None, float, bool] = 0):
-        if self.app is None:
-            return
         is_playback = are_more_responses_available()
         if isinstance(sleep_for, Mutable):
             sleep_for = sleep_for.val
@@ -45,11 +52,10 @@ class AppInteractor:
         else:
             time.sleep(sleep_for)
 
+    @_skip_if_no_app
     def _app_send_prompt(self, panel_name: PanelNames, prompt: StrOrReplacer = '', provided_as_html: bool = False,
                          from_md: bool = False, demote_headers_by: int = 0, sleep_for: Union[None, float, bool] = 0,
                          scroll_to_bottom: bool = False):
-        if self.app is None:
-            return
         s = format_value(self, prompt)
         if not provided_as_html:
             do_not_format = ['latex'] if panel_name != PanelNames.PRODUCT else []
@@ -60,9 +66,8 @@ class AppInteractor:
             sleep_for = sleep_for.val
         self._app_request_panel_continue(panel_name, sleep_for)
 
+    @_skip_if_no_app
     def _app_set_focus_on_panel(self, panel_name: PanelNames):
-        if self.app is None:
-            return
         self.app.set_focus_on_panel(panel_name)
 
     def _app_receive_text(self, panel_name: PanelNames, initial_text: str = '',
@@ -106,19 +111,16 @@ class AppInteractor:
                                   title=title,
                                   optional_suggestions=optional_suggestions)
 
+    @_skip_if_no_app
     def _app_advance_stage(self, stage: Union[Stage, int, bool]):
-        if self.app is None:
-            return
         self.app.advance_stage(stage)
 
+    @_skip_if_no_app
     def _app_send_product_of_stage(self, stage: Stage, product_text: str):
-        if self.app is None:
-            return
         self.app.send_product_of_stage(stage, product_text)
 
+    @_skip_if_no_app
     def _app_set_panel_status(self, panel_name: PanelNames, status: str = ''):
-        if self.app is None:
-            return
         self.app.set_status(panel_name, 1, status)
 
     @contextmanager
@@ -131,12 +133,22 @@ class AppInteractor:
         yield
         self._app_set_panel_status(panel_name, current_status)
 
+    @_skip_if_no_app
     def _app_set_panel_header(self, panel_name: PanelNames, header: str):
-        if self.app is None:
-            return
         self.app.set_status(panel_name, 0, header)
 
+    @_skip_if_no_app
     def _app_set_header(self, header: str, prefix: str = ''):
-        if self.app is None:
-            return
         self.app.set_header(prefix + header)
+
+    @_skip_if_no_app
+    def _app_send_api_usage_cost(self, stages_to_costs: Dict[Stage, float]):
+        self.app.send_api_usage_cost(stages_to_costs)
+
+    @_skip_if_no_app
+    def _app_get_stage_to_reset_to(self):
+        return self.app.stage_to_reset_to
+
+    @_skip_if_no_app
+    def _app_clear_stage_to_reset_to(self):
+        self.app.clear_stage_to_reset_to()

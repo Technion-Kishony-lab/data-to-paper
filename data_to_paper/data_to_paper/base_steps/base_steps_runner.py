@@ -5,19 +5,20 @@ import shutil
 from dataclasses import dataclass, field
 
 from pathlib import Path
-from typing import Union, Type, Optional
+from typing import Union, Type, Optional, Dict, Callable
 
 from data_to_paper.base_products.file_descriptions import CreateDataFileDescriptions
 from data_to_paper.env import FOLDER_FOR_RUN
 from data_to_paper.interactive.base_app_startup import BaseStartDialog
+from data_to_paper.servers.api_cost import StageToCost
 from data_to_paper.utils.file_utils import clear_directory
 from data_to_paper.utils.print_to_file import print_and_log, console_log_file_context
-from data_to_paper.servers.llm_call import OPENAI_SERVER_CALLER
+from data_to_paper.servers.llm_call import OPENAI_SERVER_CALLER, OpenaiServerCaller
 from data_to_paper.servers.crossref import CROSSREF_SERVER_CALLER
 from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER
-from data_to_paper.conversation.stage import Stage
+from data_to_paper.conversation.stage import Stage, get_all_keys_following_stage
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
-from data_to_paper.exceptions import TerminateException
+from data_to_paper.exceptions import TerminateException, ResetStepException
 from data_to_paper.base_products import DataFileDescriptions
 from data_to_paper.run_gpt_code.code_runner import RUN_CACHE_FILEPATH
 from data_to_paper.utils import dedent_triple_quote_str
@@ -38,6 +39,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
     CROSSREF_RESPONSES_FILENAME = 'crossref_responses.bin'
     SEMANTIC_SCHOLAR_RESPONSES_FILENAME = 'semantic_scholar_responses.bin'
     CODE_RUNNER_CACHE_FILENAME = 'code_runner_cache.pkl'
+    API_USAGE_COST_FILENAME = 'api_usage_cost.json'
 
     PROJECT_PARAMETERS_FILENAME = 'data-to-paper.json'
     DEFAULT_PROJECT_PARAMETERS = dict()
@@ -51,12 +53,19 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
     actions_and_conversations: ActionsAndConversations = field(default_factory=ActionsAndConversations)
     should_remove_temp_folder: bool = True
 
+    stages_to_conversations_lens: Dict[Stage, int] = field(default_factory=dict)
+
     app: Optional[BaseApp] = None
     cast = None  # Type[Agent]
     should_mock: Union[bool, str] = True
 
     stages: Type[Stage] = Stage
     current_stage: Stage = None
+
+    _stages_to_api_usage_cost: StageToCost = field(default_factory=StageToCost)
+    stages_to_funcs: Dict[Stage, Callable] = None
+
+    server_caller: OpenaiServerCaller = None
 
     failure_message = dedent_triple_quote_str("""
         ## Run Terminated
@@ -93,12 +102,19 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         You can close the app now.
         """)
 
+    def _get_current_stage(self):
+        return self.current_stage
+
     def advance_stage(self, stage: Union[Stage, bool]):
         """
         Advance the stage.
         """
         self.current_stage = stage
-        self._app_advance_stage(stage)
+        self._app_advance_stage(stage=stage)
+        if isinstance(stage, Stage):
+            self._add_cost_to_stage(stage=stage)
+            if stage not in self.stages_to_conversations_lens:
+                self.stages_to_conversations_lens[stage] = len(self.actions_and_conversations.conversations)
 
     def send_product_to_client(self, product_field: str, save_to_file: bool = False):
         """
@@ -115,6 +131,24 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
                 product_text=product,
             )
 
+    def reset_to_stage(self, stage: Stage):
+        """
+        Reset the current state to the given stage.
+        This will delete the openai responses and the api usage cost files up to the given stage.
+        """
+        self.server_caller.reset_to_stage(stage)
+
+        # delete all conversations in the actions_and_conversations of the steps after and including the step
+        conversation_names = list(self.actions_and_conversations.conversations.keys())
+        conversations_to_delete = conversation_names[self.stages_to_conversations_lens[stage]:]
+        for conversation in conversations_to_delete:
+            del self.actions_and_conversations.conversations[conversation]
+
+        # delete api usage cost up to the given stage:
+        self._stages_to_api_usage_cost.delete_from_stage(stage)
+
+        self._app_clear_stage_to_reset_to()
+
     def _pre_run_preparations(self):
         self._update_project_parameters()
 
@@ -122,7 +156,31 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         """
         Run all the steps towards the high level goal.
         """
-        raise NotImplementedError
+        stage = self.stages.get_first()
+        while True:
+            self.advance_stage(stage)
+            if stage is True:
+                break
+            try:
+                next_stage = self._run_stage(stage)
+            except ResetStepException as e:
+                print_and_log(f'Resetting to stage {e.stage.name}')
+                next_stage = e.stage
+                self.reset_to_stage(next_stage)
+            if next_stage is None:
+                try:
+                    next_stage = stage.get_next()
+                except ValueError:
+                    next_stage = True
+            stage = next_stage
+
+    def _run_stage(self, stage: Stage) -> Optional[Stage]:
+        """
+        Return the next stage to run.
+        `None` for default next stage.
+        `True` when the run is completed.
+        """
+        return self.stages_to_funcs[stage]()
 
     def _get_files_to_keep(self):
         """
@@ -133,7 +191,9 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
                     self.CODE_RUNNER_CACHE_FILENAME,
                     self.OPENAI_RESPONSES_FILENAME,
                     self.CROSSREF_RESPONSES_FILENAME,
-                    self.SEMANTIC_SCHOLAR_RESPONSES_FILENAME]]
+                    self.SEMANTIC_SCHOLAR_RESPONSES_FILENAME,
+                    self.API_USAGE_COST_FILENAME,
+                ]]
 
     def _create_or_clean_output_folder(self):
         """
@@ -164,6 +224,9 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         """
         Run all steps and save all created files to the output folder.
         """
+        self.server_caller = OPENAI_SERVER_CALLER
+        self.server_caller.set_current_stage_callback(self._get_current_stage)
+        self.server_caller.set_api_cost_callback(self._add_cost_to_stage)
 
         @RUN_CACHE_FILEPATH.temporary_set(
             self._get_path_in_output_directory(self.CODE_RUNNER_CACHE_FILENAME))
@@ -178,7 +241,6 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
                 self._pre_run_preparations()
                 self._run_all_steps()
             except TerminateException as e:
-                # self.advance_stage(Stage.FAILURE)  # used for the old whatsapp app
                 msg = Replacer(self, self.failure_message, kwargs={'exception': str(e)}).format_text()
                 self._app_send_prompt(PanelNames.MISSION_PROMPT, msg, from_md=True)
                 self._app_set_header('Terminate upon failure')
@@ -200,6 +262,8 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
             try:
                 run()
             finally:
+                self.server_caller.set_current_stage_callback()
+                self.server_caller.set_api_cost_callback()
                 if self.should_remove_temp_folder:
                     # remove temp folder and all its content:
                     shutil.rmtree(self.temp_folder_to_run_in, ignore_errors=True)
@@ -249,6 +313,19 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         Get the project parameters from the project directory.
         """
         self.project_parameters = self.get_project_parameters_from_project_directory(self.project_directory)
+
+    """
+    api usage cost
+    """
+
+    def _add_cost_to_stage(self, cost: float = 0, stage: Optional[Stage] = None):
+        stage = stage or self.current_stage
+        self._stages_to_api_usage_cost[stage] = self._stages_to_api_usage_cost.get(stage, 0) + cost
+        self._stages_to_api_usage_cost.save_to_json(self.output_directory / self.API_USAGE_COST_FILENAME)
+        self.app_send_api_usage_cost()
+
+    def app_send_api_usage_cost(self):
+        self._app_send_api_usage_cost(self._stages_to_api_usage_cost)
 
 
 @dataclass

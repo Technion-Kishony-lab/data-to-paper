@@ -33,8 +33,12 @@ def set_project_and_run(steps_runner_cls: Type[BaseStepsRunner],
     else:
         if project_directory is None:
             raise ValueError("You must provide a project directory when not using the interactive app")
+    if isinstance(run_name, str):
+        output_directory = project_directory / 'runs' / run_name
+    else:
+        output_directory = run_name
     step_runner = steps_runner_cls(
         project_directory=project_directory,
-        output_directory=project_directory / 'runs' / run_name,
+        output_directory=output_directory,
     )
     run_all_steps(step_runner=step_runner)

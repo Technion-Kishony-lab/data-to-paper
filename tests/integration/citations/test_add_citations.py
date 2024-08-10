@@ -1,5 +1,6 @@
 from _pytest.fixtures import fixture
 
+from data_to_paper.research_types.hypothesis_testing.product_types import GoalAndHypothesisProduct
 from data_to_paper.research_types.hypothesis_testing.scientific_products import ScientificProducts
 from data_to_paper.servers.llm_call import OPENAI_SERVER_CALLER
 from data_to_paper.servers.crossref import CROSSREF_SERVER_CALLER
@@ -11,7 +12,7 @@ SECTIONS_TO_ADD_CITATIONS_TO = ['introduction']
 @fixture
 def products():
     return ScientificProducts(
-        research_goal="Find the distance to the moon.",
+        research_goal=GoalAndHypothesisProduct(value="Find the distance to the moon."),
         paper_sections_and_optional_citations={
             'title': "\\title{The distance to the moon} ",
             'abstract': "\\begin{abstract} The distance to the moon is 384,400 km. "

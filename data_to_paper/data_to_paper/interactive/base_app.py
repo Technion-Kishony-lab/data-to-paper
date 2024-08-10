@@ -1,4 +1,4 @@
-from typing import Dict, Optional, Union
+from typing import Dict, Optional, Union, Type
 
 import colorama
 
@@ -26,6 +26,7 @@ class BaseApp:
             raise Exception("App is a singleton!")
         self.instance = self
         self.step_runner = None
+        self.stage_to_reset_to = None
         self._panels_and_positions_to_headers = {(panel_name, position): '' for panel_name in PanelNames
                                                  for position in range(2)}
 
@@ -64,6 +65,9 @@ class BaseApp:
                 return ButtonClickedHumanAction(suggestion_name)
         return TextSentHumanAction(text)
 
+    def request_reset_to_step(self, step_name: str):
+        pass
+
     def show_text(self, panel_name: PanelNames, text: str, is_html: bool = False,
                   scroll_to_bottom: bool = False):
         pass
@@ -91,13 +95,16 @@ class BaseApp:
     def _run_all_steps(self):
         self.step_runner.run_all_steps()
 
-    def _get_all_steps(self):
+    def _get_stages(self) -> Type[Stage]:
         if self.step_runner is None:
-            return []
+            return Stage
         return self.step_runner.stages
 
     def _set_status(self, panel_name: PanelNames, position: int, status: str = ''):
         pass
+
+    def clear_stage_to_reset_to(self):
+        self.stage_to_reset_to = None
 
     def set_status(self, panel_name: PanelNames, position: int, status: str = ''):
         self._panels_and_positions_to_headers[(panel_name, position)] = status
@@ -107,6 +114,9 @@ class BaseApp:
         return self._panels_and_positions_to_headers[(panel_name, position)]
 
     def set_header(self, header: str):
+        pass
+
+    def send_api_usage_cost(self, stages_to_costs: Dict[Stage, float]):
         pass
 
 

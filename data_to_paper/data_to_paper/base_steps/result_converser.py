@@ -5,7 +5,7 @@ from enum import Enum
 from typing import Any, Optional, Tuple, Union, Iterable, Type
 
 from data_to_paper.base_products.product import Product, ValueProduct
-from data_to_paper.base_steps.converser import Converser
+from data_to_paper.base_steps.converser import Converser, _raise_if_reset
 from data_to_paper.base_steps.exceptions import FailedCreatingProductException
 from data_to_paper.conversation.message_designation import RangeMessageDesignation, SingleMessageDesignation
 from data_to_paper.conversation.stage import Stage
@@ -161,12 +161,14 @@ class ResultConverser(Converser):
     valid_result: Union[Product, Any] = field(default_factory=NoResponse)
     _valid_result_update_count: int = 0
 
+    @_raise_if_reset()
     def get_valid_result_as_html(self) -> str:
         valid_result = self._get_valid_result()
         if isinstance(valid_result, Product):
             return valid_result.as_html(2)
         return format_text_with_code_blocks(self.get_valid_result_as_markdown(), width=None, is_html=True, from_md=True)
 
+    @_raise_if_reset()
     def get_valid_result_as_markdown(self) -> str:
         valid_result = self._get_valid_result()
         if isinstance(valid_result, Product):
@@ -183,6 +185,7 @@ class ResultConverser(Converser):
         self._pre_populate_background()
         self._conversation_len_before_first_response = len(self.conversation)
 
+    @_raise_if_reset()
     def _pre_populate_background(self):
         """
         Add background messages to the two conversations to set them ready for the cycle.
@@ -199,6 +202,7 @@ class ResultConverser(Converser):
         """
         return not isinstance(self.valid_result, NoResponse)
 
+    @_raise_if_reset()
     def _update_valid_result(self, valid_result: Union[Product, Any]):
         """
         Update the valid result.
@@ -220,6 +224,7 @@ class ResultConverser(Converser):
                 html = "No result yet."
             self._app_send_prompt(PanelNames.PRODUCT, html, provided_as_html=True)
 
+    @_raise_if_reset()
     def _raise_self_response_error(self,
                                    title: str,
                                    error_message: StrOrReplacer,
@@ -265,6 +270,7 @@ class ResultConverser(Converser):
                                 rewind=rewind, bump_model=bump_model,
                                 add_iterations=add_iterations)
 
+    @_raise_if_reset()
     def _convert_response_error_to_error_message(self, response_error: SelfResponseError) -> str:
         """
         Convert the response error to an error message.
@@ -277,6 +283,7 @@ class ResultConverser(Converser):
     Response --> extracted_text --> valid_result --> Product
     """
 
+    @_raise_if_reset()
     def _check_response_and_get_extracted_text(self, response: str) -> ExtractedText:
         """
         # Response --> extracted_text #
@@ -286,6 +293,7 @@ class ResultConverser(Converser):
         """
         return response
 
+    @_raise_if_reset()
     def _check_extracted_text_and_update_valid_result(self, extracted_text: ExtractedText):
         """
         # extracted_text --> valid_result #
@@ -298,6 +306,7 @@ class ResultConverser(Converser):
         """
         self._update_valid_result(extracted_text)
 
+    @_raise_if_reset()
     def _convert_valid_result_to_product(self, valid_result: Any) -> Union[Product, Any]:
         """
         # valid_result --> Product #
@@ -311,6 +320,7 @@ class ResultConverser(Converser):
     fresh_response <-- extracted_text <-- valid_result <-- Product
     """
 
+    @_raise_if_reset()
     def _convert_extracted_text_to_fresh_looking_response(self, extracted_text: ExtractedText) -> str:
         """
         # fresh_response <-- extracted_text #
@@ -320,6 +330,7 @@ class ResultConverser(Converser):
             return extracted_text
         return '\n\n'.join(extracted_text)
 
+    @_raise_if_reset()
     def _convert_valid_result_back_to_extracted_text(self, valid_result: Any) -> ExtractedText:
         """
         # extracted_text <-- valid_result #
@@ -327,6 +338,7 @@ class ResultConverser(Converser):
         """
         return str(valid_result)
 
+    @_raise_if_reset()
     def _convert_product_back_to_valid_result(self, product: Union[Product, Any]) -> Any:
         """
         # valid_result <-- Product #
@@ -336,6 +348,7 @@ class ResultConverser(Converser):
             return product.value
         return product
 
+    @_raise_if_reset()
     def _convert_valid_results_to_fresh_looking_response(self, valid_results: Any) -> str:
         """
         # fresh_response <-- extracted_text <-- valid_result <-- Product #
@@ -346,6 +359,7 @@ class ResultConverser(Converser):
         fresh_response = self._convert_extracted_text_to_fresh_looking_response(extracted_text)
         return fresh_response
 
+    @_raise_if_reset()
     def _rewind_conversation_to_first_response(self, offset: int = 0, last: int = -1, start: int = None):
         """
         Rewind the conversation to the first response + offset.
@@ -356,6 +370,7 @@ class ResultConverser(Converser):
         self.apply_delete_messages(
             RangeMessageDesignation.from_(start + offset, last))
 
+    @_raise_if_reset()
     def _iterate_until_valid_response(self) -> Tuple[bool, bool]:
         """
         Iterate until we get a valid response from self (return is_converged=True),
@@ -462,23 +477,27 @@ class ResultConverser(Converser):
         else:
             return False, is_new_valid_result
 
+    @_raise_if_reset()
     def _get_valid_result(self) -> Union[Product, Any]:
         if not self._has_valid_result:
             raise FailedCreatingProductException()
         return self.valid_result
 
+    @_raise_if_reset()
     def _post_run(self):
         """
         Post-run actions.
         """
         pass
 
+    @_raise_if_reset()
     def _run_and_return_termination_reason(self, *args, **kwargs) -> Any:
         """
         Run the conversation.
         """
         return self._iterate_until_valid_response()
 
+    @_raise_if_reset()
     def run_and_get_valid_result_and_termination_reason(self, *args, **kwargs) -> Tuple[Tuple[bool, bool], Any]:
         """
         Run the conversation until we get a valid result.
@@ -490,6 +509,7 @@ class ResultConverser(Converser):
         self._post_run()
         return result, termination_reason
 
+    @_raise_if_reset()
     def run_and_get_valid_result(self, *args, **kwargs) -> Any:
         """
         Run the conversation until we get a valid result.

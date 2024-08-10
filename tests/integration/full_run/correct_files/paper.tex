@@ -1,0 +1,173 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{fancyvrb}
+\usepackage{color}
+\usepackage{listings}
+\usepackage{sectsty}
+\sectionfont{\Large}
+\subsectionfont{\normalsize}
+\subsubsectionfont{\normalsize}
+
+% Default fixed font does not support bold face
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{12} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{12}  % for normal
+
+% Custom colors
+\usepackage{color}
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+\definecolor{cyan}{rgb}{0.0,0.6,0.6}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+
+% Python style for highlighting
+\newcommand\pythonstyle{\lstset{
+language=Python,
+basicstyle=\ttfamily\footnotesize,
+morekeywords={self, import, as, from, if, for, while},              % Add keywords here
+keywordstyle=\color{deepblue},
+stringstyle=\color{deepred},
+commentstyle=\color{cyan},
+breaklines=true,
+escapeinside={(*@}{@*)},            % Define escape delimiters
+postbreak=\mbox{\textcolor{deepgreen}{$\hookrightarrow$}\space},
+showstringspaces=false
+}}
+
+
+% Python environment
+\lstnewenvironment{python}[1][]
+{
+\pythonstyle
+\lstset{#1}
+}
+{}
+
+% Python for external files
+\newcommand\pythonexternal[2][]{{
+\pythonstyle
+\lstinputlisting[#1]{#2}}}
+
+% Python for inline
+\newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
+
+
+% Code output style for highlighting
+\newcommand\outputstyle{\lstset{
+    language=,
+    basicstyle=\ttfamily\footnotesize\color{gray},
+    breaklines=true,
+    showstringspaces=false,
+    escapeinside={(*@}{@*)},            % Define escape delimiters
+}}
+
+% Code output environment
+\lstnewenvironment{codeoutput}[1][]
+{
+    \outputstyle
+    \lstset{#1}
+}
+{}
+
+
+\title{Prime Suspects: The Great Hunt for Bigfoot’s Numeral Cousin Below 10,000}
+\author{data-to-paper}
+\begin{document}
+\maketitle
+\begin{abstract}
+Join us on a whimsical expedition reminiscent of searching for Bigfoot as we track down the largest prime number living covertly below 10,000. Our noble quest introduced us to 9973, the prime celebrity known for not just being indivisible but for throwing exclusive sock-and-sandal parties, where odd numbers mingle under the Fibonacci disco ball. At these soirées, they whisper wild conspiracy theories about composite numbers—rumor has it that they’ve been sneaking in disguised as primes, and if you listen closely, you might hear someone questioning why 4 is always trying to hang out with 2. 
+
+We’ve uncovered a numerical social hierarchy: primes at the tops of our favorite numbers, mingling about their unique properties, while pesky composite numbers loiter outside, claiming they’re just “multi-talented.” As we dive deeper into this integer-inhabited realm, we can't help but wonder how these quirky primes may even assist in future explorations of the numerical wilderness. So, remember, just as everyone has their favorite number buddies, we now know the primes have their own tight-knit community—one that’s full of intriguing numbers and equally riveting secrets!
+\end{abstract}
+
+\clearpage
+\appendix
+
+\section{Data Description} \label{sec:data_description} Here is the data description, as provided by the user:
+
+\begin{codeoutput}
+\#\# General Description
+
+\#\# Data Files
+The dataset consists of 1 data file:
+
+\#\#\# "number.txt"
+This file contains a large int, n.
+
+
+\end{codeoutput}
+
+\section{Prime Number Search}
+\subsection{{Code}}
+The Prime Number Search was carried out using the following custom code:
+
+\begin{python}
+
+def is_prime(num):
+    """Check if the number is a prime."""
+    if num <= 1:
+        return False
+    if num <= 3:
+        return True
+    if num % 2 == 0 or num % 3 == 0:
+        return False
+    i = 5
+    while i * i <= num:
+        if num % i == 0 or num % (i + 2) == 0:
+            return False
+        i += 6
+    return True
+
+def find_largest_prime(n):
+    """Find the largest prime number less than n."""
+    if n < 2:
+        return None  # No prime numbers less than 2
+    for num in range(n-1, 1, -1):
+        if is_prime(num):
+            return num
+    return None
+
+def main():
+    try:
+        with open('number.txt', 'r') as file:
+            lines = file.read()
+        n_raw = lines.strip().split('=')[1].strip()
+    except FileNotFoundError:
+        raise FileNotFoundError("The file 'number.txt' could not be found.")
+    except IndexError:
+        raise ValueError("The format of 'number.txt' is incorrect.")
+
+    try:
+        n = int(n_raw)
+    except ValueError:
+        raise ValueError("The value for n in 'number.txt' is not a valid integer.")
+
+    largest_prime = find_largest_prime(n)
+
+(*@\raisebox{2ex}{\hypertarget{code-Prime Number Search-output-txt}{}}@*)    with open('output.txt', 'w') as file:
+        if largest_prime is not None:
+            file.write(str(largest_prime))
+        else:
+            file.write("No prime number found less than " + str(n))
+
+# Execute the main function
+main()
+
+\end{python}
+
+
+
+\subsection{Code Output}\hypertarget{file-output-txt}{}
+
+\subsubsection*{\hyperlink{code-Prime Number Search-output-txt}{output.txt}}
+
+\begin{codeoutput}
+9973
+\end{codeoutput}
+
+\end{document}

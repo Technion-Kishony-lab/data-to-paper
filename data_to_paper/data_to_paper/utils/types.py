@@ -6,7 +6,7 @@ from typing import Generic, TypeVar, Iterable
 
 class IndexOrderedEnum(Enum):
 
-    def _get_index(self):
+    def get_index(self):
         """
         Get the index of this enum value in the list of enum values.
         """
@@ -17,35 +17,42 @@ class IndexOrderedEnum(Enum):
         Get the next enum value in the list.
         If this is the last value, a ValueError is raised.
         """
-        return list(self.__class__)[(self._get_index() + 1)]
+        try:
+            return list(self.__class__)[(self.get_index() + 1)]
+        except IndexError:
+            raise ValueError(f"No next value after {self}")
+
+    @classmethod
+    def get_first(cls):
+        return list(cls)[0]
 
     def __eq__(self, other):
         if isinstance(other, IndexOrderedEnum):
-            return self._get_index() == other._get_index()
+            return self.get_index() == other.get_index()
         return NotImplemented
 
     def __lt__(self, other):
         if isinstance(other, IndexOrderedEnum):
-            return self._get_index() < other._get_index()
+            return self.get_index() < other.get_index()
         return NotImplemented
 
     def __le__(self, other):
         if isinstance(other, IndexOrderedEnum):
-            return self._get_index() <= other._get_index()
+            return self.get_index() <= other.get_index()
         return NotImplemented
 
     def __gt__(self, other):
         if isinstance(other, IndexOrderedEnum):
-            return self._get_index() > other._get_index()
+            return self.get_index() > other.get_index()
         return NotImplemented
 
     def __ge__(self, other):
         if isinstance(other, IndexOrderedEnum):
-            return self._get_index() >= other._get_index()
+            return self.get_index() >= other.get_index()
         return NotImplemented
 
     def __hash__(self):
-        return hash(self._get_index())
+        return hash(self.get_index())
 
 
 T = TypeVar('T')

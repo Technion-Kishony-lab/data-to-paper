@@ -3,17 +3,17 @@ from data_to_paper.servers.model_engine import ModelEngine
 TYPE_OF_MODELS = 'closed'
 
 if TYPE_OF_MODELS == 'closed':
-    ModelEngine.DEFAULT = ModelEngine.GPT35_TURBO
+    ModelEngine.DEFAULT = ModelEngine.GPT4o_MINI
     CLASSES_TO_MODEL_ENGINES = {
-        "DataExplorationCodeProductsGPT": ModelEngine.GPT4,
-        "BaseCreateTablesCodeProductsGPT": ModelEngine.GPT4,
-        "GetMostSimilarCitations": ModelEngine.GPT4,
-        "IsGoalOK": ModelEngine.GPT4,
-        "NoveltyAssessmentReview": ModelEngine.GPT4,
-        "GoalReviewGPT": ModelEngine.GPT4,
-        'SectionWriterReviewBackgroundProductsConverser': ModelEngine.GPT4_TURBO,
-        "IntroductionSectionWriterReviewGPT": ModelEngine.GPT4,
-        "DiscussionSectionWriterReviewGPT": ModelEngine.GPT4,
+        "DataExplorationCodeProductsGPT": ModelEngine.GPT4o,
+        "BaseCreateTablesCodeProductsGPT": ModelEngine.GPT4o,
+        "GetMostSimilarCitations": ModelEngine.GPT4o,
+        "IsGoalOK": ModelEngine.GPT4o,
+        "NoveltyAssessmentReview": ModelEngine.GPT4o,
+        "GoalReviewGPT": ModelEngine.GPT4o,
+        'SectionWriterReviewBackgroundProductsConverser': ModelEngine.GPT4o,
+        "IntroductionSectionWriterReviewGPT": ModelEngine.GPT4o,
+        "DiscussionSectionWriterReviewGPT": ModelEngine.GPT4o,
     }
 elif TYPE_OF_MODELS == 'open':
     ModelEngine.DEFAULT = ModelEngine.LLAMA_2_70b

@@ -2,15 +2,12 @@ import functools
 import os
 import pickle
 import time
-
 from abc import ABC
-
 from pathlib import Path
 from typing import Union, Optional
 
-from .json_dump import dump_to_json, load_from_json
-
 from data_to_paper.env import CHOSEN_APP, DELAY_SERVER_CACHE_RETRIEVAL
+from .json_dump import dump_to_json, load_from_json
 from .serialize_exceptions import serialize_exception, is_exception, de_serialize_exception
 
 
@@ -91,9 +88,15 @@ class ServerCaller(ABC):
         return self._post_process_response(response, args, kwargs)
 
     def _get_response_from_records(self, args, kwargs):
+        """
+        returns the response from the records, if exists.
+        """
         raise NotImplementedError()
 
     def _add_response_to_new_records(self, args, kwargs, response):
+        """
+        adds a response to the new records.
+        """
         raise NotImplementedError()
 
     def _get_raw_server_response(self, *args, **kwargs):
@@ -174,7 +177,6 @@ class ServerCaller(ABC):
         """
 
         def decorator(func):
-
             if not hasattr(func, '_module_file_path'):
                 func._module_file_path = os.path.dirname(os.path.abspath(func.__code__.co_filename))
 
@@ -195,32 +197,38 @@ class ServerCaller(ABC):
         return decorator
 
 
-class ListServerCaller(ServerCaller, ABC):
+class OrderedServerCaller(ServerCaller, ABC):
     """
-    A base class for calling a remote server, while allowing recording and replaying server responses.
-    Records are saved as a sequence of responses and can be replayed in the same order (regardless of the arguments).
+    A base class for calling
+    a remote server, while allowing recording and replaying server responses in the same order.
     """
+
     def __init__(self):
         super().__init__()
         self.index_in_old_records = 0
 
-    @property
-    def empty_records(self) -> list:
-        return []
+    def are_more_records_available(self):
+        return self.index_in_old_records < len(self._get_old_records_as_list())
 
-    @property
-    def all_records(self):
-        return self.old_records + self.new_records
+    def reset_index(self):
+        self.index_in_old_records = 0
+
+    def _get_old_records_as_list(self):
+        """
+        Return a single list of all the old records, as tuples of (key, value).
+        """
+        raise NotImplementedError()
+
+    def _get_response_from_a_record(self, record, args, kwargs):
+        return record
 
     def _get_response_from_records(self, args, kwargs):
-        if self.index_in_old_records < len(self.old_records):
-            response = self.old_records[self.index_in_old_records]
+        if self.are_more_records_available():
+            record = self._get_old_records_as_list()[self.index_in_old_records]
+            response = self._get_response_from_a_record(record, args, kwargs)
             self.index_in_old_records += 1
             return response
         return None
-
-    def _add_response_to_new_records(self, args, kwargs, response):
-        self.new_records.append(response)
 
     @staticmethod
     def _serialize_record(record):
@@ -234,6 +242,37 @@ class ListServerCaller(ServerCaller, ABC):
             return de_serialize_exception(serialized_record)
         return serialized_record
 
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        results = super().__exit__(exc_type, exc_val, exc_tb)
+        if self.fail_if_not_all_responses_used and self.are_more_records_available():
+            raise AssertionError(f'Not all responses were used ({self.__class__.__name__}).')
+        return results
+
+    def __enter__(self):
+        self.reset_index()
+        return super().__enter__()
+
+
+class ListServerCaller(OrderedServerCaller):
+    """
+    A base class for calling a remote server, while allowing recording and replaying server responses.
+    Records are saved as a sequence of responses and can be replayed in the same order (regardless of the arguments).
+    """
+
+    @property
+    def empty_records(self) -> list:
+        return []
+
+    @property
+    def all_records(self):
+        return self.old_records + self.new_records
+
+    def _get_old_records_as_list(self):
+        return self.old_records
+
+    def _add_response_to_new_records(self, args, kwargs, response):
+        self.new_records.append(response)
+
     def _save_records(self, records, filepath):
         dump_to_json([self._serialize_record(record)
                       for record in records], filepath)
@@ -242,21 +281,67 @@ class ListServerCaller(ServerCaller, ABC):
         return [self._deserialize_record(serialized_record)
                 for serialized_record in load_from_json(filepath)]
 
-    def are_more_records_available(self):
-        return self.index_in_old_records < len(self.old_records)
 
-    def __enter__(self):
-        self.index_in_old_records = 0
-        return super().__enter__()
+class OrderedKeyToListServerCaller(OrderedServerCaller):
+    """
+    A class for calling a remote server, while allowing recording and replaying server responses.
+    Records are saved as dictionary (key order preserving) of responses with ordered lists as values.
+    """
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        results = super().__exit__(exc_type, exc_val, exc_tb)
-        if self.fail_if_not_all_responses_used and self.index_in_old_records < len(self.old_records):
-            raise AssertionError(f'Not all responses were used ({self.__class__.__name__}).')
-        return results
+    @property
+    def empty_records(self) -> dict:
+        return {}
+
+    @property
+    def all_records(self):
+        records = self.old_records.copy()
+        for key, values in self.new_records.items():
+            records[key] = records.get(key, []) + values
+        return records
+
+    def _get_old_records_as_list(self):
+        """
+        Return a single list of all the old records, as tuples of (key, value).
+        """
+        return [(key, value) for key, values in self.old_records.items() for value in values]
+
+    def _get_response_from_a_record(self, record, args, kwargs):
+        # record is (key, value)
+        key = self._generate_key(args, kwargs)
+        if not key == record[0]:
+            raise ValueError(f'Key mismatch: {key} != {record[0]}')
+        return record[1]
+
+    def _add_response_to_new_records(self, args, kwargs, response):
+        key = self._generate_key(args, kwargs)
+        if key not in self.new_records:
+            self.new_records[key] = []
+        self.new_records[key].append(response)
+
+    def _generate_key(self, args, kwargs):
+        return convert_args_kwargs_to_tuple(args, kwargs)
+
+    def _save_records(self, records, filepath):
+        serialized_records = \
+            {key: [self._serialize_record(record) for record in value] for key, value in records.items()}
+        dump_to_json(serialized_records, filepath)
+
+    def _load_records(self, filepath):
+        serialized_records = load_from_json(filepath)
+        return {key:
+                [self._deserialize_record(record) for record in value] for key, value in serialized_records.items()}
+
+    def mock(self, old_records=None, *args, **kwargs):
+        """
+        Returns a context manager to mock the server responses (specified as old_records).
+        """
+        result = super().mock(old_records, *args, **kwargs)
+        self.old_records = old_records if isinstance(old_records, dict) else {"GENERAL": old_records} if (
+            old_records) else self.empty_records
+        return result
 
 
-class DictServerCaller(ServerCaller, ABC):
+class ParameterizedQueryServerCaller(ServerCaller, ABC):
     """
     A base class for calling a remote server, while allowing recording and replaying server responses.
     Records are saved as a dictionary of responses and can be replayed by the arguments and keyword arguments.

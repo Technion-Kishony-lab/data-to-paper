@@ -1,5 +1,5 @@
 from functools import partial
-from typing import Optional, List, Collection, Dict, Callable, Any, Union
+from typing import Optional, List, Collection, Dict, Callable, Any, Union, Tuple
 
 from PySide6.QtCore import Qt, QMutex, QWaitCondition, QThread, Signal, Slot
 from PySide6.QtGui import QTextOption, QTextCursor
@@ -12,8 +12,9 @@ from data_to_paper.interactive.enum_types import PanelNames
 from data_to_paper.interactive.get_app import get_or_create_q_application_if_app_is_pyside
 from data_to_paper.interactive.styles import CURRENT_STEP_COLOR, SUBMIT_BUTTON_COLOR, PANEL_HEADER_COLOR, QEDIT_STYLE, \
     STEP_PANEL_BUTTON_STYLE, BACKGROUND_COLOR, CSS, APP_STYLE, TABS_STYLE, HTMLPOPUP_STYLE, \
-    MAIN_SPLITTER_STYLE, QCHECKBOX_STYLE
+    MAIN_SPLITTER_STYLE, QCHECKBOX_STYLE, STEP_PANEL_RESET_BUTTON_STYLE
 from data_to_paper.interactive.utils import open_file_on_os
+from data_to_paper.servers.api_cost import StageToCost
 
 
 def _get_label_height(label: QLabel) -> int:
@@ -33,6 +34,7 @@ class Worker(QThread):
     send_product_of_stage_signal = Signal(Stage, str)
     set_status_signal = Signal(PanelNames, int, str)
     set_header_signal = Signal(str)
+    send_api_usage_cost_signal = Signal(object)
 
     def __init__(self, mutex, condition, func_to_run=None):
         super().__init__()
@@ -84,6 +86,9 @@ class Worker(QThread):
     def worker_send_product_of_stage(self, stage: Stage, product_text: str):
         self.send_product_of_stage_signal.emit(stage, product_text)
 
+    def worker_send_api_usage_cost(self, stages_to_costs: Dict[str, float]):
+        self.send_api_usage_cost_signal.emit(stages_to_costs)
+
     @Slot(PanelNames, str)
     def receive_text_signal(self, panel_name, text):
         self.mutex.lock()
@@ -111,36 +116,59 @@ class StepsPanel(QWidget):
         self.labels_to_callbacks = None
         self.current_step = 0
         self.layout = QVBoxLayout(self)
-        self.step_widgets = []
+        self.step_widgets = {}
 
-    def init_ui(self, labels_to_callbacks: Dict[str, Callable]):
+    def init_ui(self, labels_to_callbacks: Dict[Tuple[str, str, bool], Tuple[Callable, Callable]]):
         self.labels_to_callbacks = labels_to_callbacks
-        for label, func in self.labels_to_callbacks.items():
+        for (label, name, resettable), (step_callback, reset_callback) in self.labels_to_callbacks.items():
+            self.step_widgets[label] = QHBoxLayout()
             step_button = QPushButton(label)
-            step_button.setFixedWidth(150)
-            step_button.clicked.connect(func)
-            self.layout.addWidget(step_button)
-            self.step_widgets.append(step_button)
+            step_button.setFixedWidth(130)
+            step_button.clicked.connect(step_callback)
+            self.step_widgets[label].addWidget(step_button)
+            if resettable:
+                reset_to_step_button = QPushButton('↺')
+                reset_to_step_button.setFixedWidth(20)
+                reset_to_step_button.setStyleSheet(STEP_PANEL_RESET_BUTTON_STYLE.format(background_color="#909090",
+                                                                                        pressed_color="#707070"))
+                reset_to_step_button.clicked.connect(reset_callback)
+                self.step_widgets[label].addWidget(reset_to_step_button)
+            else:  # add a spacer to keep the layout consistent
+                spacer = QSpacerItem(20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
+                self.step_widgets[label].addItem(spacer)
+            self.layout.addLayout(self.step_widgets[label])
         self.layout.setSpacing(5)
         self.refresh()
 
     def refresh(self):
         for i, step in enumerate(self.step_widgets):
             if i == self.current_step:
-                step.setStyleSheet(STEP_PANEL_BUTTON_STYLE.format(background_color=CURRENT_STEP_COLOR,
-                                                                  pressed_color="#003377"))
+                self.step_widgets[step].itemAt(0).widget().setStyleSheet(
+                    STEP_PANEL_BUTTON_STYLE.format(background_color=CURRENT_STEP_COLOR,
+                                                   pressed_color="#003377"))
+                if self.step_widgets[step].itemAt(1).widget() is not None:
+                    self.step_widgets[step].itemAt(1).widget().setEnabled(True)
             elif i < self.current_step:
-                step.setStyleSheet(STEP_PANEL_BUTTON_STYLE.format(background_color=SUBMIT_BUTTON_COLOR,
-                                                                  pressed_color="#006400"))
+                self.step_widgets[step].itemAt(0).widget().setStyleSheet(
+                    STEP_PANEL_BUTTON_STYLE.format(background_color=SUBMIT_BUTTON_COLOR,
+                                                   pressed_color="#006400"))
+                if self.step_widgets[step].itemAt(1).widget() is not None:
+                    self.step_widgets[step].itemAt(1).widget().setEnabled(True)
             else:
-                step.setStyleSheet(STEP_PANEL_BUTTON_STYLE.format(background_color="#909090", pressed_color="#707070"))
-
-    def set_step(self, step_name: str):
-        self.set_step_by_index(list(self.labels_to_callbacks.keys()).index(step_name))
+                self.step_widgets[step].itemAt(0).widget().setStyleSheet(
+                    STEP_PANEL_BUTTON_STYLE.format(background_color="#909090", pressed_color="#707070"))
+                # if the there is a reset button and not a spacer, disable the reset button
+                if self.step_widgets[step].itemAt(1).widget() is not None:
+                    self.step_widgets[step].itemAt(1).widget().setEnabled(False)
 
     def set_step_by_index(self, step_index: int):
         self.current_step = step_index
         self.refresh()
+
+    def disable_refresh_of_all_steps(self):
+        for step in self.step_widgets:
+            if self.step_widgets[step].itemAt(1).widget() is not None:
+                self.step_widgets[step].itemAt(1).widget().setVisible(False)
 
 
 class Panel(QWidget):
@@ -346,6 +374,31 @@ def create_tabs(names_to_panels: Dict[str, Panel]):
     return tabs
 
 
+class APIUsageCostDialog(QDialog):
+    def __init__(self, html_content, parent=None):
+        super(APIUsageCostDialog, self).__init__(parent, Qt.WindowType.WindowCloseButtonHint)
+        self.setWindowTitle("API Usage Cost")
+
+        # Layout to organize widgets
+        layout = QVBoxLayout()
+
+        # QLabel to display HTML content
+        label = QTextEdit()
+        label.setReadOnly(True)
+        label.setHtml(f'<style>{CSS}</style>{html_content}')
+
+        layout.addWidget(label)
+
+        # QPushButton to close the dialog
+        self.close_button = QPushButton("Close")
+        self.close_button.clicked.connect(self.close)
+        layout.addWidget(self.close_button)
+
+        self.setLayout(layout)
+        self.setStyleSheet(HTMLPOPUP_STYLE)
+        self.resize(400, 300)
+
+
 class PysideApp(QMainWindow, BaseApp):
     send_text_signal = Signal(str, PanelNames)
     send_panel_continue_signal = Signal(PanelNames)
@@ -355,6 +408,7 @@ class PysideApp(QMainWindow, BaseApp):
         super().__init__()
         self.products: Dict[Stage, Any] = {}
         self.popups = set()
+        self.api_usage_cost = StageToCost()
 
         self.panels = {
             PanelNames.SYSTEM_PROMPT: EditableTextPanel("System Prompt", "", ("Default",)),
@@ -415,6 +469,12 @@ class PysideApp(QMainWindow, BaseApp):
         self.bypass_mission_prompt_checkbox.setStyleSheet(QCHECKBOX_STYLE)
         check_boxes.addWidget(self.bypass_mission_prompt_checkbox)
 
+        # add button with $ sign that opens the pricing dialog, displaying the api usage cost per stage
+        self.api_usage_cost_button = QPushButton("")
+        self._update_api_usage_cost_button()
+        self.api_usage_cost_button.clicked.connect(self.show_api_usage_cost_dialog)
+        header_and_checkbox.addWidget(self.api_usage_cost_button)
+
         # Splitter with the text panels
         main_splitter = QSplitter(Qt.Orientation.Horizontal)
         left_splitter = QSplitter(Qt.Orientation.Vertical)
@@ -453,6 +513,7 @@ class PysideApp(QMainWindow, BaseApp):
         self.worker.send_product_of_stage_signal.connect(self.upon_send_product_of_stage)
         self.worker.set_status_signal.connect(self.upon_set_status)
         self.worker.set_header_signal.connect(self.upon_set_header)
+        self.worker.send_api_usage_cost_signal.connect(self.upon_send_api_usage_cost)
 
         # Define the request_text and show_text methods
         self.request_panel_continue = self.worker.worker_request_panel_continue
@@ -462,6 +523,7 @@ class PysideApp(QMainWindow, BaseApp):
         self.send_product_of_stage = self.worker.worker_send_product_of_stage
         self._set_status = self.worker.worker_set_status
         self.set_header = self.worker.worker_set_header
+        self.send_api_usage_cost = self.worker.worker_send_api_usage_cost
 
         # Connect UI elements
         for panel_name in PanelNames:
@@ -485,9 +547,10 @@ class PysideApp(QMainWindow, BaseApp):
 
     def advance_stage(self, stage: Union[Stage, int, bool]):
         if isinstance(stage, Stage):
-            stage = list(self._get_all_steps()).index(stage)
+            stage = list(self._get_stages()).index(stage)
         elif stage is True:
-            stage = len(self._get_all_steps())
+            stage = len(self._get_stages())
+            self.step_panel.disable_refresh_of_all_steps()
         elif stage is False:
             stage = -1
         self.worker.worker_advance_stage_int(stage)
@@ -498,8 +561,11 @@ class PysideApp(QMainWindow, BaseApp):
         self.worker.start()
 
     def initialize(self, func_to_run=None):
-        self.step_panel.init_ui({stage.value: partial(self.show_product_for_stage, stage)
-                                 for stage in self._get_all_steps()})
+        self.step_panel.init_ui(
+            {(stage.value, stage.name, stage.resettable): (
+                partial(self.show_product_for_stage, stage),
+                partial(self.confirm_and_perform_reset_to_stage, stage)
+            ) for stage in self._get_stages()})
         self.show()
         self.start_worker(func_to_run)
         return get_or_create_q_application_if_app_is_pyside().exec()
@@ -532,6 +598,19 @@ class PysideApp(QMainWindow, BaseApp):
             open_file_on_os(file_path)
             return
         popup = HtmlPopup(stage.value, product_text)
+        popup.show()
+        self.popups.add(popup)
+        popup.finished.connect(self.popup_closed)
+
+    def _update_api_usage_cost_button(self):
+        cost = self.api_usage_cost.get_total_cost()
+        self.api_usage_cost_button.setText(f"API Cost: {cost:.2f}$")
+
+    def show_api_usage_cost_dialog(self):
+        """
+        Open a popup window to show the pricing of the API usage per stage.
+        """
+        popup = APIUsageCostDialog(self.api_usage_cost.as_html())
         popup.show()
         self.popups.add(popup)
         popup.finished.connect(self.popup_closed)
@@ -597,3 +676,43 @@ class PysideApp(QMainWindow, BaseApp):
     @Slot(Stage, str)
     def upon_send_product_of_stage(self, stage: Stage, product_text: str):
         self.products[stage] = product_text
+
+    @Slot(object)
+    def upon_send_api_usage_cost(self, stages_to_costs: StageToCost):
+        self.api_usage_cost = stages_to_costs
+        self._update_api_usage_cost_button()
+
+    def confirm_and_perform_reset_to_stage(self, stage: Stage):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Reset to Step")
+        layout = QVBoxLayout(dialog)
+        label = QLabel(f"Are you sure you want to reset to the '{stage.value}' step?\n"
+                       f"This will irrevocably delete all progress after this step.")
+        layout.addWidget(label)
+        buttons_layout = QHBoxLayout()
+        layout.addLayout(buttons_layout)
+        yes_button = QPushButton("Yes")
+        yes_button.clicked.connect(partial(self.perform_reset_to_stage, stage, dialog))
+        no_button = QPushButton("No")
+        no_button.clicked.connect(dialog.close)
+        buttons_layout.addWidget(yes_button)
+        buttons_layout.addWidget(no_button)
+        dialog.exec()
+
+    def perform_reset_to_stage(self, stage: Stage, dialog: Optional[QDialog] = None):
+        if dialog is not None:
+            dialog.close()
+
+        self.stage_to_reset_to = stage
+
+        # delete all product for stages after the reset stage
+        stage_index = stage.get_index()
+        stages = list(self._get_stages())
+        for stage in stages[stage_index:]:
+            self.products.pop(stage, None)
+
+        # imitate a button click if resetting when waiting for user input
+        for panel in self.panels.values():
+            for button in [panel.submit_button, panel.continue_button]:
+                if button.isVisible():
+                    button.click()

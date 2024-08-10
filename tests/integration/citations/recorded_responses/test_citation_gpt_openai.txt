@@ -1,6 +1,8 @@
-[
-    "LLMResponse: Here is the list of sentences that need citations and their corresponding queries for citation search:\n\n1. \"This was studied using a specific telescope called the Hubble telescope, which was launched in 1990.\" : \"Hubble telescope launch date and its role in studying the distance to the Moon\"\n\n2. \"This is one of the most important discoveries in astronomy, after the discovery of the circumference of the earth.\" : \"Discovery of the distance of Moon as one of the most important discoveries after the discovery of the circumference of the Earth\"\n\n3. \"In later years, the mission of nasa named Apollo 11 was launched to the moon.\" : \"Mission details, purpose and date of launch of Apollo 11 to the Moon\"\n\nThe resulting dictionary would be: \n\n```{\n \"This was studied using a specific telescope called the Hubble telescope, which was launched in 1990.\": \"Hubble telescope launch date and its role in studying the distance to the Moon\", \n \"This is one of the most important discoveries in astronomy, after the discovery of the circumference of the earth.\": \"Discovery of the distance of Moon as one of the most important discoveries after the discovery of the circumference of the Earth\",\n \"In later years, the mission of nasa named Apollo 11 was launched to the moon.\": \"Mission details, purpose and date of launch of Apollo 11 to the Moon\"\n}```",
-    "LLMResponse: [\"Palca1988Early\"]",
-    "LLMResponse: As neither of the citations are relevant to the sentence, the citation list for this sentence should be `[]`.",
-    "LLMResponse: [\"BERRY1970Launch\"]"
-]
+{
+    "GENERAL": [
+        "LLMResponse: ```python\n{\n \"The distance to the moon is 384,400 km.\": \"Distance to the moon\",\n \"This is one of the most important discoveries in astronomy, after the discovery of the circumference of the earth.\": \"Importance of lunar distances in astronomy\",\n \"In later years, the mission of NASA named Apollo 11 was launched to the moon.\": \"Apollo 11 mission details\"\n}\n```",
+        "LLMResponse: ```python\n{\n \"The distance to the moon is 384,400 km.\": \"Distance to the moon\",\n \"This is one of the most important discoveries in astronomy, after the discovery of the circumference of the earth.\": \"Importance of lunar distances in astronomy\"\n}\n```",
+        "LLMResponse: ```python\n[]\n```",
+        "LLMResponse: ```python\n[\"Sadler1976Lunar\", \"Gorgolewski1966Lunar\"]\n```"
+    ]
+}

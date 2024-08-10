@@ -1,3 +1,5 @@
-[
-    "LLMResponse: b"
-]
+{
+    "GENERAL": [
+        "LLMResponse: a"
+    ]
+}

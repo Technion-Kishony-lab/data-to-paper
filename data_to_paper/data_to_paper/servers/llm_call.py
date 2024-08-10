@@ -2,35 +2,33 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass
-from data_to_paper.utils.text_formatting import dedent_triple_quote_str
+from typing import List, Union, Callable, Tuple, Optional
+from typing import TYPE_CHECKING
 
 import openai
-
-from typing import List, Union, Callable
-
 import tiktoken
 
 from data_to_paper.env import LLM_MODELS_TO_API_KEYS_AND_BASE_URL, CHOSEN_APP, FAKE_REQUEST_HUMAN_RESPONSE_ON_PLAYBACK
-from data_to_paper.utils.print_to_file import print_and_log_red, print_and_log
 from data_to_paper.exceptions import TerminateException
-from data_to_paper.utils.serialize import SerializableValue, deserialize_serializable_value
-
-from .base_server import ListServerCaller
-from .model_engine import ModelEngine
-
-from typing import TYPE_CHECKING
-
-from .serialize_exceptions import serialize_exception, is_exception, de_serialize_exception
 from data_to_paper.interactive import HumanAction, BaseApp
+from data_to_paper.utils.print_to_file import print_and_log_red, print_and_log
+from data_to_paper.utils.serialize import SerializableValue, deserialize_serializable_value
+from data_to_paper.utils.text_formatting import dedent_triple_quote_str
+from data_to_paper.conversation.stage import Stage, delete_all_stages_following_stage
+
+from .base_server import OrderedKeyToListServerCaller
+from .model_engine import ModelEngine
+from .serialize_exceptions import serialize_exception, is_exception, de_serialize_exception
 
 if TYPE_CHECKING:
     from data_to_paper.conversation.message import Message
-
 
 TIME_LIMIT_FOR_OPENAI_CALL = 300  # seconds
 MAX_NUM_LLM_ATTEMPTS = 5
 DEFAULT_EXPECTED_TOKENS_IN_RESPONSE = 500
 OPENAI_MAX_CONTENT_LENGTH_MESSAGE_CONTAINS = 'maximum context length'
+
+
 # a sub-string that indicates that an openai exception was raised due to the message content being too long
 
 
@@ -61,11 +59,32 @@ class LLMResponse(SerializableValue):
     """
 
 
-class OpenaiServerCaller(ListServerCaller):
+class OpenaiServerCaller(OrderedKeyToListServerCaller):
     """
     Class to call OpenAI API.
     """
     file_extension = '_openai.txt'
+    should_log_api_cost: bool = True
+
+    def __init__(self):
+        super().__init__()
+        self.current_stage_callback = None
+        self.api_cost_callback = None
+
+    def set_current_stage_callback(self, callback: Optional[Callable] = None):
+        self.current_stage_callback = callback
+
+    def set_api_cost_callback(self, callback: Optional[Callable] = None):
+        self.api_cost_callback = callback
+
+    def get_current_stage(self) -> str:
+        if self.current_stage_callback is not None:
+            return self.current_stage_callback().value
+        return "GENERAL"
+
+    def _add_api_cost(self, cost: float):
+        if self.api_cost_callback is not None:
+            self.api_cost_callback(cost)
 
     @staticmethod
     def _check_before_spending_money(messages: List[Message], model_engine: ModelEngine):
@@ -86,13 +105,28 @@ class OpenaiServerCaller(ListServerCaller):
                 print_and_log_red('Invalid input. Please choose Y/N.', should_log=False)
 
     @staticmethod
-    def _check_after_spending_money(content: str, messages: List[Message], model_engine: ModelEngine):
+    def _get_cost_of_api_call(content: str, messages: List[Message], model_engine: ModelEngine
+                              ) -> Tuple[int, int, float]:
+        """
+        Return the number of tokens in the input and output messages and the total cost of the API call.
+        """
         tokens_in = count_number_of_tokens_in_message(messages, model_engine)
         tokens_out = count_number_of_tokens_in_message(content, model_engine)
         pricing_in, pricing_out = model_engine.pricing
-        print_and_log_red(f'Total: {tokens_in} prompt tokens, {tokens_out} returned tokens, '
-                          f'cost: ${(tokens_in * pricing_in + tokens_out * pricing_out) / 1000:.2f}.',
+        return tokens_in, tokens_out, tokens_in * pricing_in + tokens_out * pricing_out
+
+    @staticmethod
+    def _check_after_spending_money(content: str, messages: List[Message], model_engine: ModelEngine):
+        tokens_in, tokens_out, cost = OpenaiServerCaller._get_cost_of_api_call(content, messages, model_engine)
+        print_and_log_red(f'Total: {tokens_in} prompt tokens, {tokens_out} returned tokens, cost: ${cost :.2f}.',
                           should_log=False)
+
+    def _log_api_usage_cost(self, content, messages: List[Message], model_engine: ModelEngine):
+        tokens_in, tokens_out, cost = self._get_cost_of_api_call(content, messages, model_engine)
+        self._add_api_cost(cost)
+
+    def _generate_key(self, args, kwargs):
+        return self.get_current_stage()
 
     def get_server_response(self, *args, **kwargs) -> Union[LLMResponse, HumanAction, Exception]:
         """
@@ -101,10 +135,11 @@ class OpenaiServerCaller(ListServerCaller):
         action = super().get_server_response(*args, **kwargs)
         if isinstance(action, str):
             action = LLMResponse(action)  # Backward compatibility
+        if args[0] and self.should_log_api_cost:
+            self._log_api_usage_cost(action.value, args[0], kwargs['model_engine'])
         return action
 
-    @staticmethod
-    def _get_server_response(messages: List[Message], model_engine: Union[ModelEngine, Callable], **kwargs
+    def _get_server_response(self, messages: List[Message], model_engine: Union[ModelEngine, Callable], **kwargs
                              ) -> Union[LLMResponse, HumanAction, Exception]:
         """
         Connect with openai to get response to conversation.
@@ -113,7 +148,8 @@ class OpenaiServerCaller(ListServerCaller):
             # human action:
             return model_engine(messages, **kwargs)
         if CHOSEN_APP == 'console' or CHOSEN_APP == None:  # noqa (Mutable)
-            OpenaiServerCaller._check_before_spending_money(messages, model_engine)
+            # OpenaiServerCaller._check_before_spending_money(messages, model_engine)
+            pass
         print_and_log_red('Calling the LLM-API for real.', should_log=False)
 
         api_key, api_base_url = LLM_MODELS_TO_API_KEYS_AND_BASE_URL[model_engine] \
@@ -146,8 +182,16 @@ class OpenaiServerCaller(ListServerCaller):
             raise Exception(f'Failed to get response from OPENAI after {MAX_NUM_LLM_ATTEMPTS} attempts.')
 
         content = response['choices'][0]['message']['content']
-        OpenaiServerCaller._check_after_spending_money(content, messages, model_engine)
+        self._check_after_spending_money(content, messages, model_engine)
         return LLMResponse(content)
+
+    def reset_to_stage(self, stage: Stage):
+        """
+        Reset the records to the records of the given stage
+        """
+        delete_all_stages_following_stage(self.old_records, stage)
+        delete_all_stages_following_stage(self.new_records, stage)
+        self.save_records()
 
     @staticmethod
     def _serialize_record(record: Union[SerializableValue, Exception]):
@@ -181,12 +225,9 @@ def count_number_of_tokens_in_message(messages: Union[List[Message], str], model
         encoding = tiktoken.encoding_for_model(model_engine.value)
     except KeyError:
         encoding = tiktoken.encoding_for_model(ModelEngine.GPT35_TURBO.value)
-    if isinstance(messages, str):
-        num_tokens = len(encoding.encode(messages))
-    else:
-        num_tokens = len(encoding.encode('\n'.join([message.content for message in messages])))
-
-    return num_tokens
+    if not isinstance(messages, str):
+        messages = '\n'.join([message.content for message in messages])
+    return len(encoding.encode(messages))
 
 
 def try_get_llm_response(messages: List[Message],

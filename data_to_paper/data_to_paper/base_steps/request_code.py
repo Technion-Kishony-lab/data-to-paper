@@ -14,13 +14,14 @@ from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.utils.replacer import Replacer
 from data_to_paper.code_and_output_files.file_view_params import ContentViewPurpose
+from data_to_paper.interactive import Symbols
 
+from .converser import _raise_if_reset
 from .debugger import DebuggerConverser
 from .base_products_conversers import BackgroundProductsConverser
 from .exceptions import FailedCreatingProductException
 from .request_python_value import PythonDictReviewBackgroundProductsConverser
 from .result_converser import Rewind
-from ..interactive.symbols import Symbols
 
 
 class CodeReviewPrompt(NamedTuple):
@@ -183,9 +184,11 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
     def output_filename(self) -> str:
         return self.output_file_requirements.get_single_content_file()
 
+    @_raise_if_reset()
     def _get_additional_contexts(self) -> Optional[Dict[str, Any]]:
         return None
 
+    @_raise_if_reset()
     def get_created_file_names_explanation(self, code_and_output: CodeAndOutput) -> str:  # noqa
         created_files = code_and_output.created_files.get_all_created_files()
         if len(created_files) == 0:
@@ -196,6 +199,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         else:
             return f'It creates the files: {list(created_files)}.'
 
+    @_raise_if_reset()
     def _get_specific_attrs_for_code_and_output(self, code_and_output: CodeAndOutput) -> Dict[str, str]:
         return {}
 
@@ -224,6 +228,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
     def _get_initial_code_and_output(self) -> CodeAndOutput:  # noqa
         return CodeAndOutput()
 
+    @_raise_if_reset()
     def get_code_and_output(self) -> Optional[CodeAndOutput]:
         self.initialize_conversation_if_needed()
         code_and_output = self._get_initial_code_and_output()
@@ -242,6 +247,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         code_and_output.provided_code = self.provided_code
         return code_and_output
 
+    @_raise_if_reset()
     def _run_debugger(self, previous_code: Optional[str] = None
                       ) -> Tuple[Optional[CodeAndOutput], Optional[DebuggerConverser]]:
         for attempt in range(self.max_code_writing_attempts):
@@ -285,6 +291,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
             return code_and_output, debugger
         return None, None
 
+    @_raise_if_reset()
     def _get_content_files_to_contents(self, code_and_output: CodeAndOutput, wildcard_filename: str,
                                        individually: bool) -> Dict[str, str]:
         if wildcard_filename is None:
@@ -324,6 +331,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         app_msg = f'## {Symbols.get_is_ok_symbol(is_all_ok)} {header}\n{app_msg}'
         return llm_msg, app_msg
 
+    @_raise_if_reset()
     def _get_llm_review_and_human_review(self, code_and_output: CodeAndOutput, debugger: DebuggerConverser) -> bool:
         """
         Return True/False indicating if the LLM wants to revise the code.
