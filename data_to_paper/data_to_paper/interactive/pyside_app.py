@@ -165,6 +165,11 @@ class StepsPanel(QWidget):
         self.current_step = step_index
         self.refresh()
 
+    def disable_refresh_of_all_steps(self):
+        for step in self.step_widgets:
+            if self.step_widgets[step].itemAt(1).widget() is not None:
+                self.step_widgets[step].itemAt(1).widget().setVisible(False)
+
 
 class Panel(QWidget):
     def __init__(self, header: Optional[str] = None, header_right: Optional[str] = None):
@@ -545,6 +550,7 @@ class PysideApp(QMainWindow, BaseApp):
             stage = list(self._get_stages()).index(stage)
         elif stage is True:
             stage = len(self._get_stages())
+            self.step_panel.disable_refresh_of_all_steps()
         elif stage is False:
             stage = -1
         self.worker.worker_advance_stage_int(stage)
