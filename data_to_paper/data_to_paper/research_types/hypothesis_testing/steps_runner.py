@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Type, Dict
+from typing import Type
 
 from data_to_paper.base_steps import DirectorProductGPT, CheckLatexCompilation, DataStepRunner
 

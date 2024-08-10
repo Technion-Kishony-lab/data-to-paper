@@ -555,12 +555,10 @@ class PysideApp(QMainWindow, BaseApp):
 
     def initialize(self, func_to_run=None):
         self.step_panel.init_ui(
-            {(stage.value, stage.name, stage.resettable):
-                (
-                    partial(self.show_product_for_stage, stage),
-                    partial(self.confirm_and_perform_reset_to_stage, stage)
-                )
-                for stage in self._get_stages()})
+            {(stage.value, stage.name, stage.resettable): (
+                partial(self.show_product_for_stage, stage),
+                partial(self.confirm_and_perform_reset_to_stage, stage)
+            ) for stage in self._get_stages()})
         self.show()
         self.start_worker(func_to_run)
         return get_or_create_q_application_if_app_is_pyside().exec()
