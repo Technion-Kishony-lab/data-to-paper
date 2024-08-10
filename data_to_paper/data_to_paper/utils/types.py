@@ -17,7 +17,10 @@ class IndexOrderedEnum(Enum):
         Get the next enum value in the list.
         If this is the last value, a ValueError is raised.
         """
-        return list(self.__class__)[(self.get_index() + 1)]
+        try:
+            return list(self.__class__)[(self.get_index() + 1)]
+        except IndexError:
+            raise ValueError(f"No next value after {self}")
 
     @classmethod
     def get_first(cls):

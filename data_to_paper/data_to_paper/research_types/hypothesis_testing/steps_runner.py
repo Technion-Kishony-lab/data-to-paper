@@ -24,6 +24,8 @@ from .writing_steps import FirstTitleAbstractSectionWriterReviewGPT, SecondTitle
 PAPER_SECTIONS_NAMES = ['title', 'abstract', 'introduction', 'results', 'discussion', 'methods']
 SECTIONS_WITH_CITATIONS = ['introduction', 'discussion']
 
+SKIP_STAGE_MESSAGE = 'This stage was skipped because the goal was provided by the user.'
+
 
 @dataclass
 class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
@@ -49,8 +51,8 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
     goal_refinement_iteration: int = 0
     re_goal: bool = False
 
-    def __post_init__(self):
-        super().__post_init__()
+    def _pre_run_preparations(self):
+        super()._pre_run_preparations()
         self.paper_producer = ProduceScientificPaperPDFWithAppendix.from_(
             self,
             latex_document=self.latex_document,
@@ -88,34 +90,32 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
             user_agent=ScientificAgent.Performer,
             conversation_name='with_director',
         )
-        self.advance_stage(ScientificStage.DATA)
         self.products.data_file_descriptions = self.director_converser.get_product_or_no_product_from_director(
             product_name='Data description', returned_product=self.data_file_descriptions)
         self.send_product_to_client('data_file_descriptions')
 
     def _data_exploration(self):
-        if self.project_parameters['should_do_data_exploration']:
-            self.advance_stage(ScientificStage.EXPLORATION)
-            RequestCodeProducts.from_(
-                self,
-                code_step='data_exploration',
-                code_writing_class=DataExplorationCodeProductsGPT,
-                explain_code_class=RequestCodeExplanation,
-                explain_created_files_class=None,
-            ).get_code_and_output_and_descriptions()
-            self.send_product_to_client('codes_and_outputs_with_explanations:data_exploration')
+        if not self.project_parameters['should_do_data_exploration']:
+            return
+        RequestCodeProducts.from_(
+            self,
+            code_step='data_exploration',
+            code_writing_class=DataExplorationCodeProductsGPT,
+            explain_code_class=RequestCodeExplanation,
+            explain_created_files_class=None,
+        ).get_code_and_output_and_descriptions()
+        self.send_product_to_client('codes_and_outputs_with_explanations:data_exploration')
 
     def _literature_search_goal(self):
-        if self.project_parameters['should_do_literature_search']:
-            self.advance_stage(ScientificStage.LITERATURE_REVIEW_GOAL)
-            GoalLiteratureSearchReviewGPT.from_(
-                self, excluded_citation_titles=self.project_parameters['excluded_citation_titles'],
-                literature_search=self.products.literature_search['goal']
-            ).get_literature_search()
-            self.send_product_to_client('literature_search:goal')
+        if not self.project_parameters['should_do_literature_search']:
+            return
+        GoalLiteratureSearchReviewGPT.from_(
+            self, excluded_citation_titles=self.project_parameters['excluded_citation_titles'],
+            literature_search=self.products.literature_search['goal']
+        ).get_literature_search()
+        self.send_product_to_client('literature_search:goal')
 
     def _assess_novelty(self):
-        self.advance_stage(ScientificStage.ASSESS_NOVELTY)
         self.products.most_similar_papers = GetMostSimilarCitations.from_(self).run_and_get_valid_result()
         self.products.novelty_assessment = NoveltyAssessmentReview.from_(self).run_and_get_valid_result()
         self.send_product_to_client('novelty_assessment')
@@ -123,55 +123,53 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
         if (not self.products.novelty_assessment['choice'] == 'OK' and
                 self.goal_refinement_iteration < self.project_parameters['max_goal_refinement_iterations']):
             self.re_goal = True
-            self._reset_is_stage_completed(ScientificStage.GOAL)
+            return ScientificStage.GOAL
 
     def _goal(self):
+        next_stage = None
         if not self.re_goal:
-            self.advance_stage(ScientificStage.GOAL)
             research_goal = self.director_converser.get_product_or_no_product_from_director(
                 product_name='Research Goal', returned_product=self.project_parameters['research_goal'],
                 acknowledge_no_product_message="OK. no problem. I will devise the goal myself.")
             if research_goal is None:
+                # Goal not provided by the user
                 self.products.research_goal = GoalReviewGPT.from_(
                     self,
                     project_specific_goal_guidelines=self.project_parameters['project_specific_goal_guidelines']
                 ).run_and_get_valid_result()
-                self.send_product_to_client('research_goal')
             else:
                 self.products.research_goal = GoalAndHypothesisProduct(value=research_goal)
-                self._app_send_product_of_stage(ScientificStage.LITERATURE_REVIEW_GOAL,
-                                                'This stage was skipped because the goal was provided by the user.')
-                self._app_send_product_of_stage(ScientificStage.ASSESS_NOVELTY,
-                                                'This stage was skipped because the goal was provided by the user.')
-                self.send_product_to_client('research_goal', save_to_file=True)
+                self._app_send_product_of_stage(ScientificStage.LITERATURE_REVIEW_GOAL, SKIP_STAGE_MESSAGE)
+                self._app_send_product_of_stage(ScientificStage.ASSESS_NOVELTY, SKIP_STAGE_MESSAGE)
+                next_stage = ScientificStage.PLAN
         else:
-            self.advance_stage(ScientificStage.GOAL)
             self.products.research_goal = ReGoalReviewGPT.from_(
                 self,
                 project_specific_goal_guidelines=self.project_parameters['project_specific_goal_guidelines']
             ).run_and_get_valid_result()
-            self.send_product_to_client('research_goal', save_to_file=True)
+        self.send_product_to_client('research_goal', save_to_file=True)
+        return next_stage
 
     def _hypotheses_testing_plan(self):
-        self.advance_stage(ScientificStage.PLAN)
-        if self.project_parameters['should_prepare_hypothesis_testing_plan']:
-            self.products.hypothesis_testing_plan = HypothesesTestingPlanReviewGPT.from_(
-                self).run_and_get_valid_result()
-            self.send_product_to_client('hypothesis_testing_plan', save_to_file=True)
+        if not self.project_parameters['should_prepare_hypothesis_testing_plan']:
+            return
+        self.products.hypothesis_testing_plan = HypothesesTestingPlanReviewGPT.from_(
+            self).run_and_get_valid_result()
+        self.send_product_to_client('hypothesis_testing_plan', save_to_file=True)
 
     def _data_preprocessing(self):
-        if self.project_parameters['should_do_data_preprocessing']:
-            RequestCodeProducts.from_(
-                self,
-                code_step='data_preprocessing',
-                code_writing_class=DataPreprocessingCodeProductsGPT,
-                explain_code_class=RequestCodeExplanation,
-                explain_created_files_class=None,
-            ).get_code_and_output_and_descriptions()
-            self.send_product_to_client('codes_and_outputs_with_explanations:data_preprocessing')
+        if not self.project_parameters['should_do_data_preprocessing']:
+            return
+        RequestCodeProducts.from_(
+            self,
+            code_step='data_preprocessing',
+            code_writing_class=DataPreprocessingCodeProductsGPT,
+            explain_code_class=RequestCodeExplanation,
+            explain_created_files_class=None,
+        ).get_code_and_output_and_descriptions()
+        self.send_product_to_client('codes_and_outputs_with_explanations:data_preprocessing')
 
     def _data_analysis(self):
-        self.advance_stage(ScientificStage.CODE)
         RequestCodeProducts.from_(
             self,
             code_step='data_analysis',
@@ -183,7 +181,6 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
         self.send_product_to_client('codes_and_outputs_with_explanations:data_analysis')
 
     def _tables(self):
-        self.advance_stage(ScientificStage.TABLES)
         RequestCodeProducts.from_(
             self,
             code_step='data_to_latex',
@@ -195,7 +192,6 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
         self.send_product_to_client('codes_and_outputs_with_explanations:data_to_latex')
 
     def _interpretation(self):
-        self.advance_stage(ScientificStage.INTERPRETATION)
         self.products.paper_sections_and_optional_citations['title'], \
             self.products.paper_sections_and_optional_citations['abstract'] = \
             FirstTitleAbstractSectionWriterReviewGPT.from_(
@@ -203,7 +199,6 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
         self.send_product_to_client('title_and_abstract_first')
 
     def _literature_review_writing(self):
-        self.advance_stage(ScientificStage.LITERATURE_REVIEW_WRITING)
         WritingLiteratureSearchReviewGPT.from_(
             self,
             literature_search=self.products.literature_search['writing'],
@@ -211,13 +206,7 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
         ).get_literature_search()
         self.send_product_to_client('literature_search:writing')
 
-    def _writing_paper_section(self, sections_and_writing_class):
-        section_names, writing_class = sections_and_writing_class
-        if len(section_names) == 2:
-            stage = ScientificStage.WRITING_TITLE_AND_ABSTRACT
-        else:
-            stage = SECTION_NAMES_TO_WRITING_STAGES[section_names[0]]
-        self.advance_stage(stage)
+    def _writing_paper_section(self, section_names, writing_class):
         sections_with_citations = \
             writing_class.from_(self, section_names=section_names).write_sections_with_citations()
         for section_name, section_and_citations in zip(section_names, sections_with_citations):
@@ -228,25 +217,23 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
             self.send_product_to_client(f'paper_sections:{section_names[0]}')
 
     def _writing_results(self):
-        self._writing_paper_section((('results',), ResultsSectionWriterReviewGPT))
+        self._writing_paper_section(('results',), ResultsSectionWriterReviewGPT)
 
     def _writing_title_and_abstract(self):
-        self._writing_paper_section((('title', 'abstract'), SecondTitleAbstractSectionWriterReviewGPT))
+        self._writing_paper_section(('title', 'abstract'), SecondTitleAbstractSectionWriterReviewGPT)
 
     def _writing_methods(self):
-        self._writing_paper_section((('methods',), MethodsSectionWriterReviewGPT))
+        self._writing_paper_section(('methods',), MethodsSectionWriterReviewGPT)
 
     def _writing_introduction(self):
-        self._writing_paper_section((('introduction',), IntroductionSectionWriterReviewGPT))
+        self._writing_paper_section(('introduction',), IntroductionSectionWriterReviewGPT)
 
     def _writing_discussion(self):
-        self._writing_paper_section((('discussion',), DiscussionSectionWriterReviewGPT))
+        self._writing_paper_section(('discussion',), DiscussionSectionWriterReviewGPT)
 
     def _compile_paper(self):
-        self.advance_stage(ScientificStage.COMPILE)
         self.paper_producer.assemble_compile_paper()
         self._app_clear_panels()
         self._app_send_product_of_stage(
             ScientificStage.COMPILE,
             f'<a href="file://{self.output_directory}/paper.pdf">Download the manuscript</a>')
-        self.advance_stage(True)

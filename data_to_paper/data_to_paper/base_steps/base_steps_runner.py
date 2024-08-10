@@ -64,7 +64,6 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
 
     _stages_to_api_usage_cost: StageToCost = field(default_factory=StageToCost)
     stages_to_funcs: Dict[Stage, Callable] = None
-    is_stage_completed: Dict[Stage, bool] = None
 
     server_caller: OpenaiServerCaller = None
 
@@ -112,9 +111,10 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         """
         self.current_stage = stage
         self._app_advance_stage(stage=stage)
-        self._add_cost_to_stage(stage=stage)
-        if stage not in self.stages_to_conversations_lens:
-            self.stages_to_conversations_lens[stage] = len(self.actions_and_conversations.conversations)
+        if isinstance(stage, Stage):
+            self._add_cost_to_stage(stage=stage)
+            if stage not in self.stages_to_conversations_lens:
+                self.stages_to_conversations_lens[stage] = len(self.actions_and_conversations.conversations)
 
     def send_product_to_client(self, product_field: str, save_to_file: bool = False):
         """
@@ -146,49 +146,41 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
 
         # delete api usage cost up to the given stage:
         self._stages_to_api_usage_cost.delete_from_stage(stage)
-        self.app_send_api_usage_cost()
-
-        self._reset_is_stage_completed(next_stage=stage)
 
         self._app_clear_stage_to_reset_to()
 
     def _pre_run_preparations(self):
         self._update_project_parameters()
 
-    def _get_first_uncompleted_stage(self):
-        for stage in self.stages:
-            if not self.is_stage_completed[stage]:
-                return stage
-        return None
-
-    def _reset_is_stage_completed(self, next_stage: Optional[Stage] = None):
-        """
-        Reset is_stage_completed such that it is completed for all stage before the given stage.
-        """
-        if next_stage is None:
-            self.is_stage_completed = {stage: False for stage in self.stages}
-        else:
-            self.is_stage_completed = {stage: stage < next_stage for stage in self.stages}
-
     def _run_all_steps(self):
         """
         Run all the steps towards the high level goal.
         """
-        self._reset_is_stage_completed()
+        stage = self.stages.get_first()
         while True:
-            stage = self._get_first_uncompleted_stage()
-            if stage is None:
+            self.advance_stage(stage)
+            if stage is True:
                 break
             try:
-                self._run_stage(stage)
+                next_stage = self._run_stage(stage)
             except ResetStepException as e:
                 print_and_log(f'Resetting to stage {e.stage.name}')
-                self.reset_to_stage(e.stage)
-                self._reset_is_stage_completed(next_stage=e.stage)
+                next_stage = e.stage
+                self.reset_to_stage(next_stage)
+            if next_stage is None:
+                try:
+                    next_stage = stage.get_next()
+                except ValueError:
+                    next_stage = True
+            stage = next_stage
 
-    def _run_stage(self, stage: Stage):
-        self.is_stage_completed[stage] = True
-        self.stages_to_funcs[stage]()
+    def _run_stage(self, stage: Stage) -> Optional[Stage]:
+        """
+        Return the next stage to run.
+        `None` for default next stage.
+        `True` when the run is completed.
+        """
+        return self.stages_to_funcs[stage]()
 
     def _get_files_to_keep(self):
         """
@@ -249,7 +241,6 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
                 self._pre_run_preparations()
                 self._run_all_steps()
             except TerminateException as e:
-                # self.advance_stage(Stage.FAILURE)  # used for the old whatsapp app
                 msg = Replacer(self, self.failure_message, kwargs={'exception': str(e)}).format_text()
                 self._app_send_prompt(PanelNames.MISSION_PROMPT, msg, from_md=True)
                 self._app_set_header('Terminate upon failure')
