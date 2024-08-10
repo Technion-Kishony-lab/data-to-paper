@@ -53,7 +53,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
     actions_and_conversations: ActionsAndConversations = field(default_factory=ActionsAndConversations)
     should_remove_temp_folder: bool = True
 
-    stages_to_conversations_lens: Dict = field(default_factory=dict)
+    stages_to_conversations_lens: Dict[Stage, int] = field(default_factory=dict)
 
     app: Optional[BaseApp] = None
     cast = None  # Type[Agent]
@@ -113,8 +113,8 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         self.current_stage = stage
         self._app_advance_stage(stage=stage)
         self._add_cost_to_stage(stage=stage)
-        if stage.name not in self.stages_to_conversations_lens:
-            self.stages_to_conversations_lens[stage.name] = len(self.actions_and_conversations.conversations)
+        if stage not in self.stages_to_conversations_lens:
+            self.stages_to_conversations_lens[stage] = len(self.actions_and_conversations.conversations)
 
     def send_product_to_client(self, product_field: str, save_to_file: bool = False):
         """
@@ -140,7 +140,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
 
         # delete all conversations in the actions_and_conversations of the steps after and including the step
         conversation_names = list(self.actions_and_conversations.conversations.keys())
-        conversations_to_delete = conversation_names[self.stages_to_conversations_lens[stage.name]:]
+        conversations_to_delete = conversation_names[self.stages_to_conversations_lens[stage]:]
         for conversation in conversations_to_delete:
             del self.actions_and_conversations.conversations[conversation]
 
