@@ -9,7 +9,7 @@ from data_to_paper.servers.json_dump import dump_to_json, load_from_json
 
 class StageToCost(Dict[Optional[Stage], float]):
     """
-    A dictionary that stores the api cost for eqch stage
+    A dictionary that stores the api cost for each stage
     key of None is for the total costs of stages that were reset and deleted
     """
 
@@ -42,7 +42,7 @@ class StageToCost(Dict[Optional[Stage], float]):
         if not self:
             return '<span style="color: white;">No API usage cost</span>'
         s = '<h2>API usage cost</h2>\n'
-        s += '<br>\n'
+        s += '<p>\n'
         s += '<table style="color:white;">\n'
         for stage, cost in self.items():
             if stage is not None:
@@ -51,5 +51,6 @@ class StageToCost(Dict[Optional[Stage], float]):
             s += '<tr>\n<td></td>\n<td></td>\n</tr>\n'
             s += f'<tr>\n<td>Deleted stages</td>\n<td>${self[None]:.2f}</td>\n</tr>\n'
         s += '</table>\n'
+        s += '</p>\n'
         s += f'<h3>Total cost: ${self.get_total_cost():.2f}</h3>\n'
         return s
