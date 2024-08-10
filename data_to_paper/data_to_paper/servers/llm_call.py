@@ -14,7 +14,7 @@ from data_to_paper.interactive import HumanAction, BaseApp
 from data_to_paper.utils.print_to_file import print_and_log_red, print_and_log
 from data_to_paper.utils.serialize import SerializableValue, deserialize_serializable_value
 from data_to_paper.utils.text_formatting import dedent_triple_quote_str
-from data_to_paper.conversation.stage import Stage
+from data_to_paper.conversation.stage import Stage, delete_all_stages_following_stage
 
 from .base_server import OrderedKeyToListServerCaller
 from .json_dump import dump_to_json, load_from_json
@@ -65,13 +65,27 @@ class OpenaiServerCaller(OrderedKeyToListServerCaller):
     Class to call OpenAI API.
     """
     file_extension = '_openai.txt'
-    step_runner = None
     should_log_api_cost: bool = True
 
-    def mock(self, old_records=None, record_more_if_needed=True, fail_if_not_all_responses_used=True,
-             should_save=False, file_path=None):
-        self.should_log_api_cost = False
-        return super().mock(old_records, record_more_if_needed, fail_if_not_all_responses_used, should_save, file_path)
+    def __init__(self):
+        super().__init__()
+        self.current_stage_callback = None
+        self.api_cost_callback = None
+
+    def set_current_stage_callback(self, callback):
+        self.current_stage_callback = callback
+
+    def set_api_cost_callback(self, callback):
+        self.api_cost_callback = callback
+
+    def get_current_stage(self) -> str:
+        if self.current_stage_callback is not None:
+            return self.current_stage_callback().value
+        return "GENERAL"
+
+    def _add_api_cost(self, cost: float):
+        if self.api_cost_callback is not None:
+            self.api_cost_callback(cost)
 
     @staticmethod
     def _check_before_spending_money(messages: List[Message], model_engine: ModelEngine):
@@ -110,17 +124,10 @@ class OpenaiServerCaller(OrderedKeyToListServerCaller):
 
     def _log_api_usage_cost(self, content, messages: List[Message], model_engine: ModelEngine):
         tokens_in, tokens_out, cost = self._get_cost_of_api_call(content, messages, model_engine)
-        api_usage_cost = load_from_json(self.file_path.parents[0] / 'api_usage_cost.json')
-        api_usage_cost[self.step_runner.current_stage.name] += cost
-        dump_to_json(api_usage_cost, self.file_path.parents[0] / 'api_usage_cost.json')
-
-    def set_step_runner(self, step_runner):
-        self.step_runner = step_runner
+        self._add_api_cost(cost)
 
     def _generate_key(self, args, kwargs):
-        if self.step_runner is None:
-            return "GENERAL"
-        return self.step_runner.current_stage.name
+        return self.get_current_stage()
 
     def get_server_response(self, *args, **kwargs) -> Union[LLMResponse, HumanAction, Exception]:
         """
@@ -131,7 +138,6 @@ class OpenaiServerCaller(OrderedKeyToListServerCaller):
             action = LLMResponse(action)  # Backward compatibility
         if args[0] and self.should_log_api_cost:
             self._log_api_usage_cost(action.value, args[0], kwargs['model_engine'])
-            self.step_runner.app_send_api_usage_cost()
         return action
 
     def _get_server_response(self, messages: List[Message], model_engine: Union[ModelEngine, Callable], **kwargs
@@ -182,34 +188,11 @@ class OpenaiServerCaller(OrderedKeyToListServerCaller):
 
     def reset_to_stage(self, stage: Stage):
         """
-        Reset the records and the api usage cost files to the records of the given stage
+        Reset the records to the records of the given stage
         """
-        stage_class = stage.__class__
-
-        keys_to_delete_in_old = []
-        for key in self.old_records.keys():
-            if stage_class[key] >= stage:
-                keys_to_delete_in_old.append(key)
-        for key in keys_to_delete_in_old:
-            del self.old_records[key]
-
-        keys_to_delete_in_new = []
-        for key in self.new_records.keys():
-            if stage_class[key] >= stage:
-                keys_to_delete_in_new.append(key)
-        for key in keys_to_delete_in_new:
-            del self.new_records[key]
+        delete_all_stages_following_stage(self.old_records, stage)
+        delete_all_stages_following_stage(self.new_records, stage)
         self.save_records()
-
-        # reset the api usage cost to the given stage
-        api_usage_cost = load_from_json(self.file_path.parents[0] / 'api_usage_cost.json')
-        keys_to_delete_in_api_usage_cost = []
-        for key in api_usage_cost.keys():
-            if stage_class[key] >= stage:
-                keys_to_delete_in_api_usage_cost.append(key)
-        for key in keys_to_delete_in_api_usage_cost:
-            del api_usage_cost[key]
-        dump_to_json(api_usage_cost, self.file_path.parents[0] / 'api_usage_cost.json')
 
     @staticmethod
     def _serialize_record(record: Union[SerializableValue, Exception]):

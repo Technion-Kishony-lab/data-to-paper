@@ -33,7 +33,7 @@ class Worker(QThread):
     send_product_of_stage_signal = Signal(Stage, str)
     set_status_signal = Signal(PanelNames, int, str)
     set_header_signal = Signal(str)
-    send_api_usage_cost_signal = Signal(str)
+    send_api_usage_cost_signal = Signal(object)
 
     def __init__(self, mutex, condition, func_to_run=None):
         super().__init__()
@@ -85,8 +85,8 @@ class Worker(QThread):
     def worker_send_product_of_stage(self, stage: Stage, product_text: str):
         self.send_product_of_stage_signal.emit(stage, product_text)
 
-    def worker_send_api_usage_cost(self, html_content: str):
-        self.send_api_usage_cost_signal.emit(html_content)
+    def worker_send_api_usage_cost(self, stages_to_costs: Dict[str, float]):
+        self.send_api_usage_cost_signal.emit(stages_to_costs)
 
     @Slot(PanelNames, str)
     def receive_text_signal(self, panel_name, text):
@@ -402,7 +402,7 @@ class PysideApp(QMainWindow, BaseApp):
         super().__init__()
         self.products: Dict[Stage, Any] = {}
         self.popups = set()
-        self.api_usage_cost = '<span style="color: white;">Nothing to show yet.</span>'
+        self.api_usage_cost = {}
 
         self.panels = {
             PanelNames.SYSTEM_PROMPT: EditableTextPanel("System Prompt", "", ("Default",)),
@@ -464,9 +464,10 @@ class PysideApp(QMainWindow, BaseApp):
         check_boxes.addWidget(self.bypass_mission_prompt_checkbox)
 
         # add button with $ sign that opens the pricing dialog, displaying the api usage cost per stage
-        self.pricing_button = QPushButton("API Usage Cost")
-        self.pricing_button.clicked.connect(self.show_pricing_dialog)
-        header_and_checkbox.addWidget(self.pricing_button)
+        self.api_usage_cost_button = QPushButton("")
+        self._update_api_usage_cost_button()
+        self.api_usage_cost_button.clicked.connect(self.show_api_usage_cost_dialog)
+        header_and_checkbox.addWidget(self.api_usage_cost_button)
 
         # Splitter with the text panels
         main_splitter = QSplitter(Qt.Orientation.Horizontal)
@@ -540,9 +541,9 @@ class PysideApp(QMainWindow, BaseApp):
 
     def advance_stage(self, stage: Union[Stage, int, bool]):
         if isinstance(stage, Stage):
-            stage = list(self._get_all_steps()).index(stage)
+            stage = list(self._get_stages()).index(stage)
         elif stage is True:
-            stage = len(self._get_all_steps())
+            stage = len(self._get_stages())
         elif stage is False:
             stage = -1
         self.worker.worker_advance_stage_int(stage)
@@ -559,7 +560,7 @@ class PysideApp(QMainWindow, BaseApp):
                     partial(self.show_product_for_stage, stage),
                     partial(self.confirm_and_perform_reset_to_stage, stage)
                 )
-                for stage in self._get_all_steps()})
+                for stage in self._get_stages()})
         self.show()
         self.start_worker(func_to_run)
         return get_or_create_q_application_if_app_is_pyside().exec()
@@ -596,11 +597,31 @@ class PysideApp(QMainWindow, BaseApp):
         self.popups.add(popup)
         popup.finished.connect(self.popup_closed)
 
-    def show_pricing_dialog(self):
+    def _pretty_api_usage_cost(self):
+        stages_to_costs = self.api_usage_cost
+        if not stages_to_costs:
+            return '<span style="color: white;">Nothing to show yet.</span>'
+        s = '<h2>The API usage cost for each step:</h2>\n'
+        for stage, cost in stages_to_costs.items():
+            if stage is not None:
+                s += f'<li style="color:white;">\n<b>{stage.value}:</b> {cost:.2f}$\n</li>\n'
+        if None in stages_to_costs:
+            s += f'<li style="color:white;">\n<b>Deleted api calls:</b> {stages_to_costs[None]:.2f}$\n</li>\n'
+        s += f'<h3>Total cost: {self._get_total_api_usage_cost():.2f}$</h3>\n'
+        return s
+
+    def _get_total_api_usage_cost(self):
+        return sum(self.api_usage_cost.values())
+
+    def _update_api_usage_cost_button(self):
+        cost = self._get_total_api_usage_cost()
+        self.api_usage_cost_button.setText(f"API Cost: {cost:.2f}$")
+
+    def show_api_usage_cost_dialog(self):
         """
         Open a popup window to show the pricing of the API usage per stage.
         """
-        html_content = self.api_usage_cost
+        html_content = self._pretty_api_usage_cost()
         popup = APIUsageCostDialog(html_content)
         popup.show()
         self.popups.add(popup)
@@ -668,9 +689,10 @@ class PysideApp(QMainWindow, BaseApp):
     def upon_send_product_of_stage(self, stage: Stage, product_text: str):
         self.products[stage] = product_text
 
-    @Slot(str)
-    def upon_send_api_usage_cost(self, html_content: str):
-        self.api_usage_cost = html_content
+    @Slot(object)
+    def upon_send_api_usage_cost(self, stages_to_costs: Dict[Stage, float]):
+        self.api_usage_cost = stages_to_costs
+        self._update_api_usage_cost_button()
 
     def confirm_and_perform_reset_to_stage(self, stage: Stage):
         dialog = QDialog(self)
@@ -697,7 +719,7 @@ class PysideApp(QMainWindow, BaseApp):
 
         # delete all product for stages after the reset stage
         stage_index = stage.get_index()
-        stages = list(self._get_all_steps())
+        stages = list(self._get_stages())
         for stage in stages[stage_index:]:
             self.products.pop(stage, None)
 

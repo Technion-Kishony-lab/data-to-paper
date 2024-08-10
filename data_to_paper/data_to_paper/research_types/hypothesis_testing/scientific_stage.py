@@ -27,5 +27,3 @@ SECTION_NAMES_TO_WRITING_STAGES = {
     "results": ScientificStage.WRITING_RESULTS,
     "discussion": ScientificStage.WRITING_DISCUSSION,
 }
-
-print(ScientificStage.DATA.resettable)

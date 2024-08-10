@@ -142,13 +142,13 @@ class AppInteractor:
         self.app.set_header(prefix + header)
 
     @_skip_if_no_app
-    def _app_send_api_usage_cost(self, html_content: str):
-        self.app.send_api_usage_cost(html_content)
+    def _app_send_api_usage_cost(self, stages_to_costs: Dict[Stage, float]):
+        self.app.send_api_usage_cost(stages_to_costs)
 
     @_skip_if_no_app
     def _app_get_stage_to_reset_to(self):
         return self.app.stage_to_reset_to
 
     @_skip_if_no_app
-    def _app_re_set_reset_to_step(self):
-        self.app.re_set_reset_to_step()
+    def _app_clear_stage_to_reset_to(self):
+        self.app.clear_stage_to_reset_to()

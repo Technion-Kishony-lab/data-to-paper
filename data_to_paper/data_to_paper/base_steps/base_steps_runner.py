@@ -16,7 +16,7 @@ from data_to_paper.utils.print_to_file import print_and_log, console_log_file_co
 from data_to_paper.servers.llm_call import OPENAI_SERVER_CALLER, OpenaiServerCaller
 from data_to_paper.servers.crossref import CROSSREF_SERVER_CALLER
 from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER
-from data_to_paper.conversation.stage import Stage
+from data_to_paper.conversation.stage import Stage, get_all_keys_following_stage
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
 from data_to_paper.exceptions import TerminateException, ResetStepException
 from data_to_paper.base_products import DataFileDescriptions
@@ -62,6 +62,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
     stages: Type[Stage] = Stage
     current_stage: Stage = None
 
+    _stages_to_api_usage_cost: Dict[Optional[Stage], float] = field(default_factory=dict)
     stages_to_funcs: Dict[Stage, Callable] = None
     is_stage_completed: Dict[Stage, bool] = None
 
@@ -102,13 +103,16 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         You can close the app now.
         """)
 
+    def _get_current_stage(self):
+        return self.current_stage
+
     def advance_stage(self, stage: Union[Stage, bool]):
         """
         Advance the stage.
         """
         self.current_stage = stage
         self._app_advance_stage(stage)
-        self._add_stage_name_to_api_usage_cost_file(stage.name)
+        self._add_stage_to_api_usage_cost(stage)
         if stage.name not in self.stages_to_conversations_lens:
             self.stages_to_conversations_lens[stage.name] = len(self.actions_and_conversations.conversations)
 
@@ -140,11 +144,21 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         for conversation in conversations_to_delete:
             del self.actions_and_conversations.conversations[conversation]
 
+        # delete api usage cost up to the given stage:
+        keys_to_delete = get_all_keys_following_stage(self._stages_to_api_usage_cost, stage)
+        total_deleted = 0
+        for key in keys_to_delete:
+            total_deleted += self._stages_to_api_usage_cost[key]
+            del self._stages_to_api_usage_cost[key]
+        self._stages_to_api_usage_cost[None] = self._stages_to_api_usage_cost.get(None, 0) + total_deleted
         self.app_send_api_usage_cost()
+
+        self._reset_is_stage_completed(next_stage=stage)
+
+        self._app_clear_stage_to_reset_to()
 
     def _pre_run_preparations(self):
         self._update_project_parameters()
-        dump_to_json({}, self._get_path_in_output_directory(self.API_USAGE_COST_FILENAME))
 
     def _get_first_uncompleted_stage(self):
         for stage in self.stages:
@@ -176,7 +190,6 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
                 print_and_log(f'Resetting to stage {e.stage.name}')
                 self.reset_to_stage(e.stage)
                 self._reset_is_stage_completed(next_stage=e.stage)
-                self.app.re_set_reset_to_step()
 
     def _run_stage(self, stage: Stage):
         self.is_stage_completed[stage] = True
@@ -224,7 +237,8 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         Run all steps and save all created files to the output folder.
         """
         self.server_caller = OPENAI_SERVER_CALLER
-        self.server_caller.set_step_runner(self)  # set the step runner for the openai server caller
+        self.server_caller.set_current_stage_callback(self._get_current_stage)
+        self.server_caller.set_api_cost_callback(self._add_cost_to_stage)
 
         @RUN_CACHE_FILEPATH.temporary_set(
             self._get_path_in_output_directory(self.CODE_RUNNER_CACHE_FILENAME))
@@ -311,25 +325,20 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         """
         self.project_parameters = self.get_project_parameters_from_project_directory(self.project_directory)
 
-    @staticmethod
-    def _pretty_api_usage_cost(api_usage_cost_file: str) -> str:
-        data = load_from_json(api_usage_cost_file)
+    """
+    api usage cost
+    """
 
-        result = '<h2>The API usage cost for each step:</h2>\n'
+    def _add_stage_to_api_usage_cost(self, stage: Stage):
+        self._stages_to_api_usage_cost[stage] = 0
 
-        for step, cost in data.items():
-            result += f'<li style="color:white;">\n<b>{step}:</b> {cost:.2f}$\n</li>\n'
-
-        return result
-
-    def _add_stage_name_to_api_usage_cost_file(self, stage_name):
-        data = load_from_json(self._get_path_in_output_directory(self.API_USAGE_COST_FILENAME))
-        data[stage_name] = 0
-        dump_to_json(data, self._get_path_in_output_directory(self.API_USAGE_COST_FILENAME))
+    def _add_cost_to_stage(self, cost: float, stage: Optional[Stage] = None):
+        stage = stage or self.current_stage
+        self._stages_to_api_usage_cost[stage] += cost
+        self.app_send_api_usage_cost()
 
     def app_send_api_usage_cost(self):
-        self._app_send_api_usage_cost(self._pretty_api_usage_cost(
-            self._get_path_in_output_directory(self.API_USAGE_COST_FILENAME)))
+        self._app_send_api_usage_cost(self._stages_to_api_usage_cost)
 
 
 @dataclass

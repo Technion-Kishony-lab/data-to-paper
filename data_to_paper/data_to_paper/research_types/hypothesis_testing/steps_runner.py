@@ -50,6 +50,7 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
     re_goal: bool = False
 
     def __post_init__(self):
+        super().__post_init__()
         self.paper_producer = ProduceScientificPaperPDFWithAppendix.from_(
             self,
             latex_document=self.latex_document,
@@ -57,7 +58,7 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
             paper_section_names=PAPER_SECTIONS_NAMES,
         )
 
-        self.stage_to_func = {
+        self.stages_to_funcs = {
             ScientificStage.DATA: self._data_file_descriptions,
             ScientificStage.EXPLORATION: self._data_exploration,
             ScientificStage.GOAL: self._goal,

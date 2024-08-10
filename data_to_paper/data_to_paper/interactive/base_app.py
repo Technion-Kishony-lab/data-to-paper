@@ -95,7 +95,7 @@ class BaseApp:
     def _run_all_steps(self):
         self.step_runner.run_all_steps()
 
-    def _get_all_steps(self) -> Type[Stage]:
+    def _get_stages(self) -> Type[Stage]:
         if self.step_runner is None:
             return Stage
         return self.step_runner.stages
@@ -103,7 +103,7 @@ class BaseApp:
     def _set_status(self, panel_name: PanelNames, position: int, status: str = ''):
         pass
 
-    def re_set_reset_to_step(self):
+    def clear_stage_to_reset_to(self):
         self.stage_to_reset_to = None
 
     def set_status(self, panel_name: PanelNames, position: int, status: str = ''):
@@ -116,7 +116,7 @@ class BaseApp:
     def set_header(self, header: str):
         pass
 
-    def send_api_usage_cost(self, html_content: str):
+    def send_api_usage_cost(self, stages_to_costs: Dict[Stage, float]):
         pass
 
 
