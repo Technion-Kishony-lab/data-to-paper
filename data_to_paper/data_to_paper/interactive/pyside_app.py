@@ -14,6 +14,7 @@ from data_to_paper.interactive.styles import CURRENT_STEP_COLOR, SUBMIT_BUTTON_C
     STEP_PANEL_BUTTON_STYLE, BACKGROUND_COLOR, CSS, APP_STYLE, TABS_STYLE, HTMLPOPUP_STYLE, \
     MAIN_SPLITTER_STYLE, QCHECKBOX_STYLE, STEP_PANEL_RESET_BUTTON_STYLE
 from data_to_paper.interactive.utils import open_file_on_os
+from data_to_paper.servers.api_cost import StageToCost
 
 
 def _get_label_height(label: QLabel) -> int:
@@ -390,7 +391,7 @@ class APIUsageCostDialog(QDialog):
 
         self.setLayout(layout)
         self.setStyleSheet(HTMLPOPUP_STYLE)
-        self.resize(400, 200)
+        self.resize(400, 300)
 
 
 class PysideApp(QMainWindow, BaseApp):
@@ -402,7 +403,7 @@ class PysideApp(QMainWindow, BaseApp):
         super().__init__()
         self.products: Dict[Stage, Any] = {}
         self.popups = set()
-        self.api_usage_cost = {}
+        self.api_usage_cost = StageToCost()
 
         self.panels = {
             PanelNames.SYSTEM_PROMPT: EditableTextPanel("System Prompt", "", ("Default",)),
@@ -595,32 +596,15 @@ class PysideApp(QMainWindow, BaseApp):
         self.popups.add(popup)
         popup.finished.connect(self.popup_closed)
 
-    def _pretty_api_usage_cost(self):
-        stages_to_costs = self.api_usage_cost
-        if not stages_to_costs:
-            return '<span style="color: white;">Nothing to show yet.</span>'
-        s = '<h2>The API usage cost for each step:</h2>\n'
-        for stage, cost in stages_to_costs.items():
-            if stage is not None:
-                s += f'<li style="color:white;">\n<b>{stage.value}:</b> {cost:.2f}$\n</li>\n'
-        if None in stages_to_costs:
-            s += f'<li style="color:white;">\n<b>Deleted api calls:</b> {stages_to_costs[None]:.2f}$\n</li>\n'
-        s += f'<h3>Total cost: {self._get_total_api_usage_cost():.2f}$</h3>\n'
-        return s
-
-    def _get_total_api_usage_cost(self):
-        return sum(self.api_usage_cost.values())
-
     def _update_api_usage_cost_button(self):
-        cost = self._get_total_api_usage_cost()
+        cost = self.api_usage_cost.get_total_cost()
         self.api_usage_cost_button.setText(f"API Cost: {cost:.2f}$")
 
     def show_api_usage_cost_dialog(self):
         """
         Open a popup window to show the pricing of the API usage per stage.
         """
-        html_content = self._pretty_api_usage_cost()
-        popup = APIUsageCostDialog(html_content)
+        popup = APIUsageCostDialog(self.api_usage_cost.as_html())
         popup.show()
         self.popups.add(popup)
         popup.finished.connect(self.popup_closed)
@@ -688,7 +672,7 @@ class PysideApp(QMainWindow, BaseApp):
         self.products[stage] = product_text
 
     @Slot(object)
-    def upon_send_api_usage_cost(self, stages_to_costs: Dict[Stage, float]):
+    def upon_send_api_usage_cost(self, stages_to_costs: StageToCost):
         self.api_usage_cost = stages_to_costs
         self._update_api_usage_cost_button()
 

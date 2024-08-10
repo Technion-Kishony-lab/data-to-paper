@@ -10,6 +10,7 @@ from typing import Union, Type, Optional, Dict, Callable
 from data_to_paper.base_products.file_descriptions import CreateDataFileDescriptions
 from data_to_paper.env import FOLDER_FOR_RUN
 from data_to_paper.interactive.base_app_startup import BaseStartDialog
+from data_to_paper.servers.api_cost import StageToCost
 from data_to_paper.utils.file_utils import clear_directory
 from data_to_paper.utils.print_to_file import print_and_log, console_log_file_context
 from data_to_paper.servers.llm_call import OPENAI_SERVER_CALLER, OpenaiServerCaller
@@ -61,7 +62,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
     stages: Type[Stage] = Stage
     current_stage: Stage = None
 
-    _stages_to_api_usage_cost: Dict[Optional[Stage], float] = field(default_factory=dict)
+    _stages_to_api_usage_cost: StageToCost = field(default_factory=StageToCost)
     stages_to_funcs: Dict[Stage, Callable] = None
     is_stage_completed: Dict[Stage, bool] = None
 
@@ -110,8 +111,8 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         Advance the stage.
         """
         self.current_stage = stage
-        self._app_advance_stage(stage)
-        self._add_stage_to_api_usage_cost(stage)
+        self._app_advance_stage(stage=stage)
+        self._add_cost_to_stage(stage=stage)
         if stage.name not in self.stages_to_conversations_lens:
             self.stages_to_conversations_lens[stage.name] = len(self.actions_and_conversations.conversations)
 
@@ -144,12 +145,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
             del self.actions_and_conversations.conversations[conversation]
 
         # delete api usage cost up to the given stage:
-        keys_to_delete = get_all_keys_following_stage(self._stages_to_api_usage_cost, stage)
-        total_deleted = 0
-        for key in keys_to_delete:
-            total_deleted += self._stages_to_api_usage_cost[key]
-            del self._stages_to_api_usage_cost[key]
-        self._stages_to_api_usage_cost[None] = self._stages_to_api_usage_cost.get(None, 0) + total_deleted
+        self._stages_to_api_usage_cost.delete_from_stage(stage)
         self.app_send_api_usage_cost()
 
         self._reset_is_stage_completed(next_stage=stage)
@@ -204,7 +200,8 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
                     self.OPENAI_RESPONSES_FILENAME,
                     self.CROSSREF_RESPONSES_FILENAME,
                     self.SEMANTIC_SCHOLAR_RESPONSES_FILENAME,
-                    self.API_USAGE_COST_FILENAME,]]
+                    self.API_USAGE_COST_FILENAME,
+                ]]
 
     def _create_or_clean_output_folder(self):
         """
@@ -328,12 +325,10 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
     api usage cost
     """
 
-    def _add_stage_to_api_usage_cost(self, stage: Stage):
-        self._stages_to_api_usage_cost[stage] = 0
-
-    def _add_cost_to_stage(self, cost: float, stage: Optional[Stage] = None):
+    def _add_cost_to_stage(self, cost: float = 0, stage: Optional[Stage] = None):
         stage = stage or self.current_stage
-        self._stages_to_api_usage_cost[stage] += cost
+        self._stages_to_api_usage_cost[stage] = self._stages_to_api_usage_cost.get(stage, 0) + cost
+        self._stages_to_api_usage_cost.save_to_json(self.output_directory / self.API_USAGE_COST_FILENAME)
         self.app_send_api_usage_cost()
 
     def app_send_api_usage_cost(self):
