@@ -25,46 +25,44 @@ class ToyStepsRunner(DataStepRunner):
     cast = DemoAgent
     products: DemoProducts = field(default_factory=DemoProducts)
 
-    def _run_all_steps(self) -> DemoProducts:
-
-        products = self.products  # Start with empty products
-        products.data_file_descriptions = self.data_file_descriptions
-        products.research_goal = self.project_parameters['research_goal']
-
-        # Get the paper section names:
-        paper_producer = ProduceDemoPaperPDF.from_(
+    def _pre_run_preparations(self):
+        super()._pre_run_preparations()
+        self.paper_producer = ProduceDemoPaperPDF.from_(
             self,
             output_filename='paper.pdf',
             paper_section_names=['title', 'abstract'],
         )
 
-        self.advance_stage(DemoStages.DATA)
+        self.stages_to_funcs = {
+            DemoStages.DATA: self._run_data_step,
+            DemoStages.GOAL: self._run_goal_step,
+            DemoStages.CODE: self._run_code_step,
+            DemoStages.WRITING: self._run_writing_step,
+            DemoStages.COMPILE: self._run_compile_step,
+        }
+
+    def _run_data_step(self):
+        self.products.data_file_descriptions = self.data_file_descriptions
         self.send_product_to_client('data_file_descriptions')
 
-        # Goal
-        self.advance_stage(DemoStages.GOAL)
+    def _run_goal_step(self):
+        self.products.research_goal = self.project_parameters['research_goal']
         self.send_product_to_client('research_goal')
 
-        # Write code
-        self.advance_stage(DemoStages.CODE)
-        products.code_and_output = DemoCodeProductsGPT.from_(self).get_code_and_output()
+    def _run_code_step(self):
+        self.products.code_and_output = DemoCodeProductsGPT.from_(self).get_code_and_output()
         self.send_product_to_client('code_and_output')
 
-        # Title and abstract
-        self.advance_stage(DemoStages.WRITING)
+    def _run_writing_step(self):
         section_names = ['title', 'abstract']
         sections = WriteTitleAndAbstract.from_(self, section_names=section_names).run_and_get_valid_result()
         for section_name, section in zip(section_names, sections):
-            products.paper_sections[section_name] = section
+            self.products.paper_sections[section_name] = section
         self.send_product_to_client('title_and_abstract')
 
-        # Compile the paper
-        self.advance_stage(DemoStages.COMPILE)
-        paper_producer.assemble_compile_paper()
+    def _run_compile_step(self):
+        self.paper_producer.assemble_compile_paper()
         self._app_clear_panels()
         self._app_send_product_of_stage(
             DemoStages.COMPILE,
             f'<a href="file://{self.output_directory}/paper.pdf">Download the manuscript</a>')
-        self.advance_stage(True)
-
-        return products
