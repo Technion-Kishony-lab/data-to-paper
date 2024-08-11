@@ -1,0 +1,19 @@
+## Statistical considerations:
+### Confounding variables:
+There may be confounding variables affecting the relationship between weight, sex, and OTTD. It is important to account for other relevant features like age, which may also influence OTTD.
+### Dependencies between data points:
+There may be dependencies between data points for patients who underwent surgery at the same hospital during a specific time period. We need to consider any potential clustering or non-independence of observations.
+### Non-linearity:
+The relationship between weight and OTTD may be non-linear, but linear models assume a constant effect of weight on OTTD. Thus, we should consider analyzing potential non-linear relationships.
+
+## Hypotheses:
+### Hypothesis:
+The effect of weight on OTTD is moderated by sex
+### Test:
+To test this hypothesis, a multiple linear regression model can be fitted with weight, sex, and the interaction term between weight and sex as predictors, while adjusting for potential confounding variables such as age. Statistical significance of the interaction term will indicate if the effect of weight on OTTD is moderated by sex.
+
+### Hypothesis:
+The relationship between weight and OTTD is non-linear
+### Test:
+To assess the potential non-linear relationship between weight and OTTD, a polynomial regression model can be fitted with weight as the predictor. Various polynomial terms can be included in the model (quadratic, cubic, etc.) to capture the possible non-linear effect of weight on OTTD. Model selection techniques like AIC/BIC can be used to determine the best-fitting model.
+

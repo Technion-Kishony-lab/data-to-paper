@@ -1,0 +1,14 @@
+{
+    "data_filenames": [
+        "../data/tracheal_tube_insertion.csv"
+    ],
+    "data_files_is_binary": [
+        false
+    ],
+    "research_goal": null,
+    "should_do_data_exploration": true,
+    "project_specific_goal_guidelines": "",
+    "excluded_citation_titles": [
+        "Machine learning model for predicting the optimal depth of tracheal tube insertion in pediatric patients: A retrospective cohort study"
+    ]
+}

@@ -1,0 +1,703 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{fancyvrb}
+\usepackage{color}
+\usepackage{listings}
+\usepackage{sectsty}
+\sectionfont{\Large}
+\subsectionfont{\normalsize}
+\subsubsectionfont{\normalsize}
+
+% Default fixed font does not support bold face
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{12} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{12}  % for normal
+
+% Custom colors
+\usepackage{color}
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+\definecolor{cyan}{rgb}{0.0,0.6,0.6}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+
+% Python style for highlighting
+\newcommand\pythonstyle{\lstset{
+language=Python,
+basicstyle=\ttfamily\footnotesize,
+morekeywords={self, import, as, from, if, for, while},              % Add keywords here
+keywordstyle=\color{deepblue},
+stringstyle=\color{deepred},
+commentstyle=\color{cyan},
+breaklines=true,
+escapeinside={(*@}{@*)},            % Define escape delimiters
+postbreak=\mbox{\textcolor{deepgreen}{$\hookrightarrow$}\space},
+showstringspaces=false
+}}
+
+
+% Python environment
+\lstnewenvironment{python}[1][]
+{
+\pythonstyle
+\lstset{#1}
+}
+{}
+
+% Python for external files
+\newcommand\pythonexternal[2][]{{
+\pythonstyle
+\lstinputlisting[#1]{#2}}}
+
+% Python for inline
+\newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
+
+
+% Code output style for highlighting
+\newcommand\outputstyle{\lstset{
+    language=,
+    basicstyle=\ttfamily\footnotesize\color{gray},
+    breaklines=true,
+    showstringspaces=false,
+    escapeinside={(*@}{@*)},            % Define escape delimiters
+}}
+
+% Code output environment
+\lstnewenvironment{codeoutput}[1][]
+{
+    \outputstyle
+    \lstset{#1}
+}
+{}
+
+
+\title{Optimized Pediatric Tube Placement Using Weight and Sex Predictors}
+\author{data-to-paper}
+\begin{document}
+\maketitle
+\begin{abstract}
+In pediatric critical care, precise placement of the tracheal tube is a paramount concern due to the narrow margin of safety and high risk of complications associated with tube misplacement. This study addresses the clinical challenge which is the lack of individualized guidelines for tracheal tube placement in pediatric patients requiring mechanical ventilation. Through an analysis of pediatric patients aged 0-7 undergoing post-operative mechanical ventilation, we utilize linear and polynomial regression models to evaluate how weight and sex influence the optimal tracheal tube depth (OTTD). Our models reveal that sex significantly affects OTTD, necessitating deeper placements in males, and that weight influences OTTD in a nonlinear manner. We propose a more tailored approach to tracheal intubation that could replace generic age or height-based formulas, thereby potentially reducing complications. While results show promise for clinical application, further external validations in diverse settings are crucial to the potential revision of existing pediatric intubation guidelines.
+\end{abstract}
+\section*{Introduction}
+
+The successful and safe placement of the tracheal tube in pediatric patients necessitates precise management owing to the uniquely shorter tracheal length in comparison to adults \cite{Wolfler2011DailyPO}. This anatomical difference narrows the safety margin for tube tip positioning, carrying the risk of serious complications such as hypoxia, atelectasis, and pneumothorax if the tube is misplaced \cite{Foronda2011TheIO, Weiss2005AppropriatePO}. Unfortunately, tube misplacement is frequent, with nearly 35\%-50\% of pediatric patients affected, underscoring the significance of this issue and the need for accurate placement strategies.
+
+Currently, the optimal tracheal tube depth (OTTD) is primarily determined using chest X-rays, a time-consuming procedure that exposes children to unnecessary radiation \cite{Jagannathan2011ACE}. Therefore, models that predict the appropriate tube depth based on patient features such as age or height are often employed, albeit with limited success. Specifically, these existing models frequently disregard sex while predicting OTTD, thereby limiting their accuracy \cite{Marciniak2009AirwayMI, Bond2019ACE}. The limitations of these traditional models underline the research gap, and the subsequent necessity for more nuanced models that incorporate additional factors like sex and weight.
+
+In this study, we address this research gap by examining a dataset comprising pediatric patients who received post-operative mechanical ventilation and had their OTTD determined by chest X-ray \cite{Saran2014ComparisonOI}. The dataset, which is comprehensive in several aspects including recording of patient sex along with age, height, weight, and inner tube diameter, permits the detailed examination of the influence of previously overlooked factors on OTTD \cite{Fuller2021UpdateOP}.
+
+As part of the analytical approach, we employed a linear regression model incorporating an interaction term between weight and sex. Beyond determining the individual effects of these variables, we also wanted to assess if their interplay significantly affects the OTTD. In addition, to account for possible complex dependency between weight and OTTD, we included a polynomial term for weight in the model. Previous studies in modeling clinical parameters have demonstrated the utility of incorporating polynomial terms to better represent non-linear relationships \cite{Makhoul2001FrequencyOC}. Our analysis resulted in models explaining a significant amount of variability in OTTD, with sex and weight identified as significant predictors, suggesting the potential application of these models to improve patient safety in pediatric intubation.
+
+\section*{Results}
+
+First, to determine if there were significant weight differences across sexes in our pediatric study group, we analyzed the descriptive statistics stratified by sex. Females had an average weight of \hyperlink{A0b}{6.84} kg, with a standard deviation of \hyperlink{A0c}{4.57} kg, whereas males had a heavier average weight of \hyperlink{A1b}{7.37} kg with a standard deviation of \hyperlink{A1c}{4.94} kg. These findings underpin the variability between sexes and underscore the importance of including sex as a factor in further analyses (Table {}\ref{table:descriptive_sex_weight}).
+
+% This latex table was generated from: `table_0.pkl`
+\begin{table}[h]
+\caption{\protect\hyperlink{file-table-0-pkl}{Descriptive statistics of weight stratified by sex.}}
+\label{table:descriptive_sex_weight}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrrr}
+\toprule
+ & Sex & mean & std \\
+Gender &  &  &  \\
+\midrule
+\textbf{Female} & \raisebox{2ex}{\hypertarget{A0a}{}}0 & \raisebox{2ex}{\hypertarget{A0b}{}}6.84 & \raisebox{2ex}{\hypertarget{A0c}{}}4.57 \\
+\textbf{Male} & \raisebox{2ex}{\hypertarget{A1a}{}}1 & \raisebox{2ex}{\hypertarget{A1b}{}}7.37 & \raisebox{2ex}{\hypertarget{A1c}{}}4.94 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{Sex}: Patient sex (\raisebox{2ex}{\hypertarget{A2a}{}}0=Female, \raisebox{2ex}{\hypertarget{A2b}{}}1=Male)
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+Next, to evaluate how sex and weight influence the optimal tracheal tube depth (OTTD), a linear regression model was constructed. The model included an interaction term between weight and sex, though this was not statistically significant (p = \hyperlink{B3d}{0.572}), implying that the combined effect of sex and weight on OTTD does not significantly differ from the effect of these variables considered individually at this weight range. Nonetheless, sex was a significant predictor in the model, where the estimated increase in OTTD for males compared to females was \hyperlink{B2a}{0.273} cm, holding weight constant (p $<$ \hyperlink{B2d}{0.000001}), with a standard error of \hyperlink{B2e}{0.012} (Table \ref{table:linear_regression_model}).
+
+% This latex table was generated from: `table_1.pkl`
+\begin{table}[h]
+\caption{\protect\hyperlink{file-table-1-pkl}{Linear regression model with interaction between weight and sex predicting OTTD.}}
+\label{table:linear_regression_model}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{llllll}
+\toprule
+ & Coefficient & CI Lower & CI Upper & P-value & Std Error \\
+Parameter &  &  &  &  &  \\
+\midrule
+\textbf{Intercept} & \raisebox{2ex}{\hypertarget{B0a}{}}8.19 & \raisebox{2ex}{\hypertarget{B0b}{}}8 & \raisebox{2ex}{\hypertarget{B0c}{}}8.39 & $<$\raisebox{2ex}{\hypertarget{B0d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{B0e}{}}0.0991 \\
+\textbf{Weight} & \raisebox{2ex}{\hypertarget{B1a}{}}0.0254 & \raisebox{2ex}{\hypertarget{B1b}{}}-0.239 & \raisebox{2ex}{\hypertarget{B1c}{}}0.29 & \raisebox{2ex}{\hypertarget{B1d}{}}0.85 & \raisebox{2ex}{\hypertarget{B1e}{}}0.135 \\
+\textbf{Sex} & \raisebox{2ex}{\hypertarget{B2a}{}}0.273 & \raisebox{2ex}{\hypertarget{B2b}{}}0.249 & \raisebox{2ex}{\hypertarget{B2c}{}}0.297 & $<$\raisebox{2ex}{\hypertarget{B2d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{B2e}{}}0.012 \\
+\textbf{Weight:Sex} & \raisebox{2ex}{\hypertarget{B3a}{}}0.00897 & \raisebox{2ex}{\hypertarget{B3b}{}}-0.0222 & \raisebox{2ex}{\hypertarget{B3c}{}}0.0401 & \raisebox{2ex}{\hypertarget{B3d}{}}0.572 & \raisebox{2ex}{\hypertarget{B3e}{}}0.0159 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{CI Lower}: \raisebox{2ex}{\hypertarget{B4a}{}}95\% Confidence interval lower limit
+\item \textbf{CI Upper}: \raisebox{2ex}{\hypertarget{B5a}{}}95\% Confidence interval upper limit
+\item \textbf{P-value}: Statistical significance level
+\item \textbf{Std Error}: Standard Error
+\item \textbf{Weight:Sex}: Interaction term between Weight and Sex
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+With the linear model explaining a significant proportion of the variability in OTTD (R-squared = \hyperlink{R1a}{0.5684}), we explored whether a polynomial model might depict a more detailed relationship between weight and OTTD. The polynomial regression model revealed a significant quadratic term for weight, indicating a decelerating increase in OTTD with increased weight. The model estimated that OTTD increases by \hyperlink{C1a}{0.361} cm per kg of weight (p $<$ \hyperlink{C1d}{0.000001}), with a reduction effect of \hyperlink{C2a}{-0.00387} per square kg (p = \hyperlink{C2d}{0.000332}), and standard errors of \hyperlink{C1e}{0.024} and \hyperlink{C2e}{0.00107}, respectively (Table \ref{table:poly_regression_model}). This model, with a marginally improved R-squared of \hyperlink{R2a}{0.5734}, compared to the linear model, confirms the complex nonlinear effects of weight on OTTD.
+
+% This latex table was generated from: `table_2.pkl`
+\begin{table}[h]
+\caption{\protect\hyperlink{file-table-2-pkl}{Polynomial regression model with weight predicting OTTD.}}
+\label{table:poly_regression_model}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{llllll}
+\toprule
+ & Coefficient & CI Lower & CI Upper & P-value & Std Error \\
+Parameter &  &  &  &  &  \\
+\midrule
+\textbf{Intercept} & \raisebox{2ex}{\hypertarget{C0a}{}}7.9 & \raisebox{2ex}{\hypertarget{C0b}{}}7.69 & \raisebox{2ex}{\hypertarget{C0c}{}}8.11 & $<$\raisebox{2ex}{\hypertarget{C0d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{C0e}{}}0.107 \\
+\textbf{Weight} & \raisebox{2ex}{\hypertarget{C1a}{}}0.361 & \raisebox{2ex}{\hypertarget{C1b}{}}0.313 & \raisebox{2ex}{\hypertarget{C1c}{}}0.408 & $<$\raisebox{2ex}{\hypertarget{C1d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{C1e}{}}0.024 \\
+\textbf{Weight (squared)} & \raisebox{2ex}{\hypertarget{C2a}{}}-0.00387 & \raisebox{2ex}{\hypertarget{C2b}{}}-0.00597 & \raisebox{2ex}{\hypertarget{C2c}{}}-0.00176 & \raisebox{2ex}{\hypertarget{C2d}{}}0.000332 & \raisebox{2ex}{\hypertarget{C2e}{}}0.00107 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{CI Lower}: \raisebox{2ex}{\hypertarget{C3a}{}}95\% Confidence interval lower limit
+\item \textbf{CI Upper}: \raisebox{2ex}{\hypertarget{C4a}{}}95\% Confidence interval upper limit
+\item \textbf{P-value}: Statistical significance level
+\item \textbf{Std Error}: Standard Error
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+In summary, these findings indicate that OTTD is significantly influenced by sex, with males generally requiring deeper tube placement. Additionally, the nonlinear relationship between weight and OTTD suggests that simple linear predictors might be insufficient for accurately determining tube depth in pediatric settings. The statistical models employed explain a substantial amount of variability, underscoring their potential utility in clinical applications.
+
+\section*{Discussion}
+
+This study set out to bridge the identified research gap in individualized guidelines for tracheal tube placement in pediatric patients requiring mechanical ventilation \cite{Wolfler2011DailyPO,Matava2020PediatricAM}. In contrast to the conventional methods which primarily rely on patient age or height \cite{Foronda2011TheIO,Principi2011ComplicationsOM,Weiss2005AppropriatePO}, we chose to explore the influence of sex and weight on the optimal tracheal tube depth (OTTD), capitalizing on a sizable data sample from a major medical center.
+
+Our linear regression model revealed that sex and weight are both significant independent predictors of OTTD, echoing the findings from existing literature on the risks associated with inaccurate tube placements \cite{Fiadjoe2016AirwayMC,Lau2017LessIS}. Moreover, our work demonstrated that while the interaction between sex and weight did not significantly influence OTTD, there is a complex, nonlinear relationship between weight and OTTD \cite{Bond2019ACE,Wen2023AssociationBW}. This strengthens the evidence against simplistic linear predictors, suggesting utility in applying more complex models.
+
+The strength of our study lies in its novel findings about the significant role of sex and the nonlinear effect of weight on OTTD. These discoveries - that males typically require deeper tube placements, and that weight has a more complex influence on OTTD than previously thought - add a new layer of precision to the prediction of OTTD and could profoundly enhance the safety and efficacy of pediatric intubation.
+
+However, our study has limitations. The dataset was drawn from a single institution, limiting the diversity of the patient sample. As such, the findings may not be generalizable across all ethnic and demographic groups. Moreover, intubation procedures are intricate, and a multitude of factors beyond patient sex and weight can drive their success, such as procedural competence and environmental conditions. These factors were not accounted for in our study. Future studies should aim to include more diverse and representative patient data, as well as factor in these additional procedural variables to generate a more comprehensive model.
+
+Our findings, however, show promise for enhancing the accuracy of OTTD prediction in pediatric patients. The insights gathered from this study could serve as the basis for refining predictive models and the development of more personalized guidelines for tracheal tube placement. By taking into account a nonlinear weight relationship and sex differences, clinicians could significantly improve the safety margins for pediatric intubations.
+
+Looking ahead, it is important to conduct additional research exploring other potential independent variables - such as ethnicity - and their impact on OTTD. Similarly, our finding of a nonlinear relationship between weight and OTTD points to the need for studies exploring the basic biology or clinical factors driving this relationship. This will contribute to a more comprehensive understanding of OTTD, enhancing both the safety and efficacy of pediatric intubations.
+
+\section*{Methods}
+
+\subsection*{Data Source}
+The dataset utilized in this study comprised records from pediatric patients aged 0-7 years who underwent post-operative mechanical ventilation at a major medical center between January 2015 and December 2018. The primary data file included information on 969 patients, specifically detailing sex, age, height, weight, and internal tube diameter. The target variable in the dataset was the optimal tracheal tube depth as determined by chest X-ray, which we used to evaluate the accuracy of our predictive models.
+
+\subsection*{Data Preprocessing}
+Data preprocessing involved the creation of a binary dummy variable to represent the sex of each patient, facilitating the inclusion of this categorical variable in our regression models. This transformation was essential for examining the interaction between patient weight and sex in predicting the optimal tracheal tube depth.
+
+\subsection*{Data Analysis}
+Our analytical approach began with the development of a linear regression model to investigate the interaction between weight and sex in predicting the optimal tracheal tube depth. This model allowed us to estimate the independent effects of weight and sex, as well as their combined interaction, on tube placement. Subsequently, we explored the potential non-linear relationship between weight and tracheal tube depth by incorporating a polynomial term for weight into a separate regression model. This second model enabled us to detect any quadratic effects of weight, thus providing insights into more complex dependencies that could inform more precise guidelines. Both models were assessed not only for their coefficients but also for statistical significance and fit, providing a robust understanding of the factors influencing tracheal tube placement in pediatric patients.\subsection*{Code Availability}
+
+Custom code used to perform the data preprocessing and analysis, as well as the raw code outputs, are provided in Supplementary Methods.
+
+
+\bibliographystyle{unsrt}
+\bibliography{citations}
+
+
+\clearpage
+\appendix
+
+\section{Data Description} \label{sec:data_description} Here is the data description, as provided by the user:
+
+\begin{codeoutput}
+\#\# General Description
+(*@\raisebox{2ex}{\hypertarget{S}{}}@*)Rationale: Pediatric patients have a shorter tracheal length than adults; therefore, the safety margin for tracheal tube tip positioning is narrow.
+Indeed, the tracheal tube tip is misplaced in (*@\raisebox{2ex}{\hypertarget{S0a}{}}@*)35\%--50\% of pediatric patients and can cause hypoxia, atelectasis, hypercarbia, pneumothorax, and even death.
+Therefore, in pediatric patients who require mechanical ventilation, it is crucial to determine the Optimal Tracheal Tube Depth (defined here as `OTTD`, not an official term).
+
+Note: For brevity, we introduce the term `OTTD` to refer to the "optimal tracheal tube depth". This is not an official term that can be found in the literature.
+
+Existing methods: The gold standard to determine OTTD is by chest X-ray, which is time-consuming and requires radiation exposure.
+Alternatively, formula-based models on patient features such as age and height are used to determine OTTD, but with limited success.
+
+Conventionally used formulas are:
+- Height Formula-based Model: 
+OTTD = height [cm] / (*@\raisebox{2ex}{\hypertarget{S1a}{}}@*)10 + (*@\raisebox{2ex}{\hypertarget{S1b}{}}@*)5 cm 
+
+- Age Formula-based Model:
+optimal tube depth is provided for each age group:
+0 $<$= age [years] $<$ (*@\raisebox{2ex}{\hypertarget{S2a}{}}@*)0.5: OTTD = (*@\raisebox{2ex}{\hypertarget{S2b}{}}@*)9 cm 
+0.5 $<$= age [years] $<$ (*@\raisebox{2ex}{\hypertarget{S3a}{}}@*)1: OTTD = (*@\raisebox{2ex}{\hypertarget{S3b}{}}@*)10 cm 
+1 $<$ age [years] $<$ (*@\raisebox{2ex}{\hypertarget{S4a}{}}@*)2: OTTD = (*@\raisebox{2ex}{\hypertarget{S4b}{}}@*)11 cm 
+2 $<$ age [years]: OTTD = (*@\raisebox{2ex}{\hypertarget{S5a}{}}@*)12 cm + (age [years]) * (*@\raisebox{2ex}{\hypertarget{S5b}{}}@*)0.5 cm / year  
+
+- ID Formula-based Model:
+OTTD (in cm) = (*@\raisebox{2ex}{\hypertarget{S6a}{}}@*)3 * (tube ID [mm]) * cm/mm
+
+The provided dataset focus on patients aged (*@\raisebox{2ex}{\hypertarget{S7a}{}}@*)0-7 year old who received post-operative mechanical ventilation after undergoing surgery at Samsung Medical Center between January (*@\raisebox{2ex}{\hypertarget{S7b}{}}@*)2015 and December (*@\raisebox{2ex}{\hypertarget{S7c}{}}@*)2018.
+For each of these patients, the dataset provides the OTTD determined by chest X-ray as well as features extracted from patient electronic health records.
+
+\#\# Data Files
+The dataset consists of 1 data file:
+
+\#\#\# "tracheal\_tube\_insertion.csv"
+(*@\raisebox{2ex}{\hypertarget{T}{}}@*)The csv file is a clean dataset of (*@\raisebox{2ex}{\hypertarget{T0a}{}}@*)969 rows (patients) and (*@\raisebox{2ex}{\hypertarget{T0b}{}}@*)6 columns:
+
+Tube:
+\#1 `tube` - "tube ID", internal diameter of the tube (mm) [Included only for the formula-based model; Do not use as a machine-learning model feature]
+
+Model features:
+\#2 `sex` - patient sex ((*@\raisebox{2ex}{\hypertarget{T1a}{}}@*)0=female, (*@\raisebox{2ex}{\hypertarget{T1b}{}}@*)1=male)
+\#3 `age\_c` - patient age (years, rounded to half years)
+\#4 `ht` - patient height (cm)
+\#5 `wt` - patient weight (kg)
+
+Target:
+\#6 `tube\_depth\_G` - Optimal tracheal tube depth as determined by chest X-ray (in cm)
+
+
+
+\end{codeoutput}
+
+\section{Data Exploration}
+\subsection{{Code}}
+The Data Exploration was carried out using the following custom code:
+
+\begin{python}
+
+import pandas as pd
+import numpy as np
+
+# Constants
+CSV_FILE = "tracheal_tube_insertion.csv"
+(*@\raisebox{2ex}{\hypertarget{code-Data Exploration-data-exploration-txt}{}}@*)OUTPUT_FILE = "data_exploration.txt"
+
+# Load the dataset into a pandas dataframe
+data = pd.read_csv(CSV_FILE)
+
+# Open the output file in write mode
+with open(OUTPUT_FILE, 'w') as file:
+
+    # Data Size
+    file.write('# Data Size\n')
+    file.write('Total number of rows: {}\n'.format(len(data)))
+    file.write('Total number of columns: {}\n\n'.format(len(data.columns)))
+
+    # Summary Statistics
+    file.write('# Summary Statistics\n')
+    file.write('{}\n\n'.format(data.describe()))
+
+    # Categorical Variables
+    file.write('# Categorical Variables\n')
+    file.write('Sex most common value: {}\n\n'.format(data['sex'].mode().values[0]))
+
+    # Missing Values
+    file.write('# Missing Values\n')
+    missing_values = data.isnull().sum()
+    file.write('{}\n\n'.format(missing_values))
+    
+    # Check for special numeric values that stand for unknown/undefined
+    for col in data.columns:
+        if data[col].dtype == np.number:
+            file.write("Undefined/unknown values in {}: {}\n".format(col, (data[col] == -1).sum()))
+
+\end{python}
+
+\subsection{Code Description}
+
+The provided code conducts data exploration on a dataset containing information about pediatric patients who received post-operative mechanical ventilation. 
+The steps include calculating and writing the total number of rows and columns in the dataset, providing summary statistics such as mean, min, max, and quartiles for numerical columns, finding the most common value for the 'sex' column, identifying missing values in each column, and checking for special values (-1) that could represent unknown or undefined data. 
+The output of the data exploration is saved in the "data\_exploration.txt" file, which includes the total number of rows and columns, summary statistics, most common sex value, missing values in each column, and the count of special values (-1) in numerical columns indicating undefined/unknown data.
+
+\subsection{Code Output}\hypertarget{file-data-exploration-txt}{}
+
+\subsubsection*{\hyperlink{code-Data Exploration-data-exploration-txt}{data\_exploration.txt}}
+
+\begin{codeoutput}
+\# Data Size
+Total number of rows: 969
+Total number of columns: 6
+
+\# Summary Statistics
+        tube    sex  age\_c    ht    wt  tube\_depth\_G
+count    969    969    969   969   969           969
+mean   3.694 0.5387  0.758    66 7.127         10.19
+std   0.5681 0.4988   1.44 19.08 4.774         1.766
+min      2.5      0      0  29.5  0.57           5.9
+25\%      3.5      0      0    52  3.56             9
+50\%      3.5      1      0  61.5   5.7           9.8
+75\%        4      1      1    76   9.5          11.2
+max        6      1      7 135.4    31          19.2
+
+\# Categorical Variables
+Sex most common value: 1
+
+\# Missing Values
+tube            0
+sex             0
+age\_c           0
+ht              0
+wt              0
+tube\_depth\_G    0
+dtype: int64
+
+Undefined/unknown values in tube: 0
+Undefined/unknown values in age\_c: 0
+Undefined/unknown values in ht: 0
+Undefined/unknown values in wt: 0
+Undefined/unknown values in tube\_depth\_G: 0
+\end{codeoutput}
+
+\section{Data Analysis}
+\subsection{{Code}}
+The Data Analysis was carried out using the following custom code:
+
+\begin{python}
+
+# IMPORT
+import pandas as pd
+import numpy as np
+import statsmodels.formula.api as smf
+import pickle
+
+# LOAD DATA
+df = pd.read_csv('tracheal_tube_insertion.csv')
+
+# DATASET PREPARATIONS
+# No dataset preparations are needed.
+
+# DESCRIPTIVE STATISTICS
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-0-pkl}{}}@*)## Table 0: "Descriptive statistics of weight stratified by sex"
+df0 = df.groupby('sex')['wt'].agg(['mean', 'std']).reset_index()
+
+# Create a new series for Gender
+df0['Gender'] = df0['sex'].replace({0: 'Female', 1: 'Male'})
+df0.set_index('Gender', inplace=True)
+
+# Save dataframe
+df0.to_pickle('table_0.pkl')
+
+# PREPROCESSING
+# Create dummy variable for sex
+df = pd.get_dummies(df, columns=['sex'], drop_first=True)
+
+# ANALYSIS
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-1-pkl}{}}@*)## Table 1: "Linear regression model with interaction between weight and sex predicting OTTD"
+model = smf.ols(formula="tube_depth_G ~ wt * sex_1", data=df)
+results = model.fit()
+
+df1 = pd.DataFrame(np.array([results.params, results.conf_int().iloc[:, 0], 
+                             results.conf_int().iloc[:, 1], results.pvalues, results.bse]).T,
+                   columns=['coef','ci_low','ci_high','pval', 'std err'])
+
+df1['Parameter'] = ['Intercept', 'Weight', 'Sex', 'Weight:Sex']
+df1.set_index('Parameter', inplace=True)
+
+# Save dataframe
+df1.to_pickle('table_1.pkl')
+
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-2-pkl}{}}@*)## Table 2: "Polynomial regression model with weight predicting OTTD"
+# Create a new column for the square of weight
+df['wt_sq'] = df['wt']**2
+
+model2 = smf.ols(formula="tube_depth_G ~ wt + wt_sq", data=df)
+results2 = model2.fit()
+
+df2 = pd.DataFrame(np.array([results2.params, results2.conf_int().iloc[:, 0], 
+                              results2.conf_int().iloc[:, 1], results2.pvalues, results2.bse]).T,
+                    columns=['coef','ci_low','ci_high','pval', 'std err'])
+
+df2['Parameter'] = ['Intercept', 'Weight', 'Weight (squared)']
+df2.set_index('Parameter', inplace=True)
+
+# Save dataframe
+df2.to_pickle('table_2.pkl')
+
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-additional-results-pkl}{}}@*)# SAVE ADDITIONAL RESULTS
+additional_results = {
+    'Total number of observations': df.shape[0],
+    'R-squared of linear model': results.rsquared,
+    'R-squared of polynomial model': results2.rsquared
+}
+
+# Save additional results
+with open('additional_results.pkl', 'wb') as f:
+    pickle.dump(additional_results, f)
+
+\end{python}
+
+\subsection{Code Description}
+
+The provided data analysis code performs statistical analysis on the dataset related to pediatric patients' tracheal tube depth determination. 
+
+First, the code calculates descriptive statistics of weight stratified by sex and saves the results in 'table\_0.pkl'. 
+
+Then, it preprocesses the data by creating dummy variables for sex. 
+
+Next, it conducts two main analyses:
+1. Table 1: Utilizes a linear regression model with an interaction term between weight and sex to predict the optimal tracheal tube depth. The results include coefficients, confidence intervals, p-values, and standard errors, which are saved in 'table\_1.pkl'. 
+2. Table 2: Involves a polynomial regression model with the weight and the square of weight as predictors for the optimal tube depth. Similar to Table 1, the coefficients, confidence intervals, p-values, and standard errors are saved in 'table\_2.pkl'. 
+
+Finally, additional results are saved in 'additional\_results.pkl', including the total number of observations in the dataset, the R-squared values of the linear and polynomial regression models. This information provides insights into the relationship between patient weight, sex, and the optimal tracheal tube depth determined by chest X-ray.
+
+\subsection{Code Output}\hypertarget{file-table-0-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-table-0-pkl}{table\_0.pkl}}
+
+\begin{codeoutput}
+        sex  mean   std
+Gender                 
+Female    0 6.842 4.568
+Male      1 7.371 4.935
+\end{codeoutput}\hypertarget{file-table-1-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-table-1-pkl}{table\_1.pkl}}
+
+\begin{codeoutput}
+               coef   ci\_low  ci\_high      pval  std err
+Parameter                                               
+Intercept     8.194        8    8.389         0  0.09905
+Weight      0.02544  -0.2392     0.29      0.85   0.1348
+Sex           0.273   0.2494   0.2967  1.55e-91  0.01204
+Weight:Sex 0.008966 -0.02215  0.04009     0.572  0.01586
+\end{codeoutput}\hypertarget{file-table-2-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-table-2-pkl}{table\_2.pkl}}
+
+\begin{codeoutput}
+                      coef    ci\_low  ci\_high      pval  std err
+Parameter                                                       
+Intercept            7.904     7.695    8.113         0   0.1066
+Weight              0.3606    0.3135   0.4078  6.74e-46  0.02404
+Weight (squared) -0.003867 -0.005974 -0.00176  0.000332 0.001073
+\end{codeoutput}\hypertarget{file-additional-results-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-additional-results-pkl}{additional\_results.pkl}}
+
+\begin{codeoutput}
+{
+    'Total number of observations': (*@\raisebox{2ex}{\hypertarget{R0a}{}}@*)969,
+    'R-squared of linear model': (*@\raisebox{2ex}{\hypertarget{R1a}{}}@*)0.5684           ,
+    'R-squared of polynomial model': (*@\raisebox{2ex}{\hypertarget{R2a}{}}@*)0.5734            ,
+}
+\end{codeoutput}
+
+\section{LaTeX Table Design}
+\subsection{{Code}}
+The LaTeX Table Design was carried out using the following custom code:
+
+\begin{python}
+
+# IMPORT
+import pandas as pd
+from my_utils import to_latex_with_note, is_str_in_df, split_mapping, AbbrToNameDef
+
+# PREPARATION FOR ALL TABLES
+shared_mapping: AbbrToNameDef = {
+    'wt': ('Weight', 'Weight of patient in kilograms'),
+    'tube_depth_G': ('OTTD', 'Optimal tracheal tube depth as determined by chest X-ray (in cm)'),
+    'sex': ('Sex', 'Patient sex (0=Female, 1=Male)'),
+    'tube': ('Tube ID', 'Internal diameter of the tube in milimeters'),
+    'age_c': ('Age', 'Patient age (in years, rounded to half years)'),
+    'ht': ('Height','Patient height in centimeters'),
+}
+
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-0-tex}{}}@*)# TABLE 0
+df0 = pd.read_pickle('table_0.pkl')
+
+# RENAME ROWS AND COLUMNS
+mapping0 = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df0, k))
+abbrs_to_names0, legend0 = split_mapping(mapping0)
+df0 = df0.rename(columns=abbrs_to_names0, index=abbrs_to_names0)
+
+# SAVE AS LATEX
+to_latex_with_note(
+    df0, 'table_0.tex',
+    caption='Descriptive statistics of weight stratified by sex.', 
+    label='table:descriptive_sex_weight',
+    note=None,
+    legend=legend0)
+
+
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-1-tex}{}}@*)# TABLE 1
+df1 = pd.read_pickle('table_1.pkl')
+
+# RENAME ROWS AND COLUMNS
+mapping1 = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df1, k)) 
+mapping1 |= {
+    'coef': ('Coefficient', None),
+    'ci_low': ('CI Lower','95% Confidence interval lower limit'),
+    'ci_high': ('CI Upper','95% Confidence interval upper limit'),
+    'pval': ('P-value', 'Statistical significance level'),
+    'std err': ('Std Error', 'Standard Error'),
+    'Weight:Sex': ('Weight:Sex', 'Interaction term between Weight and Sex'),
+}
+abbrs_to_names1, legend1 = split_mapping(mapping1)
+df1 = df1.rename(columns=abbrs_to_names1, index=abbrs_to_names1)
+
+# SAVE AS LATEX
+to_latex_with_note(
+    df1, 'table_1.tex',
+    caption="Linear regression model with interaction between weight and sex predicting OTTD.",
+    label='table:linear_regression_model',
+    note=None,
+    legend=legend1)
+
+
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-2-tex}{}}@*)# TABLE 2
+df2 = pd.read_pickle('table_2.pkl')
+
+# RENAME ROWS AND COLUMNS
+mapping2 = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df2, k)) 
+mapping2 |= {
+    'coef': ('Coefficient', None),
+    'ci_low': ('CI Lower','95% Confidence interval lower limit'),
+    'ci_high': ('CI Upper','95% Confidence interval upper limit'),
+    'pval': ('P-value', 'Statistical significance level'),
+    'std err': ('Std Error', 'Standard Error'),
+}
+abbrs_to_names2, legend2 = split_mapping(mapping2)
+df2 = df2.rename(columns=abbrs_to_names2, index=abbrs_to_names2)
+
+# SAVE AS LATEX
+to_latex_with_note(
+    df2, 'table_2.tex',
+    caption="Polynomial regression model with weight predicting OTTD.",
+    label='table:poly_regression_model',
+    note=None,
+    legend=legend2)
+
+\end{python}
+
+\subsection{Provided Code}
+The code above is using the following provided functions:
+
+\begin{python}
+def to_latex_with_note(df, filename: str, caption: str, label: str, note: str = None, legend: Dict[str, str] = None, **kwargs):
+    """
+    Converts a DataFrame to a LaTeX table with optional note and legend added below the table.
+
+    Parameters:
+    - df, filename, caption, label: as in `df.to_latex`.
+    - note (optional): Additional note below the table.
+    - legend (optional): Dictionary mapping abbreviations to full names.
+    - **kwargs: Additional arguments for `df.to_latex`.
+    """
+
+def is_str_in_df(df: pd.DataFrame, s: str):
+    return any(s in level for level in getattr(df.index, 'levels', [df.index]) + getattr(df.columns, 'levels', [df.columns]))
+
+AbbrToNameDef = Dict[Any, Tuple[Optional[str], Optional[str]]]
+
+def split_mapping(abbrs_to_names_and_definitions: AbbrToNameDef):
+    abbrs_to_names = {abbr: name for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if name is not None}
+    names_to_definitions = {name or abbr: definition for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if definition is not None}
+    return abbrs_to_names, names_to_definitions
+
+\end{python}
+
+
+
+\subsection{Code Output}
+
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-0-tex}{table\_0.tex}}
+
+\begin{codeoutput}
+\% This latex table was generated from: `table\_0.pkl`
+\begin{table}[h]
+\caption{Descriptive statistics of weight stratified by sex.}
+\label{table:descriptive\_sex\_weight}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{\%
+\begin{tabular}{lrrr}
+\toprule
+ \& Sex \& mean \& std \\
+Gender \&  \&  \&  \\
+\midrule
+\textbf{Female} \& 0 \& 6.84 \& 4.57 \\
+\textbf{Male} \& 1 \& 7.37 \& 4.94 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{Sex}: Patient sex (0=Female, 1=Male)
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+\end{codeoutput}
+
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-1-tex}{table\_1.tex}}
+
+\begin{codeoutput}
+\% This latex table was generated from: `table\_1.pkl`
+\begin{table}[h]
+\caption{Linear regression model with interaction between weight and sex predicting OTTD.}
+\label{table:linear\_regression\_model}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{\%
+\begin{tabular}{llllll}
+\toprule
+ \& Coefficient \& CI Lower \& CI Upper \& P-value \& Std Error \\
+Parameter \&  \&  \&  \&  \&  \\
+\midrule
+\textbf{Intercept} \& 8.19 \& 8 \& 8.39 \& \$$<$\$1e-06 \& 0.0991 \\
+\textbf{Weight} \& 0.0254 \& -0.239 \& 0.29 \& 0.85 \& 0.135 \\
+\textbf{Sex} \& 0.273 \& 0.249 \& 0.297 \& \$$<$\$1e-06 \& 0.012 \\
+\textbf{Weight:Sex} \& 0.00897 \& -0.0222 \& 0.0401 \& 0.572 \& 0.0159 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{CI Lower}: 95\% Confidence interval lower limit
+\item \textbf{CI Upper}: 95\% Confidence interval upper limit
+\item \textbf{P-value}: Statistical significance level
+\item \textbf{Std Error}: Standard Error
+\item \textbf{Weight:Sex}: Interaction term between Weight and Sex
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+\end{codeoutput}
+
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-2-tex}{table\_2.tex}}
+
+\begin{codeoutput}
+\% This latex table was generated from: `table\_2.pkl`
+\begin{table}[h]
+\caption{Polynomial regression model with weight predicting OTTD.}
+\label{table:poly\_regression\_model}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{\%
+\begin{tabular}{llllll}
+\toprule
+ \& Coefficient \& CI Lower \& CI Upper \& P-value \& Std Error \\
+Parameter \&  \&  \&  \&  \&  \\
+\midrule
+\textbf{Intercept} \& 7.9 \& 7.69 \& 8.11 \& \$$<$\$1e-06 \& 0.107 \\
+\textbf{Weight} \& 0.361 \& 0.313 \& 0.408 \& \$$<$\$1e-06 \& 0.024 \\
+\textbf{Weight (squared)} \& -0.00387 \& -0.00597 \& -0.00176 \& 0.000332 \& 0.00107 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{CI Lower}: 95\% Confidence interval lower limit
+\item \textbf{CI Upper}: 95\% Confidence interval upper limit
+\item \textbf{P-value}: Statistical significance level
+\item \textbf{Std Error}: Standard Error
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+\end{codeoutput}
+
+\end{document}

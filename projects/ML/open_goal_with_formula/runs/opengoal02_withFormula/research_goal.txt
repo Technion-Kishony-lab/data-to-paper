@@ -1,0 +1,5 @@
+## Research Goal: 
+To investigate the relationship between patient weight and optimal tracheal tube depth (OTTD) in pediatric patients aged 0-7 years old, and how this relationship is potentially moderated by the patient's sex.
+
+## Hypothesis: 
+The effect of a pediatric patient's weight on OTTD is moderated by their sex, with the relationship possibly being non-linear. Specifically, the influence of weight on OTTD may vary between male and female pediatric patients, and this relationship may not be a simple linear one.
