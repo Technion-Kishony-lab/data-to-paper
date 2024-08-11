@@ -1,0 +1,21 @@
+## Statistical considerations:
+### Missing data points:
+There are missing values in the "age", "sex", "patient_contact", "using_FFP2_mask", "months_since_immunisation", "time_dose1_to_dose_2", and "vaccinetype" columns of the TimeToInfection dataset, as well as in the "sex", "comorbidity", and "using_FFP2_mask" columns of the Symptoms dataset. We need to address the missing data points before conducting any statistical analysis.
+### Categorical Variables:
+We have several categorical variables in the datasets. We must appropriately handle these variables for statistical testing.
+### Confounding variables:
+There are potential confounding variables such as age, BMI, and other patient characteristics that can influence the severity of symptoms post SARS-CoV-2 infection. These variables should be accounted for in the analysis to avoid biased results.
+### Dependencies between data points:
+The data points within each dataset might not be independent due to multiple entries for the same healthcare worker. This dependency needs to be considered in the statistical analysis.
+
+## Hypotheses:
+### Hypothesis:
+The severity of symptoms post SARS-CoV-2 infection is influenced by an interaction of vaccination status and BMI
+### Test:
+To test this hypothesis, a multiple regression analysis can be conducted with the number of symptoms as the dependent variable, vaccination status, BMI, and their interaction as independent variables. Adjust for potential confounding variables such as age and sex.
+
+### Hypothesis:
+Those with hybrid immunity (infected and vaccinated) and a higher BMI will experience more severe symptoms compared to those with normal BMI
+### Test:
+To test this hypothesis, an analysis of covariance (ANCOVA) can be performed, with BMI as a continuous independent variable, vaccination status as a categorical independent variable, and the number of symptoms as the dependent variable. Adjust for potential confounding variables like age and sex. Post-hoc tests can be applied if there are significant differences detected.
+
