@@ -1,0 +1,24 @@
+## Statistical considerations:
+### Missing data points:
+There are missing values in important variables such as age and vaccination status, which need to be handled through imputation or exclusion of rows with missing data.
+### Confounding variables:
+Potential confounders like age, sex, and mask usage could influence the relationship between immunity status and reinfection risk or symptom count, and should be controlled for in the analysis.
+### Dependencies between data points:
+The presence of multiple rows per individual in the dataset may introduce dependencies between data points of the same health worker, which should be addressed to avoid biases.
+
+## Hypotheses:
+### Hypothesis:
+H1: Healthcare workers with hybrid immunity have a lower risk of reinfection than those with only vaccination or infection
+### Test:
+Logistic regression to model the likelihood of reinfection (infection_event) as the outcome variable with Group (immunity status) as the main predictor. Control for potential confounding variables.
+
+### Hypothesis:
+H2: Healthcare workers with a recent booster shot have a lower number of symptoms after reinfection
+### Test:
+Independent samples t-test to compare the mean symptom count between healthcare workers with a recent booster shot (booster_over7_days_before=1) and those without (booster_over7_days_before=0). Adjust for confounding variables if necessary.
+
+### Hypothesis:
+H3: Regular usage of protective respiratory masks (FFP2) reduces the risk of reinfection
+### Test:
+Logistic regression to assess the effect of using_FFP2_mask on the likelihood of reinfection (infection_event). Account for potential confounders like age, sex, and group.
+

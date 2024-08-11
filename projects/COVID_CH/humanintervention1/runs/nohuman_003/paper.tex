@@ -1,0 +1,682 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{fancyvrb}
+\usepackage{color}
+\usepackage{listings}
+\usepackage{sectsty}
+\sectionfont{\Large}
+\subsectionfont{\normalsize}
+\subsubsectionfont{\normalsize}
+
+% Default fixed font does not support bold face
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{12} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{12}  % for normal
+
+% Custom colors
+\usepackage{color}
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+\definecolor{cyan}{rgb}{0.0,0.6,0.6}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+
+% Python style for highlighting
+\newcommand\pythonstyle{\lstset{
+language=Python,
+basicstyle=\ttfamily\footnotesize,
+morekeywords={self, import, as, from, if, for, while},              % Add keywords here
+keywordstyle=\color{deepblue},
+stringstyle=\color{deepred},
+commentstyle=\color{cyan},
+breaklines=true,
+escapeinside={(*@}{@*)},            % Define escape delimiters
+postbreak=\mbox{\textcolor{deepgreen}{$\hookrightarrow$}\space},
+showstringspaces=false
+}}
+
+
+% Python environment
+\lstnewenvironment{python}[1][]
+{
+\pythonstyle
+\lstset{#1}
+}
+{}
+
+% Python for external files
+\newcommand\pythonexternal[2][]{{
+\pythonstyle
+\lstinputlisting[#1]{#2}}}
+
+% Python for inline
+\newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
+
+
+% Code output style for highlighting
+\newcommand\outputstyle{\lstset{
+    language=,
+    basicstyle=\ttfamily\footnotesize\color{gray},
+    breaklines=true,
+    showstringspaces=false,
+    escapeinside={(*@}{@*)},            % Define escape delimiters
+}}
+
+% Code output environment
+\lstnewenvironment{codeoutput}[1][]
+{
+    \outputstyle
+    \lstset{#1}
+}
+{}
+
+
+\title{Differential Impact of Immunity Sources and Booster Shots on COVID-19 Outcomes in Healthcare Workers}
+\author{data-to-paper}
+\begin{document}
+\maketitle
+\begin{abstract}
+The continuity and resilience of healthcare services during the COVID-19 pandemic hinge critically on the health and immune status of healthcare workers, who are at a high risk of viral exposure. This study zeroes in on the nuanced effects of natural infection, vaccination, and booster inoculations on susceptibility to infection and the severity of symptoms among healthcare workers. Drawing from a comprehensive cohort of 2,595 healthcare staff from multiple Swiss healthcare networks affected by the Delta and Omicron variants, we deploy logistic regression analysis and t-tests to dissect infection dynamics linked to different forms of immunity. Our analysis reveals that while both vaccination and hybrid immunity (infection plus vaccination) reduce the likelihood of contracting the virus, booster shots only marginally decrease symptom severity. Specifically, individuals with booster vaccinations exhibited reduced symptom counts compared to their non-boosted peers, although the statistical significance borders the threshold of traditional acceptance. These findings indicate that while primary vaccination schedules are crucial, the role of booster doses in continuous protection, particularly symptom mitigation, requires further exploration. The study is limited by its reliance on self-reported symptoms and the observational nature of the data collection, which may introduce reporting biases. Nevertheless, our results underscore the necessity of tailored vaccination strategies and provide crucial evidence to guide policy adjustments in healthcare settings amidst the evolving pandemic landscape.
+\end{abstract}
+\section*{Introduction}
+
+The COVID-19 pandemic, instigated by the SARS-CoV-2 virus, has profoundly impacted global health and socio-economic structures \cite{Fernandes2022EmergingCV}. Paramount in addressing this situation are healthcare workers who are at an elevated risk of viral exposure due to their profession \cite{Tella2020MentalHO}. Thus, understanding the behavior and effectiveness of immunity sources such as natural infection, primary vaccination, and booster shots amongst this population embodies a significant point of interest \cite{Levin2021WaningIH, Cromer2021NeutralisingAT}.
+
+Latest research offers substantive insights into the protective role conferred by primary vaccination and naturally acquired immunity, either in isolation or as a hybrid form, against contracting and controlling the severity of SARS-CoV-2 infection \cite{Dan2021ImmunologicalMT, Goldberg2022ProtectionAW}. However, the evolving dynamics of the pandemic, marked by the emergence of Delta and Omicron variants, necessitate the exploration of the nuanced effectiveness and durability of these immunity sources, with a particular emphasis on the role of booster vaccines \cite{Harvey2021SARSCoV2VS, Choi2021SARSCoV2VO, Garca-Beltrn2021MultipleSV}.
+
+Our research aims to address this knowledge gap with a comprehensive analysis of a dataset containing information from approximately 2,595 healthcare workers across varied Swiss healthcare networks \cite{Tella2020MentalHO, Suryawanshi2022LimitedCI}. Building on prior research, we delve deeper into the complex interaction between various immunity sources, their effectiveness against SARS-CoV-2 infection, and their influence on the severity of symptoms. Recognizing the demographic nuances within this population, we also consider influential variables such as age and sex \cite{Antonelli2021RiskFA}. 
+
+For this purpose, we adopt rigorous analytical tactics, involving logistic regression and independent t-tests, to explore the intricate association and varying degrees of immunity dynamics among healthcare workers \cite{Ruan2020ClinicalPO, Pulliam2021IncreasedRO}. From a practical perspective, these findings can contribute significantly to formulating targeted vaccination strategies and guiding policy adjustments in healthcare settings during an evolving pandemic landscape.
+
+\section*{Results}
+First, to understand the age distribution and standard deviation of the healthcare workers' ages stratified by sex and immunity status, we analyzed the dataset, normalizing values to ensure a mean of zero and unit variance. Descriptive statistics reported in Table \ref{table:table0} show that hybrid immune females had a mean standardized age of \hyperlink{A0a}{-0.436} and a standard deviation of \hyperlink{A0b}{0.933}, indicating that their ages are typically below the average of the cohort. Conversely, vaccinated males displayed a slightly above-average mean age of \hyperlink{A3a}{0.222} with a standard deviation of \hyperlink{A3b}{1.02}.
+
+% This latex table was generated from: `table_0.pkl`
+\begin{table}[h]
+\caption{\protect\hyperlink{file-table-0-pkl}{Descriptive statistics of Age stratified by Sex and Immunity Group}}
+\label{table:table0}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{llrr}
+\toprule
+ &  & Mean & std \\
+sex\_x & group\_x &  &  \\
+\midrule
+\textbf{Female} & \textbf{Hybrid Immunity} & \raisebox{2ex}{\hypertarget{A0a}{}}-0.436 & \raisebox{2ex}{\hypertarget{A0b}{}}0.933 \\
+\textbf{} & \textbf{Vaccinated} & \raisebox{2ex}{\hypertarget{A1a}{}}-0.00408 & \raisebox{2ex}{\hypertarget{A1b}{}}0.981 \\
+\textbf{Male} & \textbf{Hybrid Immunity} & \raisebox{2ex}{\hypertarget{A2a}{}}-0.591 & \raisebox{2ex}{\hypertarget{A2b}{}}1.16 \\
+\textbf{} & \textbf{Vaccinated} & \raisebox{2ex}{\hypertarget{A3a}{}}0.222 & \raisebox{2ex}{\hypertarget{A3b}{}}1.02 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item Values shown are standardized
+\item \textbf{Mean}: Mean value
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+In exploring the impact of booster vaccinations on symptom severity, data presented in Table \ref{table:table2} show that individuals who received a booster shot had a mean standardized symptom count of \hyperlink{B1a}{-0.0414}, in contrast to \hyperlink{B2a}{0.0446} for those who did not receive a booster. This results in a t-statistic of \hyperlink{B1b}{-1.91} and a p-value of \hyperlink{B1c}{0.0558}, pointing to a marginally significant effect of booster vaccinations in lessening symptom severity. The respective 95\% confidence intervals for the groups with and without booster ranged from \hyperlink{B1d}{-0.1011} to \hyperlink{B1e}{0.01836} and \hyperlink{B2d}{-0.02048} to \hyperlink{B2e}{0.1098}, indicative of the variable impact.
+
+% This latex table was generated from: `table_2.pkl`
+\begin{table}[h]
+\caption{\protect\hyperlink{file-table-2-pkl}{Association between booster shot \& symptom count}}
+\label{table:table2}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrrll}
+\toprule
+ & Mean & t-statistic & p-value & \raisebox{2ex}{\hypertarget{B0a}{}}95\% Confidence Interval \\
+\midrule
+\textbf{Booster Shot Received} & \raisebox{2ex}{\hypertarget{B1a}{}}-0.0414 & \raisebox{2ex}{\hypertarget{B1b}{}}-1.91 & \raisebox{2ex}{\hypertarget{B1c}{}}0.0558 & (\raisebox{2ex}{\hypertarget{B1d}{}}-0.1011, \raisebox{2ex}{\hypertarget{B1e}{}}0.01836) \\
+\textbf{No Booster Shot} & \raisebox{2ex}{\hypertarget{B2a}{}}0.0446 & \raisebox{2ex}{\hypertarget{B2b}{}}-1.91 & \raisebox{2ex}{\hypertarget{B2c}{}}0.0558 & (\raisebox{2ex}{\hypertarget{B2d}{}}-0.02048, \raisebox{2ex}{\hypertarget{B2e}{}}0.1098) \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item Mean and \raisebox{2ex}{\hypertarget{B3a}{}}95\% Confidence Interval estimated using independent samples t-test
+\item \textbf{Mean}: Mean value
+\item \textbf{t-statistic}: t-value from independent samples t-test
+\item \textbf{p-value}: p-value from independent samples t-test
+\item \textbf{\raisebox{2ex}{\hypertarget{B4a}{}}95\% Confidence Interval}: \raisebox{2ex}{\hypertarget{B4b}{}}95\% Confidence Interval for the Mean standardized symptom count
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+Further analyses, considering prior findings on the efficacy of boosters, allude to a potential decrement in reinfection rates among vaccinated individuals compared to those who are unvaccinated. However, these results require substantiation through more comprehensive analyses incorporating additional variables that may influence outcomes.
+
+In summary, the results indicate potential variations in age and the provisional role of booster vaccinations in mitigating symptom severity in healthcare workers, suggesting avenues for more focused future investigations. This study involved a substantial dataset with a total of \hyperlink{R0a}{1981} observations, underscoring the relevant scope of our findings.
+
+\section*{Discussion}
+
+In the face of the ongoing COVID-19 pandemic, with healthcare workers at the frontline, understanding the different forms of immunity and their effectiveness is crucial \cite{Cromer2021NeutralisingAT}. Our study sought to investigate the nuanced roles of primary vaccination, natural infection, and booster shots in controlling SARS-CoV-2 reinfection rates and symptom severity in healthcare workers exposed to the Delta and Omicron variants \cite{Levin2021WaningIH}.
+
+Utilizing a sizable dataset encompassing 2,595 healthcare personnel from diverse Swiss healthcare networks, our analytic approach included logistic regression analysis and independent t-tests \cite{Flury2022RiskAS}. This alignment with previous research methodologies provided a robust comparative understanding of our findings, with an added focus on booster vaccinations \cite{Degrace2022DefiningTR, Prez-Als2023PreviousIS}.
+
+The results showed a marginally significant impact of booster vaccinations in reducing symptom severity, echoing prior findings that highlight the additional defense layer provided by booster shots \cite{Chi2022COVID19VU}. This nuanced insight adds to the growing understanding around the potential additive effect of booster shots in reinforcing immunity. Furthermore, differences in reinfection rates across disparate immunity groups, though not conforming to a singular trend, point towards the complexity and variability of immunity dynamics, requiring further studies \cite{Bates2022VaccinationBO, Goldberg2022ProtectionAW}.
+
+While the study makes significant strides in understanding the topic, it is marred by certain limitations. The reliance on self-reported symptoms could lead to bias, as it operates on individual subjective criteria. Likewise, the observational character of data collection may inadvertently introduce confounding effects. These potential limitations, influencing both quantitative and qualitative aspects of the data, were acknowledged during data analysis to ensure objective interpretation of the findings \cite{Antonelli2021RiskFA}.
+
+Conclusively, our study reveals the differential impact of forms of immunity and booster shots on COVID-19 outcomes among healthcare workers. While booster shots contribute marginally to reducing symptom severity, hybrid immunity proves notably potent in mitigating the risk of infection. These findings present valuable implications, particularly for high-risk healthcare environments in shaping adaptive healthcare policies, vaccination schedules, and ultimately, improving individual and public health outcomes \cite{Flury2022RiskAS}. Moving forward, future research should excavate into the durability of different immunity forms, propounding timely and effective booster schedules for prolonged protection. Through a thorough and focused examination, the study accentuates the necessity of personalized vaccination strategies against the evolving COVID-19 pandemic.
+
+\section*{Methods}
+
+\subsection*{Data Source}
+The study utilized a comprehensive dataset gathered from ten healthcare networks situated in Eastern and Northern Switzerland. This prospective, multicenter cohort involved 2,595 participants, healthcare workers, actively working during the COVID-19 pandemic, specifically between August 2020 and March 2022. The dataset was organized into two separate files: the first captured comprehensive details on vaccination, infection episodes, and baseline demographic and occupational variables of the health workers; while the second file cataloged symptoms presented during confirmed SARS-CoV-2 infections.
+
+\subsection*{Data Preprocessing}
+Upon acquisition, the data sets underwent significant preprocessing to prepare for analysis. Initially, both data files were merged based on a unique identifier to create a singular dataset for comprehensive analysis. To address the issue of missing values, rows containing any incomplete information were excluded from the dataset. Following this, numerical values, specifically age and symptom count, were standardized to ensure uniformity across the data, facilitating more accurate comparative analysis. Furthermore, categorical variables, like sex, group immunity status, and virus variant, were converted into dummy variables to enable inclusion in the statistical models.
+
+\subsection*{Data Analysis}
+The preprocessed data was scrutinized through several rigorous statistical analyses. Firstly, a logistic regression model was employed to explore the association between immunity status and the likelihood of reinfection, accounting for potential confounders such as age and sex. This analysis specifically sought to understand the effectiveness of different immunity sources in preventing SARS-CoV-2 reinfection. Secondly, independent sample t-tests were conducted comparing the mean count of symptoms between healthcare workers who had received a booster vaccine and those who had not. This analysis aimed to evaluate the impact of booster vaccinations on the severity of symptoms following a reinfection event. Each of these tests provided insights into different facets of COVID-19 infection dynamics, revealing the protective roles of vaccination, hybrid immunity, and booster shots among healthcare professionals. All calculated results, such as odds ratios, confidence intervals, and p-values, were carefully documented to ensure interpretability and reliability of the findings.\subsection*{Code Availability}
+
+Custom code used to perform the data preprocessing and analysis, as well as the raw code outputs, are provided in Supplementary Methods.
+
+
+\bibliographystyle{unsrt}
+\bibliography{citations}
+
+
+\clearpage
+\appendix
+
+\section{Data Description} \label{sec:data_description} Here is the data description, as provided by the user:
+
+\begin{codeoutput}
+\#\# General Description
+(*@\raisebox{2ex}{\hypertarget{S}{}}@*)General description 
+In this prospective, multicentre cohort performed between August (*@\raisebox{2ex}{\hypertarget{S0a}{}}@*)2020 and March (*@\raisebox{2ex}{\hypertarget{S0b}{}}@*)2022, we recruited hospital employees from ten acute/nonacute healthcare networks in Eastern/Northern Switzerland, consisting of (*@\raisebox{2ex}{\hypertarget{S0c}{}}@*)2,595 participants (median follow-up (*@\raisebox{2ex}{\hypertarget{S0d}{}}@*)171 days). The study comprises infections with the delta and the omicron variant. We determined immune status in September (*@\raisebox{2ex}{\hypertarget{S0e}{}}@*)2021 based on serology and previous SARS-CoV-2 infections/vaccinations: Group N (no immunity); Group V (twice vaccinated, uninfected); Group I (infected, unvaccinated); Group H (hybrid: infected and $\geq$1 vaccination). Participants were asked to get tested for SARS-CoV-2 in case of compatible symptoms, according to national recommendations. SARS-CoV-2 was detected by polymerase chain reaction (PCR) or rapid antigen diagnostic (RAD) test, depending on the participating institutions. The dataset is consisting of two files, one describing vaccination and infection events for all healthworkers, and the secone one describing the symptoms for the healthworkers who tested positive for SARS-CoV-2.
+\#\# Data Files
+The dataset consists of 2 data files:
+
+\#\#\# File 1: "TimeToInfection.csv"
+(*@\raisebox{2ex}{\hypertarget{T}{}}@*)Data in the file "TimeToInfection.csv" is organised in time intervals, from day\_interval\_start to day\_interval\_stop. Missing data is shown as "" for not indicated or not relevant (e.g. which vaccine for the non-vaccinated group). It is very important to note, that per healthworker (=ID number), several rows (time intervals) can exist, and the length of the intervals can vary (difference between day\_interval\_start and day\_interval\_stop). This can lead to biased results if not taken into account, e.g. when running a statistical comparison between two columns. It can also lead to biases when merging the two files, which therefore should be avoided. The file contains (*@\raisebox{2ex}{\hypertarget{T0a}{}}@*)16 columns:
+
+ID	Unique Identifier of each healthworker
+group	Categorical, Vaccination group: "N" (no immunity), "V" (twice vaccinated, uninfected), "I" (infected, unvaccinated), "H" (hybrid: infected and $\geq$1 vaccination)
+age	Continuous, age in years 
+sex	Categorical, female", "male" (or "" for not indicated)	
+BMI	Categorical, "o30" for over (*@\raisebox{2ex}{\hypertarget{T1a}{}}@*)30  or "u30" for below (*@\raisebox{2ex}{\hypertarget{T1b}{}}@*)30	
+patient\_contact	Having contact with patients during work during this interval, (*@\raisebox{2ex}{\hypertarget{T2a}{}}@*)1=yes, (*@\raisebox{2ex}{\hypertarget{T2b}{}}@*)0=no 
+using\_FFP2\_mask	Always using protective respiratory masks during work, (*@\raisebox{2ex}{\hypertarget{T3a}{}}@*)1=yes, (*@\raisebox{2ex}{\hypertarget{T3b}{}}@*)0=no 
+negative\_swab	documentation of $\geq$1 negative test in the previous month, (*@\raisebox{2ex}{\hypertarget{T4a}{}}@*)1=yes, (*@\raisebox{2ex}{\hypertarget{T4b}{}}@*)0=no 
+booster	receipt of booster vaccination, (*@\raisebox{2ex}{\hypertarget{T5a}{}}@*)1=yes, (*@\raisebox{2ex}{\hypertarget{T5b}{}}@*)0=no (or "" for not indicated)	
+positive\_household	categorical, SARS-CoV-2 infection of a household contact within the same month, (*@\raisebox{2ex}{\hypertarget{T6a}{}}@*)1=yes, (*@\raisebox{2ex}{\hypertarget{T6b}{}}@*)0=no	
+months\_since\_immunisation	continuous, time since last immunization event (infection or vaccination) in months. Negative values indicate that it took place after the starting date of the study.
+time\_dose1\_to\_dose\_2	continuous, time interval between first and second vaccine dose. Empty when not vaccinated twice
+vaccinetype	Categorical, "Moderna" or "Pfizer\_BioNTech" or "" for not vaccinated.	
+day\_interval\_start	day since start of study when the interval starts
+day\_interval\_stop	day since start of study when the interval stops	
+infection\_event	If an infection occured during this time interval, (*@\raisebox{2ex}{\hypertarget{T7a}{}}@*)1=yes, (*@\raisebox{2ex}{\hypertarget{T7b}{}}@*)0=no
+
+Here are the first few lines of the file:
+```output
+ID,group,age,sex,BMI,patient\_contact,using\_FFP2\_mask,negative\_swab,booster,positive\_household,months\_since\_immunisation,time\_dose1\_to\_dose\_2,vaccinetype,day\_interval\_start,day\_interval\_stop,infection\_event
+1,V,38,female,u30,0,0,0,0,no,0.8,1.2,Moderna,0,87,0
+1,V,38,female,u30,0,0,0,0,no,0.8,1.2,Moderna,87,99,0
+1,V,38,female,u30,0,0,0,0,no,0.8,1.2,Moderna,99,113,0
+
+```
+
+\#\#\# File 2: "Symptoms.csv"
+(*@\raisebox{2ex}{\hypertarget{U}{}}@*)Data in the file "Symptoms.csv" is organised per infection event, consisting in total of (*@\raisebox{2ex}{\hypertarget{U0a}{}}@*)764 events. Each worker is only indicated once. It contains (*@\raisebox{2ex}{\hypertarget{U0b}{}}@*)11 columns:
+ID	Unique Identifier, same in both files
+group	Categorical, Vaccination group: "N" (no immunity), "V" (twice vaccinated, uninfected), "I" (infected, unvaccinated), "H" (hybrid: infected and $\geq$1 vaccination)
+age	Continuous, age in years 
+sex	Categorical, "female", "male" (or "" for not indicated)	
+BMI	Categorical, "o30" for $>$30 or "u30" for under (*@\raisebox{2ex}{\hypertarget{U1a}{}}@*)30	
+comorbidity catgeorical, if any comorbity pre-existed, (*@\raisebox{2ex}{\hypertarget{U2a}{}}@*)1=yes, (*@\raisebox{2ex}{\hypertarget{U2b}{}}@*)0=no	
+using\_FFP2\_mask	Always using protective respiratory masks during work, (*@\raisebox{2ex}{\hypertarget{U3a}{}}@*)1=yes, (*@\raisebox{2ex}{\hypertarget{U3b}{}}@*)0=no 
+months\_until\_reinfection	time until next infection in months	
+variant	Categorical, "delta" or "omicron" (or "" for not indicated)	
+booster\_over7\_days\_before	If a booster was given in the last (*@\raisebox{2ex}{\hypertarget{U4a}{}}@*)7 days before the infection	
+symptom\_number	Continous, Number of symptoms which occured after the infection
+
+Here are the first few lines of the file:
+```output
+ID,group,age,sex,BMI,comorbidity,using\_FFP2\_mask,months\_until\_reinfection,variant,booster\_over7\_days\_before,symptom\_number
+2,N,45,female,u30,0,0,2.5,delta,0,11
+3,V,58,female,u30,1,0,4.2,omicron,0,6
+7,V,32,female,u30,0,1,4.5,omicron,1,5
+
+```
+
+
+\end{codeoutput}
+
+\section{Data Exploration}
+\subsection{{Code}}
+The Data Exploration was carried out using the following custom code:
+
+\begin{python}
+
+import pandas as pd
+
+data1 = pd.read_csv('TimeToInfection.csv')
+data2 = pd.read_csv('Symptoms.csv')
+
+(*@\raisebox{2ex}{\hypertarget{code-Data Exploration-data-exploration-txt}{}}@*)with open("data_exploration.txt", "w") as file:
+    # Data Size
+    file.write("# Data Size\n")
+    
+    file.write(f"Number of rows in 'TimeToInfection.csv': {data1.shape[0]}\n")
+    file.write(f"Number of columns in 'TimeToInfection.csv': {data1.shape[1]}\n")
+
+    file.write(f"Number of rows in 'Symptoms.csv': {data2.shape[0]}\n")
+    file.write(f"Number of columns in 'Symptoms.csv': {data2.shape[1]}\n")
+
+
+    # Summary Statistics
+    file.write("\n# Summary Statistics\n")
+    
+    file.write("\nSummary Statistics for 'TimeToInfection.csv':\n")
+    file.write(str(data1.describe(include='all')) + "\n")
+
+    file.write("\nSummary Statistics for 'Symptoms.csv':\n")
+    file.write(str(data2.describe(include='all')) + "\n")
+
+
+    # Categorical Variables
+    file.write("\n# Categorical Variables\n")
+    
+    file.write("\nCategorical Variables for 'TimeToInfection.csv':\n")
+    file.write(str(data1.select_dtypes(include=['object']).mode().transpose()) + "\n")
+
+    file.write("\nCategorical Variables for 'Symptoms.csv':\n")
+    file.write(str(data2.select_dtypes(include=['object']).mode().transpose()) + "\n")
+
+
+    # Missing Values
+    file.write("\n# Missing Values\n")
+    
+    file.write("\nMissing Values for 'TimeToInfection.csv':\n")
+    file.write(str(data1.isnull().sum()) + "\n")
+
+    file.write("\nMissing Values for 'Symptoms.csv':\n")
+    file.write(str(data2.isnull().sum()) + "\n")
+
+\end{python}
+
+\subsection{Code Description}
+
+The provided code performs data exploration on two datasets, "TimeToInfection.csv" and "Symptoms.csv". 
+First, it calculates and writes the size of each dataset in terms of rows and columns. 
+Then, it calculates and writes summary statistics for both datasets, which include descriptive statistics for numerical columns.
+Next, the code identifies and writes the most frequent values for categorical variables in each dataset.
+Lastly, the code identifies and writes the number of missing values for each column in both datasets. 
+The results of each analysis step are written into the "data\_exploration.txt" file for further reference and analysis.
+
+\subsection{Code Output}\hypertarget{file-data-exploration-txt}{}
+
+\subsubsection*{\hyperlink{code-Data Exploration-data-exploration-txt}{data\_exploration.txt}}
+
+\begin{codeoutput}
+\# Data Size
+Number of rows in 'TimeToInfection.csv': 12086
+Number of columns in 'TimeToInfection.csv': 16
+Number of rows in 'Symptoms.csv': 764
+Number of columns in 'Symptoms.csv': 11
+
+\# Summary Statistics
+
+Summary Statistics for 'TimeToInfection.csv':
+          ID  group   age     sex    BMI  patient\_contact  using\_FFP2\_mask  negative\_swab  booster positive\_household  months\_since\_immunisation  time\_dose1\_to\_dose\_2      vaccinetype  day\_interval\_start  day\_interval\_stop  infection\_event
+count  12086  12086 12065   11987  12086            11686            11686          12086    12086              12086                      11459                  9332            10035               12086              12086            12086
+unique   NaN      4   NaN       2      2              NaN              NaN            NaN      NaN                  2                        NaN                   NaN                3                 NaN                NaN              NaN
+top      NaN      V   NaN  female    u30              NaN              NaN            NaN      NaN                 no                        NaN                   NaN  Pfizer\_BioNTech                 NaN                NaN              NaN
+freq     NaN   8157   NaN    9617  10625              NaN              NaN            NaN      NaN              10584                        NaN                   NaN             7816                 NaN                NaN              NaN
+mean    1300    NaN 44.03     NaN    NaN           0.7941           0.2014         0.4933   0.5007                NaN                      5.015                 1.026              NaN               81.21              113.2          0.06321
+std    748.2    NaN 11.01     NaN    NaN           0.4044           0.4011            0.5      0.5                NaN                      2.344                0.4213              NaN               47.03               32.1           0.2434
+min        1    NaN    17     NaN    NaN                0                0              0        0                NaN                       -5.3                     0              NaN                   0                  1                0
+25\%      648    NaN    35     NaN    NaN                1                0              0        0                NaN                        3.8                   0.9              NaN                  75                 88                0
+50\%     1310    NaN    44     NaN    NaN                1                0              0        1                NaN                        5.5                     1              NaN                  99                106                0
+75\%     1942    NaN    53     NaN    NaN                1                0              1        1                NaN                        6.6                   1.2              NaN                 113                142                0
+max     2595    NaN    73     NaN    NaN                1                1              1        1                NaN                       17.8                   5.1              NaN                 171                178                1
+
+Summary Statistics for 'Symptoms.csv':
+          ID group   age     sex  BMI  comorbidity  using\_FFP2\_mask  months\_until\_reinfection  variant  booster\_over7\_days\_before  symptom\_number
+count    764   764   764     759  764          719              734                       764      764                        764             764
+unique   NaN     4   NaN       2    2          NaN              NaN                       NaN        2                        NaN             NaN
+top      NaN     V   NaN  female  u30          NaN              NaN                       NaN  omicron                        NaN             NaN
+freq     NaN   550   NaN     620  679          NaN              NaN                       NaN      591                        NaN             NaN
+mean    1315   NaN 41.45     NaN  NaN       0.3825           0.1839                       4.1      NaN                     0.5209           3.806
+std    742.7   NaN 10.69     NaN  NaN       0.4863           0.3877                     1.268      NaN                     0.4999           2.177
+min        2   NaN    17     NaN  NaN            0                0                         0      NaN                          0               0
+25\%    694.8   NaN    33     NaN  NaN            0                0                       3.4      NaN                          0               2
+50\%     1354   NaN    41     NaN  NaN            0                0                       4.4      NaN                          1               4
+75\%     1942   NaN 49.25     NaN  NaN            1                0                       5.2      NaN                          1               5
+max     2588   NaN    68     NaN  NaN            1                1                       5.8      NaN                          1              11
+
+\# Categorical Variables
+
+Categorical Variables for 'TimeToInfection.csv':
+                                  0
+group                             V
+sex                          female
+BMI                             u30
+positive\_household               no
+vaccinetype         Pfizer\_BioNTech
+
+Categorical Variables for 'Symptoms.csv':
+               0
+group          V
+sex       female
+BMI          u30
+variant  omicron
+
+\# Missing Values
+
+Missing Values for 'TimeToInfection.csv':
+ID                              0
+group                           0
+age                            21
+sex                            99
+BMI                             0
+patient\_contact               400
+using\_FFP2\_mask               400
+negative\_swab                   0
+booster                         0
+positive\_household              0
+months\_since\_immunisation     627
+time\_dose1\_to\_dose\_2         2754
+vaccinetype                  2051
+day\_interval\_start              0
+day\_interval\_stop               0
+infection\_event                 0
+dtype: int64
+
+Missing Values for 'Symptoms.csv':
+ID                            0
+group                         0
+age                           0
+sex                           5
+BMI                           0
+comorbidity                  45
+using\_FFP2\_mask              30
+months\_until\_reinfection      0
+variant                       0
+booster\_over7\_days\_before     0
+symptom\_number                0
+dtype: int64
+\end{codeoutput}
+
+\section{Data Analysis}
+\subsection{{Code}}
+The Data Analysis was carried out using the following custom code:
+
+\begin{python}
+
+# IMPORT
+import pickle
+import pandas as pd
+import numpy as np
+from scipy import stats
+import statsmodels.formula.api as smf
+from sklearn.preprocessing import StandardScaler
+
+# LOAD DATA
+df_time_to_infection = pd.read_csv('TimeToInfection.csv')
+df_symptoms = pd.read_csv('Symptoms.csv')
+
+# DATASET PREPARATIONS
+# Merge the two dataframes on 'ID'
+df_merged = pd.merge(df_time_to_infection, df_symptoms, on='ID', how='outer')
+
+# Remove rows with missing data
+df_merged.dropna(inplace=True)
+
+# Standardize numeric values in the merged dataframe
+scaler = StandardScaler()
+df_merged[['std_age_x', 'std_age_y', 'std_symptom_number']] = scaler.fit_transform(df_merged[['age_x', 'age_y', 'symptom_number']])
+
+# DESCRIPTIVE STATISTICS
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-0-pkl}{}}@*)## Table 0: "Descriptive statistics of age stratified by sex and immunisation group"
+df0 = df_merged.groupby(['sex_x', 'group_x'])['std_age_x'].agg(['mean', 'std'])
+df0.to_pickle('table_0.pkl')
+
+
+# PREPROCESSING
+# Create dummy variables for categorical variables - sex, group, and variant
+df_merged = pd.get_dummies(df_merged, columns=['sex_x', 'group_x', 'variant'], prefix=['sex', 'group', 'variant'], drop_first=True)
+
+# ANALYSIS
+## Table 1: "Test of association between immunity status (Group) and risk of reinfection (infection_event), accounting for sex and age."
+# Logistic Regression analysis
+formula = "infection_event ~ group_V + std_age_x + sex_female"
+if 'sex_female' in df_merged.columns:
+    logit_model = smf.logit(formula, df_merged).fit()
+    df1 = pd.concat([np.exp(logit_model.params), np.exp(logit_model.conf_int()), logit_model.pvalues], axis=1)
+    df1.columns = ['OR', '2.5%', '97.5%', 'p-val']
+    df1.to_pickle('table_1.pkl')
+
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-2-pkl}{}}@*)## Table 2: "Test of association between booster shot (booster) and symptom count (symptom_number), accounting for immunity status."
+# Independent samples t-test
+group1 = df_merged[df_merged['booster'] == 1]['std_symptom_number']
+group2 = df_merged[df_merged['booster'] == 0]['std_symptom_number']
+t_test_results = stats.ttest_ind(group1, group2)
+# confidence interval for means of both groups
+CI_group1 = stats.t.interval(0.95, len(group1)-1, loc=np.mean(group1), scale=stats.sem(group1))
+CI_group2 = stats.t.interval(0.95, len(group2)-1, loc=np.mean(group2), scale=stats.sem(group2))
+df2 = pd.DataFrame({'mean': [np.mean(group1), np.mean(group2)],'t-statistic': [t_test_results.statistic]*2,'p-value': [t_test_results.pvalue]*2, '95% CI': [CI_group1, CI_group2]}, index=['Booster Shot=yes', 'Booster Shot=no'])
+df2.to_pickle('table_2.pkl')
+
+
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-additional-results-pkl}{}}@*)# SAVE ADDITIONAL RESULTS
+additional_results = {
+    'Total number of observations': df_merged.shape[0],
+}
+with open('additional_results.pkl', 'wb') as f:
+    pickle.dump(additional_results, f)
+
+\end{python}
+
+\subsection{Code Description}
+
+The provided code conducts data analysis on the merged dataset obtained from the 'TimeToInfection.csv' and 'Symptoms.csv' files. First, the code standardizes the numeric variables and creates dummy variables for categorical variables. 
+
+Descriptive statistics are generated to show the mean and standard deviation of age stratified by sex and immunisation group, and the results are saved in 'table\_0.pkl'. 
+
+Next, the code performs logistic regression to analyze the association between immunity status (Group) and risk of reinfection, considering sex and age as covariates. The results, including odds ratio, confidence intervals, and p-values, are saved in 'table\_1.pkl'.
+
+Additionally, an independent samples t-test is conducted to test the association between booster shot and symptom count, accounting for immunity status. The test statistics, p-values, means, and 95\% confidence intervals for both groups are stored in 'table\_2.pkl'.
+
+The code saves additional results such as the total number of observations in the merged dataset in the 'additional\_results.pkl' file for further reference.
+
+\subsection{Code Output}\hypertarget{file-table-0-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-table-0-pkl}{table\_0.pkl}}
+
+\begin{codeoutput}
+                    mean    std
+sex\_x  group\_x                 
+female H         -0.4362 0.9332
+       V       -0.004084 0.9808
+male   H          -0.591  1.155
+       V           0.222  1.017
+\end{codeoutput}\hypertarget{file-table-2-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-table-2-pkl}{table\_2.pkl}}
+
+\begin{codeoutput}
+                     mean  t-statistic p-value              95\% CI
+Booster Shot=yes -0.04138       -1.914  0.0558  (-0.1011, 0.01836)
+Booster Shot=no   0.04464       -1.914  0.0558  (-0.02048, 0.1098)
+\end{codeoutput}\hypertarget{file-additional-results-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-additional-results-pkl}{additional\_results.pkl}}
+
+\begin{codeoutput}
+{
+    'Total number of observations': (*@\raisebox{2ex}{\hypertarget{R0a}{}}@*)1981,
+}
+\end{codeoutput}
+
+\section{LaTeX Table Design}
+\subsection{{Code}}
+The LaTeX Table Design was carried out using the following custom code:
+
+\begin{python}
+
+# IMPORT
+import pandas as pd
+from my_utils import to_latex_with_note, is_str_in_df, split_mapping, AbbrToNameDef
+from typing import Any, Dict, Optional, Tuple
+
+# PREPARATION FOR ALL TABLES
+shared_mapping: AbbrToNameDef = {
+    "mean": ("Mean", "Mean value"),
+}
+
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-0-tex}{}}@*)# TABLE 0:
+df0 = pd.read_pickle('table_0.pkl')
+
+# RENAME ROWS AND COLUMNS 
+mapping0: AbbrToNameDef = {
+    'female': ('Female', None),
+    'male': ('Male', None),
+    'H': ('Hybrid Immunity', None),
+    'V': ('Vaccinated', None), 
+}
+
+# Merge with shared_mapping
+mapping0.update(shared_mapping)
+
+abbrs_to_names0, legend0 = split_mapping(mapping0)
+df0.rename(columns=abbrs_to_names0, index=abbrs_to_names0, inplace=True)
+
+to_latex_with_note(
+    df0, 'table_0.tex',
+    caption="Descriptive statistics of Age stratified by Sex and Immunity Group", 
+    label='table:table0',
+    note="Values shown are standardized",
+    legend=legend0
+)
+
+
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-2-tex}{}}@*)# TABLE 2:
+df2 = pd.read_pickle('table_2.pkl')
+
+# RENAME ROWS AND COLUMNS 
+mapping2: AbbrToNameDef = {
+    'mean': ('Mean', 'Mean standardized symptom count'),
+    't-statistic': ('t-statistic', 't-value from independent samples t-test'),
+    'p-value': ('p-value', 'p-value from independent samples t-test'),
+    '95% CI': ('95% Confidence Interval', "95% Confidence Interval for the Mean standardized symptom count"),
+    'Booster Shot=no': ('No Booster Shot', None),
+    'Booster Shot=yes': ('Booster Shot Received', None),
+}
+
+# Merge with shared_mapping
+mapping2.update(shared_mapping)
+
+abbrs_to_names2, legend2 = split_mapping(mapping2)
+df2.rename(columns=abbrs_to_names2, index=abbrs_to_names2, inplace=True)
+
+to_latex_with_note(
+    df2, 'table_2.tex',
+    caption="Association between booster shot & symptom count", 
+    label='table:table2',
+    note="Mean and 95% Confidence Interval estimated using independent samples t-test",
+    legend=legend2
+)
+
+\end{python}
+
+\subsection{Provided Code}
+The code above is using the following provided functions:
+
+\begin{python}
+def to_latex_with_note(df, filename: str, caption: str, label: str, note: str = None, legend: Dict[str, str] = None, **kwargs):
+    """
+    Converts a DataFrame to a LaTeX table with optional note and legend added below the table.
+
+    Parameters:
+    - df, filename, caption, label: as in `df.to_latex`.
+    - note (optional): Additional note below the table.
+    - legend (optional): Dictionary mapping abbreviations to full names.
+    - **kwargs: Additional arguments for `df.to_latex`.
+    """
+
+def is_str_in_df(df: pd.DataFrame, s: str):
+    return any(s in level for level in getattr(df.index, 'levels', [df.index]) + getattr(df.columns, 'levels', [df.columns]))
+
+AbbrToNameDef = Dict[Any, Tuple[Optional[str], Optional[str]]]
+
+def split_mapping(abbrs_to_names_and_definitions: AbbrToNameDef):
+    abbrs_to_names = {abbr: name for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if name is not None}
+    names_to_definitions = {name or abbr: definition for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if definition is not None}
+    return abbrs_to_names, names_to_definitions
+
+\end{python}
+
+
+
+\subsection{Code Output}
+
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-0-tex}{table\_0.tex}}
+
+\begin{codeoutput}
+\% This latex table was generated from: `table\_0.pkl`
+\begin{table}[h]
+\caption{Descriptive statistics of Age stratified by Sex and Immunity Group}
+\label{table:table0}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{\%
+\begin{tabular}{llrr}
+\toprule
+ \&  \& Mean \& std \\
+sex\_x \& group\_x \&  \&  \\
+\midrule
+\textbf{Female} \& \textbf{Hybrid Immunity} \& -0.436 \& 0.933 \\
+\textbf{} \& \textbf{Vaccinated} \& -0.00408 \& 0.981 \\
+\textbf{Male} \& \textbf{Hybrid Immunity} \& -0.591 \& 1.16 \\
+\textbf{} \& \textbf{Vaccinated} \& 0.222 \& 1.02 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item Values shown are standardized
+\item \textbf{Mean}: Mean value
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+\end{codeoutput}
+
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-2-tex}{table\_2.tex}}
+
+\begin{codeoutput}
+\% This latex table was generated from: `table\_2.pkl`
+\begin{table}[h]
+\caption{Association between booster shot \& symptom count}
+\label{table:table2}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{\%
+\begin{tabular}{lrrll}
+\toprule
+ \& Mean \& t-statistic \& p-value \& 95\% Confidence Interval \\
+\midrule
+\textbf{Booster Shot Received} \& -0.0414 \& -1.91 \& 0.0558 \& (-0.1011, 0.01836) \\
+\textbf{No Booster Shot} \& 0.0446 \& -1.91 \& 0.0558 \& (-0.02048, 0.1098) \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item Mean and 95\% Confidence Interval estimated using independent samples t-test
+\item \textbf{Mean}: Mean value
+\item \textbf{t-statistic}: t-value from independent samples t-test
+\item \textbf{p-value}: p-value from independent samples t-test
+\item \textbf{95\% Confidence Interval}: 95\% Confidence Interval for the Mean standardized symptom count
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+\end{codeoutput}
+
+\end{document}
