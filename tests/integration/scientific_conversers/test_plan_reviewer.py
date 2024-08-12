@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from _pytest.fixtures import fixture
+from pytest import fixture
 
 from data_to_paper.research_types.hypothesis_testing.scientific_products import ScientificProducts
 from data_to_paper.servers.llm_call import OPENAI_SERVER_CALLER

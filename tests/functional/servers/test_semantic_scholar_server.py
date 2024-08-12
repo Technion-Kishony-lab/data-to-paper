@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from _pytest.fixtures import fixture
+from pytest import fixture
 
 from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER, \
     SEMANTIC_SCHOLAR_EMBEDDING_SERVER_CALLER

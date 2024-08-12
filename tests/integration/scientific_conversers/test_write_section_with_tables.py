@@ -1,4 +1,4 @@
-from _pytest.fixtures import fixture
+from pytest import fixture
 
 from data_to_paper.research_types.hypothesis_testing.scientific_products import ScientificProducts
 

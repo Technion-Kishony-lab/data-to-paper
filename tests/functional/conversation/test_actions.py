@@ -1,4 +1,4 @@
-from _pytest.fixtures import fixture
+from pytest import fixture
 
 from data_to_paper import Message, Role
 from data_to_paper.conversation.conversation_actions import AppendMessage, AppendLLMResponse, \

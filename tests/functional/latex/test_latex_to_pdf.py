@@ -1,7 +1,7 @@
 import os
 
 import pytest
-from _pytest.fixtures import fixture
+from pytest import fixture
 
 from data_to_paper.latex import save_latex_and_compile_to_pdf
 from data_to_paper.latex.clean_latex import process_latex_text_and_math

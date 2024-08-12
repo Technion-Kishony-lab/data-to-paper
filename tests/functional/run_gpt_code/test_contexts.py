@@ -2,7 +2,7 @@ import time
 import pickle
 
 import pandas
-from _pytest.python_api import raises
+from pytest import raises
 
 from data_to_paper.run_gpt_code.overrides.dataframes.df_methods.methods import DataframeKeyError
 from data_to_paper.run_gpt_code.timeout_context import timeout_context

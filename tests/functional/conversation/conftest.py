@@ -1,5 +1,5 @@
 import openai
-from _pytest.fixtures import fixture
+from pytest import fixture
 
 from data_to_paper import Role, Message
 from data_to_paper.servers.llm_call import OPENAI_MAX_CONTENT_LENGTH_MESSAGE_CONTAINS

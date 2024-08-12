@@ -1,5 +1,5 @@
 import pytest
-from _pytest.fixtures import fixture
+from pytest import fixture
 
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations, Conversations, Actions
 from data_to_paper.env import SAVE_INTERMEDIATE_LATEX, CHOSEN_APP, DELAY_CODE_RUN_CACHE_RETRIEVAL, \

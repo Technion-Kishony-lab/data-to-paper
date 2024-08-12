@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Tuple
 from unittest.mock import Mock
 
-from _pytest.fixtures import fixture
+from pytest import fixture
 
 from data_to_paper.research_types.hypothesis_testing.literature_search import WritingLiteratureSearchReviewGPT
 from data_to_paper.servers.llm_call import OPENAI_SERVER_CALLER

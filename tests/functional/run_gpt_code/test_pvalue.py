@@ -1,6 +1,6 @@
 import pickle
 
-from _pytest.fixtures import fixture
+from pytest import fixture
 from pandas.core.dtypes.inference import is_list_like
 from pandas import DataFrame
 

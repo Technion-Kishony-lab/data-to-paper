@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 import pytest
-from _pytest.fixtures import fixture
+from pytest import fixture
 
 from data_to_paper.latex.latex_doc import LatexDocument
 from data_to_paper.research_types.hypothesis_testing.coding.original_utils import to_latex_with_note

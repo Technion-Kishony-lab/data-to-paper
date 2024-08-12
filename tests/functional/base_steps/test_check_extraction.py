@@ -1,7 +1,7 @@
 from typing import Tuple, Optional
 from unittest.mock import Mock
 
-from _pytest.fixtures import fixture
+from pytest import fixture
 
 from data_to_paper.base_steps import CheckExtractionReviewBackgroundProductsConverser, \
     CheckReferencedNumericReviewBackgroundProductsConverser
