@@ -24,7 +24,6 @@ from .run_issues import RunIssue
 from .exceptions import FailedRunningCode, CodeTimeoutException
 
 # process.queue fails on Mac OS X with large objects. Use file-based transfer instead.
-FILE_BASED_TRANSFER = True
 RUN_CACHE_FILEPATH = Mutable(None)
 
 
@@ -127,11 +126,8 @@ class BaseCodeRunner(CacheRunToFile, ABC):
         """
         code = self.get_raw_code()
         modified_code = self.get_modified_code_for_run(code)
-        if FILE_BASED_TRANSFER:
-            queue_or_filepath = f"subprocess_output_{uuid.uuid4()}_{os.getpid()}.pkl"
-            queue_or_filepath = os.path.join(tempfile.gettempdir(), queue_or_filepath)
-        else:
-            queue_or_filepath = threading.Queue()
+        queue_or_filepath = f"subprocess_output_{uuid.uuid4()}_{os.getpid()}.pkl"
+        queue_or_filepath = os.path.join(tempfile.gettempdir(), queue_or_filepath)
         try:
             process = threading.Thread(
                 target=self._run_code_and_put_result_in_queue,
@@ -155,12 +151,9 @@ class BaseCodeRunner(CacheRunToFile, ABC):
                 FailedRunningCode.from_exception_with_py_spy(CodeTimeoutException(self.timeout_sec),
                                                              (py_spy_stack, modified_code)))
         else:
-            if FILE_BASED_TRANSFER:
-                with open(queue_or_filepath, 'rb') as f:
-                    result = pickle.load(f)
-                os.remove(queue_or_filepath)
-            else:
-                result = queue_or_filepath.get()
+            with open(queue_or_filepath, 'rb') as f:
+                result = pickle.load(f)
+            os.remove(queue_or_filepath)
             if isinstance(result, Exception):
                 raise result
         return result
@@ -173,11 +166,8 @@ class BaseCodeRunner(CacheRunToFile, ABC):
             result = self.run_code(code, modified_code)
         except Exception as e:
             result = e
-        if FILE_BASED_TRANSFER:
-            with open(queue_or_filepath, 'wb') as f:
-                pickle.dump(result, f)
-        else:
-            queue_or_filepath.put(result)
+        with open(queue_or_filepath, 'wb') as f:
+            pickle.dump(result, f)
 
 
 @dataclass
