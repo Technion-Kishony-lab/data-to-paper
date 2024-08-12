@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
-from _pytest.fixtures import fixture
-from _pytest.python_api import raises
+from pytest import fixture
+from pytest import raises
 
 from data_to_paper.research_types.hypothesis_testing.coding.utils_modified_for_gpt_use. \
     check_df_of_table import check_df_of_table_for_content_issues

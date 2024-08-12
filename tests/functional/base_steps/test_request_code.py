@@ -2,7 +2,7 @@ import pickle
 from dataclasses import dataclass
 from typing import Type, Any, Dict, Optional, Collection
 
-from _pytest.fixtures import fixture
+from pytest import fixture
 
 from data_to_paper.base_products import DataFileDescriptions, DataFileDescription
 from data_to_paper.base_steps import BaseCodeProductsGPT

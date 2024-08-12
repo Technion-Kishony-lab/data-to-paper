@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 
 import pytest
-from _pytest.fixtures import fixture
+from pytest import fixture
 
 from data_to_paper.base_steps.debugger import DebuggerConverser
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations

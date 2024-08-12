@@ -1,5 +1,5 @@
 import pytest
-from _pytest.fixtures import fixture
+from pytest import fixture
 
 from data_to_paper.conversation.conversation_actions import ReplaceLastMessage
 from data_to_paper.conversation.conversation_manager import ConversationManager

@@ -1,7 +1,7 @@
 import pytest
 import statsmodels.api as sm
 import pandas as pd
-from _pytest.fixtures import fixture
+from pytest import fixture
 from scipy.stats import stats
 from scipy import stats as scipy_stats
 from scipy.stats._stats_py import TtestResult

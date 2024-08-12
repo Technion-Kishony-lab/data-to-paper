@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from _pytest.fixtures import fixture
+from pytest import fixture
 
 from data_to_paper.utils.replacer import format_value, Replacer
 
