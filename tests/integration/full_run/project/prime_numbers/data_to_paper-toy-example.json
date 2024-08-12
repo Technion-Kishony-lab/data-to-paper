@@ -1,7 +1,7 @@
 {
     "research_goal": "Find the largest prime number smaller than the given natural number, n.\n",
     "data_filenames": [
-        "/Users/roykishony/Git/data-to-paper/projects/toy_example/data/number.txt"
+        "../data/number.txt"
     ],
     "data_files_is_binary": [
         false
