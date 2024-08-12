@@ -4,7 +4,7 @@
 
 1. Install anaconda (follow instructions at [Anaconda Installation](https://docs.anaconda.com/anaconda/install/)).
 2. Clone the repo, run `git clone https://github.com/Technion-Kishony-lab/data-to-paper`.
-3. Create a conda environment, run `conda create -n data-to-paper python=3.11`.
+3. Create a conda environment, run `conda create -n data-to-paper python=3.9`.
 4. Activate the newly created environment, run `conda activate data-to-paper`.
 5. Enter the repo root folder, run `cd data-to-paper`.
 6. Install the required packages, run `pip install -r requirements.txt`.

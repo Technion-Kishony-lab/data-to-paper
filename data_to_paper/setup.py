@@ -32,22 +32,25 @@ setup(
         '': ['*.tex']
     },
     install_requires=[
-        "requests",
+        "colorama",
         "openai",
+        "regex",
+        "tiktoken",
+        "pygments",
+        "requests",
+        "unidecode",
+        "PyMuPDF",
+        "py-spy",
+        "ansi2html",
+        "PySide6",
+
+        # packages for the LLM code:
         "numpy",
         "pandas",
-        "scikit-learn",
         "statsmodels",
-        "colorama",
-        "unidecode",
-        "pygments",
-        "regex",
         "scipy",
-        "tabulate",
-        "pylatex",
-        "tiktoken",
-        "lxml",
-        "py-spy",
+        "scikit-learn",  # sklearn
+        "networkx",
     ],
     extras_require={
         'dev': [
