@@ -1,0 +1,26 @@
+## Statistical considerations:
+### Confounding variables:
+There may be confounding variables that influence the severity of symptoms and immunity status, such as age, sex, BMI, comorbidities. These confounding variables need to be properly adjusted for in the analysis to ensure the observed effects are truly due to immunity status.
+### Missing data points:
+There are missing data in various columns (e.g., sex, comorbidity, etc.) that need to be appropriately handled, either through imputation or exclusion in the analysis.
+### Dependencies between data points:
+There may be dependencies between data points for the same health worker, as multiple intervals are recorded per individual in the "TimeToInfection" dataset. This dependency should be considered to avoid bias in the statistical comparison.
+### Multiple comparisons:
+Given that we are testing multiple hypotheses related to different immunity groups, SARS-CoV-2 variants, and comorbidities, multiple comparisons should be taken into account to control the overall Type I error rate.
+
+## Hypotheses:
+### Hypothesis:
+Healthcare workers with hybrid immunity will experience less severe symptoms in case of reinfection compared to those with only natural or vaccine-induced immunity
+### Test:
+Perform a Kruskal-Wallis test using the data from the "Symptoms.csv" file to compare the mean symptom severity among different immunity groups (Hybrid, Natural, Vaccine) after ensuring missing data handling and adjusting for confounding variables like age, sex, BMI, and comorbidities.
+
+### Hypothesis:
+The effect of immunity status on symptom severity will vary significantly across different SARS-CoV-2 variants
+### Test:
+Conduct a Two-way ANOVA using the data from the "Symptoms.csv" file to test for interaction effects between immunity status (Hybrid, Natural, Vaccine) and SARS-CoV-2 variants (Delta, Omicron) on symptom severity after addressing missing data and adjusting for confounding variables.
+
+### Hypothesis:
+The impact of immunity status on symptom severity is different for health workers with and without pre-existing comorbidities
+### Test:
+Perform a regression analysis using data from the "Symptoms.csv" file to assess how the effect of immunity status on symptom severity varies by the presence of comorbidities, including an interaction term and adjusting for confounding variables.
+
