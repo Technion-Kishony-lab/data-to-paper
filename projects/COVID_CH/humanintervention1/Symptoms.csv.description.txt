@@ -1,0 +1,12 @@
+Data in the file "Symptoms.csv" is organized per infection event, consisting in total of 764 events. Each worker is only indicated once. It contains 11 columns:
+ID	Unique Identifier, same in both files
+group	Categorical, Vaccination group: "N" (no immunity), "V" (twice vaccinated, uninfected), "I" (infected, unvaccinated), "H" (hybrid: infected and ≥1 vaccination)
+age	Continuous, age in years
+sex	Categorical, "female", "male" (or "" for not indicated)
+BMI	Categorical, "o30" for >30 or "u30" for under 30
+comorbidity categorical, if any comorbidity pre-existed, 1=yes, 0=no
+using_FFP2_mask	Always using protective respiratory masks during work, 1=yes, 0=no
+months_until_reinfection	time until next infection in months
+variant	Categorical, "delta" or "omicron" (or "" for not indicated)
+booster_over7_days_before	If a booster was given in the last 7 days before the infection
+symptom_number	Continuous, Number of symptoms which occurred after the infection
