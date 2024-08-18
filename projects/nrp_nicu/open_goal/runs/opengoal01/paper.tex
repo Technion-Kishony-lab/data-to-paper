@@ -1,0 +1,776 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{fancyvrb}
+\usepackage{color}
+\usepackage{listings}
+\usepackage{sectsty}
+\sectionfont{\Large}
+\subsectionfont{\normalsize}
+\subsubsectionfont{\normalsize}
+
+% Default fixed font does not support bold face
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{12} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{12}  % for normal
+
+% Custom colors
+\usepackage{color}
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+\definecolor{cyan}{rgb}{0.0,0.6,0.6}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+
+% Python style for highlighting
+\newcommand\pythonstyle{\lstset{
+language=Python,
+basicstyle=\ttfamily\footnotesize,
+morekeywords={self, import, as, from, if, for, while},              % Add keywords here
+keywordstyle=\color{deepblue},
+stringstyle=\color{deepred},
+commentstyle=\color{cyan},
+breaklines=true,
+escapeinside={(*@}{@*)},            % Define escape delimiters
+postbreak=\mbox{\textcolor{deepgreen}{$\hookrightarrow$}\space},
+showstringspaces=false
+}}
+
+
+% Python environment
+\lstnewenvironment{python}[1][]
+{
+\pythonstyle
+\lstset{#1}
+}
+{}
+
+% Python for external files
+\newcommand\pythonexternal[2][]{{
+\pythonstyle
+\lstinputlisting[#1]{#2}}}
+
+% Python for inline
+\newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
+
+
+% Code output style for highlighting
+\newcommand\outputstyle{\lstset{
+    language=,
+    basicstyle=\ttfamily\footnotesize\color{gray},
+    breaklines=true,
+    showstringspaces=false,
+    escapeinside={(*@}{@*)},            % Define escape delimiters
+}}
+
+% Code output environment
+\lstnewenvironment{codeoutput}[1][]
+{
+    \outputstyle
+    \lstset{#1}
+}
+{}
+
+
+\title{Impact of Relaxed Neonatal Resuscitation Guidelines on Clinical Outcomes in NICU}
+\author{data-to-paper}
+\begin{document}
+\maketitle
+\begin{abstract}
+Neonatal care protocols, particularly for non-vigorous infants born through meconium-stained amniotic fluid, have undergone significant changes with the 2015 revision of the Neonatal Resuscitation Program (NRP) guidelines. This modification signifies a shift towards reduced aggressiveness in neonatal interventions, addressing concerns about the possible adverse effects linked to invasive procedures. However, the clinical implications of these guideline revisions remain underexplored. This study leverages a retrospective dataset from a single medical center encompassing 223 deliveries before and after the policy change. It assesses the effects of these guidelines on the rates of endotracheal suction and mechanical ventilation and the incidence of related respiratory conditions such as meconium aspiration syndrome, respiratory distress syndrome, and pneumothorax. The findings demonstrate a notable reduction in the use of endotracheal suction with no increase in adverse respiratory outcomes, suggesting that less invasive resuscitation techniques may be equally effective. Despite its insights, the study's reliance on data from a single institution highlights the need for broader investigations to confirm these findings across varied clinical environments. The results advocate for a potential reevaluation of neonatal care standards to minimize unnecessary medical interventions while ensuring the health and safety of newborns.
+\end{abstract}
+\section*{Introduction}
+
+Neonatal care protocols for infants born through meconium-stained amniotic fluid (MSAF) are critical for optimizing neonatal health since a significant proportion of infants are born with MSAF, and these infants are predisposed to a range of complications such as respiratory distress syndrome and central nervous system disorders \cite{Wiswell2000DeliveryRM, Narang1993ManagementOM}. High-stakes decisions for care of these vulnerable infants must rely on evidence-based guidelines. The introduction of the Neonatal Resuscitation Program (NRP) demonstrated an informed step forward but raised new uncertainties \cite{Singh2004EndofLifeAB, Breatnach2010APC}. 
+
+Historically, prior to 2015, the NRP recommended aggressive endotracheal suction as a mandatory intervention for MSAF infants who show lack of vigor after birth. However, with the major revision of the NRP guidelines in 2015, this procedure was made optional \cite{Sweet2023EuropeanCG, Course2020ManagementOR, Lee2016ReductionOB}. The objectives of this revision were to curtail invasive procedures, reducing potential harm to the neonate, and providing efficient care. Yet, connotations of these changes for infant health outcomes remains to be clarified \cite{Rochwerg2017OfficialEC}. 
+
+Based on the scant research conducted so far on this critical topic \cite{Pados2020SystematicRO,Liu2002DeliveryRR}, the current study aims to fill this gap by investigating the impact of this policy change on neonatal interventions and their correlated outcomes. This inquiry is especially valuable due to the potential implications for neonatal health and healthcare provider practices \cite{Kahraman2020TheEO, Maghaireh2016SystematicRO}. 
+
+Utilizing a data-driven approach, we employed a range of statistical techniques consisting of descriptive statistics, chi-square tests, and logistic regression on a retrospective dataset from a single medical center. These analyses enabled in-depth investigations of the changes in neonatal interventions performed and the resultant health outcomes post the modification of the guidelines. Comparing neonate outcomes before and after 2015 policy change offers an excellent natural experiment to assess the true effect of this policy change \cite{Ferraz2020BundleTR, Zauche2019PredictorsOP, Burke2018SystematicRO}. The choice of these specific statistical techniques allowed for an integrative analysis that reduces potential biases and accounts for confounding factors, facilitating reliable conclusion on this significant issue \cite{Krivitski2008TheoryAI, Melnyk2008MaternalAA, Saiman2003AnOO}.
+
+\section*{Results}
+First, to assess the impact of the revised neonatal resuscitation program (NRP) guidelines on basic clinical measurements, we analyzed maternal and infant characteristics including maternal age, gestational age, and birth weight across the pre and post \hyperlink{S0a}{2015} policy implementations. Descriptive statistics revealed a slight increase in the mean maternal age post-policy change, from \hyperlink{A0b}{29.2} to \hyperlink{A1b}{30.3} years. The accompanying decrease in the standard deviation of maternal age from \hyperlink{A2b}{5.84} to \hyperlink{A3b}{5.21} suggests a reduction in age variability among the mothers, potentially indicating a more homogeneously aged population within the study post-2015. As for the infants, both the mean gestational age and birth weight were relatively stable across policy changes, with gestational age shifting minimally from \hyperlink{A4b}{39.7} to \hyperlink{A5b}{39.6} weeks, and birth weight showing a negligible decrease from \hyperlink{A8b}{3.46} kg to \hyperlink{A9b}{3.42} kg. These statistics highlight an overall maintenance of newborn health metrics after the guideline adjustments, as detailed in Table {}\ref{table:descriptives}.
+
+% This latex table was generated from: `table_0.pkl`
+\begin{table}[h]
+\caption{\protect\hyperlink{file-table-0-pkl}{Descriptive statistics of important numerical variables across the Pre and Post policy implementation groups}}
+\label{table:descriptives}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrr}
+\toprule
+ & Policy Implementation & Value \\
+Row\_Labels &  &  \\
+\midrule
+\textbf{Mean Maternal Age} & \raisebox{2ex}{\hypertarget{A0a}{}}0 & \raisebox{2ex}{\hypertarget{A0b}{}}29.2 \\
+\textbf{Mean Maternal Age} & \raisebox{2ex}{\hypertarget{A1a}{}}1 & \raisebox{2ex}{\hypertarget{A1b}{}}30.3 \\
+\textbf{Standard Deviation Maternal Age} & \raisebox{2ex}{\hypertarget{A2a}{}}0 & \raisebox{2ex}{\hypertarget{A2b}{}}5.84 \\
+\textbf{Standard Deviation Maternal Age} & \raisebox{2ex}{\hypertarget{A3a}{}}1 & \raisebox{2ex}{\hypertarget{A3b}{}}5.21 \\
+\textbf{Mean Gestational Age} & \raisebox{2ex}{\hypertarget{A4a}{}}0 & \raisebox{2ex}{\hypertarget{A4b}{}}39.7 \\
+\textbf{Mean Gestational Age} & \raisebox{2ex}{\hypertarget{A5a}{}}1 & \raisebox{2ex}{\hypertarget{A5b}{}}39.6 \\
+\textbf{Standard Deviation Gestational Age} & \raisebox{2ex}{\hypertarget{A6a}{}}0 & \raisebox{2ex}{\hypertarget{A6b}{}}1.29 \\
+\textbf{Standard Deviation Gestational Age} & \raisebox{2ex}{\hypertarget{A7a}{}}1 & \raisebox{2ex}{\hypertarget{A7b}{}}1.32 \\
+\textbf{Mean Birth Weight} & \raisebox{2ex}{\hypertarget{A8a}{}}0 & \raisebox{2ex}{\hypertarget{A8b}{}}3.46 \\
+\textbf{Mean Birth Weight} & \raisebox{2ex}{\hypertarget{A9a}{}}1 & \raisebox{2ex}{\hypertarget{A9b}{}}3.42 \\
+\textbf{Standard Deviation Birth Weight} & \raisebox{2ex}{\hypertarget{A10a}{}}0 & \raisebox{2ex}{\hypertarget{A10b}{}}0.49 \\
+\textbf{Standard Deviation Birth Weight} & \raisebox{2ex}{\hypertarget{A11a}{}}1 & \raisebox{2ex}{\hypertarget{A11b}{}}0.498 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item Values are represented as mean and standard deviation. The values in the table are grouped by the implementation of the policy (Pre or Post \raisebox{2ex}{\hypertarget{A12a}{}}2015 policy).
+\item \textbf{Policy Implementation}: \raisebox{2ex}{\hypertarget{A13a}{}}0: Pre \raisebox{2ex}{\hypertarget{A13b}{}}2015 policy, \raisebox{2ex}{\hypertarget{A13c}{}}1: Post \raisebox{2ex}{\hypertarget{A13d}{}}2015 policy
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+Then, to examine the effect of the NRP guideline revisions on specific neonatal interventions such as endotracheal suction and mechanical ventilation, we conducted chi-square tests of independence. The analysis showcased a significant reduction in the utilization of endotracheal suction, evidenced by a pronounced chi-square value of \hyperlink{B0a}{108} and a p-value of \hyperlink{B0b}{$1.47\ 10^{-6}$} as represented in Table {}\ref{table:tests}. This reduction could suggest a shift towards less invasive initial neonatal care under the new guidelines without apparent compromise in care standards, as further analyses on mechanical ventilation did not depict significant changes (chi-square value = \hyperlink{B1a}{50.2}, p-value = \hyperlink{B1b}{0.388}).
+
+% This latex table was generated from: `table_1.pkl`
+\begin{table}[h]
+\caption{\protect\hyperlink{file-table-1-pkl}{Test of association between policy change and rates of Endotracheal Suction and Mechanical Ventilation, considering confounding factors}}
+\label{table:tests}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrlr}
+\toprule
+ & Chi-Square & P-value & Degrees of Freedom \\
+Variable &  &  &  \\
+\midrule
+\textbf{Endotracheal Suction} & \raisebox{2ex}{\hypertarget{B0a}{}}108 & \raisebox{2ex}{\hypertarget{B0b}{}}$1.47\ 10^{-6}$ & \raisebox{2ex}{\hypertarget{B0c}{}}48 \\
+\textbf{Mechanical Ventilation} & \raisebox{2ex}{\hypertarget{B1a}{}}50.2 & \raisebox{2ex}{\hypertarget{B1b}{}}0.388 & \raisebox{2ex}{\hypertarget{B1c}{}}48 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{Chi-Square}: Chi-Square Statistic for the Test
+\item \textbf{P-value}: P-value for the Test
+\item \textbf{Degrees of Freedom}: Degrees of Freedom for the Test
+\item \textbf{Endotracheal Suction}: Was endotracheal suctioning performed on the infants? (\raisebox{2ex}{\hypertarget{B2a}{}}1: Yes, \raisebox{2ex}{\hypertarget{B2b}{}}0: No)
+\item \textbf{Mechanical Ventilation}: Was mechanical ventilation performed on the infants? (\raisebox{2ex}{\hypertarget{B3a}{}}1: Yes, \raisebox{2ex}{\hypertarget{B3b}{}}0: No)
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+Furthermore, to robustly evaluate the impact of relaxed NRP guidelines on major neonatal respiratory conditions, logistic regression was utilized. The conditions assessed were Meconium Aspiration Syndrome, Respiratory Distress Syndrome, and Pneumothorax. The results indicate no significant association between the guideline changes and these clinical outcomes (Meconium Aspiration Syndrome: OR = \hyperlink{C0a}{0.727}, p-value = \hyperlink{C0b}{0.354}; Respiratory Distress Syndrome: OR = \hyperlink{C1a}{1.71}, p-value = \hyperlink{C1b}{0.248}; Pneumothorax: OR = \hyperlink{C2a}{0.604}, p-value = \hyperlink{C2b}{0.219}), findings that are detailed in Table {}\ref{table:logistic}. These results reinforce the notion that the updated, less invasive approach may be adopted without increasing the risks of severe respiratory complications in newborns.
+
+% This latex table was generated from: `table_2.pkl`
+\begin{table}[h]
+\caption{\protect\hyperlink{file-table-2-pkl}{Logistic regression impact of the NRP guideline change on occurrence of Meconium Aspiration Syndrome, Respiratory Distress Syndrome, and Pneumothorax; considers confounders}}
+\label{table:logistic}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{llll}
+\toprule
+ & Odds Ratio & p-value & Significance \\
+\midrule
+\textbf{Meconium Aspiration Syndrome} & \raisebox{2ex}{\hypertarget{C0a}{}}0.727 & \raisebox{2ex}{\hypertarget{C0b}{}}0.354 & No \\
+\textbf{Respiratory Distress Syndrome} & \raisebox{2ex}{\hypertarget{C1a}{}}1.71 & \raisebox{2ex}{\hypertarget{C1b}{}}0.248 & No \\
+\textbf{Pneumothorax} & \raisebox{2ex}{\hypertarget{C2a}{}}0.604 & \raisebox{2ex}{\hypertarget{C2b}{}}0.219 & No \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{Meconium Aspiration Syndrome}: Measured in Meconium Aspiration Syndrome
+\item \textbf{Respiratory Distress Syndrome}: Measured in Respiratory Distress Syndrome
+\item \textbf{Pneumothorax}: Measured in Pneumothorax
+\item \textbf{Significance}: Significance at \raisebox{2ex}{\hypertarget{C3a}{}}5\% level (Yes: p-value $<$ \raisebox{2ex}{\hypertarget{C3b}{}}0.05, No: p-value $>$= \raisebox{2ex}{\hypertarget{C3c}{}}0.05)
+\item \textbf{Odds Ratio}: Odds Ratio from the Logistic Regression
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+In summary, these analyses confirm that the transition to less aggressive neonatal resuscitation practices post-2015 has not adversely influenced the primary clinical metrics of maternal and neonatal health. Furthermore, the significant decline in the application of endotracheal suction and the sustained absence of adverse respiratory outcomes support a potential reevaluation of neonatal care protocols to favor reduced intervention. Taken together, these results advocate for the continued observance and study of outcomes under the revised NRP guidelines to ensure optimal neonatal care.
+
+\section*{Discussion}
+
+Our study focused on exploring the implications of less invasive neonatal resuscitation practices as per the revised Neonatal Resuscitation Program (NRP) guidelines on infants born through meconium-stained amniotic fluid \cite{Wiswell2000DeliveryRM, Singh2004EndofLifeAB, Breatnach2010APC}. This work stands amidst limited literature \cite{Pados2020SystematicRO,Liu2002DeliveryRR} in providing valuable insights into actual clinical outcomes derived from a retrospective dataset from a single medical center \cite{Sweet2023EuropeanCG, Course2020ManagementOR, Lee2016ReductionOB}. Our research methodology, involving descriptive statistics, chi-square tests, and logistic regression, offers a comprehensive and robust analysis of the policy implications \cite{Rochwerg2017OfficialEC}. 
+
+The study found a tangible reduction in the application of endotracheal suction following the revision of the NRP guidelines without observing an uptick in adverse neonatal health outcomes. This claim supports the outcomes projected by \cite{Oommen2020ResuscitationON}. Yet, it's noteworthy that differences could exist due to variations in clinical environments, highlighting the necessity of such research across varied settings \cite{Sweet2023EuropeanCG}. 
+
+Our findings must be contextualized within the study's limitations. The data, although comprehensive, is acquired from a single institution, indicating the necessity of identical studies across diverse settings to validate our observations. Furthermore, our research is inherently retrospective, which potentially entails biases linked to unobserved concurrencies with the timing of guideline revision. Further, a more protracted follow-up post-implementation period would better illustrate any emergent long-term effects.
+
+Despite these constraints, the insights we acquired carry substantial implications for neonatal healthcare and policy-making. The results affirm less invasive approaches to neonatal care without compromising infant health, urging us to reevaluate our current aggressive medical practices. By reducing the dependency on invasive procedures, we are not only mitigating associated health risks such as mechanical ventilation trauma but also optimizing healthcare resources and costs.
+
+Our study aligns with and fortifies the scarce body of research advocating for relaxed neonatal resuscitation guidelines. It emphasizes the fundamental need for continual evaluation, monitoring, and research in light of policy modifications. We believe such studies play a pivotal role in harnessing the potential merits of less traumatic and more natural neonatal care, eventually driving the establishment of better care protocols.
+
+To summarize, our study underscores that the revised NRP guidelines and reduced use of invasive interventions have not resulted in adverse neonatal outcomes. By providing a comprehensive evaluation of policy change, our study has contributed valuable real-world evidence to the limited body of research in this crucial aspect of neonatal care. As neonatal resuscitation protocols continue to evolve with emerging evidence, studies such as ours will play a crucial role in ensuring that these changes are benefiting our most vulnerable population – the newborns.
+
+\section*{Methods}
+
+\subsection*{Data Source}
+The dataset utilized in this study was sourced from a single medical center and contains clinical records of 223 neonatal deliveries split into two groups based on a significant change in resuscitation guidelines. The collection comprises data from before and after the implementation of the 2015 Neonatal Resuscitation Program guidelines. These guidelines notably shifted the standard practices surrounding the resuscitation of non-vigorous infants born through meconium-stained amniotic fluid. The dataset includes a range of variables such as maternal age, gestational age, and numerous clinical outcome indicators relevant to neonatal health.
+
+\subsection*{Data Preprocessing}
+Data preprocessing involved handling categorical variables by converting them into dummy variables, preparing data for subsequent analysis. This step is crucial as it translates categorical data into a numerical format that can be fed into statistical models to assess the relationship between the guideline change and various neonatal health outcomes.
+
+\subsection*{Data Analysis}
+The analysis of the dataset involved a multi-step approach to assess the impact of the guideline changes. Initially, descriptive statistics were computed to represent the mean and standard deviation of key numerical variables across groups defined by the policy shift. This provided an initial understanding of the dataset and the basic characteristics of the groups comparing pre- and post-guideline implementation.
+
+Further, a chi-squared test was employed to evaluate the association between the policy shift and rates of specific interventions like endotracheal suction and mechanical ventilation, adjusting for confounders such as maternal age. This test helped in determining whether the revised guidelines influenced the application of these medical procedures.
+
+Finally, logistic regression models were applied to investigate the impacts of guideline modification on the occurrence of specific negative clinical outcomes: meconium aspiration syndrome, respiratory distress syndrome, and pneumothorax, controlling for potential confounders like maternal age and gestational age. These models were instrumental in exploring whether the reduction in certain neonatal interventions correlated with an increase in adverse health outcomes, thus testing the key hypothesis of the study. The logistic regression provided odds ratios which indicate the strength and direction of the association between the guideline change and health outcomes.\subsection*{Code Availability}
+
+Custom code used to perform the data preprocessing and analysis, as well as the raw code outputs, are provided in Supplementary Methods.
+
+
+\bibliographystyle{unsrt}
+\bibliography{citations}
+
+
+\clearpage
+\appendix
+
+\section{Data Description} \label{sec:data_description} Here is the data description, as provided by the user:
+
+\begin{codeoutput}
+\#\# General Description
+(*@\raisebox{2ex}{\hypertarget{S}{}}@*)A change in Neonatal Resuscitation Program (NRP) guidelines occurred in (*@\raisebox{2ex}{\hypertarget{S0a}{}}@*)2015:
+
+Pre-2015: Intubation and endotracheal suction was mandatory for all meconium-stained non-vigorous infants
+Post-2015: Intubation and endotracheal suction was no longer mandatory; preference for less aggressive interventions based on response to initial resuscitation.
+
+This single-center retrospective study compared Neonatal Intensive Care Unit (NICU) therapies and clinical outcomes of non-vigorous newborns for (*@\raisebox{2ex}{\hypertarget{S1a}{}}@*)117 deliveries pre-guideline implementation versus (*@\raisebox{2ex}{\hypertarget{S1b}{}}@*)106 deliveries post-guideline implementation.
+
+Inclusion criteria included: birth through Meconium-Stained Amniotic Fluid (MSAF) of any consistency, gestational age of (*@\raisebox{2ex}{\hypertarget{S2a}{}}@*)35--42 weeks, and admission to the institutions NICU. Infants were excluded if there were major congenital malformations/anomalies present at birth.
+
+\#\# Data Files
+The dataset consists of 1 data file:
+
+\#\#\# "meconium\_nicu\_dataset\_preprocessed\_short.csv"
+(*@\raisebox{2ex}{\hypertarget{T}{}}@*)The dataset contains (*@\raisebox{2ex}{\hypertarget{T0a}{}}@*)44 columns:
+
+`PrePost` ((*@\raisebox{2ex}{\hypertarget{T1a}{}}@*)0=Pre, (*@\raisebox{2ex}{\hypertarget{T1b}{}}@*)1=Post) Delivery pre or post the new (*@\raisebox{2ex}{\hypertarget{T1c}{}}@*)2015 policy
+`AGE` (int, in years) Maternal age
+`GRAVIDA` (int) Gravidity
+`PARA` (int) Parity
+`HypertensiveDisorders` ((*@\raisebox{2ex}{\hypertarget{T2a}{}}@*)1=Yes, (*@\raisebox{2ex}{\hypertarget{T2b}{}}@*)0=No) Gestational hypertensive disorder
+`MaternalDiabetes`	((*@\raisebox{2ex}{\hypertarget{T3a}{}}@*)1=Yes, (*@\raisebox{2ex}{\hypertarget{T3b}{}}@*)0=No) Gestational diabetes
+`ModeDelivery` (Categorical) "VAGINAL" or "CS" (C. Section)
+`FetalDistress` ((*@\raisebox{2ex}{\hypertarget{T4a}{}}@*)1=Yes, (*@\raisebox{2ex}{\hypertarget{T4b}{}}@*)0=No)
+`ProlongedRupture` ((*@\raisebox{2ex}{\hypertarget{T5a}{}}@*)1=Yes, (*@\raisebox{2ex}{\hypertarget{T5b}{}}@*)0=No) Prolonged Rupture of Membranes
+`Chorioamnionitis` ((*@\raisebox{2ex}{\hypertarget{T6a}{}}@*)1=Yes, (*@\raisebox{2ex}{\hypertarget{T6b}{}}@*)0=No)
+`Sepsis` (Categorical) Neonatal blood culture ("NO CULTURES", "NEG CULTURES", "POS CULTURES")
+`GestationalAge` (float, numerical). in weeks.
+`Gender` (Categorical) "M"/ "F"
+`BirthWeight` (float, in KG)
+`APGAR1` (int, (*@\raisebox{2ex}{\hypertarget{T7a}{}}@*)1-10) (*@\raisebox{2ex}{\hypertarget{T7b}{}}@*)1 minute APGAR score
+`APGAR5` (int, (*@\raisebox{2ex}{\hypertarget{T8a}{}}@*)1-10) (*@\raisebox{2ex}{\hypertarget{T8b}{}}@*)5 minute APGAR score
+`MeconiumConsistency` (categorical) "THICK" / "THIN"
+`PPV` ((*@\raisebox{2ex}{\hypertarget{T9a}{}}@*)1=Yes, (*@\raisebox{2ex}{\hypertarget{T9b}{}}@*)0=No) Positive Pressure Ventilation
+`EndotrachealSuction` ((*@\raisebox{2ex}{\hypertarget{T10a}{}}@*)1=Yes, (*@\raisebox{2ex}{\hypertarget{T10b}{}}@*)0=No) Whether endotracheal suctioning was performed
+`MeconiumRecovered` ((*@\raisebox{2ex}{\hypertarget{T11a}{}}@*)1=Yes, (*@\raisebox{2ex}{\hypertarget{T11b}{}}@*)0=No)
+`CardiopulmonaryResuscitation` ((*@\raisebox{2ex}{\hypertarget{T12a}{}}@*)1=Yes, (*@\raisebox{2ex}{\hypertarget{T12b}{}}@*)0=No)
+`ReasonAdmission` (categorical) Neonate ICU admission reason. ("OTHER", "RESP" or "CHORIOAMNIONITIS")
+`RespiratoryReasonAdmission` ((*@\raisebox{2ex}{\hypertarget{T13a}{}}@*)1=Yes, (*@\raisebox{2ex}{\hypertarget{T13b}{}}@*)0=No)
+`RespiratoryDistressSyndrome` ((*@\raisebox{2ex}{\hypertarget{T14a}{}}@*)1=Yes, (*@\raisebox{2ex}{\hypertarget{T14b}{}}@*)0=No)
+`TransientTachypnea` ((*@\raisebox{2ex}{\hypertarget{T15a}{}}@*)1=Yes, (*@\raisebox{2ex}{\hypertarget{T15b}{}}@*)0=No)
+`MeconiumAspirationSyndrome` ((*@\raisebox{2ex}{\hypertarget{T16a}{}}@*)1=Yes, (*@\raisebox{2ex}{\hypertarget{T16b}{}}@*)0=No)
+`OxygenTherapy` ((*@\raisebox{2ex}{\hypertarget{T17a}{}}@*)1=Yes, (*@\raisebox{2ex}{\hypertarget{T17b}{}}@*)0=No)
+`MechanicalVentilation` ((*@\raisebox{2ex}{\hypertarget{T18a}{}}@*)1=Yes, (*@\raisebox{2ex}{\hypertarget{T18b}{}}@*)0=No)
+`Surfactant` ((*@\raisebox{2ex}{\hypertarget{T19a}{}}@*)1=Yes, (*@\raisebox{2ex}{\hypertarget{T19b}{}}@*)0=No) Surfactant inactivation
+`Pneumothorax` ((*@\raisebox{2ex}{\hypertarget{T20a}{}}@*)1=Yes, (*@\raisebox{2ex}{\hypertarget{T20b}{}}@*)0=No)
+`AntibioticsDuration` (float, in days) Neonate treatment duration
+`Breastfeeding` ((*@\raisebox{2ex}{\hypertarget{T21a}{}}@*)1=Yes, (*@\raisebox{2ex}{\hypertarget{T21b}{}}@*)0=No) Breastfed at NICU
+`LengthStay` (float, in days) Length of stay at NICU
+`SNAPPE\_II\_SCORE` (int) (*@\raisebox{2ex}{\hypertarget{T22a}{}}@*)0--20 (mild), (*@\raisebox{2ex}{\hypertarget{T22b}{}}@*)21--40 (moderate), (*@\raisebox{2ex}{\hypertarget{T22c}{}}@*)41- (severe)
+
+
+
+\end{codeoutput}
+
+\section{Data Exploration}
+\subsection{{Code}}
+The Data Exploration was carried out using the following custom code:
+
+\begin{python}
+
+import pandas as pd
+import numpy as np
+from collections import Counter
+
+# Load data
+data = pd.read_csv("meconium_nicu_dataset_preprocessed_short.csv")
+
+# Output file
+(*@\raisebox{2ex}{\hypertarget{code-Data Exploration-data-exploration-txt}{}}@*)output_file = open("data_exploration.txt", "w")
+
+# Data Size
+output_file.write("# Data Size\n")
+output_file.write(f"Number of Rows: {data.shape[0]}\n")
+output_file.write(f"Number of Columns: {data.shape[1]}\n\n")
+
+# Summary Statistics
+output_file.write("# Summary Statistics\n")
+summary_statistics = data.describe(include='all')
+output_file.write(f"{summary_statistics}\n\n")
+
+# Categorical Variables
+output_file.write("# Categorical Variables\n")
+categorical_cols = data.select_dtypes(include=['object']).columns
+for col in categorical_cols:
+    output_file.write(f"{col}: {dict(Counter(data[col]))}\n")
+output_file.write("\n")
+
+# Missing Values
+output_file.write("# Missing Values\n")
+missing_values = data.isnull().sum()
+output_file.write(f"{missing_values}\n\n")
+
+output_file.close()
+
+\end{python}
+
+\subsection{Code Description}
+
+The provided Python code conducts data exploration on a dataset related to neonatal resuscitation program guidelines. 
+The code first loads the dataset and then performs several analysis steps:
+
+1. Data Size: Calculates the number of rows and columns in the dataset.
+2. Summary Statistics: Generates descriptive statistics for all columns in the dataset.
+3. Categorical Variables: Identifies and counts the unique values for each categorical column in the dataset.
+4. Missing Values: Calculates the number of missing values for each column in the dataset.
+
+The output of the analysis is written into the "data\_exploration.txt" file, which includes:
+- Number of rows and columns in the dataset
+- Descriptive statistics (e.g., count, unique, top, frequency) for each column
+- Count of unique values for each categorical variable
+- Number of missing values for each column
+
+This information provides an overview of the dataset's characteristics, distributions, and data completeness, which is essential for subsequent data processing and analysis tasks.
+
+\subsection{Code Output}\hypertarget{file-data-exploration-txt}{}
+
+\subsubsection*{\hyperlink{code-Data Exploration-data-exploration-txt}{data\_exploration.txt}}
+
+\begin{codeoutput}
+\# Data Size
+Number of Rows: 223
+Number of Columns: 34
+
+\# Summary Statistics
+        PrePost   AGE  GRAVIDA   PARA  HypertensiveDisorders  MaternalDiabetes ModeDelivery  FetalDistress  ProlongedRupture  Chorioamnionitis        Sepsis  GestationalAge Gender  BirthWeight  APGAR1  APGAR5 MeconiumConsistency   PPV  EndotrachealSuction  MeconiumRecovered  CardiopulmonaryResuscitation ReasonAdmission  RespiratoryReasonAdmission  RespiratoryDistressSyndrome  TransientTachypnea  MeconiumAspirationSyndrome  OxygenTherapy  MechanicalVentilation  Surfactant  Pneumothorax  AntibioticsDuration  Breastfeeding  LengthStay  SNAPPE\_II\_SCORE
+count       223   223      223    223                    223               223          223            223               222               222           223             223    223          223     223     223                 223   223                  223                223                           223             223                         223                          223                 223                         223            223                    223         223           223                  223            223         223              222
+unique      NaN   NaN      NaN    NaN                    NaN               NaN            2            NaN               NaN               NaN             3             NaN      2          NaN     NaN     NaN                   2   NaN                  NaN                NaN                           NaN               3                         NaN                          NaN                 NaN                         NaN            NaN                    NaN         NaN           NaN                  NaN            NaN         NaN              NaN
+top         NaN   NaN      NaN    NaN                    NaN               NaN      VAGINAL            NaN               NaN               NaN  NEG CULTURES             NaN      M          NaN     NaN     NaN               THICK   NaN                  NaN                NaN                           NaN            RESP                         NaN                          NaN                 NaN                         NaN            NaN                    NaN         NaN           NaN                  NaN            NaN         NaN              NaN
+freq        NaN   NaN      NaN    NaN                    NaN               NaN          132            NaN               NaN               NaN           140             NaN    130          NaN     NaN     NaN                 127   NaN                  NaN                NaN                           NaN             138                         NaN                          NaN                 NaN                         NaN            NaN                    NaN         NaN           NaN                  NaN            NaN         NaN              NaN
+mean     0.4753 29.72        2  1.422                0.02691            0.1166          NaN         0.3408            0.1847            0.5676           NaN           39.67    NaN        3.442   4.175   7.278                 NaN 0.722               0.3901              0.148                       0.03139             NaN                      0.6188                      0.09865              0.3049                      0.2018         0.4439                 0.1839     0.02691        0.1345                2.769         0.6771       7.731            18.44
+std      0.5005 5.559    1.433 0.9163                 0.1622            0.3217          NaN          0.475            0.3889            0.4965           NaN           1.305    NaN       0.4935   2.133   1.707                 NaN 0.449               0.4889             0.3559                        0.1748             NaN                      0.4868                       0.2989              0.4614                      0.4022          0.498                 0.3882      0.1622         0.342                3.273         0.4686       7.462            14.45
+min           0    16        1      0                      0                 0          NaN              0                 0                 0           NaN              36    NaN         1.94       0       0                 NaN     0                    0                  0                             0             NaN                           0                            0                   0                           0              0                      0           0             0                    0              0           2                0
+25\%           0    26        1      1                      0                 0          NaN              0                 0                 0           NaN           39.05    NaN        3.165       2       7                 NaN     0                    0                  0                             0             NaN                           0                            0                   0                           0              0                      0           0             0                  1.5              0           4             8.25
+50\%           0    30        1      1                      0                 0          NaN              0                 0                 1           NaN            40.1    NaN         3.44       4       8                 NaN     1                    0                  0                             0             NaN                           1                            0                   0                           0              0                      0           0             0                    2              1           5               18
+75\%           1    34        2      2                      0                 0          NaN              1                 0                 1           NaN            40.5    NaN         3.81       6       8                 NaN     1                    1                  0                             0             NaN                           1                            0                   1                           0              1                      0           0             0                    3              1           8             24.5
+max           1    47       10      9                      1                 1          NaN              1                 1                 1           NaN              42    NaN         4.63       7       9                 NaN     1                    1                  1                             1             NaN                           1                            1                   1                           1              1                      1           1             1                   21              1          56               78
+
+\# Categorical Variables
+ModeDelivery: {'CS': 91, 'VAGINAL': 132}
+Sepsis: {'NEG CULTURES': 140, 'NO CULTURES': 80, 'POS CULTURES': 3}
+Gender: {'M': 130, 'F': 93}
+MeconiumConsistency: {'THICK': 127, 'THIN': 96}
+ReasonAdmission: {'RESP': 138, 'OTHER': 17, 'CHORIOAMNIONITIS': 68}
+
+\# Missing Values
+PrePost                         0
+AGE                             0
+GRAVIDA                         0
+PARA                            0
+HypertensiveDisorders           0
+MaternalDiabetes                0
+ModeDelivery                    0
+FetalDistress                   0
+ProlongedRupture                1
+Chorioamnionitis                1
+Sepsis                          0
+GestationalAge                  0
+Gender                          0
+BirthWeight                     0
+APGAR1                          0
+APGAR5                          0
+MeconiumConsistency             0
+PPV                             0
+EndotrachealSuction             0
+MeconiumRecovered               0
+CardiopulmonaryResuscitation    0
+ReasonAdmission                 0
+RespiratoryReasonAdmission      0
+RespiratoryDistressSyndrome     0
+TransientTachypnea              0
+MeconiumAspirationSyndrome      0
+OxygenTherapy                   0
+MechanicalVentilation           0
+Surfactant                      0
+Pneumothorax                    0
+AntibioticsDuration             0
+Breastfeeding                   0
+LengthStay                      0
+SNAPPE\_II\_SCORE                 1
+dtype: int64
+\end{codeoutput}
+
+\section{Data Analysis}
+\subsection{{Code}}
+The Data Analysis was carried out using the following custom code:
+
+\begin{python}
+
+# IMPORT
+import pandas as pd
+import numpy as np
+import scipy.stats as stats
+import statsmodels.formula.api as smf
+import pickle
+
+# LOAD DATA
+data = pd.read_csv("meconium_nicu_dataset_preprocessed_short.csv")
+
+# DATASET PREPARATIONS
+# No dataset preparations are needed.
+
+# DESCRIPTIVE STATISTICS
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-0-pkl}{}}@*)## Table 0: "Descriptive statistics of important numerical variables across the Pre and Post policy implementation groups"
+groupby_data = data.groupby('PrePost')[['AGE', 'GestationalAge', 'BirthWeight']].agg(['mean', 'std'])
+df0 = groupby_data.unstack().reset_index().rename(columns={'level_0': 'Variable', 'level_1': 'Statistic', 0: 'Value'})
+df0['Row_Labels'] = df0['Variable'] + ' (' + df0['Statistic'] + ')'
+df0.set_index('Row_Labels', inplace=True)
+df0.drop(columns=['Variable', 'Statistic'], inplace=True)
+df0.to_pickle('table_0.pkl')
+
+# PREPROCESSING 
+# Creating dummy variables for categorical variables
+data_prep = pd.get_dummies(data)
+
+# ANALYSIS
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-1-pkl}{}}@*)## Table 1: "Test of association between policy change and rates of EndotrachealSuction and MechanicalVentilation, considering confounding factors"
+# Chi-squared test with Yates' correction
+chi_res1 = stats.chi2_contingency(pd.crosstab([data['PrePost'], data['AGE']], data['EndotrachealSuction']), correction=True)
+chi_res2 = stats.chi2_contingency(pd.crosstab([data['PrePost'], data['AGE']], data['MechanicalVentilation']), correction=True)
+
+df1 = pd.DataFrame({
+    'Variable': ['EndotrachealSuction', 'MechanicalVentilation'],
+    'chi-square': [chi_res1.statistic, chi_res2.statistic],
+    'p-value': [chi_res1.pvalue, chi_res2.pvalue],
+    'df': [chi_res1.dof, chi_res2.dof]
+})
+
+df1.set_index('Variable', inplace=True)
+df1.to_pickle('table_1.pkl')
+
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-2-pkl}{}}@*)## Table 2: "Logistic regression impact of the NRP guideline change on occurrence of MeconiumAspirationSyndrome, RespiratoryDistressSyndrome, and Pneumothorax; considers confounders"
+health_outcomes = ['MeconiumAspirationSyndrome', 'RespiratoryDistressSyndrome', 'Pneumothorax']
+model_data = data.dropna(subset=health_outcomes+['AGE', 'GestationalAge', 'Gender'])
+
+df2 = pd.DataFrame(columns=health_outcomes, index=['OR', 'p-value', 'Significant'])
+
+for outcome in health_outcomes:
+    model = smf.logit(f"{outcome} ~ PrePost + AGE + GestationalAge + C(Gender)", data=model_data)
+    result = model.fit()
+    odds_ratio = np.exp(result.params)['PrePost']
+    pvalue = result.pvalues['PrePost']
+    df2.loc['OR', outcome] = odds_ratio
+    df2.loc['p-value', outcome] = pvalue
+    df2.loc['Significant', outcome] = 'Yes' if pvalue < 0.05 else 'No' # Add significance indicator
+
+df2.to_pickle('table_2.pkl')
+
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-additional-results-pkl}{}}@*)# SAVE ADDITIONAL RESULTS
+additional_results = {
+    'Total number of observations': len(data)
+}
+
+with open('additional_results.pkl', 'wb') as f:
+     pickle.dump(additional_results, f)
+
+\end{python}
+
+\subsection{Code Description}
+
+The provided code conducts a data analysis on a dataset comparing clinical outcomes of non-vigorous newborns pre and post the implementation of Neonatal Resuscitation Program (NRP) guidelines in 2015. 
+
+The analysis consists of the following steps:
+1. Descriptive statistics are calculated for important numerical variables across the Pre and Post policy implementation groups.
+2. Dummy variables are created for categorical variables for preprocessing.
+3. Chi-squared tests are performed to test the association between policy change and rates of Endotracheal Suction and Mechanical Ventilation.
+4. Logistic regression models are built to assess the impact of the NRP guideline change on the occurrence of Meconium Aspiration Syndrome, Respiratory Distress Syndrome, and Pneumothorax while considering confounding variables such as Age, Gestational Age, and Gender.
+5. The results of the chi-squared tests and logistic regression models are saved in pickle files for further analysis.
+
+Additionally, the "additional\_results.pkl" file contains the total number of observations in the dataset.
+
+\subsection{Code Output}\hypertarget{file-table-0-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-table-0-pkl}{table\_0.pkl}}
+
+\begin{codeoutput}
+                       PrePost  Value
+Row\_Labels                           
+AGE (mean)                   0  29.24
+AGE (mean)                   1  30.25
+AGE (std)                    0  5.841
+AGE (std)                    1  5.206
+GestationalAge (mean)        0  39.73
+GestationalAge (mean)        1  39.59
+GestationalAge (std)         0  1.294
+GestationalAge (std)         1   1.32
+BirthWeight (mean)           0  3.464
+BirthWeight (mean)           1  3.419
+BirthWeight (std)            0 0.4903
+BirthWeight (std)            1 0.4982
+\end{codeoutput}\hypertarget{file-table-1-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-table-1-pkl}{table\_1.pkl}}
+
+\begin{codeoutput}
+                       chi-square   p-value  df
+Variable                                       
+EndotrachealSuction         108.4  1.47e-06  48
+MechanicalVentilation       50.17     0.388  48
+\end{codeoutput}\hypertarget{file-table-2-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-table-2-pkl}{table\_2.pkl}}
+
+\begin{codeoutput}
+            MeconiumAspirationSyndrome RespiratoryDistressSyndrome Pneumothorax
+OR                              0.7273                       1.708       0.6042
+p-value                          0.354                       0.248        0.219
+Significant                         No                          No           No
+\end{codeoutput}\hypertarget{file-additional-results-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-additional-results-pkl}{additional\_results.pkl}}
+
+\begin{codeoutput}
+{
+    'Total number of observations': (*@\raisebox{2ex}{\hypertarget{R0a}{}}@*)223,
+}
+\end{codeoutput}
+
+\section{LaTeX Table Design}
+\subsection{{Code}}
+The LaTeX Table Design was carried out using the following custom code:
+
+\begin{python}
+
+# IMPORT
+import pandas as pd
+from my_utils import to_latex_with_note, is_str_in_df, split_mapping, AbbrToNameDef
+
+# PREPARATION FOR ALL TABLES
+shared_mapping: AbbrToNameDef = {
+    'AGE': ('Maternal Age', 'Maternal Age, years'),
+    'GestationalAge': ('Gestational Age', 'Gestational Age, weeks'),
+    'BirthWeight': ('Birth Weight', 'Birth Weight, KG'),
+}
+
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-0-tex}{}}@*)# TABLE 0:
+df0 = pd.read_pickle('table_0.pkl')
+
+# RENAME ROWS AND COLUMNS
+mapping0 = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df0, k))
+mapping0 |= {
+    'AGE (mean)': ('Mean Maternal Age', None),
+    'AGE (std)': ('Standard Deviation Maternal Age', None),
+    'GestationalAge (mean)': ('Mean Gestational Age', None),
+    'GestationalAge (std)': ('Standard Deviation Gestational Age', None),
+    'BirthWeight (mean)': ('Mean Birth Weight', None),
+    'BirthWeight (std)': ('Standard Deviation Birth Weight', None),
+    'PrePost': ('Policy Implementation', '0: Pre 2015 policy, 1: Post 2015 policy'),
+}
+
+abbrs_to_names0, legend0 = split_mapping(mapping0)
+df0 = df0.rename(columns=abbrs_to_names0, index=abbrs_to_names0)
+
+# SAVE AS LATEX:
+to_latex_with_note(
+    df0, 'table_0.tex',
+    caption="Descriptive statistics of important numerical variables across the Pre and Post policy implementation groups", 
+    label='table:descriptives',
+    note="Values are represented as mean and standard deviation. The values in the table are grouped by the implementation of the policy (Pre or Post 2015 policy).",
+    legend=legend0)
+
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-1-tex}{}}@*)# TABLE 1:
+df1 = pd.read_pickle('table_1.pkl')
+
+# RENAME ROWS AND COLUMNS
+mapping1 = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df1, k)) 
+mapping1 |= {
+    'chi-square': ('Chi-Square', 'Chi-Square Statistic for the Test'),
+    'p-value': ('P-value', 'P-value for the Test'),
+    'df': ('Degrees of Freedom', 'Degrees of Freedom for the Test'),
+    'EndotrachealSuction': ('Endotracheal Suction', 'Was endotracheal suctioning performed on the infants? (1: Yes, 0: No)'),
+    'MechanicalVentilation': ('Mechanical Ventilation', 'Was mechanical ventilation performed on the infants? (1: Yes, 0: No)')
+}
+
+abbrs_to_names1, legend1 = split_mapping(mapping1)
+df1 = df1.rename(index=abbrs_to_names1, columns=abbrs_to_names1)
+
+# SAVE AS LATEX:
+to_latex_with_note(df1, 
+                   'table_1.tex', 
+                   caption="Test of association between policy change and rates of Endotracheal Suction and Mechanical Ventilation, considering confounding factors", 
+                   label='table:tests',
+                   legend=legend1)
+
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-2-tex}{}}@*)# TABLE 2:
+df2 = pd.read_pickle('table_2.pkl')
+
+# RENAME ROWS AND COLUMNS
+mapping2 = {
+    'MeconiumAspirationSyndrome': ('Meconium Aspiration Syndrome', 'Measured in Meconium Aspiration Syndrome'),
+    'RespiratoryDistressSyndrome': ('Respiratory Distress Syndrome', 'Measured in Respiratory Distress Syndrome'),
+    'Pneumothorax': ('Pneumothorax', 'Measured in Pneumothorax'),
+    'Significant': ('Significance', 'Significance at 5% level (Yes: p-value < 0.05, No: p-value >= 0.05)'),
+    'OR': ('Odds Ratio', 'Odds Ratio from the Logistic Regression'),
+}
+
+abbrs_to_names2, legend2 = split_mapping(mapping2)
+df2 = df2.rename(index=abbrs_to_names2, columns=abbrs_to_names2)
+
+# Transpose dataframe
+df2 = df2.transpose()
+
+# SAVE AS LATEX:
+to_latex_with_note(df2, 
+                   'table_2.tex', 
+                   caption="Logistic regression impact of the NRP guideline change on occurrence of Meconium Aspiration Syndrome, Respiratory Distress Syndrome, and Pneumothorax; considers confounders", 
+                   label='table:logistic',
+                   legend=legend2)
+
+\end{python}
+
+\subsection{Provided Code}
+The code above is using the following provided functions:
+
+\begin{python}
+def to_latex_with_note(df, filename: str, caption: str, label: str, note: str = None, legend: Dict[str, str] = None, **kwargs):
+    """
+    Converts a DataFrame to a LaTeX table with optional note and legend added below the table.
+
+    Parameters:
+    - df, filename, caption, label: as in `df.to_latex`.
+    - note (optional): Additional note below the table.
+    - legend (optional): Dictionary mapping abbreviations to full names.
+    - **kwargs: Additional arguments for `df.to_latex`.
+    """
+
+def is_str_in_df(df: pd.DataFrame, s: str):
+    return any(s in level for level in getattr(df.index, 'levels', [df.index]) + getattr(df.columns, 'levels', [df.columns]))
+
+AbbrToNameDef = Dict[Any, Tuple[Optional[str], Optional[str]]]
+
+def split_mapping(abbrs_to_names_and_definitions: AbbrToNameDef):
+    abbrs_to_names = {abbr: name for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if name is not None}
+    names_to_definitions = {name or abbr: definition for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if definition is not None}
+    return abbrs_to_names, names_to_definitions
+
+\end{python}
+
+
+
+\subsection{Code Output}
+
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-0-tex}{table\_0.tex}}
+
+\begin{codeoutput}
+\% This latex table was generated from: `table\_0.pkl`
+\begin{table}[h]
+\caption{Descriptive statistics of important numerical variables across the Pre and Post policy implementation groups}
+\label{table:descriptives}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{\%
+\begin{tabular}{lrr}
+\toprule
+ \& Policy Implementation \& Value \\
+Row\_Labels \&  \&  \\
+\midrule
+\textbf{Mean Maternal Age} \& 0 \& 29.2 \\
+\textbf{Mean Maternal Age} \& 1 \& 30.3 \\
+\textbf{Standard Deviation Maternal Age} \& 0 \& 5.84 \\
+\textbf{Standard Deviation Maternal Age} \& 1 \& 5.21 \\
+\textbf{Mean Gestational Age} \& 0 \& 39.7 \\
+\textbf{Mean Gestational Age} \& 1 \& 39.6 \\
+\textbf{Standard Deviation Gestational Age} \& 0 \& 1.29 \\
+\textbf{Standard Deviation Gestational Age} \& 1 \& 1.32 \\
+\textbf{Mean Birth Weight} \& 0 \& 3.46 \\
+\textbf{Mean Birth Weight} \& 1 \& 3.42 \\
+\textbf{Standard Deviation Birth Weight} \& 0 \& 0.49 \\
+\textbf{Standard Deviation Birth Weight} \& 1 \& 0.498 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item Values are represented as mean and standard deviation. The values in the table are grouped by the implementation of the policy (Pre or Post 2015 policy).
+\item \textbf{Policy Implementation}: 0: Pre 2015 policy, 1: Post 2015 policy
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+\end{codeoutput}
+
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-1-tex}{table\_1.tex}}
+
+\begin{codeoutput}
+\% This latex table was generated from: `table\_1.pkl`
+\begin{table}[h]
+\caption{Test of association between policy change and rates of Endotracheal Suction and Mechanical Ventilation, considering confounding factors}
+\label{table:tests}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{\%
+\begin{tabular}{lrlr}
+\toprule
+ \& Chi-Square \& P-value \& Degrees of Freedom \\
+Variable \&  \&  \&  \\
+\midrule
+\textbf{Endotracheal Suction} \& 108 \& 1.47e-06 \& 48 \\
+\textbf{Mechanical Ventilation} \& 50.2 \& 0.388 \& 48 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{Chi-Square}: Chi-Square Statistic for the Test
+\item \textbf{P-value}: P-value for the Test
+\item \textbf{Degrees of Freedom}: Degrees of Freedom for the Test
+\item \textbf{Endotracheal Suction}: Was endotracheal suctioning performed on the infants? (1: Yes, 0: No)
+\item \textbf{Mechanical Ventilation}: Was mechanical ventilation performed on the infants? (1: Yes, 0: No)
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+\end{codeoutput}
+
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-2-tex}{table\_2.tex}}
+
+\begin{codeoutput}
+\% This latex table was generated from: `table\_2.pkl`
+\begin{table}[h]
+\caption{Logistic regression impact of the NRP guideline change on occurrence of Meconium Aspiration Syndrome, Respiratory Distress Syndrome, and Pneumothorax; considers confounders}
+\label{table:logistic}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{\%
+\begin{tabular}{llll}
+\toprule
+ \& Odds Ratio \& p-value \& Significance \\
+\midrule
+\textbf{Meconium Aspiration Syndrome} \& 0.727 \& 0.354 \& No \\
+\textbf{Respiratory Distress Syndrome} \& 1.71 \& 0.248 \& No \\
+\textbf{Pneumothorax} \& 0.604 \& 0.219 \& No \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{Meconium Aspiration Syndrome}: Measured in Meconium Aspiration Syndrome
+\item \textbf{Respiratory Distress Syndrome}: Measured in Respiratory Distress Syndrome
+\item \textbf{Pneumothorax}: Measured in Pneumothorax
+\item \textbf{Significance}: Significance at 5\% level (Yes: p-value \$$<$\$ 0.05, No: p-value \$$>$\$= 0.05)
+\item \textbf{Odds Ratio}: Odds Ratio from the Logistic Regression
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+\end{codeoutput}
+
+\end{document}

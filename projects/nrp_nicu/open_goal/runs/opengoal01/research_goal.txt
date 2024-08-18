@@ -1,0 +1,5 @@
+## Research Goal: 
+The goal is to assess the intended and unintended effects induced by the implementation of the new 2015 Neonatal Resuscitation Program (NRP) guidelines on the clinical outcomes of non-vigorous infants. Specifically, we aim to investigate whether changes in delivery room management practices have led to changes in NICU therapies and health outcomes for these infants.
+
+## Hypothesis: 
+Holding other factors constant (like maternal age, gestational age, and birth weight), the shift to less aggressive treatments under the new NRP guidelines (as indicated by lower rates of EndotrachealSuction and MechanicalVentilation) will not be associated with worsening of health outcomes (such as increases in MeconiumAspirationSyndrome, RespiratoryDistressSyndrome, or Pneumothorax) for non-vigorous newborns.

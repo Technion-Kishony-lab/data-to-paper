@@ -1,0 +1,19 @@
+## Statistical considerations:
+### Confounding variables:
+There are several potential confounding variables such as maternal age, gestational age, birth weight, and mode of delivery that should be accounted for in the statistical tests.
+### Missing data points:
+There is missing data in the columns "ProlongedRupture", "Chorioamnionitis", and "SNAPPE_II_SCORE". Depending on the extent of missing data, you may need to consider imputation or exclusion of these data points.
+### Dependencies between data points:
+Some variables may be dependent on each other, such as "EndotrachealSuction" and "MechanicalVentilation". Consider the dependencies in the analysis to avoid biased results.
+
+## Hypotheses:
+### Hypothesis:
+Effect of NRP guideline change on EndotrachealSuction and MechanicalVentilation rates
+### Test:
+Chi-squared test of independence to examine the association between the PrePost variable (guideline change) and the rates of EndotrachealSuction and MechanicalVentilation, while considering potential confounders.
+
+### Hypothesis:
+Association between NRP guideline change and health outcomes (MeconiumAspirationSyndrome, RespiratoryDistressSyndrome, and Pneumothorax)
+### Test:
+Logistic regression models to assess the impact of the NRP guideline change on the occurrence of MeconiumAspirationSyndrome, RespiratoryDistressSyndrome, and Pneumothorax. Adjust for confounders and dependencies between data points.
+

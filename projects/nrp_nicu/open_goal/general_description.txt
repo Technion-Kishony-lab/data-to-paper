@@ -1,0 +1,8 @@
+A change in Neonatal Resuscitation Program (NRP) guidelines occurred in 2015:
+
+Pre-2015: Intubation and endotracheal suction was mandatory for all meconium-stained non-vigorous infants
+Post-2015: Intubation and endotracheal suction was no longer mandatory; preference for less aggressive interventions based on response to initial resuscitation.
+
+This single-center retrospective study compared Neonatal Intensive Care Unit (NICU) therapies and clinical outcomes of non-vigorous newborns for 117 deliveries pre-guideline implementation versus 106 deliveries post-guideline implementation.
+
+Inclusion criteria included: birth through Meconium-Stained Amniotic Fluid (MSAF) of any consistency, gestational age of 35–42 weeks, and admission to the institution’s NICU. Infants were excluded if there were major congenital malformations/anomalies present at birth.
