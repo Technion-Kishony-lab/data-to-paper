@@ -1,5 +1,5 @@
 import re
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union, Iterable, Any
 
 import pandas as pd
 
@@ -21,6 +21,35 @@ KNOWN_ABBREVIATIONS = ('std', 'BMI', 'P>|z|', 'P-value', 'Std.', 'Std', 'Err.', 
 P_VALUE_STRINGS = ('P>|z|', 'P-value', 'P>|t|', 'P>|F|')
 
 TABLE_COMMENT_HEADER = '% This latex table was generated from: '
+
+
+def _find_longest_str_in_list(lst: Iterable[Union[str, Any]]) -> Optional[str]:
+    """
+    Find the longest string in a list of strings.
+    Only iterate over the str labels.
+    """
+    try:
+        longest_str = None
+        length = 0
+        for label in lst:
+            if isinstance(label, str) and len(label) > length:
+                longest_str = label
+                length = len(label)
+        return longest_str
+    except ValueError:
+        return None
+
+
+def _find_longest_labels_in_index(index: [pd.Index, pd.MultiIndex]) -> Union[str, List[str]]:
+    """
+    Find the longest label in the index.
+    For multi-index, return the longest label in each level.
+    Should only iterate over the str labels.
+    """
+    if isinstance(index, pd.MultiIndex):
+        return [_find_longest_str_in_list(index.get_level_values(level).unique()) for level in range(index.nlevels)]
+    else:
+        return [_find_longest_str_in_list(index)]
 
 
 def _to_latex_with_note(df: pd.DataFrame, filename: str, caption: str = None, label: str = None,
@@ -293,12 +322,15 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
                 """)
         else:
             drop_column_message = ''
+        index_note = ''
         if index:
-            index_note = dedent_triple_quote_str("""\n
-                - Rename the index labels to shorter names. Use `df.rename(index=...)`
-                """)
-        else:
-            index_note = ''
+            longest_index_labels = _find_longest_labels_in_index(df.index)
+            longest_index_labels = [label for label in longest_index_labels if label is not None and len(label) > 6]
+            if longest_index_labels:
+                index_note = dedent_triple_quote_str(f"""\n
+                    - Rename any long index labels to shorter names \t
+                    (for instance, some long label(s) in the index are: {longest_index_labels}). Use `df.rename(index=...)`
+                    """)
 
         issues.append(RunIssue(
             category='Table too wide',
