@@ -471,6 +471,7 @@ class PysideApp(QMainWindow, BaseApp):
 
         # add button with $ sign that opens the pricing dialog, displaying the api usage cost per stage
         self.api_usage_cost_button = QPushButton("")
+        self.api_usage_cost_button.setFixedWidth(130)
         self._update_api_usage_cost_button()
         self.api_usage_cost_button.clicked.connect(self.show_api_usage_cost_dialog)
         header_and_checkbox.addWidget(self.api_usage_cost_button)
@@ -604,7 +605,7 @@ class PysideApp(QMainWindow, BaseApp):
 
     def _update_api_usage_cost_button(self):
         cost = self.api_usage_cost.get_total_cost()
-        self.api_usage_cost_button.setText(f"API Cost: {cost:.2f}$")
+        self.api_usage_cost_button.setText(f"API Cost: ${cost:.2f}")
 
     def show_api_usage_cost_dialog(self):
         """
