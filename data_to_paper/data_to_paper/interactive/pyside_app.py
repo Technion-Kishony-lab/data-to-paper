@@ -7,7 +7,7 @@ from PySide6.QtWidgets import QMainWindow, QVBoxLayout, QLabel, QPushButton, QWi
     QHBoxLayout, QSplitter, QTextEdit, QTabWidget, QDialog, QSizePolicy, QCheckBox, QSpacerItem
 
 from data_to_paper.conversation.stage import Stage
-from data_to_paper.interactive.base_app import BaseApp
+from data_to_paper.interactive.base_app import BaseApp, REQUESTING_MISSING_TEXT
 from data_to_paper.interactive.enum_types import PanelNames
 from data_to_paper.interactive.get_app import get_or_create_q_application_if_app_is_pyside
 from data_to_paper.interactive.styles import CURRENT_STEP_COLOR, SUBMIT_BUTTON_COLOR, PANEL_HEADER_COLOR, QEDIT_STYLE, \
@@ -283,8 +283,14 @@ class EditableTextPanel(Panel):
     def on_suggestion_button_click(self):
         button = self.sender()
         suggestion_index = self.suggestion_buttons.index(button)
-        if suggestion_index < len(self.suggestion_texts):
-            self.text_edit.setPlainText(self.suggestion_texts[suggestion_index])
+        if suggestion_index >= len(self.suggestion_texts):
+            return
+        suggestion_text = self.suggestion_texts[suggestion_index]
+        if suggestion_text is None:
+            self.text_edit.setPlainText(REQUESTING_MISSING_TEXT)
+            self.submit_button.click()
+        else:
+            self.text_edit.setPlainText(suggestion_text)
 
     def _set_plain_text(self, text: str):
         self.text_edit.setPlainText(text)
