@@ -76,10 +76,7 @@ FAKE_REQUEST_HUMAN_RESPONSE_ON_PLAYBACK = Flag(False)  # For video recording
 CHOSEN_APP = Mutable('pyside')
 
 # Human code review:
-# If True, the user can change all code reviews.
-# If None, the user can change only the last code review.
-# If False, the user cannot change code reviews.
-HUMAN_EDIT_CODE_REVIEW = None
+HUMAN_EDIT_CODE_REVIEW = True
 
 HUMAN_NAME = 'Human'
 

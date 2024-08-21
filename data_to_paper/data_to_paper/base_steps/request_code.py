@@ -1,7 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Tuple, Dict, Type, Any, NamedTuple, Collection
+from typing import Optional, Tuple, Dict, Type, Any, NamedTuple, Collection, List
 
 from data_to_paper.env import SUPPORTED_PACKAGES, HUMAN_EDIT_CODE_REVIEW, PAUSE_AT_LLM_FEEDBACK, \
     PAUSE_AT_PROMPT_FOR_LLM_FEEDBACK
@@ -177,8 +177,6 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
             """)),
     )
 
-    _index_of_code_review: int = 0
-
     @property
     def output_filename(self) -> str:
         return self.output_file_requirements.get_single_content_file()
@@ -231,7 +229,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
             code_and_output, debugger = self._run_debugger(code_and_output.code)
             if code_and_output is None:
                 raise FailedCreatingProductException("Code debugging failed.")
-            if self.revision_round == self.max_code_revisions and HUMAN_EDIT_CODE_REVIEW == False:  # noqa
+            if self.revision_round == self.max_code_revisions and not HUMAN_EDIT_CODE_REVIEW:
                 break
             if not self._get_llm_review_and_human_review(code_and_output, debugger):
                 break
@@ -299,30 +297,29 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         return content_files_to_contents
 
     @staticmethod
-    def _convert_issues_to_messages(issues: Dict[str, Tuple[str, str]],
-                                    termination_phrase: str, header: str) -> Tuple[str, str]:
+    def _convert_issues_to_messages(issues: Dict[str, Tuple[str, str]], header: str) -> Tuple[str, str, bool]:
         """
         Convert the issues to:
         - llm_msg: a string with the issues that are problems to send to the LLM
         - app_msg: a string with all the issues to present in the app
+        - is_all_ok: True if all issues are OK, False if all issues are concerns, None if there are both
         """
 
         concern_issues = {issue: feedback for issue, (type_, feedback) in issues.items() if type_ != 'OK'}
         is_all_ok = True if not concern_issues else False if len(concern_issues) == len(issues) else None
-        llm_msg = '\n\n'.join(f'## {issue}\n{solution}' for issue, solution in concern_issues.items())
-        if llm_msg:
-            llm_msg += '\n\n## Other\nPlease fix any other issues that you may find.'
+        if concern_issues:
+            llm_msg = '\n\n'.join(f'## {issue}\n{solution}' for issue, solution in concern_issues.items())
         else:
-            llm_msg = termination_phrase
+            llm_msg = 'No issues found.'
 
         if issues:
             app_msg = '\n'.join(
                 f'### {Symbols.get_is_ok_symbol(type_ == "OK")} {issue}\n{feedback}'
                 for issue, (type_, feedback) in issues.items())
         else:
-            app_msg = f'### {termination_phrase}'
+            app_msg = f'No issues found.'
         app_msg = f'## {Symbols.get_is_ok_symbol(is_all_ok)} {header}\n{app_msg}'
-        return llm_msg, app_msg
+        return llm_msg, app_msg, is_all_ok
 
     def _get_llm_review_and_human_review(self, code_and_output: CodeAndOutput, debugger: DebuggerConverser) -> bool:
         """
@@ -331,10 +328,8 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         """
         prompt_to_append_at_end_of_response = \
             Replacer(debugger, debugger.prompt_to_append_at_end_of_response).format_text()
+        llm_msgs_and_is_issues: List[Tuple[str, bool]] = []
         for index, code_review_prompt in enumerate(self.code_review_prompts):
-            if index < self._index_of_code_review:
-                continue
-            is_last_review = index == len(self.code_review_prompts) - 1
             content_files_to_contents = self._get_content_files_to_contents(
                 code_and_output, code_review_prompt.wildcard_filename, code_review_prompt.individually)
             for filename, file_contents_str in content_files_to_contents.items():
@@ -360,29 +355,38 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                         mission_prompt=formatted_code_review_prompt,
                         app=None,
                     ).run_and_get_valid_result(with_review=False)
-                termination_phrase = f'{header}: no issues found.'
-                llm_msg, app_msg = \
-                    self._convert_issues_to_messages(issues_to_is_ok_and_feedback, termination_phrase, header)
+                llm_msg, app_msg, is_all_ok = \
+                    self._convert_issues_to_messages(issues_to_is_ok_and_feedback, header)
+                llm_msgs_and_is_issues.append((llm_msg, is_all_ok is True))
                 self._app_send_prompt(PanelNames.FEEDBACK, app_msg, sleep_for=PAUSE_AT_LLM_FEEDBACK, from_md=True)
-                if self.app and (HUMAN_EDIT_CODE_REVIEW or (HUMAN_EDIT_CODE_REVIEW is None and is_last_review)):
-                    llm_msg = self._app_receive_text(
-                        PanelNames.FEEDBACK, '',
-                        title='Human Code Review',
-                        in_field_instructions=dedent_triple_quote_str("""
-                            Enter your feedback on code and output.
-                            Leave blank if no issues.
-                            """),
-                        optional_suggestions={'AI': llm_msg, 'Default': ''})
-                if llm_msg.strip() and llm_msg != termination_phrase:
-                    response = '# ' + header + dedent_triple_quote_str("""\n
-                        The code has some issues that need to be fixed:
 
-                        {issues_to_solutions}
+            termination_phrase = f'No issues found.'
+            if all(is_ok for _, is_ok in llm_msgs_and_is_issues):
+                llm_review = termination_phrase
+            else:
+                llm_review = '\n\n'.join(llm_msg for llm_msg, is_issues in llm_msgs_and_is_issues)
 
-                        {prompt_to_append_at_end_of_response}
-                        """).format(issues_to_solutions=llm_msg,
-                                    prompt_to_append_at_end_of_response=prompt_to_append_at_end_of_response)
-                    self.apply_append_user_message(response)
-                    return True
-            self._index_of_code_review = index + 1
+            if self.app and HUMAN_EDIT_CODE_REVIEW:
+                review = self._app_receive_text(
+                    PanelNames.FEEDBACK, '',
+                    title='Human Code Review',
+                    in_field_instructions=dedent_triple_quote_str("""
+                        Enter your feedback on code and output.
+                        Leave blank if no issues.
+                        """),
+                    optional_suggestions={'AI': llm_review, 'Default': ''})
+            else:
+                review = llm_review + '\n\n## Other\nPlease fix any other issues that you may find.'
+
+            if review.strip() and review != termination_phrase:
+                response = '# Code review\n' + dedent_triple_quote_str("""
+                    The code has some issues that need to be fixed:
+
+                    {code_review}
+
+                    {prompt_to_append_at_end_of_response}
+                    """).format(code_review=review,
+                                prompt_to_append_at_end_of_response=prompt_to_append_at_end_of_response)
+                self.apply_append_user_message(response)
+                return True
         return False
