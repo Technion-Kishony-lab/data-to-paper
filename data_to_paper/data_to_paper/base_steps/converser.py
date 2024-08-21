@@ -20,6 +20,10 @@ from data_to_paper.base_cast import Agent
 
 
 def _raise_if_reset():
+    """
+    Add this decorator to any method where we need to check if the user has clicked a reset button.
+    Only need to apply to methods that takes a while to run.
+    """
     def decorator(func):
         @wraps(func)
         def wrapper(self, *args, **kwargs):
@@ -99,19 +103,16 @@ class Converser(Copier, AppInteractor):
         if stage_to_reset_to:
             raise ResetStepException(stage_to_reset_to)
 
-    @_raise_if_reset()
     def _print_conversation_header(self):
         print_and_log_magenta('==== Starting conversation ' + '=' * (TEXT_WIDTH - 27))
         print_and_log_magenta(self.conversation_name.center(TEXT_WIDTH))
         print_and_log_magenta('=' * TEXT_WIDTH)
 
-    @_raise_if_reset()
     def _upon_conversation_initiation(self):
         self._print_conversation_header()
         self._app_clear_panels()
         self._app_set_focus_on_panel(PanelNames.RESPONSE)  # The Prompt panel might stay empty for a while.
 
-    @_raise_if_reset()
     def initialize_conversation_if_needed(self):
         if self.conversation is None:
             self._upon_conversation_initiation()
@@ -119,7 +120,6 @@ class Converser(Copier, AppInteractor):
         if len(self.conversation) == 0 and self.system_prompt:
             self.apply_append_system_message(self.system_prompt)
 
-    @_raise_if_reset()
     def comment(self, comment: StrOrReplacer, tag: Optional[StrOrReplacer] = None, as_action: bool = True,
                 **kwargs):
         """
@@ -230,11 +230,9 @@ class Converser(Copier, AppInteractor):
             ignore=ignore,
             previous_code=previous_code, is_background=is_background, **kwargs)
 
-    @_raise_if_reset()
     def apply_delete_messages(self, message_designation: GeneralMessageDesignation, comment: Optional[str] = None):
         return self.conversation_manager.delete_messages(message_designation, comment=comment)
 
-    @_raise_if_reset()
     def set(self, **kwargs):
         """
         Set attributes of the class.

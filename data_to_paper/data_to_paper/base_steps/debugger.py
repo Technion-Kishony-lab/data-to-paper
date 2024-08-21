@@ -410,7 +410,6 @@ class DebuggerConverser(BackgroundProductsConverser):
     METHODS FOR RUNNING CODE
     """
 
-    @_raise_if_reset()
     def _get_code_runner(self, response: str) -> BaseCodeRunner:
         return self.code_runner_cls(
             response=response,
@@ -434,7 +433,6 @@ class DebuggerConverser(BackgroundProductsConverser):
         """
         return (len(self.conversation) - self._conversation_len_before_first_response - 1) // 2
 
-    @_raise_if_reset()
     def _post_code_as_fresh(self, code: str, code_problem: Optional[CodeProblem] = None, action_stage: int = 0):
         self._rewind_conversation_to_first_response(offset=action_stage * 2)
         if action_stage == 0:
@@ -453,7 +451,6 @@ class DebuggerConverser(BackgroundProductsConverser):
             comment=comment,
         )
 
-    @_raise_if_reset()
     def _respond_to_issues(self, issues: Union[None, RunIssue, List[RunIssue], RunIssues],
                            code_and_output: Optional[CodeAndOutput] = None) -> Optional[CodeAndOutput]:
         """
@@ -551,6 +548,7 @@ class DebuggerConverser(BackgroundProductsConverser):
             self._requesting_small_change = issues.do_all_issues_request_small_change()
         return None
 
+    @_raise_if_reset()
     def _get_code_and_respond_to_issues(self, response: str) -> Optional[CodeAndOutput]:
         """
         Get a code from the LLM, run it and return code and result.
@@ -614,7 +612,6 @@ class DebuggerConverser(BackgroundProductsConverser):
 
         return self._respond_to_issues(None, code_and_output)
 
-    @_raise_if_reset()
     def run_debugging(self) -> Optional[CodeAndOutput]:
         """
         Run the debugging process.
