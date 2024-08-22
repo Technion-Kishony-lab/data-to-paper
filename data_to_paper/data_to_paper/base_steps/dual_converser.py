@@ -198,6 +198,10 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
     human_review: bool = True
     # whether to ask for human review after the LLM-dialog is completed
 
+    @property
+    def is_human_review(self):
+        return self.human_review and self.app
+
     def __post_init__(self):
         if self.max_reviewing_rounds == 0:
             # we are not reviewing, so this is essentially a single conversation
@@ -234,13 +238,12 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
                 message = self.apply_to_other_get_and_append_assistant_message()
         return message
 
-    def get_response_from_self_in_response_to_response_from_other(self, altered_other_response: str,
-                                                                  is_human_review: bool = False) -> Message:
+    def get_response_from_self_in_response_to_response_from_other(self, altered_other_response: str) -> Message:
         """
         Append response from other as user message to self conversation, and get response from assistant.
         """
         self.apply_append_user_message(altered_other_response,
-                                       sleep_for=0 if is_human_review else PAUSE_AT_LLM_FEEDBACK)
+                                       sleep_for=0 if self.is_human_review else PAUSE_AT_LLM_FEEDBACK)
         return self.apply_get_and_append_assistant_message()
 
     def _alter_self_response(self, response: str) -> str:
@@ -304,7 +307,7 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
             return CycleStatus.FAILED_CHECK_SELF_RESPONSE
 
         # We have a valid response from self. Now we can proceed with the dialog:
-        if is_last_round and not (self.human_review and CHOSEN_APP != None):  # noqa
+        if is_last_round and not self.is_human_review:
             return CycleStatus.MAX_ROUNDS_EXCEEDED
         valid_result = self._get_valid_result()
         fresh_looking_self_response = self._convert_valid_results_to_fresh_looking_response(valid_result)
@@ -315,9 +318,8 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
         else:
             other_message = self.get_response_from_other_in_response_to_response_from_self(altered_self_response)
             other_response = other_message.content
-        is_human_review = self.human_review and self.app
         goal = format_value(self, self.goal_noun)
-        if is_human_review:
+        if self.is_human_review:
             other_response = self._app_receive_text(
                 PanelNames.FEEDBACK, '',
                 title='User feedback requested',
@@ -332,11 +334,10 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
         if self._is_reviewer_response_terminating(other_response):
             if self.append_termination_response_to_self:
                 self.apply_append_user_message(other_response, context=other_message.context if other_message else None,
-                                               sleep_for=not self.human_review and PAUSE_AT_LLM_FEEDBACK.val)
+                                               sleep_for=not self.is_human_review and PAUSE_AT_LLM_FEEDBACK.val)
             return CycleStatus.APPROVED_BY_OTHER
 
-        self.get_response_from_self_in_response_to_response_from_other(altered_other_response,
-                                                                       is_human_review=is_human_review)
+        self.get_response_from_self_in_response_to_response_from_other(altered_other_response)
         return CycleStatus.NOT_APPROVED_BY_OTHER
 
 
