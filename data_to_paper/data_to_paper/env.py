@@ -76,7 +76,10 @@ FAKE_REQUEST_HUMAN_RESPONSE_ON_PLAYBACK = Flag(False)  # For video recording
 CHOSEN_APP = Mutable('pyside')
 
 # Human code review:
-HUMAN_EDIT_CODE_REVIEW = True
+# True: LLM code review is requested first and is sent for human review (to be retrieved on "AI" button click).
+# False: LLM code review is submitted without human review.
+# None: LLM code review is requested only if human click "AI" button.
+HUMAN_EDIT_CODE_REVIEW = Mutable(None)
 
 HUMAN_NAME = 'Human'
 
