@@ -3,6 +3,7 @@ from typing import Optional
 
 from pathlib import Path
 
+from data_to_paper.interactive.human_review import HumanReviewType
 from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils.mutable import Mutable, Flag
 
@@ -75,11 +76,8 @@ FAKE_REQUEST_HUMAN_RESPONSE_ON_PLAYBACK = Flag(False)  # For video recording
 # but not with None. Runs recorded with None can be replayed only with None.
 CHOSEN_APP = Mutable('pyside')
 
-# Human code review:
-# True: LLM code review is requested first and is sent for human review (to be retrieved on "AI" button click).
-# False: LLM code review is submitted without human review.
-# None: LLM code review is requested only if human click "AI" button.
-HUMAN_EDIT_CODE_REVIEW = Mutable(None)
+# Human review:
+DEFAULT_HUMAN_REVIEW_TYPE = Mutable(HumanReviewType.LLM_UPON_REQUEST)
 
 HUMAN_NAME = 'Human'
 

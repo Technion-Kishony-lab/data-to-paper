@@ -3,8 +3,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, Tuple, Dict, Type, Any, NamedTuple, Collection, List
 
-from data_to_paper.env import SUPPORTED_PACKAGES, HUMAN_EDIT_CODE_REVIEW, PAUSE_AT_LLM_FEEDBACK, \
-    PAUSE_AT_PROMPT_FOR_LLM_FEEDBACK
+from data_to_paper.env import SUPPORTED_PACKAGES, PAUSE_AT_LLM_FEEDBACK, PAUSE_AT_PROMPT_FOR_LLM_FEEDBACK
 from data_to_paper.interactive import PanelNames
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.run_gpt_code.run_issues import CodeProblem
@@ -22,6 +21,7 @@ from .exceptions import FailedCreatingProductException
 from .request_python_value import PythonDictReviewBackgroundProductsConverser
 from .result_converser import Rewind
 from ..interactive.human_actions import RequestInfoHumanAction, TextSentHumanAction
+from ..interactive.human_review import HumanReviewAppInteractor, HumanReviewType
 
 
 class CodeReviewPrompt(NamedTuple):
@@ -82,7 +82,7 @@ class RequestIssuesToSolutions(PythonDictReviewBackgroundProductsConverser):
 
 
 @dataclass
-class BaseCodeProductsGPT(BackgroundProductsConverser):
+class BaseCodeProductsGPT(BackgroundProductsConverser, HumanReviewAppInteractor):
     max_code_revisions: int = 5
     max_code_writing_attempts: int = 2
     max_debug_iterations_per_attempt: int = 12
@@ -231,7 +231,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
             code_and_output, debugger = self._run_debugger(code_and_output.code)
             if code_and_output is None:
                 raise FailedCreatingProductException("Code debugging failed.")
-            if self.revision_round >= self.max_code_revisions and HUMAN_EDIT_CODE_REVIEW.val is False:
+            if self.revision_round >= self.max_code_revisions and not self.actual_human_review:
                 break
             if not self._get_code_review(code_and_output, debugger):
                 break
@@ -389,16 +389,15 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         Return True/False indicating if the LLM wants to revise the code.
         If true, set the conversation to the state where the user ask the LLM to revise the code.
         """
-        human_edit_code_review = HUMAN_EDIT_CODE_REVIEW.val
-        if human_edit_code_review is False:
+        if self.actual_human_review == HumanReviewType.NONE:
             # Only LLM code review
             llm_review = self._get_llm_code_review(code_and_output)
             human_review = None
-        elif human_edit_code_review is True:
-            # LLM code review is performed and sent for human review
+        elif self.actual_human_review == HumanReviewType.LLM_FIRST:
+            # LLM code review is performed first and sent for human review
             llm_review = self._get_llm_code_review(code_and_output)
             human_review = self._get_human_code_review(llm_review)
-        elif human_edit_code_review is None:
+        elif self.actual_human_review == HumanReviewType.LLM_UPON_REQUEST:
             # LLM code review is requested only if human click "AI" button
             llm_review = None
             human_review = self._get_human_code_review(llm_review)
@@ -407,7 +406,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                 human_review = self._get_human_code_review(llm_review, title='Human Code Review (AI draft provided)',
                                                            initial_text=llm_review)
         else:
-            raise ValueError(f'Invalid value for HUMAN_EDIT_CODE_REVIEW: {human_edit_code_review}')
+            raise ValueError(f'Invalid value for human_review: {self.actual_human_review}')
 
         review = llm_review if human_review is None else human_review
         is_review = review.strip() and review != self.termination_phrase

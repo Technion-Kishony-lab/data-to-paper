@@ -15,6 +15,8 @@ from data_to_paper.servers.model_engine import ModelEngine
 
 from .converser import Converser
 from .result_converser import ResultConverser, Rewind
+from ..interactive.human_actions import RequestInfoHumanAction, TextSentHumanAction
+from ..interactive.human_review import HumanReviewAppInteractor, HumanReviewType
 
 
 class CycleStatus(Enum):
@@ -141,7 +143,7 @@ class DualConverserGPT(Converser):
 
 
 @dataclass
-class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
+class DialogDualConverserGPT(DualConverserGPT, ResultConverser, HumanReviewAppInteractor):
     """
     A base class for agents running a dialog between two LLM agents (self and other), where the roles of the two
     agents are reversed. The ASSISTANT response from one conversation is used as the USER response in the other
@@ -195,15 +197,8 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
     # AS_FRESH: keep only the last response posted as fresh
     # ACCUMULATE (default, also None): keep all responses
 
-    human_review: bool = True
-    # whether to ask for human review after the LLM-dialog is completed
-
-    @property
-    def is_human_review(self):
-        return self.human_review and self.app
-
     def __post_init__(self):
-        if self.max_reviewing_rounds == 0:
+        if not self.are_we_reviewing_at_all:
             # we are not reviewing, so this is essentially a single conversation
             ResultConverser.__post_init__(self)
         else:
@@ -217,6 +212,10 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
     @property
     def are_we_reviewing_at_all(self) -> bool:
         return self.max_reviewing_rounds > 0
+
+    @property
+    def is_last_round(self) -> bool:
+        return self.round_num >= self.max_reviewing_rounds
 
     def get_response_from_other_in_response_to_response_from_self(self, altered_self_response: str) -> Message:
         """
@@ -243,7 +242,7 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
         Append response from other as user message to self conversation, and get response from assistant.
         """
         self.apply_append_user_message(altered_other_response,
-                                       sleep_for=0 if self.is_human_review else PAUSE_AT_LLM_FEEDBACK)
+                                       sleep_for=0 if self.actual_human_review else PAUSE_AT_LLM_FEEDBACK)
         return self.apply_get_and_append_assistant_message()
 
     def _alter_self_response(self, response: str) -> str:
@@ -296,48 +295,79 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
             self.apply_append_surrogate_message(self._convert_valid_results_to_fresh_looking_response(valid_result))
         return cycle_status
 
-    def run_one_cycle(self) -> CycleStatus:
-        """
-        Run one cycle of the dialog. Makes updates to valid_result by calling
-        _check_and_extract_value_from_self_response().
-        """
-        is_last_round = self.round_num >= self.max_reviewing_rounds
-        is_converged, is_new_valid_result = self._iterate_until_valid_response()
-        if not is_new_valid_result:
-            return CycleStatus.FAILED_CHECK_SELF_RESPONSE
-
-        # We have a valid response from self. Now we can proceed with the dialog:
-        if is_last_round and not self.is_human_review:
-            return CycleStatus.MAX_ROUNDS_EXCEEDED
+    def _get_other_message_and_response(self) -> (Message, str):
         valid_result = self._get_valid_result()
         fresh_looking_self_response = self._convert_valid_results_to_fresh_looking_response(valid_result)
         altered_self_response = self._alter_self_response(fresh_looking_self_response)
-        if is_last_round:
+        if self.is_last_round:
             other_message = None
             other_response = self.get_termination_phrase()
         else:
             other_message = self.get_response_from_other_in_response_to_response_from_self(altered_self_response)
             other_response = other_message.content
+        return other_message, other_response
+
+    def _get_human_review(self, llm_review: Optional[str] = None, initial_review: Optional[str] = '') -> Optional[str]:
         goal = format_value(self, self.goal_noun)
-        if self.is_human_review:
-            other_response = self._app_receive_text(
-                PanelNames.FEEDBACK, '',
-                title='User feedback requested',
-                in_field_instructions=f'Give feedback on the {goal} (see Product tab above).\n'
-                                      f'Leave blank if you have no suggestions for improvements.',
-                optional_suggestions={'AI': other_response, 'Default': ''})
+        human_action = self._app_receive_action(
+            PanelNames.FEEDBACK, initial_text=initial_review,
+            title='User feedback requested',
+            in_field_instructions=f'Give feedback on the {goal} (see Product tab above).\n'
+                                  f'Leave blank if you have no suggestions for improvements.',
+            optional_suggestions={'AI': llm_review, 'Default': ''})
+        if isinstance(human_action, RequestInfoHumanAction):
+            assert human_action.value == 'AI'
+            return None
+        assert isinstance(human_action, TextSentHumanAction)
+        return human_action.value
+
+    def run_one_cycle(self) -> CycleStatus:
+        """
+        Run one cycle of the dialog. Makes updates to valid_result by calling
+        _check_and_extract_value_from_self_response().
+        """
+        is_converged, is_new_valid_result = self._iterate_until_valid_response()
+        if not is_new_valid_result:
+            return CycleStatus.FAILED_CHECK_SELF_RESPONSE
+
+        # We have a valid response from self. Now we can proceed with the dialog:
+        if self.is_last_round and not self.actual_human_review:
+            return CycleStatus.MAX_ROUNDS_EXCEEDED
+
+        if self.actual_human_review == HumanReviewType.NONE:
+            llm_review_message, llm_review = self._get_other_message_and_response()
+            human_review = None
+        elif self.actual_human_review == HumanReviewType.LLM_FIRST:
+            llm_review_message, llm_review = self._get_other_message_and_response()
+            human_review = self._get_human_review(llm_review=llm_review)
+        elif self.actual_human_review == HumanReviewType.LLM_UPON_REQUEST:
+            llm_review_message, llm_review = None, None
+            human_review = self._get_human_review()
+            if human_review is None:
+                llm_review_message, llm_review = self._get_other_message_and_response()
+                human_review = self._get_human_review(llm_review=llm_review, initial_review=llm_review)
+        else:
+            raise ValueError(f'Unknown HumanReviewType: {self.actual_human_review}')
+        if human_review is not None:
             # replace other response with the human response in other conversation:
             if self.are_we_reviewing_at_all:
                 self.apply_to_other_delete_messages(-1)
-                self.apply_to_other_append_surrogate_message(other_response)
-        altered_other_response = self._alter_other_response(other_response)
-        if self._is_reviewer_response_terminating(other_response):
+                self.apply_to_other_append_surrogate_message(human_review)
+            review = human_review
+            is_review = review.strip() and review != self.termination_phrase
+        else:
+            review = llm_review
+            is_review = not self._is_reviewer_response_terminating(review)
+
+        if not is_review:
             if self.append_termination_response_to_self:
-                self.apply_append_user_message(other_response, context=other_message.context if other_message else None,
-                                               sleep_for=not self.is_human_review and PAUSE_AT_LLM_FEEDBACK.val)
+                self.apply_append_user_message(
+                    review, context=llm_review_message.context if llm_review_message else None,
+                    sleep_for=not self.actual_human_review and PAUSE_AT_LLM_FEEDBACK.val)
             return CycleStatus.APPROVED_BY_OTHER
 
-        self.get_response_from_self_in_response_to_response_from_other(altered_other_response)
+        altered_review = self._alter_other_response(review)
+        self.get_response_from_self_in_response_to_response_from_other(altered_review)
         return CycleStatus.NOT_APPROVED_BY_OTHER
 
 

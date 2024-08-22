@@ -3,13 +3,13 @@ from pytest import fixture
 
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations, Conversations, Actions
 from data_to_paper.env import SAVE_INTERMEDIATE_LATEX, CHOSEN_APP, DELAY_CODE_RUN_CACHE_RETRIEVAL, \
-    DELAY_SERVER_CACHE_RETRIEVAL, HUMAN_EDIT_CODE_REVIEW
+    DELAY_SERVER_CACHE_RETRIEVAL, HUMAN_CODE_REVIEW
 
 
 @pytest.fixture(scope="session", autouse=True)
 def set_env():
     with CHOSEN_APP.temporary_set(None), \
-            HUMAN_EDIT_CODE_REVIEW.temporary_set(False), \
+            HUMAN_CODE_REVIEW.temporary_set(False), \
             DELAY_CODE_RUN_CACHE_RETRIEVAL.temporary_set(0), \
             DELAY_SERVER_CACHE_RETRIEVAL.temporary_set(0):
         yield
