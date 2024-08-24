@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, Tuple, Dict, Type, Any, NamedTuple, Collection, List
 
+from data_to_paper.types import HumanReviewType
 from data_to_paper.env import SUPPORTED_PACKAGES, PAUSE_AT_LLM_FEEDBACK, PAUSE_AT_PROMPT_FOR_LLM_FEEDBACK
 from data_to_paper.interactive import PanelNames
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
@@ -15,13 +16,14 @@ from data_to_paper.utils.replacer import Replacer
 from data_to_paper.code_and_output_files.file_view_params import ContentViewPurpose
 from data_to_paper.interactive import Symbols
 
+from data_to_paper.interactive.human_actions import RequestInfoHumanAction, TextSentHumanAction
+from data_to_paper.interactive.human_review import HumanReviewAppInteractor
+
 from .debugger import DebuggerConverser
 from .base_products_conversers import BackgroundProductsConverser
 from .exceptions import FailedCreatingProductException
 from .request_python_value import PythonDictReviewBackgroundProductsConverser
 from .result_converser import Rewind
-from ..interactive.human_actions import RequestInfoHumanAction, TextSentHumanAction
-from ..interactive.human_review import HumanReviewAppInteractor, HumanReviewType
 
 
 class CodeReviewPrompt(NamedTuple):
@@ -368,20 +370,16 @@ class BaseCodeProductsGPT(BackgroundProductsConverser, HumanReviewAppInteractor)
                                ) -> Optional[str]:
         if not self.app:
             return None
-        human_action = self._app_receive_action(
-            PanelNames.FEEDBACK,
-            initial_text=initial_text,
-            title=title,
-            in_field_instructions=dedent_triple_quote_str("""
+        human_review, human_action = self._app_receive_text_and_action(PanelNames.FEEDBACK, initial_text=initial_text,
+                                                                       title=title,
+                                                                       in_field_instructions=dedent_triple_quote_str("""
                 Enter your feedback on code and output.
                 Leave blank if no issues.
-                """),
-            optional_suggestions={'AI': llm_review, 'Default': ''})
+                """), optional_suggestions={'AI': llm_review, 'Default': ''})
         if isinstance(human_action, RequestInfoHumanAction):
             assert human_action.value == 'AI'
             return None
-        assert isinstance(human_action, TextSentHumanAction)
-        return human_action.value
+        return human_review
 
     def _get_code_review(self, code_and_output: CodeAndOutput,
                          debugger: DebuggerConverser) -> bool:

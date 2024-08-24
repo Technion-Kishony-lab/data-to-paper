@@ -1,22 +1,24 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
+from typing import Optional, Any
 
+from data_to_paper.types import HumanReviewType
 from data_to_paper.conversation import ConversationManager, GeneralMessageDesignation, Message
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.replacer import StrOrReplacer, format_value
 from data_to_paper.utils.print_to_file import print_and_log_magenta
 from data_to_paper.utils.text_counting import is_bulleted_list
 from data_to_paper.interactive import PanelNames
-from data_to_paper.env import TEXT_WIDTH, CHOSEN_APP, PAUSE_AT_LLM_FEEDBACK
+from data_to_paper.interactive.human_actions import RequestInfoHumanAction, TextSentHumanAction
+from data_to_paper.interactive.human_review import HumanReviewAppInteractor
+from data_to_paper.env import TEXT_WIDTH, PAUSE_AT_LLM_FEEDBACK, AUTO_TERMINATE_AI_REVIEW
 from data_to_paper.run_gpt_code.code_utils import extract_content_of_triple_quote_block, FailedExtractingBlock, \
     IncompleteBlockFailedExtractingBlock
 from data_to_paper.servers.model_engine import ModelEngine
+from data_to_paper.conversation import Role
 
 from .converser import Converser
 from .result_converser import ResultConverser, Rewind
-from ..interactive.human_actions import RequestInfoHumanAction, TextSentHumanAction
-from ..interactive.human_review import HumanReviewAppInteractor, HumanReviewType
 
 
 class CycleStatus(Enum):
@@ -211,31 +213,11 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser, HumanReviewAppIn
 
     @property
     def are_we_reviewing_at_all(self) -> bool:
-        return self.max_reviewing_rounds > 0
+        return self.max_reviewing_rounds > 0 or self.actual_human_review
 
     @property
     def is_last_round(self) -> bool:
         return self.round_num >= self.max_reviewing_rounds
-
-    def get_response_from_other_in_response_to_response_from_self(self, altered_self_response: str) -> Message:
-        """
-        Append response from self as user message to other conversation, and get response from other assistant.
-        """
-        self.round_num += 1
-        self.apply_to_other_append_user_message(altered_self_response)
-        message = self.apply_to_other_get_and_append_assistant_message()
-        if self.respond_to_ambiguous_reviewer_termination is not None:
-            for attempt in range(self.max_reviewer_attempts):
-                is_termination = self._is_reviewer_response_terminating(message.content)
-                if is_termination is not None:
-                    break
-                # The reviewer response is ambiguous
-                if attempt > 0:
-                    self.apply_to_other_delete_messages(-1)  # delete the last message, to regenerate it
-                else:
-                    self.apply_to_other_append_user_message(self.respond_to_ambiguous_reviewer_termination)
-                message = self.apply_to_other_get_and_append_assistant_message()
-        return message
 
     def get_response_from_self_in_response_to_response_from_other(self, altered_other_response: str) -> Message:
         """
@@ -260,17 +242,16 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser, HumanReviewAppIn
     def get_termination_phrase(self) -> str:
         return format_value(self, self.termination_phrase)
 
-    def _is_reviewer_response_terminating(self, reviewer_response: str) -> Optional[bool]:
+    def _is_reviewer_response_terminating(self, reviewer_response: str, is_human: bool = False) -> Optional[bool]:
         """
         Check if the response from the reviewer indicates that the reviewer is satisfied.
         True: the reviewer is satisfied and the dialog is completed.
         False: the reviewer is not satisfied and the dialog continues.
         None: the reviewer response is ambiguous.
         """
-        if reviewer_response.strip() == '':
-            # Empty response, like from a human reviewer, is terminating:
-            return True
         is_phrase = self.get_termination_phrase().lower() in reviewer_response.lower()
+        if is_human:
+            return reviewer_response.strip() == '' or is_phrase
         if not is_phrase:
             return False
         if not is_bulleted_list(reviewer_response):
@@ -295,31 +276,53 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser, HumanReviewAppIn
             self.apply_append_surrogate_message(self._convert_valid_results_to_fresh_looking_response(valid_result))
         return cycle_status
 
-    def _get_other_message_and_response(self) -> (Message, str):
+    def _convert_valid_results_to_fresh_looking_response_and_add_to_other(self) -> str:
         valid_result = self._get_valid_result()
         fresh_looking_self_response = self._convert_valid_results_to_fresh_looking_response(valid_result)
         altered_self_response = self._alter_self_response(fresh_looking_self_response)
-        if self.is_last_round:
-            other_message = None
-            other_response = self.get_termination_phrase()
-        else:
-            other_message = self.get_response_from_other_in_response_to_response_from_self(altered_self_response)
-            other_response = other_message.content
-        return other_message, other_response
+        self.apply_to_other_append_user_message(altered_self_response)
+        return altered_self_response
+
+    def _get_other_message_and_response(self, auto_terminate: bool = True) -> (Message, str):
+        should_terminate = auto_terminate and self.is_last_round
+        self.round_num += 1
+        if should_terminate:
+            return None, self.get_termination_phrase()
+
+        message = self.apply_to_other_get_and_append_assistant_message()
+        if self.respond_to_ambiguous_reviewer_termination is not None:
+            for attempt in range(self.max_reviewer_attempts):
+                is_termination = self._is_reviewer_response_terminating(message.content)
+                if is_termination is not None:
+                    break
+                # The reviewer response is ambiguous
+                if attempt > 0:
+                    self.apply_to_other_delete_messages(-1)  # delete the last message, to regenerate it
+                else:
+                    self.apply_to_other_append_user_message(self.respond_to_ambiguous_reviewer_termination)
+                message = self.apply_to_other_get_and_append_assistant_message()
+
+        return message, message.content
+
+    def _add_or_replace_other_response(self, response: str) -> str:
+        is_last_message_user = self.other_conversation[-1].role == Role.USER
+        if not is_last_message_user:
+            self.apply_to_other_delete_messages(-1)
+            assert self.other_conversation[-1].role == Role.USER
+        self.apply_to_other_append_surrogate_message(response)
 
     def _get_human_review(self, llm_review: Optional[str] = None, initial_review: Optional[str] = '') -> Optional[str]:
         goal = format_value(self, self.goal_noun)
-        human_action = self._app_receive_action(
-            PanelNames.FEEDBACK, initial_text=initial_review,
-            title='User feedback requested',
-            in_field_instructions=f'Give feedback on the {goal} (see Product tab above).\n'
-                                  f'Leave blank if you have no suggestions for improvements.',
-            optional_suggestions={'AI': llm_review, 'Default': ''})
+        human_review, human_action = self._app_receive_text_and_action(PanelNames.FEEDBACK, initial_text=initial_review,
+                                                                       title='User feedback requested',
+                                                                       in_field_instructions=f'Give feedback on the {goal} (see Product tab above).\n'
+                                                                                             f'Leave blank if you have no suggestions for improvements.',
+                                                                       optional_suggestions={'AI': llm_review,
+                                                                                             'Default': ''})
         if isinstance(human_action, RequestInfoHumanAction):
             assert human_action.value == 'AI'
             return None
-        assert isinstance(human_action, TextSentHumanAction)
-        return human_action.value
+        return human_review
 
     def run_one_cycle(self) -> CycleStatus:
         """
@@ -333,33 +336,27 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser, HumanReviewAppIn
         # We have a valid response from self. Now we can proceed with the dialog:
         if self.is_last_round and not self.actual_human_review:
             return CycleStatus.MAX_ROUNDS_EXCEEDED
+        self._convert_valid_results_to_fresh_looking_response_and_add_to_other()
 
         if self.actual_human_review == HumanReviewType.NONE:
-            llm_review_message, llm_review = self._get_other_message_and_response()
+            llm_review_message, llm_review = self._get_other_message_and_response(auto_terminate=True)
             human_review = None
         elif self.actual_human_review == HumanReviewType.LLM_FIRST:
-            llm_review_message, llm_review = self._get_other_message_and_response()
+            llm_review_message, llm_review = self._get_other_message_and_response(AUTO_TERMINATE_AI_REVIEW)
             human_review = self._get_human_review(llm_review=llm_review)
         elif self.actual_human_review == HumanReviewType.LLM_UPON_REQUEST:
             llm_review_message, llm_review = None, None
             human_review = self._get_human_review()
             if human_review is None:
-                llm_review_message, llm_review = self._get_other_message_and_response()
+                llm_review_message, llm_review = self._get_other_message_and_response(AUTO_TERMINATE_AI_REVIEW)
+                if self._is_reviewer_response_terminating(llm_review):
+                    llm_review = self.get_termination_phrase()
                 human_review = self._get_human_review(llm_review=llm_review, initial_review=llm_review)
         else:
             raise ValueError(f'Unknown HumanReviewType: {self.actual_human_review}')
-        if human_review is not None:
-            # replace other response with the human response in other conversation:
-            if self.are_we_reviewing_at_all:
-                self.apply_to_other_delete_messages(-1)
-                self.apply_to_other_append_surrogate_message(human_review)
-            review = human_review
-            is_review = review.strip() and review != self.termination_phrase
-        else:
-            review = llm_review
-            is_review = not self._is_reviewer_response_terminating(review)
-
-        if not is_review:
+        review = llm_review if human_review is None else human_review
+        self._add_or_replace_other_response(review)
+        if self._is_reviewer_response_terminating(review, is_human=human_review is not None):
             if self.append_termination_response_to_self:
                 self.apply_append_user_message(
                     review, context=llm_review_message.context if llm_review_message else None,
