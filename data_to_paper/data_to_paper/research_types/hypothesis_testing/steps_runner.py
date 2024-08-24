@@ -16,7 +16,7 @@ from .product_types import GoalAndHypothesisProduct
 from .reviewing_steps import GoalReviewGPT, HypothesesTestingPlanReviewGPT, NoveltyAssessmentReview, ReGoalReviewGPT, \
     GetMostSimilarCitations
 from .scientific_products import ScientificProducts
-from .scientific_stage import ScientificStage, SECTION_NAMES_TO_WRITING_STAGES
+from .scientific_stage import ScientificStage
 from .writing_steps import FirstTitleAbstractSectionWriterReviewGPT, SecondTitleAbstractSectionWriterReviewGPT, \
     MethodsSectionWriterReviewGPT, IntroductionSectionWriterReviewGPT, ResultsSectionWriterReviewGPT, \
     DiscussionSectionWriterReviewGPT

@@ -27,3 +27,11 @@ class TextSentHumanAction(HumanAction):
     value: str - the text sent.
     """
     pass
+
+
+@dataclass
+class RequestInfoHumanAction(HumanAction):
+    """
+    Class to store human actions of requesting missing text.
+    """
+    pass

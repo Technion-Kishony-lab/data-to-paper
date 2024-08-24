@@ -6,7 +6,9 @@ from data_to_paper.utils.print_to_file import print_and_log
 from data_to_paper.conversation.stage import Stage
 
 from .enum_types import PanelNames
-from .human_actions import ButtonClickedHumanAction, TextSentHumanAction, HumanAction
+from .human_actions import ButtonClickedHumanAction, TextSentHumanAction, HumanAction, RequestInfoHumanAction
+
+REQUESTING_MISSING_TEXT = "Requesting..."
 
 
 class BaseApp:
@@ -58,6 +60,8 @@ class BaseApp:
         optional_suggestions = {"Initial": initial_text, **optional_suggestions}
         text = self.request_text(panel_name, initial_text, title, instructions, in_field_instructions,
                                  optional_suggestions)
+        if text == REQUESTING_MISSING_TEXT:
+            return RequestInfoHumanAction('AI')
         if text == initial_text:
             return ButtonClickedHumanAction('Initial')
         for suggestion_name, suggestion_content in optional_suggestions.items():

@@ -201,10 +201,11 @@ def test_request_code_with_file_review_revisions(code_running_converser):
     code2 = get_code_that_creates_files('table_1.txt', "Improved output1", 'table_2.txt', "Improved output2")
     with OPENAI_SERVER_CALLER.mock(
             [f'Here is my first attempt:\n```python{code1}```\n',
-             'Code is ok {}',
+             'Code has issues {"key code issue is ...": ("CONCERN", "please fix code ...")}',
              'table_1.txt is ok {}',
              'table_2.txt has errors {"key issue is ...": ("CONCERN", "please fix ...")}',
              f'Here is the improved code:\n```python{code2}```\n',
+             'Code is ok {}',
              'table_1.txt is ok {}',
              'table_2.txt is ok {}',
              ],

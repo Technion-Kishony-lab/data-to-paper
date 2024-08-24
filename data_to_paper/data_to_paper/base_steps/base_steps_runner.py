@@ -16,7 +16,7 @@ from data_to_paper.utils.print_to_file import print_and_log, console_log_file_co
 from data_to_paper.servers.llm_call import OPENAI_SERVER_CALLER, OpenaiServerCaller
 from data_to_paper.servers.crossref import CROSSREF_SERVER_CALLER
 from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER
-from data_to_paper.conversation.stage import Stage, get_all_keys_following_stage
+from data_to_paper.conversation.stage import Stage
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
 from data_to_paper.exceptions import TerminateException, ResetStepException
 from data_to_paper.base_products import DataFileDescriptions

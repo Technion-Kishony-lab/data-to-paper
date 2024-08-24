@@ -1,7 +1,7 @@
 import time
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from typing import Optional, Dict, Union, Iterable
+from typing import Optional, Dict, Union, Iterable, Tuple
 
 from data_to_paper.env import REQUEST_CONTINUE_IN_PLAYBACK, FAKE_REQUEST_HUMAN_RESPONSE_ON_PLAYBACK
 
@@ -17,7 +17,7 @@ from data_to_paper.servers.llm_call import get_human_response, are_more_response
 from .base_app import BaseApp
 from .get_app import get_app
 from .enum_types import PanelNames
-from .human_actions import HumanAction, ButtonClickedHumanAction, TextSentHumanAction
+from .human_actions import HumanAction, ButtonClickedHumanAction, TextSentHumanAction, RequestInfoHumanAction
 
 
 def _skip_if_no_app(func):
@@ -70,12 +70,13 @@ class AppInteractor:
     def _app_set_focus_on_panel(self, panel_name: PanelNames):
         self.app.set_focus_on_panel(panel_name)
 
-    def _app_receive_text(self, panel_name: PanelNames, initial_text: str = '',
-                          title: Optional[str] = '',
-                          instructions: Optional[str] = '',
-                          in_field_instructions: Optional[str] = '',
-                          optional_suggestions: Dict[str, str] = None,
-                          sleep_for: Union[None, float, bool] = 0) -> str:
+    def _app_receive_text_and_action(
+            self, panel_name: PanelNames, initial_text: str = '',
+            title: Optional[str] = '',
+            instructions: Optional[str] = '',
+            in_field_instructions: Optional[str] = '',
+            optional_suggestions: Dict[str, str] = None,
+            sleep_for: Union[None, float, bool] = 0) -> Tuple[str, HumanAction]:
         is_playback = are_more_responses_available()
         action = self._app_receive_action(panel_name, initial_text, title, instructions, in_field_instructions,
                                           optional_suggestions)
@@ -91,9 +92,26 @@ class AppInteractor:
             sleep_for = None  # wait for the user to click Continue
         if not is_playback:
             sleep_for = 0
-        self._app_send_prompt(panel_name, content or "No human feedback provided",
+        shown_text = content
+        if shown_text == '' or shown_text is None:
+            if isinstance(action, RequestInfoHumanAction):
+                shown_text = f"Requesting {action.value}"
+            else:
+                shown_text = "No human feedback provided"
+        self._app_send_prompt(panel_name, shown_text,
                               from_md=True, demote_headers_by=1,
                               sleep_for=sleep_for)
+        return content, action
+
+    def _app_receive_text(
+            self, panel_name: PanelNames, initial_text: str = '',
+            title: Optional[str] = '',
+            instructions: Optional[str] = '',
+            in_field_instructions: Optional[str] = '',
+            optional_suggestions: Dict[str, str] = None,
+            sleep_for: Union[None, float, bool] = 0) -> str:
+        content, _ = self._app_receive_text_and_action(panel_name, initial_text, title, instructions,
+                                                       in_field_instructions, optional_suggestions, sleep_for)
         return content
 
     def _app_receive_action(self, panel_name: PanelNames, initial_text: str = '',

@@ -5,6 +5,7 @@ from pathlib import Path
 
 from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils.mutable import Mutable, Flag
+from .types import HumanReviewType
 
 BASE_FOLDER = Path(__file__).parent.parent.parent
 
@@ -75,11 +76,12 @@ FAKE_REQUEST_HUMAN_RESPONSE_ON_PLAYBACK = Flag(False)  # For video recording
 # but not with None. Runs recorded with None can be replayed only with None.
 CHOSEN_APP = Mutable('pyside')
 
-# Human code review:
-# If True, the user can change all code reviews.
-# If None, the user can change only the last code review.
-# If False, the user cannot change code reviews.
-HUMAN_EDIT_CODE_REVIEW = None
+# Human review:
+DEFAULT_HUMAN_REVIEW_TYPE = Mutable(HumanReviewType.LLM_UPON_REQUEST)
+
+# AI review. If True, AI review will default to the terminating phrase exceeding the max_reviewing_rounds.
+# (Only in effect when DEFAULT_HUMAN_REVIEW_TYPE is not HumanReviewType.NONE)
+AUTO_TERMINATE_AI_REVIEW = Flag(False)
 
 HUMAN_NAME = 'Human'
 
