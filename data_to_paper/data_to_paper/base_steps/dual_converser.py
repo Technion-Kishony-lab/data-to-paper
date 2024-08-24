@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional, Any
+from typing import Optional
 
 from data_to_paper.types import HumanReviewType
 from data_to_paper.conversation import ConversationManager, GeneralMessageDesignation, Message
@@ -9,7 +9,7 @@ from data_to_paper.utils.replacer import StrOrReplacer, format_value
 from data_to_paper.utils.print_to_file import print_and_log_magenta
 from data_to_paper.utils.text_counting import is_bulleted_list
 from data_to_paper.interactive import PanelNames
-from data_to_paper.interactive.human_actions import RequestInfoHumanAction, TextSentHumanAction
+from data_to_paper.interactive.human_actions import RequestInfoHumanAction
 from data_to_paper.interactive.human_review import HumanReviewAppInteractor
 from data_to_paper.env import TEXT_WIDTH, PAUSE_AT_LLM_FEEDBACK, AUTO_TERMINATE_AI_REVIEW
 from data_to_paper.run_gpt_code.code_utils import extract_content_of_triple_quote_block, FailedExtractingBlock, \
@@ -313,12 +313,12 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser, HumanReviewAppIn
 
     def _get_human_review(self, llm_review: Optional[str] = None, initial_review: Optional[str] = '') -> Optional[str]:
         goal = format_value(self, self.goal_noun)
-        human_review, human_action = self._app_receive_text_and_action(PanelNames.FEEDBACK, initial_text=initial_review,
-                                                                       title='User feedback requested',
-                                                                       in_field_instructions=f'Give feedback on the {goal} (see Product tab above).\n'
-                                                                                             f'Leave blank if you have no suggestions for improvements.',
-                                                                       optional_suggestions={'AI': llm_review,
-                                                                                             'Default': ''})
+        human_review, human_action = self._app_receive_text_and_action(
+            PanelNames.FEEDBACK, initial_text=initial_review,
+            title='User feedback requested',
+            in_field_instructions=f'Give feedback on the {goal} (see Product tab above).\n'
+                                  f'Leave blank if you have no suggestions for improvements.',
+            optional_suggestions={'AI': llm_review, 'Default': ''})
         if isinstance(human_action, RequestInfoHumanAction):
             assert human_action.value == 'AI'
             return None

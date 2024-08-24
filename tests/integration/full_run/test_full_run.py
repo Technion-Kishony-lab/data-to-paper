@@ -8,6 +8,7 @@ CURRENT_DIR = Path(__file__).parent
 project_directory = CURRENT_DIR / 'project' / 'prime_numbers'
 correct_output_directory = CURRENT_DIR / 'correct_files'
 
+
 def compare_files(file1: Path, file2: Path):
     with open(file1, 'r') as f1, open(file2, 'r') as f2:
         assert f1.read() == f2.read()

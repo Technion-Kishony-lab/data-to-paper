@@ -16,7 +16,7 @@ from data_to_paper.utils.replacer import Replacer
 from data_to_paper.code_and_output_files.file_view_params import ContentViewPurpose
 from data_to_paper.interactive import Symbols
 
-from data_to_paper.interactive.human_actions import RequestInfoHumanAction, TextSentHumanAction
+from data_to_paper.interactive.human_actions import RequestInfoHumanAction
 from data_to_paper.interactive.human_review import HumanReviewAppInteractor
 
 from .debugger import DebuggerConverser
