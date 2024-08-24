@@ -4,7 +4,8 @@ from pathlib import Path
 from typing import Optional, Tuple, Dict, Type, Any, NamedTuple, Collection, List
 
 from data_to_paper.types import HumanReviewType
-from data_to_paper.env import SUPPORTED_PACKAGES, PAUSE_AT_LLM_FEEDBACK, PAUSE_AT_PROMPT_FOR_LLM_FEEDBACK
+from data_to_paper.env import SUPPORTED_PACKAGES, PAUSE_AT_LLM_FEEDBACK, PAUSE_AT_PROMPT_FOR_LLM_FEEDBACK, \
+    AUTO_TERMINATE_AI_REVIEW
 from data_to_paper.interactive import PanelNames
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.run_gpt_code.run_issues import CodeProblem
@@ -233,9 +234,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser, HumanReviewAppInteractor)
             code_and_output, debugger = self._run_debugger(code_and_output.code)
             if code_and_output is None:
                 raise FailedCreatingProductException("Code debugging failed.")
-            if self.revision_round >= self.max_code_revisions and not self.actual_human_review:
-                break
-            if not self._get_code_review(code_and_output, debugger):
+            if self._get_code_review(code_and_output, debugger):
                 break
             # delete created files:
             code_and_output.created_files.delete_all_created_files(self.data_folder)
@@ -311,10 +310,11 @@ class BaseCodeProductsGPT(BackgroundProductsConverser, HumanReviewAppInteractor)
 
         concern_issues = {issue: feedback for issue, (type_, feedback) in issues.items() if type_ != 'OK'}
         is_all_ok = True if not concern_issues else False if len(concern_issues) == len(issues) else None
+        llm_msg = f'# {header}\n\n'
         if concern_issues:
-            llm_msg = '\n\n'.join(f'## {issue}\n{solution}' for issue, solution in concern_issues.items())
+            llm_msg += '\n\n'.join(f'## {issue}\n{solution}' for issue, solution in concern_issues.items())
         else:
-            llm_msg = 'No issues found.'
+            llm_msg += 'No issues found.'
 
         if issues:
             app_msg = '\n'.join(
@@ -325,7 +325,9 @@ class BaseCodeProductsGPT(BackgroundProductsConverser, HumanReviewAppInteractor)
         app_msg = f'## {Symbols.get_is_ok_symbol(is_all_ok)} {header}\n{app_msg}'
         return llm_msg, app_msg, is_all_ok
 
-    def _get_llm_code_review(self, code_and_output: CodeAndOutput) -> str:
+    def _get_llm_code_review(self, code_and_output: CodeAndOutput, auto_terminate: bool) -> str:
+        if auto_terminate and self.revision_round >= self.max_code_revisions:
+            return self.termination_phrase
         llm_msgs_and_is_issues: List[Tuple[str, bool]] = []
         for index, code_review_prompt in enumerate(self.code_review_prompts):
             content_files_to_contents = self._get_content_files_to_contents(
@@ -359,10 +361,8 @@ class BaseCodeProductsGPT(BackgroundProductsConverser, HumanReviewAppInteractor)
                 self._app_send_prompt(PanelNames.FEEDBACK, app_msg, sleep_for=PAUSE_AT_LLM_FEEDBACK, from_md=True)
 
         if all(is_ok for _, is_ok in llm_msgs_and_is_issues):
-            llm_review = self.termination_phrase
-        else:
-            llm_review = '\n\n'.join(llm_msg for llm_msg, is_issues in llm_msgs_and_is_issues)
-        return llm_review
+            return self.termination_phrase
+        return '\n\n\n'.join(llm_msg for llm_msg, is_issues in llm_msgs_and_is_issues)
 
     def _get_human_code_review(self, llm_review: Optional[str] = None,
                                initial_text: str = '',
@@ -389,31 +389,31 @@ class BaseCodeProductsGPT(BackgroundProductsConverser, HumanReviewAppInteractor)
         """
         if self.actual_human_review == HumanReviewType.NONE:
             # Only LLM code review
-            llm_review = self._get_llm_code_review(code_and_output)
+            llm_review = self._get_llm_code_review(code_and_output, auto_terminate=True)
             human_review = None
         elif self.actual_human_review == HumanReviewType.LLM_FIRST:
             # LLM code review is performed first and sent for human review
-            llm_review = self._get_llm_code_review(code_and_output)
+            llm_review = self._get_llm_code_review(code_and_output, auto_terminate=AUTO_TERMINATE_AI_REVIEW)
             human_review = self._get_human_code_review(llm_review)
         elif self.actual_human_review == HumanReviewType.LLM_UPON_REQUEST:
             # LLM code review is requested only if human click "AI" button
             llm_review = None
             human_review = self._get_human_code_review(llm_review)
             if human_review is None:
-                llm_review = self._get_llm_code_review(code_and_output)
+                llm_review = self._get_llm_code_review(code_and_output, auto_terminate=AUTO_TERMINATE_AI_REVIEW)
                 human_review = self._get_human_code_review(llm_review, title='Human Code Review (AI draft provided)',
                                                            initial_text=llm_review)
         else:
             raise ValueError(f'Invalid value for human_review: {self.actual_human_review}')
 
         review = llm_review if human_review is None else human_review
-        is_review = review.strip() and review != self.termination_phrase
+        is_terminating = not review.strip() or review == self.termination_phrase
         if human_review is None:
             review = review + '\n\n## Other\nPlease fix any other issues that you may find.'
 
         prompt_to_append_at_end_of_response = \
             Replacer(debugger, debugger.prompt_to_append_at_end_of_response).format_text()
-        if is_review:
+        if not is_terminating:
             response = '# Code review\n' + dedent_triple_quote_str("""
                 The code has some issues that need to be fixed:
 
@@ -423,4 +423,4 @@ class BaseCodeProductsGPT(BackgroundProductsConverser, HumanReviewAppInteractor)
                 """).format(code_review=review,
                             prompt_to_append_at_end_of_response=prompt_to_append_at_end_of_response)
             self.apply_append_user_message(response)
-        return is_review
+        return is_terminating
