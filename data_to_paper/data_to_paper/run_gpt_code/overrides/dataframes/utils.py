@@ -77,3 +77,49 @@ def to_html_with_value_format(df: DataFrame, *args,
                               object_formatter: Callable = None, **kwargs):
     to_html = get_original_df_method('to_html')
     return to_html(df, *args, formatters=_get_formatters_for_df(df, numeric_formater, object_formatter), **kwargs)
+
+
+def llm_readable_to_csv(df, index_label='index',
+                        numeric_formater: Callable = None,
+                        object_formatter: Callable = None):
+    """
+    Convert a DataFrame to a CSV string that is easy to parse by the LLM.
+    Takes care of:
+    - Quoting string values
+    - Quoting column names
+    - Quoting index values
+    - Formatting lists, tuples, and dictionaries
+    - Specifying the index label
+    - Multi-level column headers
+    - Multi-level indices
+    """
+    output = []
+
+    # Handle multi-level column headers
+    if isinstance(df.columns, pd.MultiIndex):
+        for level in range(df.columns.nlevels):
+            if index_label and df.index.nlevels > 0:  # Add blank spaces for the index label in header rows
+                level_header = [index_label] * df.index.nlevels
+            else:
+                level_header = []
+            level_header += ['"{}"'.format(col) for col in df.columns.get_level_values(level)]
+            output.append(','.join(level_header))
+    else:
+        # Single level columns
+        header = ['"{}"'.format(col) for col in df.columns]
+        if index_label and df.index.nlevels > 0:
+            header = [index_label] * df.index.nlevels + header
+        output.append(','.join(header))
+
+    # Handle multi-level indices and quote string indices
+    for index, row in df.iterrows():
+        index_part = list(index) if isinstance(index, tuple) else [index]
+        # Quote strings in index parts
+        formatted_index = [f'"{item}"' if isinstance(item, str) else str(item) for item in index_part]
+        formatted_row = formatted_index
+
+        for item in row:
+            formatted_row.append(str(format_numerics_and_iterables(item, numeric_formater, object_formatter)))
+        output.append(','.join(formatted_row))
+
+    return '\n'.join(output)

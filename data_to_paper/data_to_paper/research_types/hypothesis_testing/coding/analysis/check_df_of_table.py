@@ -5,6 +5,7 @@ from typing import Dict, Union
 import numpy as np
 import pandas as pd
 
+from data_to_paper.run_gpt_code.overrides.dataframes.utils import llm_readable_to_csv
 from data_to_paper.run_gpt_code.overrides.pvalue import is_p_value, PValue
 from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue, RunIssues
 from data_to_paper.utils import dedent_triple_quote_str
@@ -226,7 +227,7 @@ def check_df_for_nan_values(df: pd.DataFrame, filename: str) -> RunIssues:
         else:
             issue_text = f'Note that the table has a NaN value.'
 
-        issue_text += f'\nHere is the `isnull` of the table:\n```\n{isnull.to_string()}\n```\n'
+        issue_text += f'\nHere is the `isnull` of the table:\n```\n{llm_readable_to_csv(isnull)}\n```\n'
 
         issues.append(RunIssue(
             category='Checking df: NaN values',
