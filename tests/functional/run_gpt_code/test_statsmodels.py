@@ -13,7 +13,7 @@ from data_to_paper.run_gpt_code.overrides.contexts import OverrideStatisticsPack
 from data_to_paper.run_gpt_code.overrides.sklearn.override_sklearn import SklearnFitOverride
 from data_to_paper.run_gpt_code.overrides.statsmodels.override_statsmodels import StatsmodelsFitPValueOverride
 from data_to_paper.run_gpt_code.overrides.scipy.override_scipy import ScipyPValueOverride
-from data_to_paper.run_gpt_code.overrides.pvalue import PValue, is_p_value
+from data_to_paper.run_gpt_code.overrides.pvalue import PValue, is_p_value, OnStrPValue, OnStr
 from statsmodels.formula.api import ols, logit
 
 from data_to_paper.run_gpt_code.run_issues import RunIssue
@@ -69,6 +69,9 @@ def test_statsmodels_label_pvalues(func):
         model = func(y, X)
         results = model.fit()
         pval = results.pvalues[0]
+        p_values = results.pvalues.values
+        with OnStrPValue(OnStr.DEBUG):
+            print(pval)
         assert is_p_value(pval)
         assert pval.created_by == func.__name__
         assert context.pvalue_creating_funcs == [func.__name__]
@@ -186,6 +189,7 @@ model.fit(X, y)  # 2nd fit
 
 
 def test_sklean_raise_on_multiple_fit_calls_in_code_runner():
+    from data_to_paper.run_gpt_code.code_runner import CodeRunner
     _, _, _, exception = CodeRunner(
         additional_contexts={'OverrideStatisticsPackages': OverrideStatisticsPackages()},
         allowed_open_read_files='all',
@@ -336,11 +340,13 @@ def test_register_unpacking_of_ttest_ind(data_for_ttest):
     with ScipyPValueOverride(prevent_unpacking=None) as override:
         result = scipy_stats.ttest_ind(*data_for_ttest)
         statistic, pvalue = result
-    assert override.unpacking_func_to_fields == {'ttest_ind': ('statistic', 'pvalue')}
+    assert 'ttest_ind' in override.issues[0].issue
+    assert '`statistic`, `pvalue`' in override.issues[0].instructions
 
 
 def test_register_unpacking_of_chi2_contingency(data_chi2_contingency):
     with ScipyPValueOverride(prevent_unpacking=None) as override:
         result = scipy_stats.chi2_contingency(data_chi2_contingency)
         statistic, pvalue, dof, expected_freq = result
-    assert override.unpacking_func_to_fields == {'chi2_contingency': ('statistic', 'pvalue', 'dof', 'expected_freq')}
+    assert 'chi2_contingency' in override.issues[0].issue
+    assert '`statistic`, `pvalue`, `dof`, `expected_freq`' in override.issues[0].instructions

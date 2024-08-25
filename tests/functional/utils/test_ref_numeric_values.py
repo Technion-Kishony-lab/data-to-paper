@@ -1,6 +1,6 @@
 import pytest
 
-from data_to_paper.code_and_output_files.file_view_params import ViewParams, ViewPurpose
+from data_to_paper.code_and_output_files.file_view_params import ViewPurpose
 from data_to_paper.code_and_output_files.ref_numeric_values import \
     ReferencedValue, find_hyperlinks, find_numeric_values, HypertargetFormat, HypertargetPosition
 from data_to_paper.code_and_output_files.referencable_text import NumericReferenceableText, \
@@ -14,7 +14,7 @@ from data_to_paper.code_and_output_files.referencable_text import NumericReferen
 ])
 def test_create_references_to_numeric_values(text, expected_text):
     assert NumericReferenceableText(text=text, hypertarget_prefix='A').get_formatted_text_and_references(
-        ViewParams(hypertarget_format=HypertargetFormat(position=HypertargetPosition.WRAP)))[0] == expected_text
+        hypertarget_format=HypertargetFormat(position=HypertargetPosition.WRAP))[0] == expected_text
 
 
 def test_labeled_numeric_referenceable_text():

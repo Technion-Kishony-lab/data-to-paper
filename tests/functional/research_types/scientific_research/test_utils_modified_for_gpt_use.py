@@ -3,12 +3,10 @@ import pytest
 from pytest import fixture
 from pytest import raises
 
-from data_to_paper.research_types.hypothesis_testing.coding.utils_modified_for_gpt_use. \
-    check_df_of_table import check_output_df_for_content_issues
-from data_to_paper.research_types.hypothesis_testing.coding. \
-    utils_modified_for_gpt_use.df_to_latex import _check_for_table_style_issues
-from data_to_paper.research_types.hypothesis_testing.coding.\
-    utils_modified_for_gpt_use.to_pickle import get_dataframe_to_pickle_attr_replacer
+from data_to_paper.research_types.hypothesis_testing.coding.analysis.check_df_of_table import \
+    check_output_df_for_content_issues
+from data_to_paper.research_types.hypothesis_testing.coding.displayitems.my_utils.df_to_latex import \
+    _check_for_table_style_issues
 from data_to_paper.run_gpt_code.overrides.pvalue import PValue, is_p_value
 from data_to_paper.run_gpt_code.run_issues import RunIssue
 from data_to_paper.utils.file_utils import run_in_directory
@@ -17,31 +15,6 @@ from data_to_paper.utils.file_utils import run_in_directory
 @fixture()
 def df():
     return pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]}, index=['x', 'y', 'z'])
-
-
-def test_to_pickle_with_checks_runs_ok(tmpdir, df):
-    with run_in_directory(tmpdir):
-        with get_dataframe_to_pickle_attr_replacer():
-            df.to_pickle('test.csv')
-            df2 = pd.read_pickle('test.csv')
-            assert df.equals(df2)
-
-
-def test_to_pickle_with_checks_with_pvalue_runs_ok(tmpdir, df):
-    with run_in_directory(tmpdir):
-        with get_dataframe_to_pickle_attr_replacer():
-            # assign PValue to a cell:
-            df.iloc[1, 0] = PValue(0.1)
-            df.to_pickle('test.csv')
-            df2 = pd.read_pickle('test.csv')
-            assert df.equals(df2)
-            assert is_p_value(df2['a'][1])
-
-
-def test_to_pickle_with_checks_does_not_allow_wrong_arguments(df):
-    with get_dataframe_to_pickle_attr_replacer():
-        with raises(RunIssue):
-            df.to_pickle(None)
 
 
 def test_check_for_table_style_issues_runs_ok(df):

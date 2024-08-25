@@ -1,7 +1,7 @@
 import pytest
 
-from typing import List, Dict
-from data_to_paper.utils.check_type import validate_value_type, WrongTypeException
+from typing import List, Dict, Optional
+from data_to_paper.utils.check_type import validate_value_type, WrongTypeException, raise_on_wrong_func_argument_types
 
 
 @pytest.mark.parametrize('value, type_, expected', [
@@ -24,3 +24,22 @@ def test_validate_value_type(value, type_, expected):
         with pytest.raises(WrongTypeException) as e:
             validate_value_type(value, type_)
         assert e.value.message == expected
+
+
+@pytest.mark.parametrize('s, d, l, o, msg', [
+    ('abc', {'a': 1}, ['a', 'b'], None, None),
+    ('abc', {'a': 1}, ['a', 'b'], 'ok', None),
+    ('abc', {'a': 1}, ['a', 1], 'ok', "list"),
+    ('abc', {'a': 'c'}, ['a', 'b'], 'ok', "dict values"),
+    (73, {'a': 1}, ['a', 'b'], 'ok', "str"),
+    ('abc', {'a': 1}, ['a', 'b'], 3, "str, NoneType"),
+])
+def test_raise_on_wrong_variable_types(s, d, l, o, msg):
+    def func(s: str, d: Dict[str, int], l: List[str], o: Optional[str]):
+        pass
+    if msg is None:
+        raise_on_wrong_func_argument_types(func, s, d, l=l, o=o)
+    else:
+        with pytest.raises(WrongTypeException) as e:
+            raise_on_wrong_func_argument_types(func, s, d, l=l, o=o)
+        assert msg in e.value.message
