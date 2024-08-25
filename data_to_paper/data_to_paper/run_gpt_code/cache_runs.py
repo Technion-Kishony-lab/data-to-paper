@@ -137,8 +137,7 @@ class CacheRunToFile:
         """
         Cache the results of a call to _run().
         """
-        if self.cache_filepath is None:
-            return self._run(*args, **kwargs)
+        return self._run(*args, **kwargs)
 
         cache = self._load_cache()
         key = self._get_instance_key() + self._get_run_directory_key() \

@@ -430,11 +430,14 @@ class OutputFileRequirementsToFileToContent(Dict[OutputFileRequirement, Dict[str
         """
         files_to_pretty_contents = {}
         for requirement, files_to_contents in self.items():
+            print('REQUIREMENT\n', requirement)
             for num_file, (filename, content) in enumerate(files_to_contents.items()):
                 if isinstance(requirement, BaseContentOutputFileRequirement) and fnmatch(filename, match_filename):
+                    print('FILENAME\n', filename)
                     pretty_content = requirement.get_pretty_content_with_header(
                         content, filename, num_file, view_purpose, header_level=header_level)
                     files_to_pretty_contents[filename] = pretty_content
+                    print('FINISH')
 
         return files_to_pretty_contents
 

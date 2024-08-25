@@ -176,10 +176,12 @@ class ModifyImport(SingletonRegisteredRunContext):
 
     def custom_import(self, name, globals=None, locals=None, fromlist=(), level=0):
         if self._is_called_from_user_script():
+            # print('Importing from user script', name, globals, locals, fromlist, level)
             matched_module, new_name = \
                 next(((module, new_name) for module, new_name in self.modified_imports
                       if name.startswith(module)), (None, None))
             if matched_module:
+                print(f'Importing "{name}" as "{new_name}"')
                 if new_name is None:
                     raise CodeImportForbiddenModule(module=name)
                 name = new_name + name[len(matched_module):]
