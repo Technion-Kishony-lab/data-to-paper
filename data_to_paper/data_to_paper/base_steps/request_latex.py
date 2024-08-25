@@ -8,7 +8,7 @@ from data_to_paper.env import SAVE_INTERMEDIATE_LATEX
 
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList
-from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
+from data_to_paper.utils.text_formatting import wrap_as_block
 from data_to_paper.utils.file_utils import get_non_existing_file_name
 from data_to_paper.latex import FailedToExtractLatexContent, extract_latex_section_from_response
 from data_to_paper.latex.exceptions import UnwantedCommandsUsedInLatex, TooWideTableOrText, \
@@ -155,14 +155,14 @@ class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgr
                         separator=', ', last_separator=' and ', wrap_with="`")
 
     def get_valid_result_as_markdown(self) -> str:
-        return wrap_text_with_triple_quotes('\n\n'.join(self.valid_result), 'latex')
+        return wrap_as_block('\n\n'.join(self.valid_result), 'latex')
 
     def _convert_extracted_text_to_fresh_looking_response(self, extracted_text: List[str]) -> str:
         """
         Return a response that looks fresh.
         """
         s = super()._convert_extracted_text_to_fresh_looking_response(extracted_text)
-        s = wrap_text_with_triple_quotes(s, 'latex')
+        s = wrap_as_block(s, 'latex')
         return s
 
     def _convert_valid_result_back_to_extracted_text(self, valid_result: List[str]) -> List[str]:

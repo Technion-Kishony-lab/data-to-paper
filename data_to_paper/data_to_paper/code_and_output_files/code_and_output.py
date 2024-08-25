@@ -13,7 +13,7 @@ from data_to_paper.latex.clean_latex import wrap_as_latex_code_output, replace_s
     replace_non_utf8_chars
 from data_to_paper.run_gpt_code.base_run_contexts import RunContext
 from data_to_paper.utils import format_text_with_code_blocks
-from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
+from data_to_paper.utils.text_formatting import wrap_as_block
 
 if TYPE_CHECKING:
     from data_to_paper.run_gpt_code.overrides.dataframes.dataframe_operations import DataframeOperations
@@ -108,13 +108,13 @@ class CodeAndOutput:
                 s = f"# {self.name} Code and Output\n"
         if self.code:
             s += "## Code:\n"
-            s += wrap_text_with_triple_quotes(self.code, 'python') + '\n'
+            s += wrap_as_block(self.code, 'python') + '\n'
         if self.provided_code:
             s += "## Provided Code:\n"
-            s += wrap_text_with_triple_quotes(self.provided_code, 'python') + '\n'
+            s += wrap_as_block(self.provided_code, 'python') + '\n'
         if self.code_explanation:
             s += "## Code Description:\n"
-            s += wrap_text_with_triple_quotes(self.code_explanation, 'latex') + '\n'
+            s += wrap_as_block(self.code_explanation, 'latex') + '\n'
         if self.created_files:
             outputs = self.created_files.get_created_content_files_to_pretty_contents(
                 view_purpose=ViewPurpose.APP_HTML, header_level=3)
@@ -124,7 +124,7 @@ class CodeAndOutput:
         if outputs:
             s += "## Code Output:\n"
             for filename, output in outputs.items():
-                s += f"### {wrap_text_with_triple_quotes(output, 'html')}\n"
+                s += f"### {wrap_as_block(output, 'html')}\n"
         return s
 
     def as_html(self):

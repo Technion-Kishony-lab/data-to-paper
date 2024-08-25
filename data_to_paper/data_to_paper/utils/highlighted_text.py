@@ -15,7 +15,7 @@ from data_to_paper.latex.latex_to_html import convert_latex_to_html
 from data_to_paper.env import CHOSEN_APP
 
 from .formatted_sections import FormattedSections
-from .text_formatting import wrap_string, wrap_text_with_triple_quotes
+from .text_formatting import wrap_string, wrap_as_block
 
 COLORS_TO_LIGHT_COLORS = {
     colorama.Fore.BLACK: colorama.Fore.LIGHTBLACK_EX,
@@ -150,7 +150,7 @@ def red_text(text: str, is_color: bool = True) -> str:
 def _colored_block(text: str, label: Optional[str], color: str, with_tags: bool = True,
                    is_color: bool = True, is_light: bool = False) -> str:
     if with_tags and label:
-        text = wrap_text_with_triple_quotes(text, label)
+        text = wrap_as_block(text, label)
     return colored_text(text, color, is_color, is_light)
 
 
@@ -186,7 +186,7 @@ def get_pre_html_format(text,
 
 def _block_to_html(text: str, label: Optional[str], with_tags: bool = True, **kwargs) -> str:
     if with_tags and label is not None:
-        text = wrap_text_with_triple_quotes(text, label)
+        text = wrap_as_block(text, label)
     return text_to_html(text, css_class='tripled_quote')
 
 

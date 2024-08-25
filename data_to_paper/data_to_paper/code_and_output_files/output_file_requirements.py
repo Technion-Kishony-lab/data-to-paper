@@ -17,7 +17,7 @@ from data_to_paper.code_and_output_files.referencable_text import NumericReferen
 
 from data_to_paper.run_gpt_code.overrides.pvalue import OnStrPValue, OnStr
 from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue
-from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
+from data_to_paper.utils.text_formatting import wrap_as_block
 
 from .file_view_params import ContentViewPurposeConverter, ViewPurpose
 from .ref_numeric_values import ReferencedValue, HypertargetFormat

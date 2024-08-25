@@ -92,7 +92,7 @@ def format_str_by_direct_replace(text: str, replacements: dict):
     return text
 
 
-def wrap_text_with_triple_quotes(text: str, header: str = '') -> str:
+def wrap_as_block(text: str, header: str = '') -> str:
     """
     Wrap text with triple quotes.
     """

@@ -12,7 +12,7 @@ from data_to_paper.utils.nice_list import NiceDict
 from data_to_paper.utils.tag_pairs import TagPairs
 from data_to_paper.utils.check_type import validate_value_type, WrongTypeException
 from data_to_paper.utils.text_extractors import extract_text_between_most_flanking_tags
-from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
+from data_to_paper.utils.text_formatting import wrap_as_block
 
 TYPES_TO_TAG_PAIRS: Dict[type, TagPairs] = {
     dict: TagPairs('{', '}'),
@@ -53,7 +53,7 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
         return str(self.value_type).replace('typing.', '')
 
     def get_valid_result_as_markdown(self) -> str:
-        return wrap_text_with_triple_quotes(self.valid_result, 'python')
+        return wrap_as_block(self.valid_result, 'python')
 
     def _check_response_and_get_extracted_text(self, response: str) -> str:
         """
@@ -94,7 +94,7 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
         """
         if self.json_mode:
             return extracted_text
-        return wrap_text_with_triple_quotes(extracted_text, 'python')
+        return wrap_as_block(extracted_text, 'python')
 
     def _evaluate_python_value_from_str(self, response: str) -> Any:
         try:

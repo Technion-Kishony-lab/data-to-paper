@@ -23,7 +23,7 @@ from data_to_paper.run_gpt_code.exceptions import FailedRunningCode, UnAllowedFi
 from data_to_paper.interactive import PanelNames, Symbols
 
 from data_to_paper.base_cast import Agent
-from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
+from data_to_paper.utils.text_formatting import wrap_as_block
 from data_to_paper.interactive.symbols import Symbols
 from data_to_paper.run_gpt_code.base_run_contexts import RunContext
 from data_to_paper.run_gpt_code.code_runner import CodeRunner
@@ -402,7 +402,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         self.previous_code = code
 
         self.apply_append_surrogate_message(
-            content=message + '\n' + wrap_text_with_triple_quotes(code, 'python'),
+            content=message + '\n' + wrap_as_block(code, 'python'),
             comment=comment,
         )
 

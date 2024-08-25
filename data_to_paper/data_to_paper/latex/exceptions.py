@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from data_to_paper.exceptions import data_to_paperException
-from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
+from data_to_paper.utils.text_formatting import wrap_as_block
 
 
 @dataclass
@@ -45,7 +45,7 @@ class LatexProblemInCompilation(BaseLatexProblemInCompilation):
         """
         Get the error message from the pdflatex output.
         """
-        return wrap_text_with_triple_quotes(self._extract_error_message(), 'error')
+        return wrap_as_block(self._extract_error_message(), 'error')
 
     def get_latex_exception_line_number(self) -> Optional[int]:
         """

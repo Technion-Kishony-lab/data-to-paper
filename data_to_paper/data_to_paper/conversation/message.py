@@ -14,7 +14,7 @@ from data_to_paper.servers.llm_call import count_number_of_tokens_in_message
 from data_to_paper.servers.model_engine import OpenaiCallParameters, ModelEngine
 from data_to_paper.utils import format_text_with_code_blocks, line_count
 from data_to_paper.utils.highlighted_text import colored_text
-from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
+from data_to_paper.utils.text_formatting import wrap_as_block
 from data_to_paper.utils.formatted_sections import FormattedSections
 from data_to_paper.utils.text_extractors import get_dot_dot_dot_text
 
@@ -155,9 +155,9 @@ class Message:
     def _get_triple_quote_formatted_content(self, with_header: bool = True) -> (str, bool):
         content, is_incomplete_code = self.get_content_after_hiding_incomplete_code()
         if self.role == Role.SYSTEM:
-            content = wrap_text_with_triple_quotes(content, 'system')
+            content = wrap_as_block(content, 'system')
         if self.role == Role.COMMENTER:
-            content = wrap_text_with_triple_quotes(content, 'comment')
+            content = wrap_as_block(content, 'comment')
         if self.effective_index_in_conversation is not None:
             index = self.effective_index_in_conversation
         else:
