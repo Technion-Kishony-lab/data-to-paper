@@ -4,7 +4,7 @@ from typing import Type, Any, Dict, Optional, Collection
 
 from pytest import fixture
 
-from data_to_paper.base_products import DataFileDescriptions, DataFileDescription
+from data_to_paper.base_products.file_descriptions import DataFileDescription, DataFileDescriptions
 from data_to_paper.base_steps import BaseCodeProductsGPT
 from data_to_paper.base_steps.request_code import CodeReviewPrompt
 from data_to_paper.research_types.hypothesis_testing.coding.after_coding import RequestCodeExplanation, \

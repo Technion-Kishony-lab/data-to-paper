@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Optional, Any, TYPE_CHECKING, Dict
 
-from data_to_paper.base_products import DataFileDescriptions
+from data_to_paper.base_products.file_descriptions import DataFileDescriptions
 from data_to_paper.code_and_output_files.file_view_params import ViewPurpose
 from data_to_paper.code_and_output_files.output_file_requirements import OutputFileRequirementsToFileToContent
 from data_to_paper.code_and_output_files.ref_numeric_values import HypertargetFormat, HypertargetPosition, \

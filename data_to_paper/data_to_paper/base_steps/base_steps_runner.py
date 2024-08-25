@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Union, Type, Optional, Dict, Callable
 
-from data_to_paper.base_products.file_descriptions import CreateDataFileDescriptions
+from data_to_paper.base_products.file_descriptions import CreateDataFileDescriptions, DataFileDescriptions
 from data_to_paper.env import FOLDER_FOR_RUN
 from data_to_paper.interactive.base_app_startup import BaseStartDialog
 from data_to_paper.servers.api_cost import StageToCost
@@ -19,7 +19,6 @@ from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLE
 from data_to_paper.conversation.stage import Stage
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
 from data_to_paper.exceptions import TerminateException, ResetStepException
-from data_to_paper.base_products import DataFileDescriptions
 from data_to_paper.run_gpt_code.code_runner_wrapper import RUN_CACHE_FILEPATH
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.replacer import Replacer

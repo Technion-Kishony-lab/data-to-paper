@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Optional, Dict, Tuple, Set, List, Union
 
+from data_to_paper.base_products.file_descriptions import DataFileDescriptions, DataFileDescription
 from data_to_paper.base_steps import LiteratureSearch
 from data_to_paper.base_steps.literature_search import LiteratureSearchParams
 from data_to_paper.code_and_output_files.file_view_params import ViewPurpose

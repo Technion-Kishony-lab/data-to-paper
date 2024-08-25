@@ -2,7 +2,8 @@ from dataclasses import dataclass, field
 from typing import Optional, Dict
 
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
-from data_to_paper.base_products import Products, NameDescriptionStageGenerator, DataFileDescriptions
+from data_to_paper.base_products import Products, NameDescriptionStageGenerator
+from data_to_paper.base_products.file_descriptions import DataFileDescriptions
 
 from .stage import DemoStages
 

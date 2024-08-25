@@ -1,6 +1,6 @@
 from pytest import fixture
 
-from data_to_paper.base_products import DataFileDescription, DataFileDescriptions
+from data_to_paper.base_products.file_descriptions import DataFileDescription, DataFileDescriptions
 
 
 class TestDataFileDescription(DataFileDescription):
