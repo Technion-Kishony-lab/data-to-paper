@@ -185,15 +185,21 @@ class Converser(Copier, AppInteractor):
                                   **kwargs):
         if send_to_app is None:
             send_to_app = not is_background and not ignore
-        content = \
-            self._show_and_edit_content(content, editing_title, editing_instructions, in_field_instructions,
-                                        send_to_app, app_panel, sleep_for)
-        return self.conversation_manager.append_user_message(
+        is_edit = editing_title or editing_instructions
+        if is_edit:
+            content = \
+                self._show_and_edit_content(content, editing_title, editing_instructions, in_field_instructions,
+                                            send_to_app, app_panel, sleep_for)
+        result = self.conversation_manager.append_user_message(
             content=content,
             tag=tag,
             comment=comment,
             ignore=ignore,
             previous_code=previous_code, is_background=is_background, **kwargs)
+        if not is_edit:
+            self._show_and_edit_content(content, editing_title, editing_instructions, in_field_instructions,
+                                        send_to_app, app_panel, sleep_for)
+        return result
 
     @_raise_if_reset()
     def apply_append_system_message(self, content: StrOrReplacer, tag: Optional[StrOrReplacer] = None,
