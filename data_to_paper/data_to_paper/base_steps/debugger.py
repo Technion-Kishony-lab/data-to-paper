@@ -263,9 +263,10 @@ class DebuggerConverser(BackgroundProductsConverser):
 
     def _get_issue_for_forbidden_write(self, error: CodeWriteForbiddenFile, e: FailedRunningCode) -> RunIssue:
         file = error.file
+        file_and_ext = Path(file).name
         return RunIssue(
-            category='Wrong output files',
-            issue=f'Your code writes to the file "{file}" which is not allowed.',
+            category='Write to unallowed files',
+            issue=f'Your code writes to the file "{file_and_ext}" which is not allowed.',
             instructions=self.description_of_allowed_output_files,
             code_problem=CodeProblem.RuntimeError,
             comment='Code writes to forbidden file',

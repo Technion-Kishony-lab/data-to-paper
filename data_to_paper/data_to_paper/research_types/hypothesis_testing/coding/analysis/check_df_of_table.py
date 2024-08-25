@@ -95,7 +95,7 @@ def check_df_headers_are_int_str_or_bool(headers: Union[pd.MultiIndex, pd.Index]
                 issue=f"Your dataframe has a column header `{header}` of type `{type(header).__name__}` "
                       f"which is not supported.",
                 instructions=f"Please make sure the saved dataframes have only int, str, or bool headers.",
-                code_problem=CodeProblem.OutputFileContentLevelA,
+                code_problem=CodeProblem.OutputFileContentLevelB,
             ))
     return issues
 

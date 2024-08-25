@@ -36,8 +36,9 @@ class DataFrameSeriesChange(RunIssue):
     Exception that is raised when a data frame series is changed.
     """
     changed_series: str = None
-    category: str = 'Dataframe series change'
-    issue: str = 'Your code changes the series "{changed_series}" of your dataframe.'
+    category: str = 'Good coding practices: Dataframe series change'
+    issue: str = 'Your code changes the series "{changed_series}" of your dataframe.\n' \
+                 'This could lead to confusion and errors.'
     instructions: str = 'Instead of changing an existing dataframe series, please create a new series, and give it a ' \
                         'new sensible name.'
     code_problem: CodeProblem = CodeProblem.RuntimeError

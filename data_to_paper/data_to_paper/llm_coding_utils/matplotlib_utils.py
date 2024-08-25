@@ -50,7 +50,12 @@ def replace_singleton_legend_with_axis_label(ax: plt.Axes, kind: str) -> Optiona
     """
     Replace a singleton legend with an axis label.
     """
-    legend = ax.legend()
+    # suppress all warnings that are not errors:
+    import warnings
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        legend = ax.legend()
+
     legend_keys = [text.get_text() for text in legend.get_texts()]
     is_singleton = len(legend_keys) == 1
     if not is_singleton:
@@ -87,8 +92,11 @@ def rotate_xticklabels_if_not_numeric(ax: plt.Axes):
     """
     x_numeric, _ = are_axes_numeric(ax)
     if not x_numeric:
-        ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha="right",
-                           rotation_mode="anchor", wrap=True)
+        for label in ax.get_xticklabels():
+            label.set_rotation(45)
+            label.set_horizontalalignment('right')
+            label.set_rotation_mode('anchor')
+            label.set_wrap(True)
         ax.figure.tight_layout()  # Adjusts subplot parameters to give the plot more room
 
 

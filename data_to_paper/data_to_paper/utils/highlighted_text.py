@@ -228,6 +228,8 @@ def format_text_with_code_blocks(text: str, text_color: str = '', from_md: Optio
     formatted_sections = FormattedSections.from_text(text)
     for formatted_section in formatted_sections:
         label, section, is_complete = formatted_section.to_tuple()
+        if label is not None:
+            label = label.lower()
         if not is_complete:
             formatters = NORMAL_FORMATTERS
             section = formatted_section.to_text()

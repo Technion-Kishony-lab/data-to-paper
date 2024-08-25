@@ -10,6 +10,7 @@ from typing import Any, Iterable, Callable, List, Type, Dict, Optional, Union, T
 
 from pathlib import Path
 
+from data_to_paper.env import FOLDER_FOR_RUN
 from data_to_paper.utils.file_utils import is_name_matches_list_of_wildcard_names
 from data_to_paper.utils.types import ListBasedSet
 from data_to_paper.utils import dedent_triple_quote_str
@@ -38,7 +39,8 @@ class IssueCollector(SingletonRegisteredRunContext):
 
 @dataclass
 class PreventFileOpen(SingletonRegisteredRunContext):
-    SYSTEM_FILES = ['templates/latex_table.tpl', 'templates/latex_longtable.tpl', 'ttf/DejaVuSans.ttf']
+    SYSTEM_FILES = ['templates/latex_table.tpl', 'templates/latex_longtable.tpl', 'ttf/DejaVuSans.ttf',
+                    'LICENSE.txt', 'LICENSE', 'LICENSE.md']
     SYSTEM_FOLDERS = \
         [r'C:\Windows', r'C:\Program Files', r'C:\Program Files (x86)'] if os.name == 'nt' \
         else ['/usr', '/etc', '/bin', '/sbin', '/sys', '/dev', '/var', '/opt', '/proc']
@@ -63,8 +65,11 @@ class PreventFileOpen(SingletonRegisteredRunContext):
             self._is_system_file(file_name)
 
     def is_allowed_write_file(self, file_name: str) -> bool:
+        file_path = Path(file_name).resolve()
+        if not file_path.parents[0].resolve() == FOLDER_FOR_RUN:
+            return False
         return self.allowed_write_files == 'all' or \
-            is_name_matches_list_of_wildcard_names(file_name, self.allowed_write_files)
+            is_name_matches_list_of_wildcard_names(file_path.name, self.allowed_write_files)
 
     def open_wrapper(self, *args, **kwargs):
         file_name = args[0] if len(args) > 0 else kwargs.get('file', None)
@@ -203,7 +208,7 @@ class WarningHandler(SingletonRegisteredRunContext):
     categories_to_issue: Optional[Iterable[Type[Warning]]] = ()
     categories_to_raise: Optional[Iterable[Type[Warning]]] = ()
     categories_to_ignore: Optional[Iterable[Type[Warning]]] = ()
-    original_showwarning: Callable = None
+    original_showwarning: Optional[Callable] = None
 
     def _reversible_enter(self):
         self.original_showwarning = warnings.showwarning

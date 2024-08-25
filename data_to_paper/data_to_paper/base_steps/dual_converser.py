@@ -310,7 +310,7 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser, HumanReviewAppIn
 
         return message, message.content
 
-    def _add_or_replace_other_response(self, response: str) -> str:
+    def _add_or_replace_other_response(self, response: str):
         is_last_message_user = self.other_conversation[-1].role == Role.USER
         if not is_last_message_user:
             self.apply_to_other_delete_messages(-1)

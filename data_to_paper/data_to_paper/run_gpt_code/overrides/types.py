@@ -44,14 +44,14 @@ class NoIterTuple:
         if not is_called_from_user_script(offset=4):
             return
         if self.should_record and self.context:
-            self.context.record_unpacking(self.created_by, self._get_fields())
+            self.context.issues.append(exception)
         if self.should_raise:
             raise exception
 
     def _get_instructions(self):
         return ('Your code should instead keep the results object and access its attributes by name when needed.\n'
                 f'Attributes of `{self.created_by}` results object are: '
-                f'{NiceList(self._tuple._fields, wrap_with="`")}')
+                f'{NiceList(self._get_fields(), wrap_with="`")}')
 
     def __getitem__(self, item):
         if isinstance(item, int):

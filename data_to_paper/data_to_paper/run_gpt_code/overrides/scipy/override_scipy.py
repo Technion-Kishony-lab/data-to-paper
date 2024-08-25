@@ -13,13 +13,9 @@ from ..utils import get_func_call_str
 
 @dataclass
 class ScipyPValueOverride(SystematicFuncReplacerContext, TrackPValueCreationFuncs):
-    prevent_unpacking: Optional[bool] = True  # False - do not prevent;  True - prevent;  None - register unpacking
+    prevent_unpacking: Optional[bool] = True  # False - do not prevent;  True - prevent;  None - create issues
     package_names: Iterable[str] = ('scipy', )
     obj_import_str: str = 'scipy'
-    unpacking_func_to_fields: Dict[str, Iterable[str]] = field(default_factory=dict)
-
-    def record_unpacking(self, created_by: str, fields: Iterable[str]):
-        self.unpacking_func_to_fields[created_by] = fields
 
     def _should_replace(self, module, func_name, func) -> bool:
         doc = inspect.getdoc(func)
