@@ -172,7 +172,7 @@ class Message:
                     header += f'#{i:>2} {message.get_short_description(model=self.get_llm_model())}\n'
             header += f'\n#{index:>2} {self.get_short_description()}\n' + ' ' * 79 + \
                       f'{llm_parameters}'
-            header = wrap_text_with_triple_quotes(header, 'header')
+            header = wrap_as_block(header, 'header')
             content = header + '\n\n' + content
 
         return content, is_incomplete_code

@@ -2,53 +2,27 @@ from typing import Dict, Optional
 
 import pandas as pd
 
-from data_to_paper.run_gpt_code.overrides.pvalue import OnStr
-
-from data_to_paper.run_gpt_code.base_run_contexts import RegisteredRunContext
 from data_to_paper.run_gpt_code.run_contexts import IssueCollector
-
 from data_to_paper.run_gpt_code.run_issues import RunIssues
-from .check_df_formatting import check_for_repetitive_value_in_column, checks_that_rows_are_labelled, \
+
+from ...analysis.check_df_of_table import check_df_headers_are_int_str_or_bool, check_output_df_for_content_issues
+from ...analysis.my_utils import df_to_figure as analysis_df_to_figure
+from ..check_df_formatting import check_for_repetitive_value_in_column, checks_that_rows_are_labelled, \
     check_for_unallowed_characters, check_for_un_glossary_abbreviations, \
-    check_glossary_does_not_include_labels_that_are_not_in_df, check_displayitem_label, check_displayitem_caption, \
+    check_glossary_does_not_include_labels_that_are_not_in_df, check_displayitem_caption, \
     check_note_different_than_caption
-
-from .check_df_of_table import check_df_headers_are_int_str_or_bool, check_output_df_for_content_issues
-from .label_latex_source import embed_source_filename_as_comment_in_latex_displayitem
-
-from ..original_utils import df_to_figure
-from ..original_utils.df_to_latex import raise_on_wrong_params_for_df_to_latex
+from ...utils import convert_filename_to_label
 
 
-def _df_to_figure(df: pd.DataFrame, filename: str,
-                  caption: str = None,
-                  label: str = None,
-                  note: str = None,
-                  glossary: Dict[str, str] = None,
-                  **kwargs):
+def _df_to_figure(df: pd.DataFrame, filename: str, label: str = None, **kwargs):
     """
     Replacement of df_to_figure to be used by LLM-writen code.
     Same as df_to_figure, but also checks for issues.
     """
-    raise_on_wrong_params_for_df_to_latex(df, filename, caption=caption, label=label, glossary=glossary)
-    if not isinstance(filename, str):
-        raise ValueError(f'Expected `filename` to be a string, got {type(filename)}')
-
-    issues = _check_for_figure_style_issues(df, filename, note=note, glossary=glossary, caption=caption, label=label,
-                                            **kwargs)
+    analysis_df_to_figure(df, filename, **kwargs)
+    label = convert_filename_to_label(filename, label)
+    issues = _check_for_figure_style_issues(df, filename, label=label, **kwargs)
     IssueCollector.get_runtime_instance().issues.extend(issues)
-    # get the ReadPickleAttrReplacer instance:
-    pickle_filename = next((context.last_read_pickle_filename
-                            for context in RegisteredRunContext.get_all_runtime_instances()
-                            if context.name == 'ReadPickleAttrReplacer'), None)
-    if pickle_filename:
-        comment = embed_source_filename_as_comment_in_latex_displayitem(pickle_filename)
-    else:
-        comment = None
-
-    latex = df_to_figure(df, filename, caption=caption, label=label, note=note, glossary=glossary,
-                         pvalue_on_str=OnStr.LATEX_SMALLER_THAN, comment=comment, **kwargs)
-    return latex
 
 
 def _check_for_figure_style_issues(df: pd.DataFrame, filename: str, *args,
@@ -60,9 +34,7 @@ def _check_for_figure_style_issues(df: pd.DataFrame, filename: str, *args,
     glossary = {} if glossary is None else glossary
     index: bool = kwargs.get('use_index', True)
 
-    issues = check_output_df_for_content_issues(df, filename)
-    if issues:
-        return issues
+    issues = RunIssues()
 
     # Check for repetitive values in a column
     issues.extend(check_for_repetitive_value_in_column(df, filename, displayitem='figure'))
@@ -81,7 +53,7 @@ def _check_for_figure_style_issues(df: pd.DataFrame, filename: str, *args,
         return issues
 
     # Check caption/label
-    issues.extend(check_displayitem_label(df, filename, label=label, displayitem='figure'))
+    # issues.extend(check_displayitem_label(df, filename, label=label, displayitem='figure'))
     issues.extend(check_displayitem_caption(df, filename, text=caption, item_name='caption', displayitem='figure'))
     if note is not None:
         issues.extend(check_displayitem_caption(df, filename, text=note, item_name='note', displayitem='figure'))

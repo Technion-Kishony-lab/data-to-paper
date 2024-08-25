@@ -21,8 +21,7 @@ from data_to_paper.research_types.hypothesis_testing.scientific_stage import Sci
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 
 from data_to_paper.utils.nice_list import NiceList
-from data_to_paper.base_products import DataFileDescriptions, DataFileDescription, Products, \
-    NameDescriptionStageGenerator, ProductGenerator
+from data_to_paper.base_products import Products, NameDescriptionStageGenerator, ProductGenerator
 from data_to_paper.utils.types import ListBasedSet, MemoryDict
 from data_to_paper.servers.custom_types import Citation
 
@@ -118,7 +117,7 @@ class ScientificProducts(Products):
 
     def get_created_dfs(self) -> List[str]:
         return [file for file in self.codes_and_outputs['data_analysis'].created_files.get_created_content_files()
-                if file.startswith('df_')]
+                if file.startswith('tbl_') or file.startswith('fig_')]
 
     def get_number_of_created_dfs(self) -> int:
         return len(self.get_created_dfs())

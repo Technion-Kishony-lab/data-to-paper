@@ -1,11 +1,12 @@
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Dict
 
 from matplotlib import pyplot as plt
 
 
-def get_xy_coordinates_of_df_plot(df, x=None, y=None, kind='line'):
+def get_xy_coordinates_of_df_plot(df, x=None, y=None, kind='line') -> Dict[int, Dict[int, Tuple[float, float]]]:
     """
-    Plots the DataFrame and retrieves x and y coordinates for each data point using numerical indices.
+    Plots the DataFrame and retrieves x and y coordinates for each data point.
+    Returns a dictionary of dictionaries, where the first key is the column index and the second key is the row index.
     """
     # Create the plot
     ax = df.plot(x=x, y=y, kind=kind, legend=False)

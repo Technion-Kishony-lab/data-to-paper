@@ -4,9 +4,9 @@ from dataclasses import dataclass, field
 from typing import Optional, List, Tuple, Union
 
 from data_to_paper.base_products.product import Product
-from data_to_paper.code_and_output_files.file_view_params import ViewPurpose, ContentViewPurposeConverter
-from data_to_paper.code_and_output_files.ref_numeric_values import \
-    numeric_values_in_products_pattern, ReferencedValue, HypertargetFormat
+from .file_view_params import ViewPurpose, ContentViewPurposeConverter
+from .ref_numeric_values import numeric_values_in_products_pattern, ReferencedValue, HypertargetFormat, \
+    HypertargetPosition
 
 
 @dataclass
@@ -23,12 +23,14 @@ class ReferencableTextProduct(Product):
         return self.referencable_text is not None
 
     def _get_formatted_content(self, view_purpose: ViewPurpose) -> str:
-        hypertarget_format = self.content_view_purpose_converter.convert_view_purpose_to_view_params(view_purpose)
+        hypertarget_format = self.content_view_purpose_converter.convert_view_purpose_to_hypertarget_format(
+            view_purpose)
         content, _ = self._get_formatted_text_and_header_references(hypertarget_format)
         return content
 
     def get_header(self, view_purpose: ViewPurpose = ViewPurpose.PRODUCT, **kwargs) -> str:
-        hypertarget_format = self.content_view_purpose_converter.convert_view_purpose_to_view_params(view_purpose)
+        hypertarget_format = self.content_view_purpose_converter.convert_view_purpose_to_hypertarget_format(
+            view_purpose)
         _, references = self._get_formatted_text_and_header_references(hypertarget_format)
         header = super().get_header()
         header = '\n'.join(reference.to_str(hypertarget_format) for reference in references) + header
@@ -127,13 +129,13 @@ class FromTextReferenceableText(BaseReferenceableText):
             reference = self._get_reference(match, reference_num, line_no, line_no_with_ref, in_line_number)
             references_per_line.append(reference)
             reference_num = reference_num + 1
-            if hypertarget_format:
+            if hypertarget_format and hypertarget_format.position != HypertargetPosition.HEADER:
                 return reference.to_str(hypertarget_format)
             else:
                 return reference.value
 
-        if self.hypertarget_prefix is None:
-            return self.text, []
+        if self.hypertarget_prefix is None and hypertarget_format:
+            raise ValueError("ReferenceableText has no hypertarget_prefix")
         reference_num = 0
         references = []
         lines = self.text.split('\n')

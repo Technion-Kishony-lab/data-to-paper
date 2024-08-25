@@ -27,6 +27,20 @@ class OnStr(Enum):
     WITH_ZERO = 4  # just format. no minimal value
     DEBUG = 5
 
+    def st_sign(self):
+        if self == OnStr.SMALLER_THAN:
+            return '<'
+        if self == OnStr.LATEX_SMALLER_THAN:
+            return '$<$'
+        return ''
+
+    def minimal_value(self):
+        if self in [OnStr.SMALLER_THAN, OnStr.LATEX_SMALLER_THAN]:
+            return P_VALUE_MIN
+        if self == OnStr.WITH_EPSILON:
+            return EPSILON
+        return 0
+
 
 def format_p_value(x, minimal_value=P_VALUE_MIN, smaller_than_sign: str = '<'):
     """
@@ -98,23 +112,15 @@ class PValue(OperatorValue):
     def _apply_post_operator(self, op, method_name, value):
         if self.BEHAVE_NORMALLY:
             return value
-        if method_name in ['__str__', '__repr__']:
+        if method_name in ['__str__', '__repr__', '__format__']:
             on_str = self.ON_STR
             if on_str == OnStr.AS_FLOAT:
                 return value
-            if on_str == OnStr.SMALLER_THAN:
-                return format_p_value(self.value, minimal_value=P_VALUE_MIN, smaller_than_sign='<')
-            if on_str == OnStr.LATEX_SMALLER_THAN:
-                return format_p_value(self.value, minimal_value=P_VALUE_MIN, smaller_than_sign='$<$')
-            if on_str == OnStr.WITH_EPSILON:
-                return format_p_value(self.value, minimal_value=EPSILON, smaller_than_sign='')
-            if on_str == OnStr.WITH_ZERO:
-                return format_p_value(self.value, minimal_value=0, smaller_than_sign='')
             if on_str == OnStr.DEBUG:
                 return f'PValue({value})'
             if on_str == OnStr.RAISE:
                 self._raise_if_forbidden_func(method_name)
-            assert False, f'Unknown value for ON_STR: {on_str}'
+            return format_p_value(self.value, minimal_value=on_str.minimal_value(), smaller_than_sign=on_str.st_sign())
         if method_name in self.OPERATORS_RETURNING_NEW_PVALUE:
             return self._get_new_object(value)
         if method_name in self.OPERATORS_RETURNING_NORMAL_VALUE:
@@ -204,6 +210,38 @@ def is_containing_p_value(value):
     if isinstance(value, dict):
         return any(is_containing_p_value(val) for val in value.values())
     return False
+
+
+def is_only_p_values(value):
+    if is_p_value(value):
+        return True
+    if isinstance(value, np.ndarray):
+        return np.all(np.vectorize(is_only_p_values)(value))
+    if isinstance(value, pd.Series):
+        return value.apply(is_only_p_values).all()
+    if isinstance(value, pd.DataFrame):
+        return value.applymap(is_only_p_values).all().all()
+    if isinstance(value, (list, tuple)):
+        return all(is_only_p_values(val) for val in value)
+    if isinstance(value, dict):
+        return all(is_only_p_values(val) for val in value.values())
+    return False
+
+
+def convert_p_values_to_floats(value):
+    if is_p_value(value):
+        return value.value
+    if isinstance(value, np.ndarray):
+        return np.vectorize(convert_p_values_to_floats)(value)
+    if isinstance(value, pd.Series):
+        return value.apply(convert_p_values_to_floats)
+    if isinstance(value, pd.DataFrame):
+        return value.applymap(convert_p_values_to_floats)
+    if isinstance(value, (list, tuple)):
+        return type(value)(convert_p_values_to_floats(val) for val in value)
+    if isinstance(value, dict):
+        return {key: convert_p_values_to_floats(val) for key, val in value.items()}
+    return value
 
 
 @dataclass

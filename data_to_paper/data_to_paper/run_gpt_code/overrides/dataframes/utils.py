@@ -3,6 +3,7 @@ from contextlib import contextmanager
 from functools import partial
 from typing import Callable, Any
 
+import numpy as np
 import pandas as pd
 from pandas import DataFrame
 
@@ -32,6 +33,8 @@ def format_numerics_and_iterables(value: Any, numeric_formater: Callable = None,
     elif isinstance(value, dict):
         return '{' + ', '.join(f'{k}: {format_numerics_and_iterables(v, numeric_formater)}'
                                for k, v in value.items()) + '}'
+    elif isinstance(value, np.ndarray):
+        return '[' + ', '.join(format_numerics_and_iterables(v, numeric_formater) for v in value) + ']'
     return object_formatter(value)
 
 
@@ -51,10 +54,7 @@ def temporarily_change_float_format(new_format):
 def _get_formatters_for_df(df: DataFrame, numeric_formater: Callable = None, object_formatter: Callable = None):
     formater = partial(format_numerics_and_iterables, numeric_formater=numeric_formater,
                        object_formatter=object_formatter)
-    formatters = {}
-    for column in df.columns:
-        formatters[column] = formater
-    return formatters
+    return [formater] * df.shape[1]
 
 
 def to_string_with_format_value(df: DataFrame, *args,

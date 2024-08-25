@@ -19,8 +19,11 @@ class ViewPurpose(Enum):
     def is_for_paper(self):
         return self in [ViewPurpose.FINAL_APPENDIX, ViewPurpose.FINAL_INLINE]
 
+    def is_for_html(self):
+        return self in [ViewPurpose.APP_HTML]
 
-DEFAULT_VIEW_PURPOSE_TO_PARAMS: Dict[ViewPurpose, HypertargetFormat] = {
+
+DEFAULT_VIEW_PURPOSE_TO_HYPERTARGET_FORMAT: Dict[ViewPurpose, HypertargetFormat] = {
     None: HypertargetFormat(position=HypertargetPosition.NONE),
     ViewPurpose.FINAL_APPENDIX: HypertargetFormat(position=HypertargetPosition.ADJACENT, raised=True, escaped=True),
     ViewPurpose.FINAL_INLINE: HypertargetFormat(position=HypertargetPosition.ADJACENT, raised=True, escaped=False),
@@ -33,10 +36,10 @@ DEFAULT_VIEW_PURPOSE_TO_PARAMS: Dict[ViewPurpose, HypertargetFormat] = {
 
 class ContentViewPurposeConverter:
     def __init__(self, view_purpose_to_params: Dict[ViewPurpose, HypertargetFormat] = None):
-        view_purpose_to_params = view_purpose_to_params or DEFAULT_VIEW_PURPOSE_TO_PARAMS
+        view_purpose_to_params = view_purpose_to_params or DEFAULT_VIEW_PURPOSE_TO_HYPERTARGET_FORMAT
         self.view_purpose_to_params = copy.deepcopy(view_purpose_to_params)
 
-    def convert_view_purpose_to_view_params(self, view_purpose: ViewPurpose) -> HypertargetFormat:
+    def convert_view_purpose_to_hypertarget_format(self, view_purpose: ViewPurpose) -> HypertargetFormat:
         return self.view_purpose_to_params[view_purpose]
 
     def __hash__(self):

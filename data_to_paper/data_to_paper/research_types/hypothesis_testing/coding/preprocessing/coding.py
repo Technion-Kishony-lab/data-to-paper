@@ -4,7 +4,7 @@ from typing import Tuple, Optional, Dict, Any
 from data_to_paper.code_and_output_files.output_file_requirements import OutputFileRequirements, \
     DataOutputFileRequirement
 from data_to_paper.research_types.hypothesis_testing.coding.base_code_conversers import BaseScientificCodeProductsGPT
-from data_to_paper.research_types.hypothesis_testing.coding.utils import get_additional_contexts
+from data_to_paper.research_types.hypothesis_testing.coding.utils import create_pandas_and_stats_contexts
 from data_to_paper.utils import dedent_triple_quote_str
 
 
@@ -46,6 +46,6 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT):
         Do not create any graphics, figures or any plots.
         """)
 
-    def get_additional_contexts(self) -> Dict[str, Any]:
-        return get_additional_contexts(allow_dataframes_to_change_existing_series=False,
-                                       enforce_saving_altered_dataframes=True)
+    def _get_additional_contexts(self) -> Dict[str, Any]:
+        return create_pandas_and_stats_contexts(allow_dataframes_to_change_existing_series=False,
+                                                enforce_saving_altered_dataframes=True)

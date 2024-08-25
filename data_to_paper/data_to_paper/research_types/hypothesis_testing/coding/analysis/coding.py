@@ -1,49 +1,114 @@
 from dataclasses import dataclass, field
 from typing import Tuple, List, Optional, Dict, Any, Type, Collection
 
-from pandas import DataFrame
-
 from data_to_paper.base_steps import DebuggerConverser
 from data_to_paper.base_steps.request_code import CodeReviewPrompt
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.code_and_output_files.file_view_params import ViewPurpose
 from data_to_paper.code_and_output_files.output_file_requirements import \
-    OutputFileRequirements, PickleContentOutputFileRequirement
-from data_to_paper.research_types.hypothesis_testing.coding.base_code_conversers import BaseCreateTablesCodeProductsGPT
-from data_to_paper.research_types.hypothesis_testing.coding.utils import get_additional_contexts
-from data_to_paper.research_types.hypothesis_testing.coding.utils_modified_for_gpt_use.to_pickle import \
-    get_dataframe_to_pickle_attr_replacer, get_pickle_dump_attr_replacer
+    OutputFileRequirements, PickleContentOutputFileRequirement, DataOutputFileRequirement
+from data_to_paper.code_and_output_files.referencable_text import LabeledNumericReferenceableText
+from data_to_paper.llm_coding_utils.describe import describe_df
+from data_to_paper.llm_coding_utils.df_to_figure import df_to_figure
+from data_to_paper.llm_coding_utils.df_to_latex import df_to_latex
+from data_to_paper.research_types.hypothesis_testing.cast import ScientificAgent
+from data_to_paper.run_gpt_code.code_runner import CodeRunner
+from data_to_paper.run_gpt_code.overrides.dataframes.df_with_attrs import ListInfoDataFrame
+from data_to_paper.research_types.hypothesis_testing.coding.analysis.utils import get_pickle_dump_attr_replacer
+from data_to_paper.research_types.hypothesis_testing.coding.base_code_conversers import BaseTableCodeProductsGPT
+from data_to_paper.research_types.hypothesis_testing.coding.utils import create_pandas_and_stats_contexts
+from data_to_paper.research_types.hypothesis_testing.model_engines import get_model_engine_for_class
 from data_to_paper.research_types.hypothesis_testing.scientific_products import HypertargetPrefix
 from data_to_paper.run_gpt_code.extract_and_check_code import ModifyAndCheckCodeExtractor, CodeExtractor
 from data_to_paper.run_gpt_code.overrides.dataframes.utils import to_string_with_format_value, \
     format_numerics_and_iterables
-from data_to_paper.run_gpt_code.overrides.pvalue import is_containing_p_value
+from data_to_paper.run_gpt_code.overrides.pvalue import is_containing_p_value, OnStr, OnStrPValue
 from data_to_paper.run_gpt_code.run_issues import RunIssue, CodeProblem
+from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceDict
 
 
-class DataFramePickleContentOutputFileRequirement(PickleContentOutputFileRequirement):
-    def _to_str(self, content: DataFrame, view_purpose: ViewPurpose) -> str:
-        return to_string_with_format_value(content)
+@dataclass(frozen=True)
+class BaseDataFramePickleContentOutputFileRequirement(PickleContentOutputFileRequirement):
+    referenceable_text_cls: type = LabeledNumericReferenceableText
+
+    def _get_func_args_kwargs(self, content: ListInfoDataFrame) -> Tuple:
+        func_name, df, label, kwargs = content.extra_info[-1]
+        assert df.equals(content)
+        if func_name == 'df_to_latex':
+            func = df_to_latex
+            func.__name__ = 'df_to_latex'
+        elif func_name == 'df_to_figure':
+            func = df_to_figure
+            func.__name__ = 'df_to_figure'
+            kwargs['save_fig'] = False
+        else:
+            raise ValueError(f'Unknown function name: {func_name}')
+        return func, (content, label), kwargs
+
+    # def _get_referencable_text(self, content: Any, filename: str = None, num_file: int = 0,
+    #                            view_purpose: ViewPurpose = None) -> LabeledNumericReferenceableText:
+    #     content = self._to_str(content, with_hyperlinks=True)
+    #     referenceable_text = super()._get_referencable_text(content, filename, num_file, view_purpose)
+    #     if view_purpose == ViewPurpose.FINAL_INLINE:
+    #         text = referenceable_text.text
+    #         pickle_filename = ...
+    #         if pickle_filename:
+    #             # we add a hyperlink to the table caption
+    #             pickle_filename = convert_str_to_latex_label(pickle_filename, 'file')
+    #             caption = get_displayitem_caption(text)
+    #             if '\n' in caption:
+    #                 # we wrap only the first line with hyperlink
+    #                 first_line, rest = caption.split('\n', 1)
+    #                 new_caption = f'\\protect\\hyperlink{{{pickle_filename}}}{{{first_line}}}\n{rest}'
+    #             else:
+    #                 new_caption = f'\\protect\\hyperlink{{{pickle_filename}}}{{{caption}}}'
+    #             text = text.replace(caption, new_caption)
+    #         referenceable_text.text = text
+    #     return referenceable_text
+
+    def _convert_content_to_labeled_text(self, content: Any, filename: str = None, num_file: int = 0,
+                                         view_purpose: ViewPurpose = None) -> str:
+        pvalue_on_str = self._convert_view_purpose_to_pvalue_on_str(view_purpose)
+        with OnStrPValue(pvalue_on_str):
+            return describe_df(content, should_format=True)
+
+    def _get_content_and_header_for_app_html(
+            self, content: Any, filename: str = None, num_file: int = 0, level: int = 3,
+            view_purpose: ViewPurpose = ViewPurpose.APP_HTML):
+        func, args, kwargs = self._get_func_args_kwargs(content)
+        with OnStrPValue(OnStr.WITH_ZERO):
+            html = func(*args, **kwargs, is_html=True)
+        return html, f'<h{level}>{filename}</h{level}>'
+
+    def get_code_header_for_file(self, filename: str, content: Optional[ListInfoDataFrame] = None) -> Optional[str]:
+        func, args, kwargs = self._get_func_args_kwargs(content)
+        label = args[1]
+        table_or_figure = 'Table' if func == df_to_latex else 'Figure'
+        return f'## {table_or_figure} {label}:'
+
+
+@dataclass(frozen=True)
+class DataFramePickleContentOutputFileRequirement(BaseDataFramePickleContentOutputFileRequirement):
+
+    def _get_content_and_header_for_final_appendix(
+            self, content: Any, filename: str = None, num_file: int = 0, level: int = 3,
+            view_purpose: ViewPurpose = ViewPurpose.FINAL_APPENDIX):
+        with OnStrPValue(OnStr.WITH_ZERO):
+            content = to_string_with_format_value(content)
+        return content, f'% {filename}'
 
 
 class DictPickleContentOutputFileRequirement(PickleContentOutputFileRequirement):
-    def _to_str(self, content: DataFrame, view_purpose: ViewPurpose) -> str:
+
+    def _convert_content_to_labeled_text(self, content: Any, filename: str = None, num_file: int = int,
+                                         view_purpose: ViewPurpose = None) -> str:
         content = NiceDict(content, format_numerics_and_iterables=format_numerics_and_iterables)
-        return super()._to_str(content, view_purpose)
+        return str(content)
 
-
-@dataclass
-class DataAnalysisCodeAndOutput(CodeAndOutput):
-    def get_code_header_for_file(self, filename: str) -> Optional[str]:
-        # 'additional_results.pkl' -> '# Additional Results'
-        if filename == 'additional_results.pkl':
-            return '# SAVE ADDITIONAL RESULTS'
-        # '*.pkl' -> '# DF *'
-        if filename.startswith('df_') and filename.endswith('.pkl'):
-            return f'## DF {filename[3:-4]}'
-        return None
+    def get_code_header_for_file(self, filename: str, content: Optional[Any] = None) -> Optional[str]:
+        return '# SAVE ADDITIONAL RESULTS'
 
 
 class StaticChecks(ModifyAndCheckCodeExtractor):
@@ -78,9 +143,9 @@ class StaticChecks(ModifyAndCheckCodeExtractor):
             if class_name + '(' in code:
                 issues.append(RunIssue(
                     category='Coding: good practices',
-                    issue=f'You are using the "{class_name}" class. ',
+                    issue=f'You are using the `{class_name}` class. ',
                     instructions=dedent_triple_quote_str(f"""
-                        You should use the "{from_formula}" function instead, so that the formula is clearly \t
+                        You should use the `{from_formula}` function instead, so that the formula is clearly \t
                         specified as a string. 
                         Reminder: For interactions, if any, use the `*` operator in the formula, rather than \t
                         manually multiplying the variables.
@@ -121,7 +186,7 @@ class DataAnalysisDebuggerConverser(DebuggerConverser):
         issues = []
         for df_file_name in code_and_output.created_files.get_created_content_files(match_filename='df_*.pkl'):
             df_header = code_and_output.get_code_header_for_file(df_file_name)
-            if df_header not in code_and_output.code:
+            if df_header and df_header not in code_and_output.code:
                 issues.append(RunIssue(
                     category="Code structure",
                     issue=f'Your code is missing a comment "{df_header}".',
@@ -134,11 +199,18 @@ class DataAnalysisDebuggerConverser(DebuggerConverser):
 
 
 @dataclass
-class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
+class AnalysisCodeRunner(CodeRunner):
+    modified_imports: Tuple[Tuple[str, Optional[str]]] = CodeRunner.modified_imports + (
+        ('my_utils', 'data_to_paper.research_types.hypothesis_testing.coding.analysis.my_utils'),
+    )
+
+
+@dataclass
+class DataAnalysisCodeProductsGPT(BaseTableCodeProductsGPT):
     code_step: str = 'data_analysis'
     code_extractor_cls: Type[CodeExtractor] = StaticChecks
     debugger_cls: Type[DebuggerConverser] = DataAnalysisDebuggerConverser
-    code_and_output_cls: Type[CodeAndOutput] = DataAnalysisCodeAndOutput
+    code_runner_cls: Type[CodeRunner] = AnalysisCodeRunner
     headers_required_in_code: Tuple[str, ...] = (
         '# IMPORT',
         '# LOAD DATA',
@@ -148,6 +220,11 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         '# ANALYSIS',
         '# SAVE ADDITIONAL RESULTS',
     )
+    max_debug_iterations_per_attempt: int = 20
+    max_code_revisions: int = 3
+    model_engine: ModelEngine = \
+        field(default_factory=lambda: get_model_engine_for_class(DataAnalysisCodeProductsGPT))
+    user_agent: ScientificAgent = ScientificAgent.Debugger
 
     background_product_fields: Tuple[str, ...] = \
         ('data_file_descriptions', 'outputs:data_exploration', 'codes:data_preprocessing',
@@ -159,78 +236,45 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'statsmodels', 'sklearn', 'pickle')
 
     output_file_requirements: OutputFileRequirements = OutputFileRequirements(
-        [DataFramePickleContentOutputFileRequirement('df_?.pkl', 1),
+        [DataFramePickleContentOutputFileRequirement('df_*.pkl', 1),
+         DataOutputFileRequirement('df_*.png', 0, should_make_available_for_next_steps=False),
          DictPickleContentOutputFileRequirement('additional_results.pkl', 1,
                                                 hypertarget_prefixes=HypertargetPrefix.ADDITIONAL_RESULTS.value)
          ])
 
     provided_code: str = dedent_triple_quote_str('''
-        def df_to_latex(
-                df, filename: str, caption: str, label: str,
-                **kwargs):
-            """
-            Saves a DataFrame as a LaTeX table.
-            Parameters, as in `df.to_latex`.
-            """
+            {df_to_latex_doc}
 
-        def df_to_figure(
-                df, filename: str, caption: str,
-                x: Optional[str] = None, y: Optional[str] = None, 
-                kind: str = 'line', use_index: bool = True, 
-                xlabel: str = None, ylabel: str = None,
-                logx: bool = False, logy: bool = False,
-                xerr: str = None, yerr: str = None,
-                x_ci: Union[str, Tuple[str, str]] = None, y_ci: Union[str, Tuple[str, str]] = None,
-                x_p_value: str = None, y_p_value: str = None,
-            ):
-            """
-            Saves a DataFrame to a LaTeX figure.
-            Parameters, for Latex embedding of the figure:
-            `df`, `filename`, `caption`
-
-            Parameters for df.plot():
-            `x` / `y` (optional, str): Column name for x-axis / y-axis values.
-            `kind` (str): Type of plot: 'line', 'scatter', 'bar', 'hist', 'box', 'kde', 'hexbin', 'pie'.
-            `use_index` (bool): If True (default), use the index as x-axis values.
-            `logx` / `logy` (bool): If True, use log scale for x/y axis.
-            `xerr` / `yerr` (optional, str): Column name for x/y error bars.
-
-            Additional plotting options:
-            `x_p_value` / `y_p_value` (optional, str): Column name for p-values to show as stars above data points.
-                p-values are automatically converted to: '***', '**', '*', 'ns' (not significant).
-
-            Instead of xerr/yerr, one can directly provide confidence intervals:
-            `x_ci` / `y_ci` (optional, str): a column name of tuples (lower, upper) for x/y confidence intervals.
-
-            Note on error bars (explanation for y-axis is provided, x-axis is analogous):
-            Either `yerr` or `y_ci` can be provided, but not both.
-            If `yerr` is provided, the plotted error bars are (df[y]-df[yerr], df[y]+df[yerr]).
-            If `y_ci` is provided, the plotted error bars are (df[y_ci][0], df[y_ci][1]).
-            Note that unlike yerr, the y_ci are NOT added to the nominal df[y] values. 
-            Instead, the provided y_ci values should flank the nominal df[y] values.
-            """
+            {df_to_figure_doc}
         ''')
+
+    df_to_latex_extra_vars: str = ''
+    df_to_latex_extra_vars_explain: str = ''
+    df_to_figure_extra_vars: str = ''
+    df_to_figure_extra_vars_explain: str = ''
 
     mission_prompt: str = dedent_triple_quote_str("""
         Write a complete Python code to analyze the data according to our \t
         "{research_goal}" and "{hypothesis_testing_plan}". 
 
-        The code should create scientific Tables and Figures for our paper, using the following provided functions:
+        The code should create scientific Tables and Figures for our paper. 
+        It should use the following provided functions:
+        
+        ```python
         {provided_code}
-
-        The code must have the following sections (with these exact capitalized headers):
-
+        ```
+        
+        The code must have the following structure (with these exact capitalized headers):
+        
         `# IMPORT`
         `from my_utils import df_to_latex, df_to_figure`
         `import pickle`
         You can also import here any other packages including: 
-        {supported_packages}
-
+        {supported_packages}\t
 
         `# LOAD DATA`
         Load the data from the original data files described above (see "{data_file_descriptions}").
         {list_additional_data_files_if_any}\t
-
 
         `# DATASET PREPARATIONS`
         * Join data files as needed.
@@ -244,26 +288,26 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         If no dataset preparations are needed, write below this header:
         `# No dataset preparations are needed.`
 
-
         `# DESCRIPTIVE STATISTICS`
         * In light of our study goals and the hypothesis testing plan (see above "{research_goal}" and \t
-        "{hypothesis_testing_plan}"), decide whether and which descriptive statistics are needed to be included in \t
-        the research paper and create relevant tables / figures.
+        "{hypothesis_testing_plan}"), decide whether and which descriptive statistics displayitems are needed.
 
         - If you decide that no descriptive statistics is needed, write:
         `# No descriptive statistics table is needed because <your reasons here>.` 
 
-        - If you decide to create a descriptive statistics table:
-        `## Table desc_stat: "Descriptive statistics of ..."`
+        - For descriptive statistics Table:
+        `## Table df_desc_stat:`
+        `caption = "Descriptive statistics of ..."`
         Write here the code to create a descriptive statistics dataframe `df_desc_stat`.
-        Then, save the dataframe to LaTeX:
-        `df_to_latex(df_desc_stat, 'desc_stat.tex')`
+        Then, save the dataframe and create LaTeX:
+        df_to_latex(df_desc_stat, 'df_desc_stat', caption=caption)
 
-        - If you decide to create a descriptive statistics figure, for example a distribution of variable(s):
-        `## Figure param_dist: "Distribution of ..."`
+        - For descriptive statistics figure, for example a distribution of variable(s):
+        `## Figure df_param_dist:`
+        `caption = "Distribution of ..."`
         Write here the code to create `df_param_dist` of relevant parameters.
-        Then, save the dataframe to a figure:
-        `df_to_figure(df_param_dist, 'param_dist.tex', kind='hist', y=['height', 'weight', ...])`
+        Then, save the dataframe and create figure:
+        `df_to_figure(df_param_dist, 'df_param_dist', kind='hist', y=['height', 'weight', ...], caption=caption)`
         As suitable, you can also directly use dfs of original data for creating figure.
 
         `# PREPROCESSING` 
@@ -275,58 +319,65 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         If no preprocessing is needed, write:
         `# No preprocessing is needed, because <your reasons here>.`
 
-
-        `# ANALYSIS`
+        # ANALYSIS
         Considering our "{research_goal}" and "{hypothesis_testing_plan}", decide on 1-3 additional displayitems \t
-        (tables/figures) we should create for our scientific paper. \t
-        Typically, we should have at least one table or figure for each hypothesis test.
+        (tables/figures) we should create for our scientific paper.
+        Typically, we should have at least one displayitem for each hypothesis test.
 
         For each such displayitem, follow these 4 steps:
-        [a] Write a comment with a suggested table/figure caption. 
-        For example:
-        `## Table age_death: "Test of association between age and risk of death, accounting for sex and race"`
-        Or
-        `## Figure longevity_factors: "Adjusted and unadjusted odds ratios for longevity ..."  
-        Avoid generic captions such as "Results of analysis".
+        [a] Write a comment with a unique label and add the table/figure caption. 
+        Example for a table:
+        `## Table df_age_death:` 
+        `caption = "Test of association between age and risk of death, accounting for sex and race"`
+        Example for a figure:
+        `## Figure df_longevity_factors:` 
+        `caption = "Adjusted and unadjusted odds ratios for longevity ..."`
 
         [b] Perform analysis
         - Perform appropriate analysis and/or statistical tests (see above our "{hypothesis_testing_plan}").
         - Account for relevant confounding variables, as applicable.
         - Note that you may need to perform more than one test for each hypothesis.
         - Try using inherent functionality and syntax provided in functions from the available \t
-        Python packages (above). 
-        - Avoid, as possible, manually implementing generically available functionality.
+        Python packages (above).
+        - Avoid, as possible, manually implementing generically available functionality. \t
         For example, to include interactions in regression analysis (if applicable), use the `formula = "y ~ a * b"` \t
         syntax in statsmodels formulas, rather than trying to manually multiply the variables.
         {mediation_note_if_applicable}\t
 
         [c] Create a dataframe for the scientific table/figure. 
-        * Only include information that is relevant and suitable for inclusion in a scientific table.
+        * Only include information that is relevant and suitable for inclusion in a scientific table/figure.
         * Nominal values should be accompanied by a measure of uncertainty (CI or STD and p-value).
-        As applicable, CI should be provided as a column of tuple (lower, upper).
+        * As applicable, CI should be provided as a column of tuple (lower, upper).
         * Exclude data not important to the research goal, or that are too technical.
         * Do not repeat the same data in multiple tables/figures.
         * The df should have labels for both the columns and the index (rows): 
-            - As possible, do not invent new names; just keep the original variable names from the dataset.
-            - As applicable, also keep any attr names from statistical test results.
+          - As possible, do not invent new names; just keep the original variable names from the dataset.
+          - As applicable, also keep any attr names from statistical test results.
 
         [d] Convert the dataframe to LaTeX Table or figure using the provided functions.
 
 
-        Overall, the section should have the following structure:
+        Overall, the analysis section should have the following structure:
 
         `# ANALYSIS`
-        `## Table <chosen_tag>: "<chosen table name>"`
-        Code to analyze the data and create a dataframe `df_chosen_tag` for the table. 
-        `df_to_latex(df_chosen_tag, 'chosen_tag.tex')`
-
-        `## Figure <chosen_tag>: "<chosen figure name>"`
-        Code to analyze the data and create a dataframe `df_chosen_tag` for the figure.
-        `df_to_figure(df_chosen_tag, 'chosen_tag.tex', kind='bar', y=['height_avg', 'weight_avg', ...], 
-        y_ci=['height_ci', 'weight_ci', ...], y_p_value=['height_pval', 'weight_pval', ...])`
+        For each hypothesis test, create 1-3 display items (tables/figures):
+        
+        For a table:
+        `## Table df_tag:`  tag is a short unique label, like 'df_age_death'
+        caption = "<chosen table caption>"
+        Write here code to analyze the data and create a dataframe `df_tag` for the table. 
+        `df_to_latex(df_tag, 'df_tag', caption=caption)`
+        
+        For a figure:
+        `## Figure df_tag:`
+        caption = "<chosen figure caption>"
+        Write here code to analyze the data and create a dataframe `df_tag` for the figure.
+        `df_to_figure(df_tag, 'df_tag', caption=caption, kind='bar', 
+        y=['height_avg', 'weight_avg', ...], 
+        y_ci=['height_ci', 'weight_ci', ...], 
+        y_p_value=['height_pval', 'weight_pval', ...])`
 
         etc, up to 3-4 display items in total.
-
 
         # SAVE ADDITIONAL RESULTS
         At the end of the code, after completing the tables, create a dict containing any additional \t
@@ -334,15 +385,15 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         'additional_results.pkl'. 
 
         For example:
-
-        `additional_results = {
+        ```python
+        additional_results = {
             'Total number of observations': <xxx>,         
             'accuracy of <mode name> model': <xxx>,
-            # etc, any other results and important parameters that are not included in the tables
+            # etc, any other results and important parameters that are not included in the displayitems
         }
         with open('additional_results.pkl', 'wb') as f:
             pickle.dump(additional_results, f)
-        `
+        ```
 
         Avoid the following:
         Do not provide a sketch or pseudocode; write a complete runnable code including all '# HEADERS' sections.
@@ -351,7 +402,9 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         Avoid convoluted or indirect methods of data extraction and manipulation; \t
         For clarity, use direct attribute access for clarity and simplicity.
         For clarity, access dataframes using string-based column/index names, \t
-        rather than integer-based column/index positions. 
+        rather than integer-based column/index positions.
+        
+        Final Note: This time, make sure you create at least one table and at least one figure.
         """)
 
     code_review_prompts: Collection[CodeReviewPrompt] = (
@@ -447,7 +500,6 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         {regression_comments}\t
         {mediation_comments}\t
         {machine_learning_comments}\t
-        {scipy_unpacking_comments}\t
         }
         ```
 
@@ -480,7 +532,7 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
             # does it also report their measures of uncertainty (like p-value, CI, or STD, as applicable)?
             # For example:
             "Measures of uncertainty": ("CONCERN", "We should have included p-values for ..."),
-            Or:
+            # Or:
             "Measures of uncertainty": ("CONCERN", "CI should be provided as a column of (lower, upper) tuple"),
 
             # * MISSING DATA: 
@@ -532,11 +584,9 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
     )
 
     def _get_additional_contexts(self) -> Optional[Dict[str, Any]]:
-        return get_additional_contexts(
-            allow_dataframes_to_change_existing_series=False,
-            enforce_saving_altered_dataframes=False,
-            issue_if_statistics_test_not_called=True) | {
-                'ToPickleAttrReplacer': get_dataframe_to_pickle_attr_replacer(),
+        return create_pandas_and_stats_contexts(allow_dataframes_to_change_existing_series=False,
+                                                enforce_saving_altered_dataframes=False,
+                                                issue_if_statistics_test_not_called=True) | {
                 'PickleDumpAttrReplacer': get_pickle_dump_attr_replacer(),
         }
 
@@ -569,18 +619,79 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
                 "Missing tables": ("CONCERN", "I suggest creating an extra table showing ...")""", indent=4)
         return ''
 
-    def _get_specific_attrs_for_code_and_output(self, code_and_output: CodeAndOutput) -> Dict[str, str]:
-        comments = super()._get_specific_attrs_for_code_and_output(code_and_output)
-        comments['missing_tables_comments'] = self._get_df_comments_for_code_and_output(code_and_output)
-        return comments
-
     @property
     def mediation_note_if_applicable(self):
         keywords = ['mediated', 'mediation', 'mediates', 'mediator', 'mediators']
-        for hypothesis, plan in self.products.hypothesis_testing_plan.items():
+        if not self.products or not self.products.hypothesis_testing_plan:
+            return ""
+        for hypothesis, plan in self.products.hypothesis_testing_plan['HYPOTHESES'].items():
             if any(keyword in hypothesis.lower() or keyword in plan.lower() for keyword in keywords):
                 return dedent_triple_quote_str("""
                    - If you are doing a mediation analysis, don't forget to calculate both the 'a' and 'b' \t
                    paths (and add the same confounding variables to both paths, as needed).
                    """)
         return ""
+
+    @staticmethod
+    def _get_regression_comments_for_code_and_output(code_and_output: CodeAndOutput) -> str:
+        if 'statsmodels' not in code_and_output.code:
+            return ''
+        linear_regression_funcs = ['ols(', 'OLS(', 'logit(', 'Logit(', 'glm(', 'GLM(']
+        code = code_and_output.code
+        func_names = [func for func in linear_regression_funcs if func in code]
+        if not func_names:
+            return ''
+        return dedent_triple_quote_str("""\n
+            # - In regressions, in case interactions terms are included:
+            # Is the main effect adequately included in the model with interaction terms?
+            # Did we use the `*` operator in statsmodels formula as recommended?
+            # (as applicable, better use `formula = "y ~ a * b"`, instead of trying to \t
+            manually multiply the variables)
+            # For example:
+            "Model with interaction terms": 
+                ("CONCERN", "We forgot to include the main effect in the xxx model, \t
+            please use the `*` operator in the formula")
+            """, indent=4)
+
+    @staticmethod
+    def _get_mediation_comments_for_code_and_output(code_and_output: CodeAndOutput) -> str:
+        if 'mediation' not in code_and_output.code.lower() and False:
+            return ''
+        return dedent_triple_quote_str("""\n
+            # - In mediation analysis:
+            # did we calculate the mediation effect (e.g., using the Sobel test or other)?
+            # did we account for relevant confounding factors?
+            # (by adding these same confounding factors to both the 'a' and 'b' paths)
+            # For example:
+            "Mediation analysis":
+                ("CONCERN", "We did not explicitly calculate the mediation effect")
+            """, indent=4)
+
+    @staticmethod
+    def _get_machine_learning_comments_for_code_and_output(code_and_output: CodeAndOutput) -> str:
+        if 'sklearn' not in code_and_output.code:
+            return ''
+        ml_funcs = ['RandomForestClassifier(', 'RandomForestRegressor(',
+                    'ElasticNet(', 'SVR(', 'SVC(', 'MLPRegressor(',
+                    'DecisionTreeClassifier(',
+                    'DecisionTreeRegressor(', 'LogisticRegression(']
+        func_names = [func for func in ml_funcs if func in code_and_output.code]
+        if not func_names:
+            return ''
+        return dedent_triple_quote_str("""\n
+            # - Machine-Learning models:
+            # Are we adequately performing hyperparameter tuning using cross-validation (as appropriate). 
+            # Are the best hyperparameters reported (either in a table file or in the "additional_results.pkl" file).
+            # For example:
+            "Hyperparameter tuning":
+                ("CONCERN", "We forgot to perform hyperparameter tuning")
+            """, indent=4)
+
+    def _get_specific_attrs_for_code_and_output(self, code_and_output: CodeAndOutput) -> Dict[str, str]:
+        comments = super()._get_specific_attrs_for_code_and_output(code_and_output)
+        comments['regression_comments'] = self._get_regression_comments_for_code_and_output(code_and_output)
+        comments['mediation_comments'] = self._get_mediation_comments_for_code_and_output(code_and_output)
+        comments['machine_learning_comments'] = self._get_machine_learning_comments_for_code_and_output(code_and_output)
+        comments['missing_tables_comments'] = self._get_df_comments_for_code_and_output(code_and_output)
+        return comments
+

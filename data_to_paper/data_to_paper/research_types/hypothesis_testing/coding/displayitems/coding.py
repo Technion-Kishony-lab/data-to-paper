@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import partial
 from typing import Iterable, Any, Type, Tuple, Optional, Dict, Collection, List
 
@@ -13,31 +13,22 @@ from data_to_paper.code_and_output_files.referencable_text import BaseReferencea
     LabeledNumericReferenceableText, ReferencableTextProduct
 from data_to_paper.latex.tables import get_displayitem_caption
 from data_to_paper.research_types.hypothesis_testing.cast import ScientificAgent
-from data_to_paper.research_types.hypothesis_testing.coding.base_code_conversers import BaseCreateTablesCodeProductsGPT
-from data_to_paper.research_types.hypothesis_testing.coding.original_utils.add_html_to_latex import \
-    get_html_from_latex, get_latex_without_html_comment
-from data_to_paper.research_types.hypothesis_testing.coding.utils import get_additional_contexts
-from data_to_paper.research_types.hypothesis_testing.coding.utils_modified_for_gpt_use.label_latex_source import \
-    extract_source_filename_from_latex_displayitem
-from data_to_paper.research_types.hypothesis_testing.coding.utils_modified_for_gpt_use.to_pickle import \
-    get_read_pickle_attr_replacer
+from data_to_paper.research_types.hypothesis_testing.coding.base_code_conversers import BaseScientificCodeProductsGPT, \
+    BaseTableCodeProductsGPT
+from data_to_paper.research_types.hypothesis_testing.coding.utils import create_pandas_and_stats_contexts
+from .utils import get_df_read_pickle_attr_replacer
+from data_to_paper.research_types.hypothesis_testing.model_engines import get_model_engine_for_class
 from data_to_paper.research_types.hypothesis_testing.scientific_products import HypertargetPrefix, ScientificProducts
 from data_to_paper.run_gpt_code.attr_replacers import PreventAssignmentToAttrs, PreventCalling, AttrReplacer
 from data_to_paper.run_gpt_code.code_runner import CodeRunner
-from data_to_paper.run_gpt_code.overrides.pvalue import PValue
+from data_to_paper.run_gpt_code.overrides.pvalue import PValue, OnStr, OnStrPValue
 from data_to_paper.run_gpt_code.run_contexts import ProvideData
 from data_to_paper.run_gpt_code.run_issues import RunIssue, CodeProblem
+from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
-from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
-
-
-@dataclass
-class CreateLatexDisplayitemsCodeAndOutput(CodeAndOutput):
-    def get_code_header_for_file(self, filename: str) -> Optional[str]:
-        # 'df_*.tex' -> '# DF *'
-        if filename.startswith('df_') and filename.endswith('.tex'):
-            return f'# DF {filename[3:-4]}'
-        return None
+from data_to_paper.utils.text_formatting import wrap_as_block
+from ..analysis.coding import DataFramePickleContentOutputFileRequirement, \
+    BaseDataFramePickleContentOutputFileRequirement
 
 
 @dataclass
@@ -54,54 +45,48 @@ class DataframePreventAssignmentToAttrs(PreventAssignmentToAttrs):
         )
 
 
-@dataclass
-class DisplayitemNumericReferenceableTextProduct(ReferencableTextProduct):
-    def _process_content(self, content: str):
-        return f'"{self.name}":\n{wrap_text_with_triple_quotes(content, "html")}\n'
-
-
 @dataclass(frozen=True)
-class TexTableContentOutputFileRequirement(ReferencableContentOutputFileRequirement):
-    generic_filename: str = '*.tex'
-    referenceable_text_cls: type = LabeledNumericReferenceableText
+class TexTableContentOutputFileRequirement(BaseDataFramePickleContentOutputFileRequirement):
+    VIEW_PURPOSE_TO_PVALUE_ON_STR = {
+        ViewPurpose.PRODUCT: OnStr.LATEX_SMALLER_THAN,
+        ViewPurpose.HYPERTARGET_PRODUCT: OnStr.LATEX_SMALLER_THAN,
+        ViewPurpose.APP_HTML: OnStr.WITH_ZERO,
+        ViewPurpose.CODE_REVIEW: OnStr.LATEX_SMALLER_THAN,
+        ViewPurpose.FINAL_APPENDIX: OnStr.LATEX_SMALLER_THAN,
+        ViewPurpose.FINAL_INLINE: OnStr.LATEX_SMALLER_THAN,
+    }
+    hypertarget_prefixes: Optional[Tuple[str]] = HypertargetPrefix.LATEX_TABLES.value
 
-    def get_pretty_content(self, content: Any, filename: str = None, num_file: int = 0,
-                           view_purpose: ViewPurpose = None) -> str:
-        if view_purpose == ViewPurpose.APP_HTML:
-            return get_html_from_latex(content)
-        content = get_latex_without_html_comment(content)
-        return super().get_pretty_content(content, filename, num_file, view_purpose)
-
-    def _get_hyper_target_format(self, view_purpose: ViewPurpose) -> HypertargetFormat:
+    def _get_hyper_target_format(self, content: Any, filename: str = None, num_file: int = 0, view_purpose: ViewPurpose = None
+                                 ) -> HypertargetFormat:
+        func, args, kwargs = self._get_func_args_kwargs(content)
+        if view_purpose == ViewPurpose.FINAL_INLINE and func.__name__ == 'df_to_figure':
+            return HypertargetFormat(position=HypertargetPosition.HEADER)
         if view_purpose == ViewPurpose.FINAL_APPENDIX:
             return HypertargetFormat(position=HypertargetPosition.NONE)
-        return super()._get_hyper_target_format(view_purpose)
+        return super()._get_hyper_target_format(content, filename, num_file, view_purpose)
 
-    def _get_referencable_text(self, content: Any, filename: str = None, num_file: int = 0,
-                               view_purpose: ViewPurpose = None) -> BaseReferenceableText:
-        referenceable_text = super()._get_referencable_text(content, filename, num_file, view_purpose)
-        if view_purpose == ViewPurpose.FINAL_INLINE:
-            text = referenceable_text.text
-            pickle_filename = extract_source_filename_from_latex_displayitem(text)
-            if pickle_filename:
-                # we add a hyperlink to the table caption
-                pickle_filename = convert_str_to_latex_label(pickle_filename, 'file')
-                caption = get_displayitem_caption(text)
-                if '\n' in caption:
-                    # we wrap only the first line with hyperlink
-                    first_line, rest = caption.split('\n', 1)
-                    new_caption = f'\\protect\\hyperlink{{{pickle_filename}}}{{{first_line}}}\n{rest}'
-                else:
-                    new_caption = f'\\protect\\hyperlink{{{pickle_filename}}}{{{caption}}}'
-                text = text.replace(caption, new_caption)
-            referenceable_text.text = text
-        return referenceable_text
+    def _get_block_label(self, filename: str, num_file: int, view_purpose: ViewPurpose) -> str:
+        return 'latex'
+
+    def _convert_content_to_labeled_text(self, content: Any, filename: str = None, num_file: int = 0,
+                                         view_purpose: ViewPurpose = None) -> str:
+        func, args, kwargs = self._get_func_args_kwargs(content)
+        pvalue_on_str = self._convert_view_purpose_to_pvalue_on_str(view_purpose)
+        with OnStrPValue(pvalue_on_str):
+            return func(*args, **kwargs, should_format=True)
+
+    def _get_content_and_header_for_final_inline(
+            self, content: Any, filename: str = None, num_file: int = 0, level: int = 3,
+            view_purpose: ViewPurpose = ViewPurpose.FINAL_INLINE):
+        text, header_refs = self.get_formatted_text_and_header_references(content, filename, num_file, view_purpose)
+        return text, f'% {filename}\n' + '\n'.join(header_ref.to_str() for header_ref in header_refs)
 
 
 @dataclass
 class UtilsCodeRunner(CodeRunner):
     modified_imports: Tuple[Tuple[str, Optional[str]]] = CodeRunner.modified_imports + (
-        ('my_utils', 'data_to_paper.research_types.hypothesis_testing.coding.utils_modified_for_gpt_use'),
+        ('my_utils', 'data_to_paper.research_types.hypothesis_testing.coding.displayitems.my_utils'),
     )
 
 
@@ -110,13 +95,14 @@ class DisplayitemsDebuggerConverser(DebuggerConverser):
     products: ScientificProducts = None
 
     def _get_issues_for_created_output_files(self, code_and_output: CodeAndOutput, contexts) -> List[RunIssue]:
-        num_created_pkl_df_files = self.products.get_number_of_created_dfs()
+        created_pkl_df_files = self.products.get_created_dfs()
+        required_tex_files = [file.replace('.pkl', '.tex') for file in created_pkl_df_files]
         created_tex_files = code_and_output.created_files.get_created_content_files()
-        if len(created_tex_files) < num_created_pkl_df_files:
+        missing_tex_files = set(required_tex_files) - set(created_tex_files)
+        if len(missing_tex_files):
             return [RunIssue(
                 category='Missing output files',
-                issue=f"We have {num_created_pkl_df_files} df_?.pkl files, but only "
-                      f"{len(created_tex_files)} tex files were created.",
+                issue=f"You did not create a tex file for the following tables: {missing_tex_files}",
                 instructions=f"Please create a tex file for each table.",
                 code_problem=CodeProblem.OutputFileContentLevelA,
             )]
@@ -124,12 +110,11 @@ class DisplayitemsDebuggerConverser(DebuggerConverser):
 
 
 @dataclass
-class CreateDisplayitemsCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLatexCompilation):
+class CreateDisplayitemsCodeProductsGPT(BaseTableCodeProductsGPT, CheckLatexCompilation):
     code_step: str = 'data_to_latex'
     tolerance_for_too_wide_in_pts: Optional[float] = 25.
     debugger_cls: Type[DebuggerConverser] = DisplayitemsDebuggerConverser
     code_runner_cls: Type[CodeRunner] = UtilsCodeRunner
-    code_and_output_cls: Type[CodeAndOutput] = CreateLatexDisplayitemsCodeAndOutput
     headers_required_in_code: Tuple[str, ...] = (
         '# IMPORT',
         '# PREPARATION FOR ALL TABLES AND FIGURES',
@@ -137,76 +122,27 @@ class CreateDisplayitemsCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLa
     phrases_required_in_code: Tuple[str, ...] = \
         ('\nfrom my_utils import df_to_latex, df_to_figure, is_str_in_df, split_mapping, AbbrToNameDef', )
 
+    max_debug_iterations_per_attempt: int = 20
+    max_code_revisions: int = 1
+    model_engine: ModelEngine = \
+        field(default_factory=lambda: get_model_engine_for_class(CreateDisplayitemsCodeProductsGPT))
     user_agent: ScientificAgent = ScientificAgent.InterpretationReviewer
     background_product_fields: Tuple[str, ...] = \
         ('data_file_descriptions', 'research_goal', 'codes:data_preprocessing', 'codes:data_analysis',
-         'created_files_content:data_analysis:df_?.pkl')
+         'created_files_content:data_analysis:df_*.pkl')
     allow_data_files_from_sections: Tuple[Optional[str]] = ('data_analysis', )
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'my_utils')
     output_file_requirements: OutputFileRequirements = OutputFileRequirements([
-        TexTableContentOutputFileRequirement('*.tex',
+        TexTableContentOutputFileRequirement('df_*_formatted.pkl',
                                              minimal_count=1,
                                              hypertarget_prefixes=HypertargetPrefix.LATEX_TABLES.value),
-        DataOutputFileRequirement('*.png', minimal_count=0)])
+        DataOutputFileRequirement('df_*_formatted.png', minimal_count=0, should_make_available_for_next_steps=False)])
 
     provided_code: str = dedent_triple_quote_str('''
-        def df_to_latex(df, filename: str, caption: str, label: str,
-                        note: str = None, glossary: Dict[str, str] = None, **kwargs):
-            """
-            Saves a DataFrame as a LaTeX table with optional note and glossary added below the table.
+        {df_to_latex_doc}
 
-            Parameters:
-            - df, filename, caption, label: as in `df.to_latex`.
-            - note (optional): Additional note below the table.
-            - glossary (optional): Dictionary mapping abbreviations to full names.
-            - **kwargs: Additional arguments for `df.to_latex`.
-            """
-
-        def df_to_figure(df, filename: str, caption: str, label: str,
-                         note: str = None, glossary: Dict[str, str] = None, 
-                         x: Optional[str] = None, y: Optional[str] = None, kind: str = 'line',
-                         use_index: bool = True, 
-                         xlabel: str = None, ylabel: str = None,
-                         logx: bool = False, logy: bool = False,
-                         xerr: str = None, yerr: str = None,
-                         x_ci: Union[str, Tuple[str, str]] = None, y_ci: Union[str, Tuple[str, str]] = None,
-                         x_p_value: str = None, y_p_value: str = None,
-                         ):
-            """
-            Saves a DataFrame to a LaTeX figure with caption and optional glossary added below the figure.
-
-            Parameters:
-            `df`: DataFrame to plot (with column names and index as scientific labels). 
-            `filename` (str): name of a .tex file to create (a matching .png file will also be created). 
-            `caption` (str): Caption for the figure (can be multi-line).
-            `label` (str): Latex label for the figure, 'figure:xxx'. 
-            `glossary` (optional, dict): Dictionary mapping abbreviated df col/row labels to full names.
-
-            Parameters for df.plot():
-            `x` / `y` (optional, str): Column name for x-axis / y-axis values.
-            `kind` (str): Type of plot: 'line', 'scatter', 'bar'.
-            `use_index` (bool): If True, use the index as x-axis values.
-            `logx` / `logy` (bool): If True, use log scale for x/y axis.
-            `xerr` / `yerr` (optional, str): Column name for x/y error bars.
-            `xlabel` / `ylabel` (optional, str): Label for x/y axis.
-
-            Additional plotting options:
-            `x_p_value` / `y_p_value` (optional, str): Column name for x/y p-values to show as stars above data points.
-                p-values are converted to: '***' if < 0.001, '**' if < 0.01, '*' if < 0.05, 'NS' if >= 0.05.
-
-            Instead of xerr/yerr, you can directly provide confidence intervals:
-            `x_ci` / `y_ci` (optional, str or (str, str)): an be either a single column name where each row contains
-                a 2-element tuple (n x 2 matrix when expanded), or a list containing two column names 
-                representing the lower and upper bounds of the confidence interval.
-
-            Note on error bars (explanation for y-axis is provided, x-axis is analogous):
-            Either `yerr` or `y_ci` can be provided, but not both.
-            If `yerr` is provided, the plotted error bars are (df[y]-df[yerr], df[y]+df[yerr]).
-            If `y_ci` is provided, the plotted error bars are (df[y_ci][0], df[y_ci][1]).
-            Note that unlike yerr, the y_ci are NOT added to the nominal df[y] values. 
-            Instead, the provided y_ci values should flank the nominal df[y] values.
-            """
-
+        {df_to_figure_doc}
+            
         def is_str_in_df(df: pd.DataFrame, s: str):
             return any(s in level for level in getattr(df.index, 'levels', [df.index]) + \t
         getattr(df.columns, 'levels', [df.columns]))
@@ -222,8 +158,8 @@ class CreateDisplayitemsCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLa
         ''')
 
     mission_prompt: str = dedent_triple_quote_str('''
-        Please write a Python code to convert and re-style the "df_?.pkl" dataframes created \t
-        by our "{codes:data_analysis}" into latex tables/figures suitable for our scientific paper.
+        Please write a Python code to convert and re-style the "df_*.pkl" dataframes created \t
+        by our "{codes:data_analysis}" into nicer latex tables/figures suitable for our scientific paper.
 
         Your code should use the following 4 custom functions provided for import from `my_utils`: 
 
@@ -231,7 +167,7 @@ class CreateDisplayitemsCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLa
         {provided_code}
         ```
 
-        Your code should:
+        For each df_*.pkl file, your code should:
 
         * Rename column and row names: You should provide a new name to any column or row label that is abbreviated \t
         or technical, or that is otherwise not self-explanatory.
@@ -270,58 +206,52 @@ class CreateDisplayitemsCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLa
         ### Consult with the "{data_file_descriptions}" and the "{codes:data_analysis}" 
         ### for choosing the actual labels and their proper scientific names and definitions.
 
-        # DF {first_df_number}: <short header>
-        df{first_df_number} = pd.read_pickle('df_{first_df_number}.pkl')
+        # Process df_tag:  ### tag is a placeholder for the actual name of the df created by the {codes:data_analysis}
+        df_tag = pd.read_pickle('df_tag.pkl')
 
         # Format values:
         ### If not needed, write '# Not Applicable' under the '# Format values:' header.
         ### Rename technical values to scientifically-suitable values. For example:
-        df{first_df_number}['MRSA'] = df{first_df_number}['MRSA'].apply(lambda x: 'Yes' if x == 1 else 'No')
+        df_tag['MRSA'] = df_tag['MRSA'].apply(lambda x: 'Yes' if x == 1 else 'No')
 
         # Rename rows and columns:
         ### Rename any abbreviated or not self-explanatory df labels to scientifically-suitable names.
         ### Use the `shared_mapping` if applicable. For example:
-        mapping{first_df_number} = dict((k, v) for k, v in shared_mapping.items() \t
-        if is_str_in_df(df{first_df_number}, k)) 
-        mapping{first_df_number} |= {
+        mapping = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df_mrsa_age, k)) 
+        mapping |= {
             'PV': ('P-value', None),
             'CI': ('CI', '95% Confidence Interval'),
             'Sex_Age': ('Age * Sex', 'Interaction term between Age and Sex'),
         }
-        abbrs_to_names{first_df_number}, glossary{first_df_number} = split_mapping(mapping{first_df_number})
-        df{first_df_number} = df{first_df_number}.rename(columns=abbrs_to_names{first_df_number}, \t
-        index=abbrs_to_names{first_df_number})
+        abbrs_to_names, glossary = split_mapping(mapping)
+        df_tag.rename(columns=abbrs_to_names, index=abbrs_to_names, inplace=True)
 
-        # <Choose whether it is more appropriate to present the data as a table or a figure.>
-        # <Use either `df_to_latex` or `df_to_figure`> 
+        ### Choose whether it is more appropriate to present the data as a table or a figure: 
 
-        # Creat latex table:
+        ### As a table:
         df_to_latex(
-            df{first_df_number}, 'df_{first_df_number}.tex',
+            df_tag, 'df_tag_formatted'
             caption="<choose a caption suitable for a table in a scientific paper>", 
-            label='<table:xxx>',
             note="<If needed, add a note to provide any additional information that is not captured in the caption>",
-            glossary=glossary{first_df_number})
+            glossary=glossary)
 
-        # Create latex figure:
+        ### As a figure:
         df_to_figure(
-            df{first_df_number}, 'df_{first_df_number}.tex',
+            df_tag, 'df_tag_formatted',
             caption="<one line heading of the figure (this will get bolded in the scientific papers).>", 
-            label='<figure:xxx>',
             note="<If needed, add a note with additional information that will appear below the caption.
                   Do not repeat the caption. Do not repeat the glossary. 
                   Do not specify '** < 0.001' (will add automatically)>",
-            glossary=glossary{first_df_number},
+            glossary=glossary,
             kind='bar',
-            y='coef',
-            ylabel='Coefficient',
-            y_ci='CI',  # or y_ci=('CI_LB', 'CI_UB')
-            y_p_value='PV',  # a column with p-values for the y values. Will be presented as stars in the plot.
+            y='Coefficient',
+            y_ci='CI',  # a column with (lower, upper) tuple values.
+            y_p_value='PV',  # a column with p-values.
         )
 
 
-        # DF <?>
-        ### <etc, all 'df_?.pkl' files>
+        ## Process df_next_tag:
+        ### etc, for each 'df_*.pkl'
         ```
 
         Avoid the following:
@@ -332,21 +262,14 @@ class CreateDisplayitemsCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLa
 
     code_review_prompts: Collection[CodeReviewPrompt] = ()
 
-    @property
-    def first_df_number(self):
-        k = len('df_')
-        return self.products.get_created_dfs()[0][k]
-
     def __post_init__(self):
         super().__post_init__()
-        k = len('df_')
-        self.headers_required_in_code += tuple(f'# DF {file_name[k]}'
+        self.headers_required_in_code += tuple(f'## {file_name.split(".")[0]}'
                                                for file_name in self.products.get_created_dfs())
 
     def _get_additional_contexts(self) -> Optional[Dict[str, Any]]:
-        return get_additional_contexts(
-            allow_dataframes_to_change_existing_series=True,
-            enforce_saving_altered_dataframes=False) | {
+        return create_pandas_and_stats_contexts(allow_dataframes_to_change_existing_series=True,
+                                                enforce_saving_altered_dataframes=False) | {
             'CustomPreventMethods': PreventCalling(
                 modules_and_functions=(
                     ('pandas', 'to_numeric', False),
@@ -355,7 +278,7 @@ class CreateDisplayitemsCodeProductsGPT(BaseCreateTablesCodeProductsGPT, CheckLa
             'CustomPreventAssignmentToAtt': DataframePreventAssignmentToAttrs(
                 forbidden_set_attrs=['columns', 'index'],
             ),
-            'ReadPickleAttrReplacer': get_read_pickle_attr_replacer(),
+            'ReadPickleAttrReplacer': get_df_read_pickle_attr_replacer(),
             'PValueMessage': AttrReplacer(
                 obj_import_str=PValue, attr='error_message_on_forbidden_func',
                 wrapper="Calling `{func_name}` on a PValue object is forbidden."

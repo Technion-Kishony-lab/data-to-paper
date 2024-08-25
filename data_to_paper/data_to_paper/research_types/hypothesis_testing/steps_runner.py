@@ -1,19 +1,14 @@
 from dataclasses import dataclass, field
 from typing import Type
 
-from data_to_paper.utils.highlighted_text import text_to_html
 from data_to_paper.base_steps import DirectorProductGPT, CheckLatexCompilation, DataStepRunner
 
 from .app_startup import HypothesisTestingStartDialog
 from .cast import ScientificAgent
 from .coding.after_coding import RequestCodeExplanation, RequestCodeProducts
-from .coding.data_analysis import DataAnalysisCodeProductsGPT
-from .coding.data_exploration import DataExplorationCodeProductsGPT
+from .coding.analysis import DataAnalysisCodeProductsGPT
+from .coding.exploration import DataExplorationCodeProductsGPT
 from .coding.displayitems import CreateDisplayitemsCodeProductsGPT
-from .coding.preprocessing import DataPreprocessingCodeProductsGPT
-from .coding.data_analysis import DataAnalysisCodeProductsGPT
-from .coding.data_exploration import DataExplorationCodeProductsGPT
-from .coding.latex_tables import CreateLatexTablesCodeProductsGPT
 from .coding.preprocessing import DataPreprocessingCodeProductsGPT
 from .literature_search import WritingLiteratureSearchReviewGPT, GoalLiteratureSearchReviewGPT
 from .produce_pdf_step import ProduceScientificPaperPDFWithAppendix
@@ -81,7 +76,7 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
             ScientificStage.ASSESS_NOVELTY: self._assess_novelty,
             ScientificStage.PLAN: self._hypotheses_testing_plan,
             ScientificStage.CODE: self._data_analysis,
-            ScientificStage.TABLES: self._tables,
+            ScientificStage.DISPLAYITEMS: self._tables,
             ScientificStage.INTERPRETATION: self._interpretation,
             ScientificStage.LITERATURE_REVIEW_WRITING: self._literature_review_writing,
             ScientificStage.WRITING_RESULTS: self._writing_results,

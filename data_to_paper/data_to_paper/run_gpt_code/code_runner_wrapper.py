@@ -74,15 +74,14 @@ class CodeRunnerWrapper(CacheRunToFile):
         process.start()
         process.join(self.timeout_sec)
         if process.is_alive():
-            with os.popen(f'{"sudo -n " if platform.system() == "Darwin" else ""}py-spy dump --pid {process.pid}') as f:
-                py_spy_stack = f.read()
+            process.terminate()  # Terminate the process if it's still alive after timeout
             process.join()
             result = (
                 None,
                 [],
-                dict(),
-                FailedRunningCode.from_exception_with_py_spy(CodeTimeoutException(self.timeout_sec),
-                                                             (py_spy_stack, code)))
+                MultiRunContext(),
+                FailedRunningCode(exception=CodeTimeoutException(self.timeout_sec))
+            )
         else:
             with open(queue_or_filepath, 'rb') as f:
                 result = pickle.load(f)

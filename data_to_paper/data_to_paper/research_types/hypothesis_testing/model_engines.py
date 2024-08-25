@@ -19,7 +19,8 @@ elif TYPE_OF_MODELS == 'open':
     ModelEngine.DEFAULT = ModelEngine.LLAMA_2_70b
     CLASSES_TO_MODEL_ENGINES = {
         "DataExplorationCodeProductsGPT": ModelEngine.GPT4,
-        "BaseCreateTablesCodeProductsGPT": ModelEngine.CODELLAMA,
+        "DataAnalysisCodeProductsGPT": ModelEngine.CODELLAMA,
+        "CreateDisplayitemsCodeProductsGPT": ModelEngine.CODELLAMA,
         "GetMostSimilarCitations": ModelEngine.LLAMA_2_70b,
         "NoveltyAssessmentReview": ModelEngine.LLAMA_2_70b,
         "IntroductionSectionWriterReviewGPT": ModelEngine.LLAMA_2_70b,

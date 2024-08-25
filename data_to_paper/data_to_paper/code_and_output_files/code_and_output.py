@@ -38,7 +38,8 @@ class CodeAndOutput:
         Return a string which can be found in the line where we should go to when we want to see the code
         that created the file.
         """
-        return filename
+        requirement, content = self.created_files.get_created_files_to_requirements_and_contents()[filename]
+        return requirement.get_code_header_for_file(filename, content)
 
     def get_lineno_for_file(self, code: str, filename: str) -> Optional[int]:
         header = self.get_code_header_for_file(filename)

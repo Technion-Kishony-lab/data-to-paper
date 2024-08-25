@@ -1,6 +1,6 @@
 import numbers
 import re
-from typing import Dict, Union
+from typing import Dict, Union, Optional
 
 import numpy as np
 import pandas as pd
@@ -10,8 +10,8 @@ from data_to_paper.run_gpt_code.overrides.pvalue import is_p_value, PValue
 from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue, RunIssues
 from data_to_paper.utils import dedent_triple_quote_str
 
-MAX_COLUMNS = None  # No limit, a long table can be used for a figure
-MAX_ROWS = 20
+MAX_COLUMNS: Optional[int] = 6  # None for no limit
+MAX_ROWS: Optional[int] = 20
 
 
 def _is_non_integer_numeric(value) -> bool:
@@ -241,40 +241,58 @@ def check_df_for_nan_values(df: pd.DataFrame, filename: str) -> RunIssues:
     return issues
 
 
-def check_df_size(df: pd.DataFrame, filename: str) -> RunIssues:
+def check_df_size(df: pd.DataFrame, filename: str, max_rows: Optional[int], max_columns: Optional[int]) -> RunIssues:
     """
     Check if the table has too many columns or rows
     """
     issues = RunIssues()
     trimming_note = "Note that simply trimming the data is not always a good solution. " \
-                    "You might instead want to think of a different representation/organization of the table."
-
-    if MAX_COLUMNS is not None and df.shape[1] > MAX_COLUMNS:
+                    "You might instead want to think of a different representation/organization of the table, " \
+                    "Or, consider representing the data as a figure."
+    transpose_note = "You might also consider transposing the table."
+    if max_columns is not None and df.shape[1] > max_columns:
         issues.append(RunIssue(
             category='Checking df: too many columns',
-            code_problem=CodeProblem.OutputFileContentLevelB,
+            code_problem=CodeProblem.OutputFileContentLevelA,
             item=filename,
             issue=f'The table has {len(df.columns)} columns, which is way too many for a scientific table.',
             instructions=f"Please revise the code so that created tables "
-                         f"have just 2-5 columns and definitely not more than {MAX_COLUMNS}.\n" + trimming_note
+                         f"have just 2-5 columns and definitely not more than {max_columns}.\n" + trimming_note +
+                         (transpose_note if df.shape[0] <= max_columns else '')
         ))
 
-    if MAX_ROWS is not None and df.shape[0] > MAX_ROWS:
+    if max_rows is not None and df.shape[0] > max_rows:
         issues.append(RunIssue(
             category='Checking df: too many rows',
-            code_problem=CodeProblem.OutputFileContentLevelB,
+            code_problem=CodeProblem.OutputFileContentLevelA,
             item=filename,
             issue=f'The table has {df.shape[0]} rows, which is way too many for a scientific table.',
             instructions=f"Please revise the code so that created tables "
-                         f"have a maximum of {MAX_ROWS} rows.\n" + trimming_note
+                         f"have a maximum of {max_rows} rows.\n" + trimming_note
         ))
     return issues
 
 
 def check_output_df_for_content_issues(df: pd.DataFrame, filename: str,
-                                       prior_dfs: Dict[str, pd.DataFrame] = None) -> RunIssues:
+                                       prior_dfs: Dict[str, pd.DataFrame] = None,
+                                       is_figure: bool = False,
+                                       ) -> RunIssues:
     prior_dfs = prior_dfs or {}
     issues = RunIssues()
+
+    # Check if the df is a df.describe() table
+    issues.extend(check_df_is_describe(df, filename))
+    if issues:
+        return issues
+
+    # Check if the df has too many columns or rows
+    if not is_figure:
+        issues.extend(check_df_size(df, filename,
+                                    max_rows=MAX_ROWS,
+                                    max_columns=MAX_COLUMNS))
+
+    if issues:
+        return issues
 
     # Check if the table has only numeric, str, bool, or tuple values
     issues.extend(check_df_has_only_numeric_str_bool_or_tuple_values(df, filename))
@@ -284,7 +302,8 @@ def check_output_df_for_content_issues(df: pd.DataFrame, filename: str,
     issues.extend(check_df_headers_are_int_str_or_bool(df.index, filename))
 
     # Check if the index of the dataframe is just a numeric range
-    issues.extend(check_df_index_is_a_range(df, filename))
+    if not is_figure:
+        issues.extend(check_df_index_is_a_range(df, filename))
 
     # Check if the table contains the same values in multiple cells
     # issues.extend(check_df_for_repeated_values(df, filename))
@@ -296,15 +315,7 @@ def check_output_df_for_content_issues(df: pd.DataFrame, filename: str,
     if issues:
         return issues
 
-    # Check if the df is a df.describe() table
-    issues.extend(check_df_is_describe(df, filename))
-    if issues:
-        return issues
-
     # Check if the df has NaN values or PValue with value of nan
     issues.extend(check_df_for_nan_values(df, filename))
-
-    # Check if the df has too many columns or rows
-    issues.extend(check_df_size(df, filename))
 
     return issues

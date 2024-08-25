@@ -3,8 +3,7 @@ from typing import List, Optional, Tuple
 
 import pandas as pd
 
-from data_to_paper.research_types.hypothesis_testing.coding.utils_modified_for_gpt_use.abbreviations import \
-    is_unknown_abbreviation
+from data_to_paper.research_types.hypothesis_testing.coding.displayitems.abbreviations import is_unknown_abbreviation
 from data_to_paper.run_gpt_code.overrides.pvalue import is_containing_p_value
 from data_to_paper.run_gpt_code.run_issues import RunIssue, CodeProblem
 from data_to_paper.utils import dedent_triple_quote_str
@@ -32,7 +31,7 @@ def check_that_index_is_true(df: pd.DataFrame, filename: str, index: bool) -> Li
             msg = ''
         issues.append(RunIssue.from_current_tb(
             category='Calling df_to_latex',
-            code_problem=CodeProblem.OutputFileDesignLevelA,
+            code_problem=CodeProblem.OutputFileDesignLevelB,
             item=filename,
             issue=f'Do not call `df_to_latex` with `index=False`. '
                   f'I want to be able to extract the row labels from the index.',
@@ -75,7 +74,7 @@ def check_for_repetitive_value_in_column(df: pd.DataFrame, filename: str, displa
                         * Drops the column from the df (use `df.drop(columns=["{column_label}"])`)
                         * Adds the unique value, {column_label}_unique[0], \t
                         in the {displayitem} note \t
-                        (use `note=` in the function `{_get_creating_func(displayitem)}`).
+                        (e.g., `{_get_creating_func(displayitem)}(..., note=f'For all rows, the {column_label} is {{{column_label}_unique[0]}}')`)
 
                         There is no need to add corresponding comments to the code. 
                         """),
@@ -127,6 +126,7 @@ def check_for_unallowed_characters(df: pd.DataFrame, filename: str) -> List[RunI
                 issues.append(RunIssue(
                     category=f'The df row/column labels contain un-allowed characters',
                     code_problem=CodeProblem.OutputFileDesignLevelB,
+                    item=filename,
                     issue=dedent_triple_quote_str(f"""
                         The {filename} has {index_or_column} labels containing \t
                         the character "{char}" ({char_name}), which is not allowed.
@@ -135,7 +135,7 @@ def check_for_unallowed_characters(df: pd.DataFrame, filename: str) -> List[RunI
                         """),
                     instructions=dedent_triple_quote_str(f"""
                         Please revise the code to map these {index_or_column} labels to new names \t
-                        that do not contain the "{char}" characters.
+                        that do not contain the "{char}" characters. Spaces are allowed.
 
                         Doublecheck to make sure your code uses `df.rename({index_or_column}=...)` \t
                         with the `{index_or_column}` argument set to a dictionary mapping the old \t
@@ -196,7 +196,7 @@ def check_glossary_does_not_include_labels_that_are_not_in_df(df: pd.DataFrame, 
     issues = []
     if glossary:
         all_labels = extract_df_axes_labels(df, with_title=True, string_only=True)
-        un_mentioned_labels = [label for label in glossary if label not in all_labels]
+        un_mentioned_labels = [label for label in glossary if label not in all_labels and label != 'Significance']
         if un_mentioned_labels:
             issues.append(RunIssue(
                 category='Displayitem glossary',
@@ -224,10 +224,9 @@ def _create_displayitem_caption_label_issue(filename: str, issue: str) -> RunIss
         item=filename,
         issue=issue,
         instructions=dedent_triple_quote_str("""
-            Please revise the code making sure all displayitems are created with a caption and a label.
-            Use the arguments `caption` and `label` of `df_to_latex` or `df_to_figure`.
+            Please revise the code making sure all displayitems are created with a caption.
+            Use the arguments `caption` of `df_to_latex` or `df_to_figure`.
             Captions should be suitable for tables/figures of a scientific paper.
-            Labels should be in the format `table:<your table label here>`, `figure:<your figure label here>`.
             In addition, you can add:
             - an optional note for further explanations (use the argument `note`)
             - a glossary mapping any abbreviated row/column labels to their definitions \t
@@ -242,13 +241,13 @@ def check_displayitem_label(df: pd.DataFrame, filename: str, label: Optional[str
         prefix = displayitem
     if label is None:
         issue = f'The {displayitem} does not have a label.'
-    elif not label.startswith(f'{prefix}:'):
-        issue = f'The label of the {displayitem} is not in the format `{prefix}:<your label here>`'
+    # elif not label.startswith(f'{prefix}:'):
+    #     issue = f'The label of the {displayitem} is not in the format `{prefix}:<your label here>`'
     elif ' ' in label:
         issue = f'The label of the {displayitem} should not contain spaces.'
-    elif label.endswith(':'):
-        issue = f'The label of the {displayitem} should not end with ":"'
-    elif label[6:].isnumeric():
+    elif ':' in label:
+        issue = f'The label of the {displayitem} should not contain ":"'
+    elif label.isnumeric():
         issue = f'The label of the {displayitem} should not be just a number.'
     else:
         return []

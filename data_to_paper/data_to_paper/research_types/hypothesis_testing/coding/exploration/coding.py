@@ -2,16 +2,20 @@ from dataclasses import dataclass, field
 from typing import Tuple, Optional, Dict, Any, Collection, List
 
 from data_to_paper.base_steps.request_code import CodeReviewPrompt
+from data_to_paper.code_and_output_files.file_view_params import ViewPurpose
 from data_to_paper.code_and_output_files.output_file_requirements import OutputFileRequirements, \
     TextContentOutputFileRequirement, NumericTextContentOutputFileRequirement
 from data_to_paper.research_types.hypothesis_testing.cast import ScientificAgent
 from data_to_paper.research_types.hypothesis_testing.coding.base_code_conversers import BaseScientificCodeProductsGPT
-from data_to_paper.research_types.hypothesis_testing.coding.utils import get_additional_contexts
+from data_to_paper.research_types.hypothesis_testing.coding.utils import create_pandas_and_stats_contexts
 from data_to_paper.research_types.hypothesis_testing.model_engines import get_model_engine_for_class
+from data_to_paper.run_gpt_code.overrides.pvalue import OnStr
 from data_to_paper.run_gpt_code.run_issues import RunIssue, CodeProblem
 from data_to_paper.servers.model_engine import ModelEngine
-from data_to_paper.utils import dedent_triple_quote_str
+from data_to_paper.utils import dedent_triple_quote_str, format_text_with_code_blocks
+from data_to_paper.utils.highlighted_text import output_to_highlighted_html
 from data_to_paper.utils.nice_list import NiceList
+from data_to_paper.utils.text_formatting import wrap_as_block
 
 
 @dataclass(frozen=True)
@@ -19,6 +23,12 @@ class EnforceContentOutputFileRequirement(TextContentOutputFileRequirement, Nume
     should_keep_file: bool = False
     headers_required_in_output: Tuple[str, ...] = \
         ('# Data Size', '# Summary Statistics', '# Categorical Variables', '# Missing Values')
+
+    def _get_content_and_header_for_app_html(self, content: Any, filename: str = None, num_file: int = 0, level: int = 3,
+                                             view_purpose: ViewPurpose = ViewPurpose.APP_HTML):
+        content = self._to_str(content, OnStr.SMALLER_THAN)
+        content = output_to_highlighted_html(content)
+        return content, f'<h{level}>{filename}</h{level}>'
 
     def get_issues_for_output_file_content(self, filename: str, content: str) -> List[RunIssue]:
         issues = super().get_issues_for_output_file_content(filename, content)
@@ -38,6 +48,10 @@ class EnforceContentOutputFileRequirement(TextContentOutputFileRequirement, Nume
             ))
 
         return issues
+
+    def _convert_content_to_labeled_text(self, content: Any, filename: str = None, num_file: int = 0,
+                                         view_purpose: ViewPurpose = None) -> str:
+        return content
 
 
 @dataclass
@@ -136,5 +150,5 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
     )
 
     def _get_additional_contexts(self) -> Optional[Dict[str, Any]]:
-        return get_additional_contexts(allow_dataframes_to_change_existing_series=False,
-                                       enforce_saving_altered_dataframes=False)
+        return create_pandas_and_stats_contexts(allow_dataframes_to_change_existing_series=False,
+                                                enforce_saving_altered_dataframes=False)
