@@ -218,11 +218,10 @@ class DebuggerConverser(BackgroundProductsConverser):
             comment='Code has timed out',
         )
 
-    def _get_issue_for_incomplete_code_block(self) -> RunIssue:
-        try:
-            self.model_engine = self.model_engine.get_model_with_more_context()
+    def _get_issue_for_incomplete_code_block(self, is_bumped: bool) -> RunIssue:
+        if is_bumped:
             instructions = f"Let's bump you up to {self.model_engine} and REGENERATE!"
-        except ValueError:
+        else:
             instructions = "Please REGENERATE!"
 
         return RunIssue(
@@ -342,6 +341,13 @@ class DebuggerConverser(BackgroundProductsConverser):
     METHODS FOR RUNNING CODE
     """
 
+    def _bump_to_model_with_more_context(self) -> bool:
+        try:
+            self.model_engine = self.model_engine.get_model_with_more_context()
+            return True
+        except ValueError:
+            return False
+
     def _get_code_runner_wrapper(self, code: str) -> CodeRunnerWrapper:
         return CodeRunnerWrapper(
             code=code,
@@ -407,7 +413,9 @@ class DebuggerConverser(BackgroundProductsConverser):
         )
 
     def _respond_to_issues(self, issues: Union[None, RunIssue, List[RunIssue], RunIssues],
-                           code_and_output: Optional[CodeAndOutput] = None) -> Optional[CodeAndOutput]:
+                           code_and_output: Optional[CodeAndOutput] = None,
+                           is_bumped: bool = False
+                           ) -> Optional[CodeAndOutput]:
         """
         We post a response to the assistant code, based on the issues.
         We also need to delete (some) of the previous exchange.
@@ -459,6 +467,11 @@ class DebuggerConverser(BackgroundProductsConverser):
 
         current_stage = self._get_response_count()
         action = plan[problem.get_stage(), current_stage]
+        if problem.get_stage() == 0 and current_stage == 2:
+            assert action == 'regen1'
+            if is_bumped:
+                action = 'regen2'
+
         if '/' in action:
             action1, action2 = action.split('/')
             action = action1 if problem.get_stage() >= self.previous_code_problem.get_stage() else action2
@@ -514,7 +527,8 @@ class DebuggerConverser(BackgroundProductsConverser):
         try:
             code, num_added_lines = code_extractor.get_modified_code_and_num_added_lines(response)
         except IncompleteBlockFailedExtractingBlock:
-            return self._respond_to_issues(self._get_issue_for_incomplete_code_block())
+            is_bumped = self._bump_to_model_with_more_context()
+            return self._respond_to_issues(self._get_issue_for_incomplete_code_block(is_bumped), is_bumped=is_bumped)
         except FailedExtractingBlock as e:
             return self._respond_to_issues(self._get_issue_for_missing_or_multiple_code_blocks(e))
 
