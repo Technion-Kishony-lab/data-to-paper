@@ -14,8 +14,6 @@ from data_to_paper.code_and_output_files.output_file_requirements import TextCon
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.utils.replacer import Replacer
-from data_to_paper.code_and_output_files.file_view_params import ContentViewPurpose
-from data_to_paper.interactive import Symbols
 from data_to_paper.code_and_output_files.file_view_params import ViewPurpose
 
 from data_to_paper.interactive.human_actions import RequestInfoHumanAction
@@ -25,7 +23,6 @@ from data_to_paper.interactive.symbols import Symbols
 from data_to_paper.run_gpt_code.code_runner import CodeRunner
 from data_to_paper.run_gpt_code.extract_and_check_code import CodeExtractor, ModifyAndCheckCodeExtractor
 
-from .converser import _raise_if_reset
 from .debugger import DebuggerConverser
 from .base_products_conversers import BackgroundProductsConverser
 from .exceptions import FailedCreatingProductException

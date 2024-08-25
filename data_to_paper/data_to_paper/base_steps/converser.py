@@ -169,8 +169,7 @@ class Converser(Copier, AppInteractor):
                 content = self._app_receive_text(app_panel, content,
                                                  title=editing_title, instructions=editing_instructions,
                                                  in_field_instructions=in_field_instructions, sleep_for=sleep_for)
-            self._app_send_prompt(app_panel, content, from_md=True, demote_headers_by=1,
-                                  sleep_for=sleep_for)
+            self._app_send_prompt(app_panel, content, from_md=True, demote_headers_by=1, sleep_for=sleep_for)
         return content
 
     @_raise_if_reset()

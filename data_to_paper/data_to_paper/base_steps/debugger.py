@@ -361,8 +361,7 @@ class DebuggerConverser(BackgroundProductsConverser):
             code_extractor.headers_required_in_code = self.headers_required_in_code
         return code_extractor
 
-    @_raise_if_reset()
-    def _get_code_runner(self, response: str) -> BaseCodeRunner:
+    def _get_code_runner(self) -> CodeRunner:
         return self.code_runner_cls(
             allowed_open_read_files=self.data_filenames,
             output_file_requirements=self.output_file_requirements,
