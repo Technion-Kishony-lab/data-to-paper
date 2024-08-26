@@ -240,7 +240,7 @@ class LiteratureSearch(ValueProduct):
         ) for citation in citations)
 
     def get_header(self, view_purpose: ViewPurpose = ViewPurpose.PRODUCT, scope: Optional[str] = None, **kwargs) -> str:
-        return f'"{scope}"-related literature search' if scope is not None else self.name
+        return f'{scope}-related literature search' if scope is not None else self.name
 
     def _get_content_as_formatted_text(self, level: int, view_purpose: ViewPurpose,
                                        scope: Optional[str] = None, style: str = 'llm', **kwargs) -> str:

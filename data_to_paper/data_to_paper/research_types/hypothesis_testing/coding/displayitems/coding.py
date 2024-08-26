@@ -55,7 +55,7 @@ class TexTableContentOutputFileRequirement(BaseDataFramePickleContentOutputFileR
         ViewPurpose.FINAL_APPENDIX: OnStr.LATEX_SMALLER_THAN,
         ViewPurpose.FINAL_INLINE: OnStr.LATEX_SMALLER_THAN,
     }
-    hypertarget_prefixes: Optional[Tuple[str]] = HypertargetPrefix.LATEX_TABLES.value
+    hypertarget_prefixes: Optional[Tuple[str]] = None
 
     def _get_hyper_target_format(self, content: Any, filename: str = None, num_file: int = 0, view_purpose: ViewPurpose = None
                                  ) -> HypertargetFormat:

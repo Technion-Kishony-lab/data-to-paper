@@ -5,7 +5,8 @@ from data_to_paper.base_steps import BaseLatexToPDF
 from data_to_paper.code_and_output_files.file_view_params import ViewPurpose
 from data_to_paper.latex.latex_to_pdf import evaluate_latex_num_command
 from data_to_paper.research_types.hypothesis_testing.scientific_products import ScientificProducts
-from data_to_paper.code_and_output_files.ref_numeric_values import ReferencedValue
+from data_to_paper.code_and_output_files.ref_numeric_values import ReferencedValue, HypertargetFormat, \
+    HypertargetPosition
 from data_to_paper.code_and_output_files.referencable_text import ListReferenceableText
 from data_to_paper.servers.custom_types import Citation
 
@@ -46,7 +47,7 @@ class ProduceScientificPaperPDFWithAppendix(BaseLatexToPDF):
         # no_indent = "\\setlength{\\itemindent}{0em}\n\\setlength{\\leftmargini}{0em}\n"
         no_indent = ""
         return f"\\section{{Calculation Notes}}\n{no_indent}\\begin{{itemize}}\n" \
-            + text.get_hypertarget_text_with_header(content_view=ViewPurpose.FINAL_INLINE) \
+            + text.get_formatted_text(hypertarget_format=HypertargetFormat(position=HypertargetPosition.WRAP)) \
             + "\n\\end{itemize}"
 
     def _get_appendix(self):
