@@ -1,18 +1,13 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Tuple, Optional, Dict
+from typing import Tuple, Optional
 
 from data_to_paper.base_steps import BaseCodeProductsGPT
-from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
 from data_to_paper.llm_coding_utils.df_to_figure import ALLOWED_PLOT_KINDS
 from data_to_paper.research_types.hypothesis_testing.cast import ScientificAgent
-from data_to_paper.research_types.hypothesis_testing.model_engines import get_model_engine_for_class
 from data_to_paper.research_types.hypothesis_testing.scientific_products import ScientificProducts, get_code_name, \
     get_code_agent
-from data_to_paper.run_gpt_code.overrides.contexts import OverrideStatisticsPackages
-from data_to_paper.run_gpt_code.overrides.scipy.override_scipy import ScipyPValueOverride
-from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList
 
@@ -53,7 +48,8 @@ class BaseScientificCodeProductsGPT(BaseScientificCodeProductsHandler, BaseCodeP
             if section is None:
                 continue
             if section in self.products.codes_and_outputs:
-                files += self.products.codes_and_outputs[section].created_files.get_created_files_available_for_next_steps()
+                files += \
+                    self.products.codes_and_outputs[section].created_files.get_created_files_available_for_next_steps()
         return files
 
     @property
@@ -146,12 +142,14 @@ class BaseTableCodeProductsGPT(BaseScientificCodeProductsGPT):
             `kind` (str): {allowed_plot_kinds}.
             `logx` / `logy` (bool): log scale for x/y axis.
         {df_to_figure_extra_vars_explain}\t
-        
+
             Errorbars can be specified with either `yerr` (when indicating deviations from nominal) or \t
         `y_ci` (when indicating confidence intervals, flanking the nominal):
-            * `yerr` (ColumnChoice): Column name(s) for y error bars. In each designated column, all values should be either:
+            * `yerr` (ColumnChoice): Column name(s) for y error bars. In each designated column, \t 
+        all values should be either:
                 - scalar denoting symmetric error bars, spanning (df[y]-df[yerr], df[y]+df[yerr])
-                - 2-element tuple (bottom, top) denoting asymmetric error bars, spanning (df[y]-df[yerr][0], df[y]+df[yerr][1]) 
+                - 2-element tuple (bottom, top) denoting asymmetric error bars, \t 
+        spanning (df[y]-df[yerr][0], df[y]+df[yerr][1]) 
             * `y_ci` (ColumnChoice): Column name(s) for y confidence intervals.  
                -  The values in each such column should be a 2-element tuple (lower, upper).
                   errorbar spanning: (df[y_ci][0], df[y_ci][1])

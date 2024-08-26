@@ -8,11 +8,8 @@ from typing import TYPE_CHECKING
 import openai
 import tiktoken
 
-from data_to_paper.env import LLM_MODELS_TO_API_KEYS_AND_BASE_URL, CHOSEN_APP, FAKE_REQUEST_HUMAN_RESPONSE_ON_PLAYBACK
 from data_to_paper.exceptions import TerminateException
 from data_to_paper.interactive import HumanAction, BaseApp
-from data_to_paper.env import LLM_MODELS_TO_API_KEYS_AND_BASE_URL, CHOSEN_APP, FAKE_REQUEST_HUMAN_RESPONSE_ON_PLAYBACK, \
-    SHOW_LLM_CONTEXT
 from data_to_paper.env import LLM_MODELS_TO_API_KEYS_AND_BASE_URL, CHOSEN_APP, \
     FAKE_REQUEST_HUMAN_RESPONSE_ON_PLAYBACK, SHOW_LLM_CONTEXT
 from data_to_paper.utils.print_to_file import print_and_log_red, print_and_log

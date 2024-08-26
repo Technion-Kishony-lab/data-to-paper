@@ -226,8 +226,8 @@ class ReferencableContentOutputFileRequirement(BaseContentOutputFileRequirement)
             hypertarget_prefix=self._get_prefix(num_file),
         )
 
-    def _get_hyper_target_format(self, content: Any, filename: str = None, num_file: int = 0, view_purpose: ViewPurpose = None
-                                 ) -> HypertargetFormat:
+    def _get_hyper_target_format(self, content: Any, filename: str = None, num_file: int = 0,
+                                 view_purpose: ViewPurpose = None) -> HypertargetFormat:
         prefix = self._get_prefix(num_file)
         if prefix is None:
             return HypertargetFormat()  # no hypertargets
@@ -380,8 +380,8 @@ class OutputFileRequirementsToFileToContent(Dict[OutputFileRequirement, Dict[str
                 requirement.should_keep_file and requirement.should_make_available_for_next_steps]
 
     def get_created_files_to_requirements_and_contents(self, match_filename: str = '*',
-                                                        is_content: bool = None,
-                                                        ) -> Dict[str, Tuple[OutputFileRequirement, Any]]:
+                                                       is_content: bool = None,
+                                                       ) -> Dict[str, Tuple[OutputFileRequirement, Any]]:
         """
         Return the names of the files created by the run, and their requirements and content.
         Content is `None` for data files.

@@ -259,13 +259,13 @@ class DataAnalysisCodeProductsGPT(BaseTableCodeProductsGPT):
 
         The code should create scientific Tables and Figures for our paper. 
         It should use the following provided functions:
-        
+
         ```python
         {provided_code}
         ```
-        
+
         The code must have the following structure (with these exact capitalized headers):
-        
+
         `# IMPORT`
         `from my_utils import df_to_latex, df_to_figure`
         `import pickle`
@@ -361,13 +361,13 @@ class DataAnalysisCodeProductsGPT(BaseTableCodeProductsGPT):
 
         `# ANALYSIS`
         For each hypothesis test, create 1-3 display items (tables/figures):
-        
+
         For a table:
         `## Table df_tag:`  tag is a short unique label, like 'df_age_death'
         caption = "<chosen table caption>"
         Write here code to analyze the data and create a dataframe `df_tag` for the table. 
         `df_to_latex(df_tag, 'df_tag', caption=caption)`
-        
+
         For a figure:
         `## Figure df_tag:`
         caption = "<chosen figure caption>"
@@ -403,7 +403,7 @@ class DataAnalysisCodeProductsGPT(BaseTableCodeProductsGPT):
         For clarity, use direct attribute access for clarity and simplicity.
         For clarity, access dataframes using string-based column/index names, \t
         rather than integer-based column/index positions.
-        
+
         Final Note: This time, make sure you create at least one table and at least one figure.
         """)
 
@@ -694,4 +694,3 @@ class DataAnalysisCodeProductsGPT(BaseTableCodeProductsGPT):
         comments['machine_learning_comments'] = self._get_machine_learning_comments_for_code_and_output(code_and_output)
         comments['missing_tables_comments'] = self._get_df_comments_for_code_and_output(code_and_output)
         return comments
-

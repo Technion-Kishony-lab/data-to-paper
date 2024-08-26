@@ -5,9 +5,8 @@ from pandas import DataFrame, Series
 
 from data_to_paper.code_and_output_files.referencable_text import label_numeric_value
 from data_to_paper.run_gpt_code.overrides.dataframes.df_methods import STR_FLOAT_FORMAT
-from data_to_paper.run_gpt_code.overrides.dataframes.utils import to_string_with_format_value, llm_readable_to_csv, \
-    to_latex_with_value_format
-from data_to_paper.run_gpt_code.overrides.pvalue import is_p_value, format_p_value, OnStr, OnStrPValue, PValue
+from data_to_paper.run_gpt_code.overrides.dataframes.utils import llm_readable_to_csv, to_latex_with_value_format
+from data_to_paper.run_gpt_code.overrides.pvalue import is_p_value, PValue
 
 
 def _label_p_value(p_value):

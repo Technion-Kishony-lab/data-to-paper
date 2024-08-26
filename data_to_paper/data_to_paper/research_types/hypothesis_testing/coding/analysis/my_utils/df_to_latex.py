@@ -1,5 +1,3 @@
-import functools
-
 import pandas as pd
 
 from data_to_paper.llm_coding_utils.df_to_latex import df_to_latex

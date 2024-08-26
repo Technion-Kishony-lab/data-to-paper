@@ -17,4 +17,3 @@ def get_df_read_pickle_attr_replacer():
                            send_context_to_wrapper=True, send_original_to_wrapper=True)
     context.last_read_pickle_filename = None
     return context
-

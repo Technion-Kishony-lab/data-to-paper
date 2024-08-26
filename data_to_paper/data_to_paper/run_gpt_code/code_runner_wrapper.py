@@ -1,6 +1,5 @@
 import os
 import pickle
-import platform
 import threading
 import tempfile
 import uuid

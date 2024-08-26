@@ -24,7 +24,6 @@ from data_to_paper.interactive import PanelNames, Symbols
 
 from data_to_paper.base_cast import Agent
 from data_to_paper.utils.text_formatting import wrap_as_block
-from data_to_paper.interactive.symbols import Symbols
 from data_to_paper.run_gpt_code.base_run_contexts import RunContext
 from data_to_paper.run_gpt_code.code_runner import CodeRunner
 from data_to_paper.run_gpt_code.extract_and_check_code import get_issue_for_use_of_a_forbidden_function, CodeExtractor

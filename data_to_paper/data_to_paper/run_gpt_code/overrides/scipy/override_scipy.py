@@ -1,7 +1,7 @@
 import functools
 import inspect
-from dataclasses import dataclass, field
-from typing import Iterable, Dict, Optional
+from dataclasses import dataclass
+from typing import Iterable, Optional
 
 from data_to_paper.env import TRACK_P_VALUES
 from data_to_paper.run_gpt_code.attr_replacers import SystematicFuncReplacerContext

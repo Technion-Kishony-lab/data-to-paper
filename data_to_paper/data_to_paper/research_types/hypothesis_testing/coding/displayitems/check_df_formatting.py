@@ -74,7 +74,8 @@ def check_for_repetitive_value_in_column(df: pd.DataFrame, filename: str, displa
                         * Drops the column from the df (use `df.drop(columns=["{column_label}"])`)
                         * Adds the unique value, {column_label}_unique[0], \t
                         in the {displayitem} note \t
-                        (e.g., `{_get_creating_func(displayitem)}(..., note=f'For all rows, the {column_label} is {{{column_label}_unique[0]}}')`)
+                        (e.g., `{_get_creating_func(displayitem)}(..., note=f'For all rows, \t 
+                        the {column_label} is {{{column_label}_unique[0]}}')`)
 
                         There is no need to add corresponding comments to the code. 
                         """),

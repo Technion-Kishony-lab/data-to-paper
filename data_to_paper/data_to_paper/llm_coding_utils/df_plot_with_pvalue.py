@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 from pandas import DataFrame
 
 from data_to_paper.run_gpt_code.overrides.pvalue import PValueToStars, OnStr, OnStrPValue
-from .describe import describe_value, df_to_numerically_labeled_latex, describe_df
+from .describe import describe_value, describe_df
 from .matplotlib_utils import get_xy_coordinates_of_df_plot, \
     replace_singleton_legend_with_axis_label, add_grid_line_at_zero_if_not_origin, rotate_xticklabels_if_not_numeric
 from ..run_gpt_code.overrides.dataframes.utils import to_html_with_value_format
@@ -158,7 +158,8 @@ def df_plot_with_pvalue(df: DataFrame, x: Optional[str] = None, y: ColumnChoice 
         try:
             ax = df_plot_with_legend(df, x=x, y=y, kind=kind, ax=ax, xerr=xerr, yerr=yerr, **kwargs)
         except Exception as e:
-            msg = f'Error calling df.plot(x={describe_value(x)}, y={describe_value(y)}, kind={kind}, xerr={describe_value(xerr)}, yerr={describe_value(yerr)}, **{kwargs}):\n' \
+            msg = f'Error calling df.plot(x={describe_value(x)}, y={describe_value(y)}, kind={kind}, ' \
+                  f'xerr={describe_value(xerr)}, yerr={describe_value(yerr)}, **{kwargs}):\n' \
                   f'Got the following exception:\n{e}'
             raise ValueError(msg)
         coords = get_xy_coordinates_of_df_plot(df, x=x, y=y, kind=kind)

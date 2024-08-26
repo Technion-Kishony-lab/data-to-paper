@@ -1,9 +1,7 @@
-import re
 from typing import Dict, List, Optional, Union, Iterable, Any
 
 import pandas as pd
 
-from data_to_paper.run_gpt_code.overrides.dataframes.df_with_attrs import save_as_list_info_df
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.run_gpt_code.overrides.pvalue import OnStr
 
@@ -21,7 +19,6 @@ from ...analysis.check_df_of_table import check_df_headers_are_int_str_or_bool, 
 from ...analysis.my_utils import df_to_latex as analysis_df_to_latex
 
 from data_to_paper.llm_coding_utils.df_to_latex import df_to_latex
-from ...utils import convert_filename_to_label
 
 
 def _find_longest_str_in_list(lst: Iterable[Union[str, Any]]) -> Optional[str]:
@@ -82,7 +79,6 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
                                   **kwargs) -> RunIssues:
     assert 'columns' not in kwargs, "assumes columns is None"
     caption: Optional[str] = kwargs.get('caption', None)
-    label: Optional[str] = kwargs.get('label', None)
     index: bool = kwargs.get('index', True)
     glossary = {} if glossary is None else glossary
 
@@ -108,7 +104,8 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
 
     file_stem = filename
     with RegisteredRunContext.temporarily_disable_all():
-        latex = df_to_latex(df, filename, note=note, glossary=glossary, pvalue_on_str=OnStr.LATEX_SMALLER_THAN, **kwargs)
+        latex = df_to_latex(df, filename, note=note, glossary=glossary,
+                            pvalue_on_str=OnStr.LATEX_SMALLER_THAN, **kwargs)
         if compilation_func is None:
             e = 0.
         else:

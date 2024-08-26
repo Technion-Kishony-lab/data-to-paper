@@ -1,5 +1,3 @@
-from pathlib import Path
-
 
 def convert_to_latex_comment(text: str) -> str:
     """

@@ -44,7 +44,8 @@ def check_of_any_of_types(element: Any, types_: Iterable[type], description: str
             return
         except WrongTypeException:
             pass
-    raise WrongTypeException(f'object{description} must be of one of the types: {", ".join([t.__name__ for t in types_])}')
+    raise WrongTypeException(
+        f'object{description} must be of one of the types: {", ".join([t.__name__ for t in types_])}')
 
 
 def validate_value_type(value: Any, type_: type, description: str = ''):

@@ -12,10 +12,9 @@ from data_to_paper.research_types.hypothesis_testing.model_engines import get_mo
 from data_to_paper.run_gpt_code.overrides.pvalue import OnStr
 from data_to_paper.run_gpt_code.run_issues import RunIssue, CodeProblem
 from data_to_paper.servers.model_engine import ModelEngine
-from data_to_paper.utils import dedent_triple_quote_str, format_text_with_code_blocks
+from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.highlighted_text import output_to_highlighted_html
 from data_to_paper.utils.nice_list import NiceList
-from data_to_paper.utils.text_formatting import wrap_as_block
 
 
 @dataclass(frozen=True)
@@ -24,8 +23,8 @@ class EnforceContentOutputFileRequirement(TextContentOutputFileRequirement, Nume
     headers_required_in_output: Tuple[str, ...] = \
         ('# Data Size', '# Summary Statistics', '# Categorical Variables', '# Missing Values')
 
-    def _get_content_and_header_for_app_html(self, content: Any, filename: str = None, num_file: int = 0, level: int = 3,
-                                             view_purpose: ViewPurpose = ViewPurpose.APP_HTML):
+    def _get_content_and_header_for_app_html(self, content: Any, filename: str = None, num_file: int = 0,
+                                             level: int = 3, view_purpose: ViewPurpose = ViewPurpose.APP_HTML):
         content = self._to_str(content, OnStr.SMALLER_THAN)
         content = output_to_highlighted_html(content)
         return content, f'<h{level}>{filename}</h{level}>'

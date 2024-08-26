@@ -5,7 +5,7 @@ import pandas as pd
 from data_to_paper.run_gpt_code.run_contexts import IssueCollector
 from data_to_paper.run_gpt_code.run_issues import RunIssues
 
-from ...analysis.check_df_of_table import check_df_headers_are_int_str_or_bool, check_output_df_for_content_issues
+from ...analysis.check_df_of_table import check_df_headers_are_int_str_or_bool
 from ...analysis.my_utils import df_to_figure as analysis_df_to_figure
 from ..check_df_formatting import check_for_repetitive_value_in_column, checks_that_rows_are_labelled, \
     check_for_unallowed_characters, check_for_un_glossary_abbreviations, \
@@ -30,7 +30,6 @@ def _check_for_figure_style_issues(df: pd.DataFrame, filename: str, *args,
                                    glossary: Dict[str, str] = None,
                                    **kwargs) -> RunIssues:
     caption: Optional[str] = kwargs.get('caption', None)
-    label: Optional[str] = kwargs.get('label', None)
     glossary = {} if glossary is None else glossary
     index: bool = kwargs.get('use_index', True)
 
