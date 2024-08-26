@@ -54,7 +54,7 @@ class CodeReviewPrompt(NamedTuple):
 
 @dataclass
 class RequestIssuesToSolutions(PythonDictReviewBackgroundProductsConverser):
-    LLM_PARAMETERS = {'temperature': 0.0}
+    LLM_PARAMETERS = {'temperature': 0.5}
     value_type: type = Dict[str, Tuple[str, str]]
     your_response_should_be_formatted_as: str = dedent_triple_quote_str("""
         a Python Dict[str, Tuple[str, str]], \t
