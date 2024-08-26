@@ -100,7 +100,8 @@ class PValue(OperatorValue):
         self.var_name = var_name
 
     def _get_new_object(self, value):
-        return self.__class__(value, created_by=self.created_by, var_name=self.var_name)
+        with self.BEHAVE_NORMALLY.temporary_set(True):
+            return self.__class__(value, created_by=self.created_by, var_name=self.var_name)
 
     def _raise_if_forbidden_func(self, method_name):
         raise RunIssue.from_current_tb(

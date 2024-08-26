@@ -130,7 +130,7 @@ class ScientificProducts(Products):
             content for file, content
             in self.codes_and_outputs[
                 'data_to_latex'].created_files.get_created_content_files_to_pretty_contents(view_purpose).items()
-            if file.endswith('.tex')]}
+            if file.endswith('.pkl')]}
 
     def get_all_latex_tables(self, view_purpose: ViewPurpose) -> List[str]:
         """

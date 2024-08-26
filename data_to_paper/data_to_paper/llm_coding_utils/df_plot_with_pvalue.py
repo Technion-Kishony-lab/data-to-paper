@@ -229,7 +229,7 @@ def get_description_of_plot_creation(df, fig_filename, kwargs, is_html: bool = T
         s += f'\n\nP-values for y-values were taken from column: {repr(p_value_y)}.'
     if p_value_x or p_value_y:
         s += f'\n\nThese p-values were presented above the data points as stars ' \
-             f'(with thresholds indicated in the figure caption).'
+             f'(with significance threshold values indicated in the figure caption).'
     if is_html:
         h = text_to_html(h)
         s = text_to_html(s)

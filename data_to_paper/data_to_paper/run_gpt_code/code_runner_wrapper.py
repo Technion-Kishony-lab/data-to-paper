@@ -57,8 +57,6 @@ class CodeRunnerWrapper(CacheRunToFile):
         Run the provided code in a separate process and report exceptions or specific warnings.
         Calls `run_in_provided_process` which is a wrapper for `run`.
         """
-        code = self.get_raw_code()
-        modified_code = self.get_modified_code_for_run(code)
         queue_or_filepath = f"subprocess_output_{uuid.uuid4()}_{os.getpid()}.pkl"
         queue_or_filepath = os.path.join(tempfile.gettempdir(), queue_or_filepath)
         try:

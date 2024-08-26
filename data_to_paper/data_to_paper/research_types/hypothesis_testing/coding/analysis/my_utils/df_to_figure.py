@@ -95,11 +95,11 @@ def _check_for_p_values_in_figure(df: pd.DataFrame, filename: str,
         if x_p_value is None and y_p_value is None:
             msgs.append(f'The df has p-values in column `{p_value_column}`, but they are not being plotted.')
         elif x_p_value is not None:
-            if x_p_value != p_value_column:
+            if x_p_value != p_value_column and x_p_value != [p_value_column]:
                 msgs.append(f'Column `{x_p_value}` is not the column with the p-values, which is `{p_value_column}`.')
 
         elif y_p_value is not None:
-            if y_p_value != p_value_column:
+            if y_p_value != p_value_column and y_p_value != [p_value_column]:
                 msgs.append(f'Column `{y_p_value}` is not the column with the p-values, which is `{p_value_column}`.')
     return [RunIssue(
         category='Plotting P-values',
