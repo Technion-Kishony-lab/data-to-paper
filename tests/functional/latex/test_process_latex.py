@@ -38,6 +38,10 @@ from data_to_paper.latex.clean_latex import process_latex_text_and_math
             "$Math Before$ \\begin{tabular}\\caption{This is a Caption}\\end{tabular} $Math After$",
             "$MATH BEFORE$ \\begin{tabular}\\caption{this is a caption}\\end{tabular} $MATH AFTER$",
         ),
+        (
+            "\\begin{figure}\n\\caption{Aaa\nBbb}\n\\end{figure}",
+            "\\BEGIN{FIGURE}\n\\caption{aaa\nbbb}\n\\END{FIGURE}",
+        )
     ],
 )
 def test_process_latex_parts(text, expected):

@@ -138,11 +138,11 @@ def replace_non_utf8_chars(text):
 
 def process_inside_and_outside_command(latex, inside_func, outside_func):
     # Split the latex string into parts outside and within \caption{...}
-    parts = re.split(pattern=r'(\\caption\{.*?\})', string=latex)
+    parts = re.split(pattern=r'(\\caption\{.*?\})', string=latex, flags=re.DOTALL)
 
     # Process each part using the appropriate function
-    processed_parts = [outside_func(part) if '\\caption' not in part else '\\caption{' + inside_func(
-        part[len('\\caption{'):-1]) + '}' for part in parts]
+    processed_parts = [outside_func(part) if not part.startswith(r'\caption') else r'\caption{' + inside_func(
+        part[len(r'\caption{'):-1]) + '}' for part in parts]
 
     # Reassemble the parts
     processed_latex = ''.join(processed_parts)
