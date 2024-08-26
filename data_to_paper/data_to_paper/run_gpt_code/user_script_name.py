@@ -26,7 +26,6 @@ def is_filename_test(filename: str) -> bool:
 
 def get_gpt_module_frames(tb: traceback.StackSummary) -> list:
     frames = [t for t in tb if is_filename_gpt_code(t.filename)]
-    # frames = [t for t in tb if True]  # TODO: remove this line
     if len(frames):
         return frames
     frames = [t for t in tb if is_filename_test(t.filename)]

@@ -162,7 +162,6 @@ class CodeRunner:
         multi_context = self._get_or_create_multi_context()
         exception = None
         result = None
-        print('Starting run')
         try:
             with multi_context:
                 try:
@@ -174,11 +173,6 @@ class CodeRunner:
                 except RunIssue as e:
                     exception = e
                 except Exception as e:
-                    print(e)
-                    tb = e.__traceback__
-                    while tb.tb_next is not None:
-                        print(tb.tb_frame.f_code.co_filename, tb.tb_frame.f_code.co_name, tb.tb_lineno)
-                        tb = tb.tb_next
                     exception = FailedRunningCode.from_exception(e)
 
         except BaseRunContextException as e:
@@ -186,12 +180,18 @@ class CodeRunner:
         except Exception:
             raise
         finally:
+            created_files = multi_context.contexts['TrackCreatedFiles'].created_files
+            if exception:
+                with run_in_directory(self.run_folder):
+                    # remove all the files that were created
+                    for file in created_files:
+                        if os.path.exists(file):
+                            os.remove(file)
             save_code_to_module_file()  # leave the module empty
 
-        created_files = multi_context.contexts['TrackCreatedFiles'].created_files
         for context in multi_context.get_contexts():
             assert is_serializable(context), f"Context {context} is not serializable."
-        print('Finished run')
+
         return result, created_files, multi_context, exception
 
     def _run_function_in_module(self, module: ModuleType):

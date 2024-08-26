@@ -156,9 +156,6 @@ class OpenaiServerCaller(OrderedKeyToListServerCaller):
             pass
         print_and_log_red('Calling the LLM-API for real.', should_log=False)
 
-        # wait for key press to continue:
-        input('Press Enter to continue...')
-
         api_key, api_base_url = LLM_MODELS_TO_API_KEYS_AND_BASE_URL[model_engine] \
             if model_engine in LLM_MODELS_TO_API_KEYS_AND_BASE_URL \
             else LLM_MODELS_TO_API_KEYS_AND_BASE_URL[None]
