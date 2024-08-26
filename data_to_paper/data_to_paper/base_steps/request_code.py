@@ -13,7 +13,7 @@ from data_to_paper.code_and_output_files.output_file_requirements import TextCon
     OutputFileRequirements
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList
-from data_to_paper.utils.replacer import Replacer
+from data_to_paper.utils.replacer import Replacer, format_value
 from data_to_paper.code_and_output_files.file_view_params import ViewPurpose
 
 from data_to_paper.interactive.human_actions import RequestInfoHumanAction
@@ -240,7 +240,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser, HumanReviewAppInteractor)
             code_and_output.created_files.delete_all_created_files(self.data_folder)
             self.revision_round += 1
         code_and_output.name = self.code_name
-        code_and_output.provided_code = self.provided_code
+        code_and_output.provided_code = format_value(self, self.provided_code)
         return code_and_output
 
     def _run_debugger(self, previous_code: Optional[str] = None
