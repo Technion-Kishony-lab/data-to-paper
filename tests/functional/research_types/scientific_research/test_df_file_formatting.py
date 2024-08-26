@@ -10,7 +10,7 @@ from data_to_paper.research_types.hypothesis_testing.coding.analysis.my_utils im
 from data_to_paper.research_types.hypothesis_testing.coding.analysis.my_utils import \
     df_to_figure as analysis_df_to_figure
 from data_to_paper.research_types.hypothesis_testing.coding.displayitems.coding import \
-    TexTableContentOutputFileRequirement
+    TexDisplayitemContentOutputFileRequirement
 from data_to_paper.research_types.hypothesis_testing.coding.displayitems.my_utils import \
     df_to_latex as displayitems_df_to_latex
 from data_to_paper.research_types.hypothesis_testing.coding.displayitems.my_utils import \
@@ -176,5 +176,5 @@ def test_view_df_to_latex_displayitems(tmpdir, df_tbl_0, is_figure, view_purpose
     print('\n')
     print(is_figure, view_purpose)
     df_tbl_1, df_tbl_2 = _simulate_df_to_latex_analysis_and_displayitems(tmpdir, df_tbl_0, is_figure)
-    requirement = TexTableContentOutputFileRequirement('df_*.pkl')
+    requirement = TexDisplayitemContentOutputFileRequirement('df_*.pkl')
     _check_df_to_str(df_tbl_2, requirement, view_purpose, expected)

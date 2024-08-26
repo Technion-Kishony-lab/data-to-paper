@@ -46,7 +46,7 @@ class DataframePreventAssignmentToAttrs(PreventAssignmentToAttrs):
 
 
 @dataclass(frozen=True)
-class TexTableContentOutputFileRequirement(BaseDataFramePickleContentOutputFileRequirement):
+class TexDisplayitemContentOutputFileRequirement(BaseDataFramePickleContentOutputFileRequirement):
     VIEW_PURPOSE_TO_PVALUE_ON_STR = {
         ViewPurpose.PRODUCT: OnStr.LATEX_SMALLER_THAN,
         ViewPurpose.HYPERTARGET_PRODUCT: OnStr.LATEX_SMALLER_THAN,
@@ -57,13 +57,23 @@ class TexTableContentOutputFileRequirement(BaseDataFramePickleContentOutputFileR
     }
     hypertarget_prefixes: Optional[Tuple[str]] = None
 
+    def _is_figure(self, content: Any) -> bool:
+        func, args, kwargs = self._get_func_args_kwargs(content)
+        return func.__name__ == 'df_to_figure'
+
     def _get_hyper_target_format(self, content: Any, filename: str = None, num_file: int = 0, view_purpose: ViewPurpose = None
                                  ) -> HypertargetFormat:
-        func, args, kwargs = self._get_func_args_kwargs(content)
-        if view_purpose == ViewPurpose.FINAL_INLINE and func.__name__ == 'df_to_figure':
-            return HypertargetFormat(position=HypertargetPosition.HEADER)
-        if view_purpose == ViewPurpose.FINAL_APPENDIX:
-            return HypertargetFormat(position=HypertargetPosition.NONE)
+        if self._is_figure(content):
+            if view_purpose == ViewPurpose.FINAL_INLINE:
+                return HypertargetFormat()
+            if view_purpose == ViewPurpose.FINAL_APPENDIX:
+                return HypertargetFormat(position=HypertargetPosition.ADJACENT, raised=True, escaped=True)
+        else:
+            if view_purpose == ViewPurpose.FINAL_INLINE:
+                return HypertargetFormat(position=HypertargetPosition.ADJACENT, raised=True, escaped=False)
+            if view_purpose == ViewPurpose.FINAL_APPENDIX:
+                return HypertargetFormat()
+
         return super()._get_hyper_target_format(content, filename, num_file, view_purpose)
 
     def _get_block_label(self, filename: str, num_file: int, view_purpose: ViewPurpose) -> str:
@@ -133,9 +143,9 @@ class CreateDisplayitemsCodeProductsGPT(BaseTableCodeProductsGPT, CheckLatexComp
     allow_data_files_from_sections: Tuple[Optional[str]] = ('data_analysis', )
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'my_utils')
     output_file_requirements: OutputFileRequirements = OutputFileRequirements([
-        TexTableContentOutputFileRequirement('df_*_formatted.pkl',
-                                             minimal_count=1,
-                                             hypertarget_prefixes=HypertargetPrefix.LATEX_TABLES.value),
+        TexDisplayitemContentOutputFileRequirement('df_*_formatted.pkl',
+                                                   minimal_count=1,
+                                                   hypertarget_prefixes=HypertargetPrefix.LATEX_TABLES.value),
         DataOutputFileRequirement('df_*_formatted.png', minimal_count=0, should_make_available_for_next_steps=False)])
 
     provided_code: str = dedent_triple_quote_str('''
