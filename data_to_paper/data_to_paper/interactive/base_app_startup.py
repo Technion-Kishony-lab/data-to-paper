@@ -1,8 +1,10 @@
 from __future__ import annotations
+
 import sys
 from functools import partial
 from pathlib import Path
 from typing import List, Tuple, Type, Optional
+from typing import TYPE_CHECKING
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication, QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QFileDialog, \
@@ -11,14 +13,10 @@ from PySide6.QtWidgets import QApplication, QDialog, QVBoxLayout, QLabel, QLineE
 from data_to_paper.base_products.file_descriptions import TEXT_EXTS
 from data_to_paper.env import BASE_FOLDER
 from data_to_paper.interactive.get_app import get_or_create_q_application_if_app_is_pyside
-
-from typing import TYPE_CHECKING
-
 from data_to_paper.interactive.styles import SCROLLBAR_STYLE
 
 if TYPE_CHECKING:
     from data_to_paper.base_steps import BaseStepsRunner
-
 
 BASE_PROJECT_DIRECTORY = BASE_FOLDER / 'projects'
 
@@ -77,7 +75,6 @@ QLineEdit {
 }
 """ + SCROLLBAR_STYLE
 
-
 text_box_style = "background-color: #151515; color: white;"
 
 
@@ -98,7 +95,7 @@ def create_info_label(tooltip_text):
 
 class FileWidget(QWidget):
     def __init__(self, abs_project_directory: Optional[Path], file_number: int, file_path='', is_binary=False,
-                 description=''):
+                 description='', on_change=lambda: None):
         super().__init__()
         self._abs_project_directory = abs_project_directory
         self._abs_file_path = None
@@ -152,6 +149,9 @@ class FileWidget(QWidget):
         self.description_edit = description_edit
 
         self.set_file_path(file_path)
+
+        self.file_path_widget.textChanged.connect(on_change)
+        self.description_edit.textChanged.connect(on_change)
 
     @property
     def abs_path(self) -> str:
@@ -238,7 +238,7 @@ class FileWidget(QWidget):
 
 class MultiFileWidget(QWidget):
     def __init__(self, abs_project_directory: Optional[Path] = None, file_paths: List[str] = None,
-                 is_binary: List[bool] = None, descriptions: List[str] = None):
+                 is_binary: List[bool] = None, descriptions: List[str] = None, on_change=lambda: None):
         file_paths = file_paths or []
         is_binary = is_binary or []
         descriptions = descriptions or []
@@ -254,6 +254,7 @@ class MultiFileWidget(QWidget):
         self.setLayout(layout)
         for file_path, is_bin, description in zip(file_paths, is_binary, descriptions):
             self.add_file(file_path, is_bin, description)
+        self.on_change = on_change
 
     def get_all_file_widgets(self) -> List[FileWidget]:
         file_widgets = []
@@ -265,7 +266,8 @@ class MultiFileWidget(QWidget):
 
     def add_file(self, abs_file_path='', is_binary=False, description=''):
         new_file_widget = FileWidget(self._abs_project_directory, self.files_layout.count() + 1,
-                                     file_path=abs_file_path, is_binary=is_binary, description=description)
+                                     file_path=abs_file_path, is_binary=is_binary, description=description,
+                                     on_change=self.on_change)
         self.files_layout.addWidget(new_file_widget)
         new_file_widget.remove_button.clicked.connect(partial(self._remove_file, new_file_widget))
 
@@ -302,6 +304,7 @@ class SingleFileWidget(MultiFileWidget):
     Do not show the 'Add Another File' button.
     Do not allow removing the file.
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.add_file_button.hide()
@@ -314,7 +317,7 @@ class SingleFileWidget(MultiFileWidget):
 
 
 class TextEditWithHeader(QWidget):
-    def __init__(self, title: str, help_text: str = '', text: str = '', ):
+    def __init__(self, title: str, help_text: str = '', text: str = '', on_change=lambda: None):
         super().__init__()
         layout = QVBoxLayout()
         self.setLayout(layout)
@@ -325,6 +328,7 @@ class TextEditWithHeader(QWidget):
         text_edit.setPlainText(text)
         layout.addWidget(text_edit)
         self.text_edit = text_edit
+        self.text_edit.textChanged.connect(on_change)  # Connect signal to callback
 
     def clear(self):
         self.text_edit.clear()
@@ -400,6 +404,7 @@ class BaseStartDialog(QDialog):
 
         start_button = QPushButton("Save and Start")
         start_button.clicked.connect(self.on_start_clicked)
+        start_button.setDisabled(True)
         buttons_tray.addWidget(start_button)
 
         close_button = QPushButton("Exit")
@@ -586,6 +591,19 @@ class DataFilesStartDialog(BaseStartDialog):
     def _set_project_directory(self, project_directory: Optional[Path]):
         super()._set_project_directory(project_directory)
         self._get_date_files_widget().set_project_directory(project_directory)
+
+    def update_start_button_state(self):
+        general_description_filled = bool(self.widgets['general_description'].toPlainText().strip())
+        files_filled = any(file_widget.abs_path and file_widget.description_edit.toPlainText().strip()
+                           for file_widget in self._get_date_files_widget().get_all_file_widgets())
+
+        # access the start_button from the layout
+        start_button = self.layout.itemAt(self.layout.count() - 1).itemAt(0).widget()
+        start_button.setDisabled(not (general_description_filled and files_filled))
+
+    def open_project(self, project_directory: Optional[Path] = None):
+        super().open_project(project_directory)
+        self.update_start_button_state()
 
 
 def interactively_create_project_folder(steps_runner_cls: Type[BaseStepsRunner],

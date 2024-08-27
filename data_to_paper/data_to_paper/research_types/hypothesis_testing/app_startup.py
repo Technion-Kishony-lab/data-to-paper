@@ -5,8 +5,9 @@ class HypothesisTestingStartDialog(DataFilesStartDialog):
     def _create_widgets(self):
         return {
             'general_description': TextEditWithHeader(
-                "Dataset description", "Describe the dataset, its origin, content, purpose, etc."),
-            'files_widget': MultiFileWidget(),
+                "Dataset description", "Describe the dataset, its origin, content, purpose, etc.",
+                on_change=self.update_start_button_state),
+            'files_widget': MultiFileWidget(on_change=self.update_start_button_state),
             'research_goal': TextEditWithHeader(
                 "Research Goal", "Specify the research goal, or leave blank for autonomous goal setting."),
         }
