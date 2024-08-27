@@ -44,13 +44,14 @@ See the `env.py` file for setting other available options.
 """
 
 import os
+import sys
 import argparse
 from data_to_paper.research_types.hypothesis_testing.steps_runner import HypothesisTestingStepsRunner
 from data_to_paper.research_types.toy_example.steps_runner import ToyStepsRunner
 from data_to_paper.base_steps.run_all_steps import set_project_and_run
 
 # setup the QT_QPA_PLATFORM environment variable to 'xcb' if the system is Linux
-if os.name == 'posix':
+if sys.platform == 'linux':
     os.environ['QT_QPA_PLATFORM'] = 'xcb'
 
 # Currently supported research types:
