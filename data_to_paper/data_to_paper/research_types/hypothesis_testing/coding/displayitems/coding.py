@@ -22,7 +22,6 @@ from data_to_paper.run_gpt_code.run_issues import RunIssue, CodeProblem
 from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
 
-from .utils import get_df_read_pickle_attr_replacer
 from ..analysis.coding import BaseDataFramePickleContentOutputFileRequirement
 
 
@@ -279,7 +278,6 @@ class CreateDisplayitemsCodeProductsGPT(BaseTableCodeProductsGPT, CheckLatexComp
             'CustomPreventAssignmentToAtt': DataframePreventAssignmentToAttrs(
                 forbidden_set_attrs=['columns', 'index'],
             ),
-            'ReadPickleAttrReplacer': get_df_read_pickle_attr_replacer(),
             'PValueMessage': AttrReplacer(
                 obj_import_str=PValue, attr='error_message_on_forbidden_func',
                 wrapper="Calling `{func_name}` on a PValue object is forbidden."
