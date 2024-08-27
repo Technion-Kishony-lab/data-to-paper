@@ -23,7 +23,7 @@ class ModelEngine(IndexOrderedEnum):
     LLAMA_2_70b = "meta-llama/Llama-2-70b-chat-hf"
     CODELLAMA = "codellama/CodeLlama-34b-Instruct-hf"
     LLAMA3 = "llama3"
-    CUSTOM = "<custom_model_name>"
+    CUSTOM = "<custom_model_name>" # change to your custom model name
 
     def __str__(self):
         return self.name
@@ -64,15 +64,20 @@ ModelEngine.MODELS_TO_MORE_CONTEXT[ModelEngine.GPT4] = ModelEngine.GPT4_TURBO
 ModelEngine.MODELS_TO_MORE_CONTEXT[ModelEngine.GPT4_TURBO] = ModelEngine.GPT4o
 ModelEngine.MODELS_TO_MORE_CONTEXT[ModelEngine.GPT4o_MINI] = ModelEngine.GPT4o  # same as GPT4o
 ModelEngine.MODELS_TO_MORE_CONTEXT[ModelEngine.GPT4o] = ModelEngine.GPT4o  # same as GPT4o
+ModelEngine.MODELS_TO_MORE_CONTEXT[ModelEngine.LLAMA3] = ModelEngine.LLAMA3 # same as LLAMA3
+ModelEngine.MODELS_TO_MORE_CONTEXT[ModelEngine.CUSTOM] = ModelEngine.CUSTOM  # same as CUSTOM
 
 ModelEngine.MODELS_TO_MORE_STRENGTH = dict()
 ModelEngine.MODELS_TO_MORE_STRENGTH[ModelEngine.GPT35_TURBO] = ModelEngine.GPT4o
 ModelEngine.MODELS_TO_MORE_STRENGTH[ModelEngine.GPT4] = ModelEngine.GPT4o
 ModelEngine.MODELS_TO_MORE_STRENGTH[ModelEngine.GPT4_TURBO] = ModelEngine.GPT4o
 ModelEngine.MODELS_TO_MORE_STRENGTH[ModelEngine.GPT4o_MINI] = ModelEngine.GPT4o
+ModelEngine.MODELS_TO_MORE_STRENGTH[ModelEngine.GPT4o] = ModelEngine.GPT4o # same as GPT4o
+ModelEngine.MODELS_TO_MORE_STRENGTH[ModelEngine.LLAMA3] = ModelEngine.LLAMA3 # same as LLAMA3
+ModelEngine.MODELS_TO_MORE_STRENGTH[ModelEngine.CUSTOM] = ModelEngine.CUSTOM # same as CUSTOM
+
 
 ModelEngine.MODEL_ENGINE_TO_MAX_TOKENS_AND_IN_OUT_DOLLAR = {
-    "<custom_model_name>": (None, None, None),
     ModelEngine.GPT35_TURBO: (16384, 0.000001, 0.000002),
     ModelEngine.GPT4: (8192, 0.00003, 0.00006),
     ModelEngine.GPT4_TURBO: (128000, 0.00001, 0.00003),
@@ -81,6 +86,8 @@ ModelEngine.MODEL_ENGINE_TO_MAX_TOKENS_AND_IN_OUT_DOLLAR = {
     ModelEngine.LLAMA_2_7b: (4096, 0.0002, 0.0002),
     ModelEngine.LLAMA_2_70b: (4096, 0.0007, 0.001),
     ModelEngine.CODELLAMA: (4096, 0.0006, 0.0006),
+    ModelEngine.LLAMA3: (None, None, None),
+    ModelEngine.CUSTOM: (None, None, None),
 }
 
 

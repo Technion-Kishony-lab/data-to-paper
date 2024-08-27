@@ -1,7 +1,7 @@
 from data_to_paper.servers.model_engine import ModelEngine
 from collections import defaultdict
 
-TYPE_OF_MODELS = 'ollama' # 'openai', 'deepinfra', 'ollama', 'custom'
+TYPE_OF_MODELS = 'openai' # 'ollama', 'deepinfra', 'ollama', 'custom'
 
 if TYPE_OF_MODELS == 'openai':
     ModelEngine.DEFAULT = ModelEngine.GPT4o_MINI
