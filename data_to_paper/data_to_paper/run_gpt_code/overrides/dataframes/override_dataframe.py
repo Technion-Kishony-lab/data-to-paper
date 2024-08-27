@@ -1,3 +1,4 @@
+from copy import copy
 from functools import partial, wraps
 from typing import Iterable, Dict, Callable, Optional, Tuple, List, Type
 
@@ -12,7 +13,8 @@ from pandas.core.indexing import _LocationIndexer
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.mutable import Flag
 from ...base_run_contexts import RunContext
-from .dataframe_operations import DataframeOperation, ChangeSeriesDataframeOperation, DataframeOperations
+from .dataframe_operations import DataframeOperation, ChangeSeriesDataframeOperation, DataframeOperations, \
+    CreationDataframeOperation
 from . import df_methods
 from ...run_issues import CodeProblem, RunIssue
 
@@ -75,20 +77,27 @@ class TrackDataFrames(RunContext):
     _cls_method_names_original_methods: Optional[List[Tuple[Type, str, Callable]]] = None
     _prevent_recording_changes: Flag = field(default_factory=Flag)
 
-    def _df_creating_func_override(self, *args, original_func=None, is_file=False, **kwargs):
+    def _df_creating_func_override(self, *args, original_method=None, is_file=False, on_change=None, **kwargs):
         """
         Override for a dataframe creating function.
         Adds a `file_path` and a `created_by` attribute to the created dataframe.
         """
         with self._prevent_recording_changes.temporary_set(True):
-            df = original_func(*args, **kwargs)
+            df = original_method(*args, **kwargs)
         if not isinstance(df, pd.DataFrame):
             return df
+
         if is_file:
             file_path = args[0] if len(args) > 0 else kwargs.get('filepath_or_buffer')
         else:
             file_path = None
-        return pd.DataFrame(df, created_by=original_func.__name__, file_path=file_path)
+        created_by = original_method.__name__
+        if isinstance(df, pd.DataFrame):
+            df.created_by = created_by
+            df.file_path = file_path
+            on_change(df, CreationDataframeOperation(
+                id=id(df), created_by=created_by, file_path=file_path, columns=copy(df.columns.values)))
+        return df
 
     def _override_df_creating_funcs(self):
         """
@@ -98,8 +107,9 @@ class TrackDataFrames(RunContext):
         self._df_creating_func_names_to_original_funcs = {}
         for func_name, is_file in self.df_creating_func_names_and_is_file:
             original_func = getattr(pd, func_name)
-            setattr(pd, func_name,
-                    partial(self._df_creating_func_override, original_func=original_func, is_file=is_file))
+            assert hasattr(pd, func_name), f"pd does not have a method {func_name}"
+            wrapped_new_method = self._get_wrapped_new_method(self._df_creating_func_override, original_func, is_file=is_file)
+            setattr(pd, func_name, wrapped_new_method)
             self._df_creating_func_names_to_original_funcs[func_name] = original_func
 
     def _de_override_df_creating_funcs(self):
@@ -110,13 +120,13 @@ class TrackDataFrames(RunContext):
             setattr(pd, func_name, original_func)
         self._df_creating_func_names_to_original_funcs = None
 
-    def _get_wrapped_new_method(self, new_method, original_method):
+    def _get_wrapped_new_method(self, new_method, original_method, **kwargs):
         """
         Wrap a method so that it has the original method as an argument and the `on_change` callback.
         """
         @wraps(original_method)
-        def wrapped_new_method(*args, **kwargs):
-            return new_method(*args, original_method=original_method, on_change=self._on_change, **kwargs)
+        def wrapped_new_method(*args, **k):
+            return new_method(*args, original_method=original_method, on_change=self._on_change, **k, **kwargs)
         wrapped_new_method.wrapper_of = original_method
         return wrapped_new_method
 
