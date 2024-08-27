@@ -106,8 +106,8 @@ class Citation(dict):
             if value is None:
                 continue
             if is_html:
-                # name in bold and light blue, value in black
-                s += f'<b style="color: #1E90FF;">{name}</b>: {value}<br>'
+                # name in bold
+                s += f'<b>{name}</b>: {value}<br>'
             else:
                 s += f'{name}: {repr(value)}\n'
         if is_html:

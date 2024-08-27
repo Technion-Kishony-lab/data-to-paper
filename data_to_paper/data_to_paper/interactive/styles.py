@@ -13,6 +13,9 @@ BACKGROUND_COLOR = "#151515"
 APP_BACKGROUND_COLOR = "#303030"
 
 CSS = '''
+* {
+    color: white;
+}
 .runtime_error {
     color: red;
     font-family: Consolas, 'Courier New', monospace; font-size: 14px;
@@ -162,6 +165,7 @@ QTextEdit {
 HTMLPOPUP_STYLE = """
 * {
     background-color: """ + BACKGROUND_COLOR + """;
+    color: white;
 }
 QPushButton {
     background-color: #E3E0DA; 
