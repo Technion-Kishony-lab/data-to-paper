@@ -37,3 +37,4 @@ data_to_paper/data_to_paper_examples/examples/local_paths.py
 
 # json config files
 data_to_paper/data_to_paper/interactive/config/run_setup.json
+data-to-paper/data_to_paper.egg-info/
