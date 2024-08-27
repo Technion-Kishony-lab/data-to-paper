@@ -43,10 +43,15 @@ The script will run the project and save the results in the specified run folder
 See the `env.py` file for setting other available options.
 """
 
+import os
 import argparse
 from data_to_paper.research_types.hypothesis_testing.steps_runner import HypothesisTestingStepsRunner
 from data_to_paper.research_types.toy_example.steps_runner import ToyStepsRunner
 from data_to_paper.base_steps.run_all_steps import set_project_and_run
+
+# setup the QT_QPA_PLATFORM environment variable to 'xcb' if the system is Linux
+if os.name == 'posix':
+    os.environ['QT_QPA_PLATFORM'] = 'xcb'
 
 # Currently supported research types:
 # We currently only support simple hypothesis-testing research.
@@ -78,7 +83,7 @@ RUN_PARAMETERS = {
 }
 
 
-def main():
+def run():
     parser = argparse.ArgumentParser()
 
     parser.add_argument('project', type=str, nargs='?', default=None)
@@ -108,6 +113,8 @@ def main():
 
     set_project_and_run(steps_runner_cls, project_directory=project_folder, run_name=run_name)
 
+def main():
+    run()
 
 if __name__ == '__main__':
     main()
