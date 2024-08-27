@@ -47,26 +47,9 @@ class BaseDataFramePickleContentOutputFileRequirement(PickleContentOutputFileReq
             raise ValueError(f'Unknown function name: {func_name}')
         return func, (content, label), kwargs
 
-    # def _get_referencable_text(self, content: Any, filename: str = None, num_file: int = 0,
-    #                            view_purpose: ViewPurpose = None) -> LabeledNumericReferenceableText:
-    #     content = self._to_str(content, with_hyperlinks=True)
-    #     referenceable_text = super()._get_referencable_text(content, filename, num_file, view_purpose)
-    #     if view_purpose == ViewPurpose.FINAL_INLINE:
-    #         text = referenceable_text.text
-    #         pickle_filename = ...
-    #         if pickle_filename:
-    #             # we add a hyperlink to the table caption
-    #             pickle_filename = convert_str_to_latex_label(pickle_filename, 'file')
-    #             caption = get_displayitem_caption(text)
-    #             if '\n' in caption:
-    #                 # we wrap only the first line with hyperlink
-    #                 first_line, rest = caption.split('\n', 1)
-    #                 new_caption = f'\\protect\\hyperlink{{{pickle_filename}}}{{{first_line}}}\n{rest}'
-    #             else:
-    #                 new_caption = f'\\protect\\hyperlink{{{pickle_filename}}}{{{caption}}}'
-    #             text = text.replace(caption, new_caption)
-    #         referenceable_text.text = text
-    #     return referenceable_text
+    def _is_figure(self, content: Any) -> bool:
+        func, args, kwargs = self._get_func_args_kwargs(content)
+        return func == df_to_figure
 
     def _convert_content_to_labeled_text(self, content: Any, filename: str = None, num_file: int = 0,
                                          view_purpose: ViewPurpose = None) -> str:
