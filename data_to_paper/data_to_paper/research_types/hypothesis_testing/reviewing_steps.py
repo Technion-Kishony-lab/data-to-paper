@@ -332,7 +332,7 @@ class HypothesesTestingPlanReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPr
 
         - Hypotheses.
         The keys of this dictionary should briefly describe each of our hypotheses.
-        The values of this dictionary \t 
+        The values of this dictionary \t
         should specify the most adequate statistical test for each hypothesis, \t
         and describe how it should be performed while accounting for any issues you have outlined above.
 

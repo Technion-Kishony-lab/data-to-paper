@@ -145,10 +145,10 @@ class BaseTableCodeProductsGPT(BaseScientificCodeProductsGPT):
 
             Errorbars can be specified with either `yerr` (when indicating deviations from nominal) or \t
         `y_ci` (when indicating confidence intervals, flanking the nominal):
-            * `yerr` (ColumnChoice): Column name(s) for y error bars. In each designated column, \t 
+            * `yerr` (ColumnChoice): Column name(s) for y error bars. In each designated column, \t
         all values should be either:
                 - scalar denoting symmetric error bars, spanning (df[y]-df[yerr], df[y]+df[yerr])
-                - 2-element tuple (bottom, top) denoting asymmetric error bars, \t 
+                - 2-element tuple (bottom, top) denoting asymmetric error bars, \t
         spanning (df[y]-df[yerr][0], df[y]+df[yerr][1]) 
             * `y_ci` (ColumnChoice): Column name(s) for y confidence intervals.  
                -  The values in each such column should be a 2-element tuple (lower, upper).

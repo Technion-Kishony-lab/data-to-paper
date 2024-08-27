@@ -162,7 +162,7 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
             if longest_index_labels:
                 index_note = dedent_triple_quote_str(f"""\n
                     - Rename any long index labels to shorter names \t
-                    (for instance, some long label(s) in the index are: {longest_index_labels}). \t 
+                    (for instance, some long label(s) in the index are: {longest_index_labels}). \t
                     Use `df.rename(index=...)`
                     """)
 

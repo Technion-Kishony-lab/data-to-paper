@@ -74,7 +74,7 @@ def check_for_repetitive_value_in_column(df: pd.DataFrame, filename: str, displa
                         * Drops the column from the df (use `df.drop(columns=["{column_label}"])`)
                         * Adds the unique value, {column_label}_unique[0], \t
                         in the {displayitem} note \t
-                        (e.g., `{_get_creating_func(displayitem)}(..., note=f'For all rows, \t 
+                        (e.g., `{_get_creating_func(displayitem)}(..., note=f'For all rows, \t
                         the {column_label} is {{{column_label}_unique[0]}}')`)
 
                         There is no need to add corresponding comments to the code. 
@@ -167,7 +167,7 @@ def check_for_un_glossary_abbreviations(df: pd.DataFrame, filename: str, glossar
             """)
         if is_narrow:
             instructions += dedent_triple_quote_str(f"""
-                Alternatively, since the {displayitem} is not too wide, you can also replace the abbreviated labels \t 
+                Alternatively, since the {displayitem} is not too wide, you can also replace the abbreviated labels \t
                 with their full names in the dataframe itself.
                 """)
         if glossary:

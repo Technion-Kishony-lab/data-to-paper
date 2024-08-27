@@ -561,7 +561,7 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
 
         The treatment odds ratio was \t
         \\num{exp(\\hyperlink{Z3a}{0.17}), \t
-        "Translating the treatment regression coefficient to odds ratio"} (CI: \t 
+        "Translating the treatment regression coefficient to odds ratio"} (CI: \t
         \\num{exp(\\hyperlink{Z3a}{0.17} - 1.96 * \\hyperlink{Z3b}{0.072}), \t
         "low CI for treatment odds ratio, assuming normality"}, \t
         \\num{exp(\\hyperlink{Z3a}{0.17} + 1.96 * \\hyperlink{Z3b}{0.072}), \t
