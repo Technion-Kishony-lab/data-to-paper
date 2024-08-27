@@ -52,5 +52,8 @@ dev = [
     "pytest-benchmark",
 ]
 
+[project.gui-scripts]
+data-to-paper = "data_to_paper.scripts.run:run"
+
 [tool.setuptools]
 py-modules = ["data_to_paper"]
