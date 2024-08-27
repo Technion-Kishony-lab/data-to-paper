@@ -61,7 +61,7 @@ class CodeAndOutput:
         lines[lineno - 1] = ReferencedValue('', label).to_str(hypertarget_format) + lines[lineno - 1]
         return '\n'.join(lines)
 
-    def _get_label_for_file(self, filename: str) -> str:
+    def _get_label_for_code_creating_line_for_file(self, filename: str) -> str:
         return convert_str_to_latex_label((self.name or '') + '-' + filename, 'code')
 
     def _get_code_with_hypertargets(self) -> str:
@@ -69,7 +69,8 @@ class CodeAndOutput:
         for filename in self.created_files.get_created_content_files():
             lineno = self.get_lineno_for_file(code, filename)
             if lineno is not None:
-                code = self._add_hypertarget_to_code(code, self._get_label_for_file(filename), lineno)
+                code = self._add_hypertarget_to_code(
+                    code, self._get_label_for_code_creating_line_for_file(filename), lineno)
         return code
 
     def as_latex_for_appendix(self, view_purpose: ViewPurpose) -> str:
@@ -91,11 +92,15 @@ class CodeAndOutput:
         if outputs:
             s += '\n\n' + "\\subsection{Code Output}"
             for filename, content in outputs.items():
-                s += ReferencedValue('', convert_str_to_latex_label(filename, 'file'), is_target=True).to_str(
-                    HypertargetFormat(position=HypertargetPosition.WRAP))
+                s += '\n'
+                s += ReferencedValue(
+                    value='', label=convert_str_to_latex_label(filename, 'file'),
+                    is_target=True).to_str(HypertargetFormat(position=HypertargetPosition.WRAP))
                 header = replace_special_latex_chars(filename)
-                header = f'\\hyperlink{{{self._get_label_for_file(filename)}}}{{{header}}}'
-                s += f'\n\n\\subsubsection*{{{header}}}'
+                hyperlinked_header = ReferencedValue(
+                    value=header, label=self._get_label_for_code_creating_line_for_file(filename),
+                    is_target=False).to_str(HypertargetFormat(position=HypertargetPosition.WRAP))
+                s += f'\n\n\\subsubsection*{{{hyperlinked_header}}}'
                 s += '\n\n' + wrap_as_latex_code_output(content)
         s = replace_non_utf8_chars(s)
         return s
