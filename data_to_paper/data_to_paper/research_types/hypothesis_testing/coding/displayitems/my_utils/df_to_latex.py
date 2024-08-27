@@ -14,6 +14,7 @@ from ..check_df_formatting import check_for_repetitive_value_in_column, checks_t
     check_for_unallowed_characters, check_for_un_glossary_abbreviations, \
     check_glossary_does_not_include_labels_that_are_not_in_df, check_displayitem_caption, \
     check_note_different_than_caption
+from ..file_continuity import _check_for_file_continuity
 
 from ...analysis.check_df_of_table import check_df_headers_are_int_str_or_bool, check_output_df_for_content_issues
 from ...analysis.my_utils import df_to_latex as analysis_df_to_latex
@@ -56,8 +57,9 @@ def _df_to_latex(df: pd.DataFrame, filename: str, **kwargs):
     Same as df_to_latex, but also checks for issues.
     """
     analysis_df_to_latex(df, filename, **kwargs)
-    issues = _check_for_table_style_issues(df, filename, **kwargs)
-    IssueCollector.get_runtime_instance().issues.extend(issues)
+    issues = IssueCollector.get_runtime_instance().issues
+    issues.extend(_check_for_file_continuity(df, filename))
+    issues.extend(_check_for_table_style_issues(df, filename, **kwargs))
 
 
 def df_to_latex_transpose(df: pd.DataFrame, filename: Optional[str], *args,
