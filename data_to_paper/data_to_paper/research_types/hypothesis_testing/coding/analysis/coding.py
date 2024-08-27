@@ -14,7 +14,6 @@ from data_to_paper.llm_coding_utils.df_to_latex import df_to_latex
 from data_to_paper.research_types.hypothesis_testing.cast import ScientificAgent
 from data_to_paper.run_gpt_code.code_runner import CodeRunner
 from data_to_paper.run_gpt_code.overrides.dataframes.df_with_attrs import ListInfoDataFrame
-from data_to_paper.research_types.hypothesis_testing.coding.analysis.utils import get_pickle_dump_attr_replacer
 from data_to_paper.research_types.hypothesis_testing.coding.base_code_conversers import BaseTableCodeProductsGPT
 from data_to_paper.research_types.hypothesis_testing.coding.utils import create_pandas_and_stats_contexts
 from data_to_paper.research_types.hypothesis_testing.model_engines import get_model_engine_for_class
@@ -569,9 +568,7 @@ class DataAnalysisCodeProductsGPT(BaseTableCodeProductsGPT):
     def _get_additional_contexts(self) -> Optional[Dict[str, Any]]:
         return create_pandas_and_stats_contexts(allow_dataframes_to_change_existing_series=False,
                                                 enforce_saving_altered_dataframes=False,
-                                                issue_if_statistics_test_not_called=True) | {
-                'PickleDumpAttrReplacer': get_pickle_dump_attr_replacer(),
-        }
+                                                issue_if_statistics_test_not_called=True)
 
     @staticmethod
     def _get_df_comments_for_code_and_output(code_and_output: CodeAndOutput) -> str:
