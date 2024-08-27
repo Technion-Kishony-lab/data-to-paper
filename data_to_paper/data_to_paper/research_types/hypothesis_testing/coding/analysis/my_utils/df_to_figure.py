@@ -16,12 +16,11 @@ def _df_to_figure(df: pd.DataFrame, filename: str, **kwargs):
     """
     Replacement of df_to_figure to be used by LLM-writen code.
     """
-    issue_collector = IssueCollector.get_runtime_instance()
-    issues = []
+    issues = IssueCollector.get_runtime_instance().issues
     issues.extend(check_output_df_for_content_issues(df, filename, is_figure=True))
     issues.extend(_check_for_p_values_in_figure(df, filename, **kwargs))
     issues.extend(_check_for_df_to_figure_issues(df, filename, **kwargs))
-    issue_collector.issues.extend(issues)
+
     df_to_figure(df, filename, raise_formatting_errors=False, **kwargs)
 
     # save df to pickle with the func and kwargs

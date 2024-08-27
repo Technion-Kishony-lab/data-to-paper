@@ -19,10 +19,10 @@ def _df_to_figure(df: pd.DataFrame, filename: str, label: str = None, **kwargs):
     Replacement of df_to_figure to be used by LLM-writen code.
     Same as df_to_figure, but also checks for issues.
     """
+    issues = IssueCollector.get_runtime_instance().issues
     analysis_df_to_figure(df, filename, **kwargs)
     label = convert_filename_to_label(filename, label)
-    issues = _check_for_figure_style_issues(df, filename, label=label, **kwargs)
-    IssueCollector.get_runtime_instance().issues.extend(issues)
+    issues.extend(_check_for_figure_style_issues(df, filename, label=label, **kwargs))
 
 
 def _check_for_figure_style_issues(df: pd.DataFrame, filename: str, *args,

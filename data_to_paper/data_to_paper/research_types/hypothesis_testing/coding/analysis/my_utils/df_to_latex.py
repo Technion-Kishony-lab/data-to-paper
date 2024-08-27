@@ -14,9 +14,8 @@ def _df_to_latex(df: pd.DataFrame, filename: str, **kwargs):
     Same as df_to_latex, but also checks for issues.
     """
 
-    issue_collector = IssueCollector.get_runtime_instance()
-    issues = check_output_df_for_content_issues(df, filename)
-    issue_collector.issues.extend(issues)
+    issues = IssueCollector.get_runtime_instance().issues
+    issues.extend(check_output_df_for_content_issues(df, filename))
 
     # call just to raise in wrong argument types:
     df_to_latex(df, filename, **kwargs, is_html=None)
