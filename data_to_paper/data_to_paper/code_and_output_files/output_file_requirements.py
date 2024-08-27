@@ -129,19 +129,53 @@ class BaseContentOutputFileRequirement(OutputFileRequirement):
         with OnStrPValue(pvalue_on_str):
             return str(content).strip()
 
-    def _get_content_and_header_for_app_html(
-            self, content: Any, filename: str = None, num_file: int = 0, level: int = 3,
-            view_purpose: ViewPurpose = ViewPurpose.APP_HTML):
-        content = self._to_str(content, filename, num_file, view_purpose)
-        content = format_text_with_code_blocks(content, from_md=True, is_html=True, width=None)
-        return content, f'<h{level}>{filename}</h{level}>'
-
     def _get_block_label(self, filename: str, num_file: int, view_purpose: ViewPurpose) -> str:
         """
         Return the block label for the filename.
         """
         ext = os.path.splitext(filename)[1]
         return EXTS_TO_LABELS.get(ext, 'output')
+
+    def get_header(self, filename: str = None, num_file: int = 0,
+                   view_purpose: ViewPurpose = ViewPurpose.PRODUCT,
+                   header_level: int = 3) -> str:
+        return self._get_pretty_content_and_header(None, filename, num_file, view_purpose, header_level)[1]
+
+    def get_pretty_content(self, content: Any, filename: str = None, num_file: int = 0,
+                           view_purpose: ViewPurpose = ViewPurpose.PRODUCT) -> str:
+        return self._get_pretty_content_and_header(content, filename, num_file, view_purpose)[0]
+
+    def get_pretty_content_with_header(self, content: Any, filename: str = None, num_file: int = 0,
+                                       view_purpose: ViewPurpose = ViewPurpose.PRODUCT,
+                                       header_level: Optional[int] = 3) -> str:
+        content, header = self._get_pretty_content_and_header(content, filename, num_file, view_purpose, header_level)
+        if header_level:
+            if header:
+                return header + '\n' + content
+        return content
+
+    def _get_pretty_content_and_header(self, content: Any, filename: str = None, num_file: int = 0,
+                                       view_purpose: ViewPurpose = ViewPurpose.PRODUCT,
+                                       header_level: Optional[int] = 3) -> Tuple[str, str]:
+        purpose_to_func = {
+            ViewPurpose.APP_HTML: self._get_content_and_header_for_app_html,
+            ViewPurpose.PRODUCT: self._get_content_and_header_for_product,
+            ViewPurpose.HYPERTARGET_PRODUCT: self._get_content_and_header_for_product,
+            ViewPurpose.CODE_REVIEW: self._get_content_and_header_for_code_review,
+            ViewPurpose.FINAL_APPENDIX: self._get_content_and_header_for_final_appendix,
+            ViewPurpose.FINAL_INLINE: self._get_content_and_header_for_final_inline,
+        }
+        func = purpose_to_func[view_purpose]
+        return func(content, filename, num_file, header_level, view_purpose)
+
+    """Override these methods in subclasses to customize the output file content."""
+
+    def _get_content_and_header_for_app_html(
+            self, content: Any, filename: str = None, num_file: int = 0, level: int = 3,
+            view_purpose: ViewPurpose = ViewPurpose.APP_HTML):
+        content = self._to_str(content, filename, num_file, view_purpose)
+        content = format_text_with_code_blocks(content, from_md=True, is_html=True, width=None)
+        return content, f'<h{level}>{filename}</h{level}>'
 
     def _get_content_and_header_for_product(
             self, content: Any, filename: str = None, num_file: int = 0, level: int = 3,
@@ -164,38 +198,6 @@ class BaseContentOutputFileRequirement(OutputFileRequirement):
             self, content: Any, filename: str = None, num_file: int = 0, level: int = 3,
             view_purpose: ViewPurpose = ViewPurpose.FINAL_INLINE):
         return self._to_str(content, filename, num_file, view_purpose), f'% {filename}'
-
-    def _get_pretty_content_and_header(self, content: Any, filename: str = None, num_file: int = 0,
-                                       view_purpose: ViewPurpose = ViewPurpose.PRODUCT,
-                                       header_level: Optional[int] = 3) -> Tuple[str, str]:
-        purpose_to_func = {
-            ViewPurpose.APP_HTML: self._get_content_and_header_for_app_html,
-            ViewPurpose.PRODUCT: self._get_content_and_header_for_product,
-            ViewPurpose.HYPERTARGET_PRODUCT: self._get_content_and_header_for_product,
-            ViewPurpose.CODE_REVIEW: self._get_content_and_header_for_code_review,
-            ViewPurpose.FINAL_APPENDIX: self._get_content_and_header_for_final_appendix,
-            ViewPurpose.FINAL_INLINE: self._get_content_and_header_for_final_inline,
-        }
-        func = purpose_to_func[view_purpose]
-        return func(content, filename, num_file, header_level, view_purpose)
-
-    def get_header(self, filename: str = None, num_file: int = 0,
-                   view_purpose: ViewPurpose = ViewPurpose.PRODUCT,
-                   header_level: int = 3) -> str:
-        return self._get_pretty_content_and_header(None, filename, num_file, view_purpose, header_level)[1]
-
-    def get_pretty_content(self, content: Any, filename: str = None, num_file: int = 0,
-                           view_purpose: ViewPurpose = ViewPurpose.PRODUCT) -> str:
-        return self._get_pretty_content_and_header(content, filename, num_file, view_purpose)[0]
-
-    def get_pretty_content_with_header(self, content: Any, filename: str = None, num_file: int = 0,
-                                       view_purpose: ViewPurpose = ViewPurpose.PRODUCT,
-                                       header_level: Optional[int] = 3) -> str:
-        content, header = self._get_pretty_content_and_header(content, filename, num_file, view_purpose, header_level)
-        if header_level:
-            if header:
-                return header + '\n' + content
-        return content
 
 
 @dataclass(frozen=True)
