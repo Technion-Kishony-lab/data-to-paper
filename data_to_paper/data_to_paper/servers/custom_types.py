@@ -38,11 +38,11 @@ class Citation(dict):
 
     @property
     def bibtex(self) -> str:
-        return NotImplemented
+        raise NotImplementedError
 
     @property
     def bibtex_id(self) -> str:
-        return NotImplemented
+        raise NotImplementedError
 
     @property
     def title(self) -> Optional[str]:

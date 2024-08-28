@@ -219,7 +219,7 @@ class ReferencableContentOutputFileRequirement(BaseContentOutputFileRequirement)
 
     def _convert_content_to_labeled_text(self, content: Any, filename: str = None, num_file: int = 0,
                                          view_purpose: ViewPurpose = None) -> str:
-        return NotImplemented
+        raise NotImplementedError
 
     def _get_referencable_text(self, content: Any, filename: str = None, num_file: int = 0,
                                view_purpose: ViewPurpose = None) -> BaseReferenceableText:

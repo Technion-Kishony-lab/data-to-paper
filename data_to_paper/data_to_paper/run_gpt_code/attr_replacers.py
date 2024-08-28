@@ -123,10 +123,10 @@ class SystematicAttrReplacerContext(MultiAttrReplacerContext):
         return all_modules
 
     def _is_right_type(self, obj) -> bool:
-        return NotImplemented
+        raise NotImplementedError
 
     def _should_replace(self, parent, attr_name, attr) -> bool:
-        return NotImplemented
+        raise NotImplementedError
 
     def _get_all_attrs_for_parent(self, parent) -> Iterable[str]:
         return [attr_name for attr_name, attr_obj in parent.__dict__.items()
