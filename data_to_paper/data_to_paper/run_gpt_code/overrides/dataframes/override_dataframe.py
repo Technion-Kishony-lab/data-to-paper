@@ -1,5 +1,5 @@
 from copy import copy
-from functools import partial, wraps
+from functools import wraps
 from typing import Iterable, Dict, Callable, Optional, Tuple, List, Type
 
 import pandas as pd
@@ -108,7 +108,8 @@ class TrackDataFrames(RunContext):
         for func_name, is_file in self.df_creating_func_names_and_is_file:
             original_func = getattr(pd, func_name)
             assert hasattr(pd, func_name), f"pd does not have a method {func_name}"
-            wrapped_new_method = self._get_wrapped_new_method(self._df_creating_func_override, original_func, is_file=is_file)
+            wrapped_new_method = self._get_wrapped_new_method(
+                self._df_creating_func_override, original_func, is_file=is_file)
             setattr(pd, func_name, wrapped_new_method)
             self._df_creating_func_names_to_original_funcs[func_name] = original_func
 

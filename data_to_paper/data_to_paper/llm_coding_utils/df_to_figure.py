@@ -4,7 +4,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 
 from data_to_paper.latex.clean_latex import process_latex_text_and_math, replace_special_latex_chars
-from data_to_paper.run_gpt_code.overrides.pvalue import OnStrPValue, OnStr, PValueToStars, convert_p_values_to_floats, \
+from data_to_paper.run_gpt_code.overrides.pvalue import PValueToStars, convert_p_values_to_floats, \
     pvalue_on_str_for_latex
 from data_to_paper.utils.text_formatting import escape_html
 from data_to_paper.utils.check_type import raise_on_wrong_func_argument_types_decorator

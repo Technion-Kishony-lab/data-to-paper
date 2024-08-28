@@ -9,7 +9,7 @@ from data_to_paper.llm_coding_utils.note_and_legend import convert_note_and_glos
     convert_note_and_glossary_to_html
 from data_to_paper.research_types.hypothesis_testing.coding.utils import convert_filename_to_label
 from data_to_paper.run_gpt_code.overrides.dataframes.utils import df_to_html_with_value_format
-from data_to_paper.run_gpt_code.overrides.pvalue import OnStr, OnStrPValue, pvalue_on_str_for_latex
+from data_to_paper.run_gpt_code.overrides.pvalue import pvalue_on_str_for_latex
 from data_to_paper.utils.check_type import raise_on_wrong_func_argument_types_decorator
 
 THREEPARTTABLE = r"""\begin{table}[htbp]

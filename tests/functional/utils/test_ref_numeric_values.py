@@ -22,12 +22,11 @@ def test_labeled_numeric_referenceable_text():
     numeric_ref = LabeledNumericReferenceableText(
         text=text,
         hypertarget_prefix='N',
-        filename='numeric_values',
     )
-    assert numeric_ref.get_hypertarget_text_with_header(
-        ViewPurpose.HYPERTARGET_PRODUCT) == r"Label \hypertarget{N0a}{1.23} and not this 7.89 value."
-    assert numeric_ref.get_hypertarget_text_with_header(
-        ViewPurpose.PRODUCT) == r"Label 1.23 and not this 7.89 value."
+    assert numeric_ref.get_formatted_text(HypertargetFormat(HypertargetPosition.WRAP)) == \
+           r"Label \hypertarget{N0a}{1.23} and not this 7.89 value."
+    assert numeric_ref.get_formatted_text(HypertargetFormat()) == \
+           r"Label 1.23 and not this 7.89 value."
 
 
 @pytest.mark.parametrize('text, expected', [

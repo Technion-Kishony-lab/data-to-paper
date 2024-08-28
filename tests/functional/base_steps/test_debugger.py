@@ -78,7 +78,8 @@ def test_request_code_with_error(correct_code, replaced_value, replace_with, err
                                     ],
                                    record_more_if_needed=False):
         code_and_output = debugger.run_debugging()
-        assert code_and_output.created_files.get_single_output() == 'The answer is 42'
+        assert code_and_output.created_files.get_created_content_files_to_contents()['test_output.txt'] == \
+               'The answer is 42'
         error_message = debugger.conversation[2]
         for error_include in error_includes:
             assert error_include in error_message.content

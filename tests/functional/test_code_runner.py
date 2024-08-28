@@ -59,7 +59,7 @@ def test_runner_correctly_extract_code_to_run():
 def test_runner_correctly_run_extracted_code(tmpdir):
     os.chdir(tmpdir)
     result = CodeRunnerWrapper(code=code_encoded_in_response,
-                               code_runner=CodeRunner(allowed_open_write_files=('output.txt',))
+                               code_runner=CodeRunner(allowed_open_write_files=('output.txt',), run_folder=tmpdir),
                                ).run_code_in_separate_process()
     created_files = result[1]
     assert 'output.txt' in created_files

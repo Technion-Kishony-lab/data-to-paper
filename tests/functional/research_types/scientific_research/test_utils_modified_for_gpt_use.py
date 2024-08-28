@@ -18,7 +18,7 @@ def df():
 
 
 def test_check_for_table_style_issues_runs_ok(df):
-    _check_for_table_style_issues(df, 'test.tex')
+    _check_for_table_style_issues(df, 'test')
 
 
 def test_check_for_table_style_issues_runs_ok_on_df_with_list():

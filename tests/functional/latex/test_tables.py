@@ -19,7 +19,7 @@ def df_table():
 
 
 def test_df_to_latex(df_table):
-    latex = df_to_latex(df_table, None, caption='test caption', label='table:test', note='this is a note',
+    latex = df_to_latex(df_table, 'test', caption='test caption', note='this is a note',
                         glossary={'CV': 'coefficient of variation', 'SD': 'standard deviation'})
     latex = latex.replace('@@<', '').replace('>@@', '')
     width = LatexDocument().compile_table(latex, file_stem='test')
@@ -30,7 +30,7 @@ def test_table_with_list():
     df = pd.DataFrame({
         'a': [[1, 2.3578523523523, 3], [4, 5, 6]],
     })
-    assert '2.358, ' in df_to_latex(df, None, caption='test caption', label='table:test', note='this is a note')
+    assert '2.358, ' in df_to_latex(df, 'test', caption='test caption', note='this is a note')
 
 
 @pytest.mark.parametrize('phrase, expected', [

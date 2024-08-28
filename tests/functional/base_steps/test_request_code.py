@@ -185,7 +185,8 @@ def test_request_code_with_revisions(code_running_converser):
             record_more_if_needed=False):
         code_and_output = code_running_converser.get_code_and_output()
     assert code_and_output.code == code3
-    assert code_and_output.created_files.get_single_output() == 'Best output'
+    assert code_and_output.created_files.get_created_content_files_to_contents()[file] == \
+           'Best output'
     assert len(code_running_converser.conversation) == 3
 
 
