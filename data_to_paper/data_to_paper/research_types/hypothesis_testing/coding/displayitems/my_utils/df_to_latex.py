@@ -3,7 +3,7 @@ from typing import Dict, List, Optional, Union, Iterable, Any
 import pandas as pd
 
 from data_to_paper.utils import dedent_triple_quote_str
-from data_to_paper.run_gpt_code.overrides.pvalue import OnStr
+from data_to_paper.run_gpt_code.overrides.pvalue import OnStr, OnStrPValue
 
 from data_to_paper.run_gpt_code.base_run_contexts import RegisteredRunContext
 from data_to_paper.run_gpt_code.run_contexts import ProvideData, IssueCollector
@@ -65,13 +65,12 @@ def _df_to_latex(df: pd.DataFrame, filename: str, **kwargs):
 def df_to_latex_transpose(df: pd.DataFrame, filename: Optional[str], *args,
                           note: str = None,
                           glossary: Dict[str, str] = None,
-                          pvalue_on_str: Optional[OnStr] = None,
                           **kwargs):
     assert 'columns' not in kwargs, "assumes columns is None"
     index = kwargs.pop('index', True)
     header = kwargs.pop('header', True)
     header, index = index, header
-    return df_to_latex(df.T, filename, note=note, glossary=glossary, pvalue_on_str=pvalue_on_str, index=index,
+    return df_to_latex(df.T, filename, note=note, glossary=glossary, index=index,
                        header=header, **kwargs)
 
 
@@ -106,8 +105,8 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
 
     file_stem = filename
     with RegisteredRunContext.temporarily_disable_all():
-        latex = df_to_latex(df, filename, note=note, glossary=glossary,
-                            pvalue_on_str=OnStr.LATEX_SMALLER_THAN, **kwargs)
+        with OnStrPValue(OnStr.SMALLER_THAN):
+            latex = df_to_latex(df, filename, note=note, glossary=glossary, **kwargs)
         if compilation_func is None:
             e = 0.
         else:
@@ -137,9 +136,8 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
         ))
     elif e > 1.3:
         # Try to compile the transposed table:
-        latex_transpose = df_to_latex_transpose(df, None, *args, note=note, glossary=glossary,
-                                                pvalue_on_str=OnStr.LATEX_SMALLER_THAN,
-                                                **kwargs)
+        with OnStrPValue(OnStr.SMALLER_THAN):
+            latex_transpose = df_to_latex_transpose(df, None, *args, note=note, glossary=glossary, **kwargs)
         with RegisteredRunContext.temporarily_disable_all():
             e_transpose = compilation_func(latex_transpose, file_stem + '_transpose')
         if isinstance(e_transpose, float) and e_transpose < 1.1:

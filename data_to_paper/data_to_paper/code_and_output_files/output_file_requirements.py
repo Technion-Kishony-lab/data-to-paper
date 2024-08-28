@@ -230,9 +230,9 @@ class ReferencableContentOutputFileRequirement(BaseContentOutputFileRequirement)
 
     def _get_hyper_target_format(self, content: Any, filename: str = None, num_file: int = 0,
                                  view_purpose: ViewPurpose = None) -> HypertargetFormat:
-        prefix = self._get_prefix(num_file)
-        if prefix is None:
-            return HypertargetFormat()  # no hypertargets
+        # prefix = self._get_prefix(num_file)
+        # if prefix is None:
+        #     return HypertargetFormat()  # no hypertargets
         return self.content_view_purpose_converter.convert_view_purpose_to_hypertarget_format(view_purpose)
 
 

@@ -1,4 +1,5 @@
 import numbers
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import List, Iterable, Optional, Tuple
@@ -270,6 +271,19 @@ class OnStrPValue:
     def __exit__(self, exc_type, exc_val, exc_tb):
         PValue.ON_STR = self.prev_on_str
         return False
+
+
+@contextmanager
+def pvalue_on_str_for_latex():
+    """
+    If the current PValue.ON_STR is SMALLER_THAN, then change it to LATEX_SMALLER_THAN.
+    """
+    if PValue.ON_STR == OnStr.SMALLER_THAN:
+        PValue.ON_STR = OnStr.LATEX_SMALLER_THAN
+        yield
+        PValue.ON_STR = OnStr.SMALLER_THAN
+    else:
+        yield
 
 
 class PValueToStars:

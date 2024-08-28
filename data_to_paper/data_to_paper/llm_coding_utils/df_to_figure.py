@@ -4,7 +4,8 @@ import pandas as pd
 from matplotlib import pyplot as plt
 
 from data_to_paper.latex.clean_latex import process_latex_text_and_math, replace_special_latex_chars
-from data_to_paper.run_gpt_code.overrides.pvalue import OnStrPValue, OnStr, PValueToStars, convert_p_values_to_floats
+from data_to_paper.run_gpt_code.overrides.pvalue import OnStrPValue, OnStr, PValueToStars, convert_p_values_to_floats, \
+    pvalue_on_str_for_latex
 from data_to_paper.utils.text_formatting import escape_html
 from data_to_paper.utils.check_type import raise_on_wrong_func_argument_types_decorator
 from data_to_paper.env import FOLDER_FOR_RUN
@@ -70,15 +71,14 @@ def df_to_figure(df: pd.DataFrame, filename: Optional[str],
     if is_html:
         note_and_glossary = convert_note_and_glossary_to_html(df, note, glossary, index)
         caption_note_and_glossary = escape_html(caption) + '<br>' + note_and_glossary
-        with OnStrPValue(OnStr.SMALLER_THAN):
-            description = get_description_of_plot_creation(df, fig_filename, kwargs, is_html=True,
-                                                           should_format=should_format)
+        description = get_description_of_plot_creation(df, fig_filename, kwargs, is_html=True,
+                                                       should_format=should_format)
         s = get_figure_and_caption_as_html(fig_filename, caption_note_and_glossary.strip())
         s += description
     else:
         note_and_glossary = convert_note_and_glossary_to_latex_figure_caption(df, note, glossary, index)
         caption_note_and_glossary = replace_special_latex_chars(caption) + '\n' + note_and_glossary
-        with OnStrPValue(OnStr.LATEX_SMALLER_THAN):
+        with pvalue_on_str_for_latex():
             description = get_description_of_plot_creation(df, fig_filename, kwargs, is_html=False,
                                                            should_format=should_format)
         s = get_figure_and_caption_as_latex(fig_filename, caption_note_and_glossary.strip(), label)

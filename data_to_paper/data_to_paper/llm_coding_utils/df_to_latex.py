@@ -9,7 +9,7 @@ from data_to_paper.llm_coding_utils.note_and_legend import convert_note_and_glos
     convert_note_and_glossary_to_html
 from data_to_paper.research_types.hypothesis_testing.coding.utils import convert_filename_to_label
 from data_to_paper.run_gpt_code.overrides.dataframes.utils import df_to_html_with_value_format
-from data_to_paper.run_gpt_code.overrides.pvalue import OnStr, OnStrPValue
+from data_to_paper.run_gpt_code.overrides.pvalue import OnStr, OnStrPValue, pvalue_on_str_for_latex
 from data_to_paper.utils.check_type import raise_on_wrong_func_argument_types_decorator
 
 THREEPARTTABLE = r"""\begin{table}[htbp]
@@ -63,13 +63,15 @@ def df_to_latex(df: pd.DataFrame, filename: Optional[str],
                 note: Optional[str] = None,
                 glossary: Optional[Dict[str, str]] = None,
                 is_wide: bool = True,
-                pvalue_on_str: Optional[OnStr] = None,
                 is_html: Optional[bool] = False,
                 should_format: bool = False,
                 **kwargs):
     """
     Create a latex table with a note.
     Same as df.to_latex, but with a note and glossary.
+    is_html: If True, return an HTML table instead of a LaTeX table.
+        if False, return a LaTeX table.
+        if None, do nothing. (used to raise on wrong argument types)
     """
     label = convert_filename_to_label(filename, label)
     label = 'table:' + label
@@ -84,7 +86,7 @@ def df_to_latex(df: pd.DataFrame, filename: Optional[str],
             .replace('{note_and_glossary}', note_and_glossary_html)
 
     if is_html is False:
-        with OnStrPValue(pvalue_on_str):
+        with pvalue_on_str_for_latex():
             regular_latex_table = df_to_numerically_labeled_latex(df, should_format=should_format, **kwargs)
         tabular_part = get_tabular_block(regular_latex_table)
         latex_caption = r'\caption{' + process_latex_text_and_math(caption) + '}\n' if caption else ''

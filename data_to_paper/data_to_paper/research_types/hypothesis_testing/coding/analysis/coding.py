@@ -52,15 +52,14 @@ class BaseDataFramePickleContentOutputFileRequirement(PickleContentOutputFileReq
 
     def _convert_content_to_labeled_text(self, content: Any, filename: str = None, num_file: int = 0,
                                          view_purpose: ViewPurpose = None) -> str:
-        pvalue_on_str = self._convert_view_purpose_to_pvalue_on_str(view_purpose)
-        with OnStrPValue(pvalue_on_str):
+        with OnStrPValue(self._convert_view_purpose_to_pvalue_on_str(view_purpose)):
             return describe_df(content, should_format=True)
 
     def _get_content_and_header_for_app_html(
             self, content: Any, filename: str = None, num_file: int = 0, level: int = 3,
             view_purpose: ViewPurpose = ViewPurpose.APP_HTML):
         func, args, kwargs = self._get_func_args_kwargs(content)
-        with OnStrPValue(OnStr.WITH_ZERO):
+        with OnStrPValue(self._convert_view_purpose_to_pvalue_on_str(view_purpose)):
             html = func(*args, **kwargs, is_html=True)
         return html, f'<h{level}>{filename}</h{level}>'
 

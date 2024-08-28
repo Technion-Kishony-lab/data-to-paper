@@ -41,15 +41,10 @@ class DataframePreventAssignmentToAttrs(PreventAssignmentToAttrs):
 
 @dataclass(frozen=True)
 class TexDisplayitemContentOutputFileRequirement(BaseDataFramePickleContentOutputFileRequirement):
-    VIEW_PURPOSE_TO_PVALUE_ON_STR = {
-        ViewPurpose.PRODUCT: OnStr.LATEX_SMALLER_THAN,
-        ViewPurpose.HYPERTARGET_PRODUCT: OnStr.LATEX_SMALLER_THAN,
-        ViewPurpose.APP_HTML: OnStr.WITH_ZERO,
-        ViewPurpose.CODE_REVIEW: OnStr.LATEX_SMALLER_THAN,
-        ViewPurpose.FINAL_APPENDIX: OnStr.LATEX_SMALLER_THAN,
-        ViewPurpose.FINAL_INLINE: OnStr.LATEX_SMALLER_THAN,
-    }
-    hypertarget_prefixes: Optional[Tuple[str]] = None
+    hypertarget_prefixes: Optional[Tuple[str]] = HypertargetPrefix.LATEX_TABLES.value
+
+    def _convert_view_purpose_to_pvalue_on_str(self, view_purpose: ViewPurpose) -> OnStr:
+        return OnStr.SMALLER_THAN
 
     def _get_hyper_target_format(self, content: Any, filename: str = None, num_file: int = 0,
                                  view_purpose: ViewPurpose = None) -> HypertargetFormat:
@@ -133,9 +128,7 @@ class CreateDisplayitemsCodeProductsGPT(BaseTableCodeProductsGPT, CheckLatexComp
     allow_data_files_from_sections: Tuple[Optional[str]] = ('data_analysis', )
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'my_utils')
     output_file_requirements: OutputFileRequirements = OutputFileRequirements([
-        TexDisplayitemContentOutputFileRequirement('df_*_formatted.pkl',
-                                                   minimal_count=1,
-                                                   hypertarget_prefixes=HypertargetPrefix.LATEX_TABLES.value),
+        TexDisplayitemContentOutputFileRequirement('df_*_formatted.pkl', minimal_count=1),
         DataOutputFileRequirement('df_*_formatted.png', minimal_count=0, should_make_available_for_next_steps=False)])
 
     provided_code: str = dedent_triple_quote_str('''

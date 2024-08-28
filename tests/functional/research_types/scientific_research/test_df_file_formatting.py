@@ -28,9 +28,8 @@ def df_tbl_0():
     return pd.DataFrame({
         'coef': [0.1, 0.205, 0.3],
         'CI': [(0.09, 0.11), (0.19123456, 0.21), (0.29, 0.31)],
-        'P-value': [PValue(0.001), PValue(2e-8), PValue(0.003)]},
-        index=['app', 'ban', 'ora']  # apples, bananas, oranges
-    )
+        'P-value': [PValue(0.001), PValue(2e-8), PValue(0.003)],
+    }, index=['app', 'ban', 'ora'])  # apples, bananas, oranges
 
 
 def _simulate_analysis(tmpdir, df, is_figure=False):
@@ -119,16 +118,18 @@ def _check_df_to_str(df, requirement, view_purpose, expected):
 
 
 @pytest.mark.parametrize('is_figure, view_purpose, expected', [
-    (False, ViewPurpose.CODE_REVIEW, ['### df_tbl_1.pkl', '```output\n', '"bananas",0.205,(0.1912, 0.21),<1e-06']),
-    (False, ViewPurpose.PRODUCT, ['### df_tbl_1.pkl', '```output\n', '"bananas",0.205,(0.1912, 0.21),<1e-06']),
+    (False, ViewPurpose.CODE_REVIEW, ['### df_tbl_1.pkl', '```output\n', '"ban",0.205,(0.1912, 0.21),<1e-06']),
+    (False, ViewPurpose.PRODUCT, ['### df_tbl_1.pkl', '```output\n', '"ban",0.205,(0.1912, 0.21),<1e-06']),
     (False, ViewPurpose.HYPERTARGET_PRODUCT, ValueError),
     (False, ViewPurpose.APP_HTML, ['<h3>df_tbl_1.pkl</h3>', '<td>2e-08</td>']),
-    (False, ViewPurpose.FINAL_APPENDIX, ['bananas 0.205  (0.1912, 0.21)   2e-08']),
-    (True, ViewPurpose.CODE_REVIEW, []),
-    (True, ViewPurpose.PRODUCT, []),
+    (False, ViewPurpose.FINAL_APPENDIX, ['ban 0.205  (0.1912, 0.21)   2e-08']),
+    (False, ViewPurpose.FINAL_INLINE, ValueError),
+    (True, ViewPurpose.CODE_REVIEW, ['"ban",0.205,(0.1912, 0.21),<1e-06']),
+    (True, ViewPurpose.PRODUCT, ['"ban",0.205,(0.1912, 0.21),<1e-06']),
     (True, ViewPurpose.HYPERTARGET_PRODUCT, ValueError),
-    (True, ViewPurpose.APP_HTML, []),
-    (True, ViewPurpose.FINAL_APPENDIX, []),
+    (True, ViewPurpose.APP_HTML, ['<th>ban</th>', '<td>2e-08</td>', "df.plot(**{'kind': 'bar', 'y': 'coef'})"]),
+    (True, ViewPurpose.FINAL_APPENDIX, ['ban 0.205  (0.1912, 0.21)   2e-08']),
+    (True, ViewPurpose.FINAL_INLINE, ValueError),
 ])
 def test_view_df_to_latex_analysis(tmpdir, df_tbl_0, is_figure, view_purpose, expected):
     print('\n')
@@ -151,7 +152,7 @@ def test_view_df_to_latex_analysis(tmpdir, df_tbl_0, is_figure, view_purpose, ex
       r'\hypertarget{C1c}{0.21}) & $<$\hypertarget{C1d}{1e-06} \\',
       '```latex\n']),
     (False, ViewPurpose.APP_HTML,
-     ['<h3>df_tbl_1.pkl</h3>', '<b>caption2</b>', '<td>2e-08</td>']),
+     ['<h3>df_tbl_1.pkl</h3>', '<b>caption2</b>', '&lt;1e-06']),
     (False, ViewPurpose.FINAL_APPENDIX,
      [r'\textbf{bananas} & 0.205 & (0.1912, 0.21) & $<$1e-06 \\']),
     (False, ViewPurpose.FINAL_INLINE,
@@ -167,10 +168,10 @@ def test_view_df_to_latex_analysis(tmpdir, df_tbl_0, is_figure, view_purpose, ex
     (True, ViewPurpose.APP_HTML,
      ['* p &lt; 0.01', '<td>&lt;1e-06</td>']),
     (True, ViewPurpose.FINAL_APPENDIX,
-     []),
+     [r"<(*@\raisebox{2ex}{\hypertarget{C1d}{}}@*)1e-06"]),
     (True, ViewPurpose.FINAL_INLINE,
      [r'\label{figure:df-tbl-formatted}',
-      r'\hypertarget{C0a}{0.1}' + '\n' + r'\hypertarget{C0b}{0.09}',
+      r'% "bananas",0.205,(0.1912, 0.21),<1e-06',
       'NS p $>$= 0.01', '% "bananas",0.205,(0.1912, 0.21),<1e-06',
       "% df.plot(**{'kind': 'bar', 'y': 'coef'})"]),
 ])
