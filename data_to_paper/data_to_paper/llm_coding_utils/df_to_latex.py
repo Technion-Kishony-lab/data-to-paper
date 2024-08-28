@@ -8,7 +8,7 @@ from data_to_paper.llm_coding_utils.describe import df_to_numerically_labeled_la
 from data_to_paper.llm_coding_utils.note_and_legend import convert_note_and_glossary_to_latex_table_caption, \
     convert_note_and_glossary_to_html
 from data_to_paper.research_types.hypothesis_testing.coding.utils import convert_filename_to_label
-from data_to_paper.run_gpt_code.overrides.dataframes.utils import to_html_with_value_format
+from data_to_paper.run_gpt_code.overrides.dataframes.utils import df_to_html_with_value_format
 from data_to_paper.run_gpt_code.overrides.pvalue import OnStr, OnStrPValue
 from data_to_paper.utils.check_type import raise_on_wrong_func_argument_types_decorator
 
@@ -77,7 +77,7 @@ def df_to_latex(df: pd.DataFrame, filename: Optional[str],
     index = kwargs.get('index', True)
     if is_html is True:
         html_caption = caption if caption else ''
-        regular_html_table = to_html_with_value_format(df, border=0, justify='left', **kwargs)
+        regular_html_table = df_to_html_with_value_format(df, border=0, justify='left', **kwargs)
         note_and_glossary_html = convert_note_and_glossary_to_html(df, note, glossary, index)
         return HTML_TABLE_WITH_LABEL_AND_CAPTION.replace('{caption}', html_caption) \
             .replace('{table}', regular_html_table) \

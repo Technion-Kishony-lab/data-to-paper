@@ -5,7 +5,7 @@ from typing import Any
 import pandas as pd
 
 from data_to_paper.exceptions import data_to_paperException
-from ..utils import format_numeric_value, temporarily_change_float_format, to_string_with_format_value
+from ..utils import format_numeric_value, temporarily_change_float_format, df_to_string_with_format_value
 from ..dataframe_operations import SaveDataframeOperation, CreationDataframeOperation, \
     ChangeSeriesDataframeOperation, AddSeriesDataframeOperation, RemoveSeriesDataframeOperation
 
@@ -111,7 +111,7 @@ def to_string(self, *args, original_method=None, on_change=None, **kwargs):
         numeric_formater = kwargs.pop('float_format')
     else:
         numeric_formater = STR_FLOAT_FORMAT
-    return to_string_with_format_value(self, numeric_formater=numeric_formater, **kwargs)
+    return df_to_string_with_format_value(self, numeric_formater=numeric_formater, **kwargs)
 
 
 def to_csv(self, *args, original_method=None, on_change=None, **kwargs):

@@ -5,7 +5,7 @@ from pandas import DataFrame, Series
 
 from data_to_paper.code_and_output_files.referencable_text import label_numeric_value
 from data_to_paper.run_gpt_code.overrides.dataframes.df_methods import STR_FLOAT_FORMAT
-from data_to_paper.run_gpt_code.overrides.dataframes.utils import llm_readable_to_csv, to_latex_with_value_format
+from data_to_paper.run_gpt_code.overrides.dataframes.utils import df_to_llm_readable_csv, df_to_latex_with_value_format
 from data_to_paper.run_gpt_code.overrides.pvalue import is_p_value, PValue
 
 
@@ -66,7 +66,7 @@ def describe_df(df: DataFrame, max_rows: Optional[int] = 25, max_columns: Option
         return f'DataFrame(shape={df.shape})'
     if max_rows is not None and num_lines > max_rows:
         df = df.head(3)
-    s = llm_readable_to_csv(df, **_get_formatters(should_format))
+    s = df_to_llm_readable_csv(df, **_get_formatters(should_format))
     if num_lines > max_rows:
         s += f'\n... total {num_lines} rows'
     return s
@@ -77,4 +77,4 @@ def df_to_numerically_labeled_latex(df, should_format: bool = True, **kwargs):
     Get latex representation of a DataFrame with numeric values labeled.
     Label the numeric values with @@<...>@@ - to allow converting to ReferenceableText.
     """
-    return to_latex_with_value_format(df, **_get_formatters(should_format), **kwargs)
+    return df_to_latex_with_value_format(df, **_get_formatters(should_format), **kwargs)

@@ -10,7 +10,7 @@ from data_to_paper.run_gpt_code.overrides.pvalue import PValueToStars, OnStr, On
 from .describe import describe_value, describe_df
 from .matplotlib_utils import get_xy_coordinates_of_df_plot, \
     replace_singleton_legend_with_axis_label, add_grid_line_at_zero_if_not_origin, rotate_xticklabels_if_not_numeric
-from ..run_gpt_code.overrides.dataframes.utils import to_html_with_value_format
+from ..run_gpt_code.overrides.dataframes.utils import df_to_html_with_value_format
 from ..utils.check_type import raise_on_wrong_func_argument_types_decorator
 from ..utils.highlighted_text import text_to_html
 
@@ -201,7 +201,7 @@ def get_description_of_plot_creation(df, fig_filename, kwargs, is_html: bool = T
     if too_long:
         df = df.head(3)
     if is_html:
-        df_str = to_html_with_value_format(df, border=0, justify='left')
+        df_str = df_to_html_with_value_format(df, border=0, justify='left')
     else:
         with OnStrPValue(OnStr.SMALLER_THAN):
             df_str = describe_df(df, should_format=should_format)

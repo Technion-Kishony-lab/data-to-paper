@@ -19,7 +19,7 @@ from data_to_paper.research_types.hypothesis_testing.coding.utils import create_
 from data_to_paper.research_types.hypothesis_testing.model_engines import get_model_engine_for_class
 from data_to_paper.research_types.hypothesis_testing.scientific_products import HypertargetPrefix
 from data_to_paper.run_gpt_code.extract_and_check_code import ModifyAndCheckCodeExtractor, CodeExtractor
-from data_to_paper.run_gpt_code.overrides.dataframes.utils import to_string_with_format_value, \
+from data_to_paper.run_gpt_code.overrides.dataframes.utils import df_to_string_with_format_value, \
     format_numerics_and_iterables
 from data_to_paper.run_gpt_code.overrides.pvalue import is_containing_p_value, OnStr, OnStrPValue
 from data_to_paper.run_gpt_code.run_issues import RunIssue, CodeProblem
@@ -78,7 +78,7 @@ class DataFramePickleContentOutputFileRequirement(BaseDataFramePickleContentOutp
             self, content: Any, filename: str = None, num_file: int = 0, level: int = 3,
             view_purpose: ViewPurpose = ViewPurpose.FINAL_APPENDIX):
         with OnStrPValue(OnStr.WITH_ZERO):
-            content = to_string_with_format_value(content)
+            content = df_to_string_with_format_value(content)
         return content, f'% {filename}'
 
 

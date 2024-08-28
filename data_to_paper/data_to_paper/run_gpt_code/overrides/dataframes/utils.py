@@ -57,31 +57,31 @@ def _get_formatters_for_df(df: DataFrame, numeric_formater: Callable = None, obj
     return [formater] * df.shape[1]
 
 
-def to_string_with_format_value(df: DataFrame, *args,
-                                numeric_formater: Callable = None,
-                                object_formatter: Callable = None, **kwargs):
+def df_to_string_with_format_value(df: DataFrame, *args,
+                                   numeric_formater: Callable = None,
+                                   object_formatter: Callable = None, **kwargs):
     to_string = get_original_df_method('to_string')
     return to_string(df, *args, formatters=_get_formatters_for_df(df, numeric_formater, object_formatter), **kwargs)
 
 
-def to_latex_with_value_format(df: DataFrame, *args,
-                               numeric_formater: Callable = None,
-                               object_formatter: Callable = None, **kwargs):
+def df_to_latex_with_value_format(df: DataFrame, *args,
+                                  numeric_formater: Callable = None,
+                                  object_formatter: Callable = None, **kwargs):
     to_latex = get_original_df_method('to_latex')
     return to_latex_with_escape(df, *args, original_method=to_latex,
                                 formatters=_get_formatters_for_df(df, numeric_formater, object_formatter), **kwargs)
 
 
-def to_html_with_value_format(df: DataFrame, *args,
-                              numeric_formater: Callable = None,
-                              object_formatter: Callable = None, **kwargs):
+def df_to_html_with_value_format(df: DataFrame, *args,
+                                 numeric_formater: Callable = None,
+                                 object_formatter: Callable = None, **kwargs):
     to_html = get_original_df_method('to_html')
     return to_html(df, *args, formatters=_get_formatters_for_df(df, numeric_formater, object_formatter), **kwargs)
 
 
-def llm_readable_to_csv(df, index_label='index',
-                        numeric_formater: Callable = None,
-                        object_formatter: Callable = None):
+def df_to_llm_readable_csv(df, index_label='index',
+                           numeric_formater: Callable = None,
+                           object_formatter: Callable = None):
     """
     Convert a DataFrame to a CSV string that is easy to parse by the LLM.
     Takes care of:
