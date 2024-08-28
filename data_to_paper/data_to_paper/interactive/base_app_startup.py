@@ -592,14 +592,15 @@ class DataFilesStartDialog(BaseStartDialog):
         super()._set_project_directory(project_directory)
         self._get_date_files_widget().set_project_directory(project_directory)
 
+    def _get_mandatory_items_to_start(self):
+        raise NotImplementedError
+
     def update_start_button_state(self):
-        general_description_filled = bool(self.widgets['general_description'].toPlainText().strip())
-        files_filled = any(file_widget.abs_path and file_widget.description_edit.toPlainText().strip()
-                           for file_widget in self._get_date_files_widget().get_all_file_widgets())
+        mandatory_items = self._get_mandatory_items_to_start()
 
         # access the start_button from the layout
         start_button = self.layout.itemAt(self.layout.count() - 1).itemAt(0).widget()
-        start_button.setDisabled(not (general_description_filled and files_filled))
+        start_button.setDisabled(any(not item for item in mandatory_items))
 
     def open_project(self, project_directory: Optional[Path] = None):
         super().open_project(project_directory)
