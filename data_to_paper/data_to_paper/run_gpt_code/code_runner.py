@@ -118,7 +118,8 @@ class CodeRunner:
             contexts['ModifyImport'] = ModifyImport(modified_imports=self.modified_imports)
         if not (self.allowed_open_read_files is None and allowed_open_write_files is None):
             contexts['PreventFileOpen'] = PreventFileOpen(allowed_read_files=self.allowed_open_read_files,
-                                                          allowed_write_files=allowed_open_write_files)
+                                                          allowed_write_files=allowed_open_write_files,
+                                                          allowed_write_folder=self.run_folder)
         if not (self.warnings_to_raise is None and self.warnings_to_issue is None and self.warnings_to_ignore is None):
             contexts['WarningHandler'] = WarningHandler(categories_to_raise=self.warnings_to_raise,
                                                         categories_to_issue=self.warnings_to_issue,

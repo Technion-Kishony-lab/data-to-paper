@@ -10,7 +10,6 @@ from typing import Any, Iterable, Callable, List, Type, Dict, Optional, Union, T
 
 from pathlib import Path
 
-from data_to_paper.env import FOLDER_FOR_RUN
 from data_to_paper.utils.file_utils import is_name_matches_list_of_wildcard_names
 from data_to_paper.utils.types import ListBasedSet
 from data_to_paper.utils import dedent_triple_quote_str
@@ -46,7 +45,7 @@ class PreventFileOpen(SingletonRegisteredRunContext):
         else ['/usr', '/etc', '/bin', '/sbin', '/sys', '/dev', '/var', '/opt', '/proc']
     allowed_read_files: Iterable[str] = 'all'  # list of wildcard names,  'all' means allow all, [] means allow none
     allowed_write_files: Iterable[str] = 'all'  # list of wildcard names,  'all' means allow all, [] means allow none
-
+    allowed_write_folder: Optional[str] = None
     original_open: Optional[Callable] = None
 
     def _reversible_enter(self):
@@ -66,7 +65,7 @@ class PreventFileOpen(SingletonRegisteredRunContext):
 
     def is_allowed_write_file(self, file_name: str) -> bool:
         file_path = Path(file_name).resolve()
-        if not file_path.parents[0].resolve() == FOLDER_FOR_RUN:
+        if self.allowed_write_folder is not None and file_path.parents[0].resolve() != self.allowed_write_folder:
             return False
         return self.allowed_write_files == 'all' or \
             is_name_matches_list_of_wildcard_names(file_path.name, self.allowed_write_files)
