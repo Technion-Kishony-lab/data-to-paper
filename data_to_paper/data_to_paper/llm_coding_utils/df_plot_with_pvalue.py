@@ -215,10 +215,10 @@ def get_description_of_plot_creation(df, fig_filename, kwargs, is_html: bool = T
     p_value_x = kwargs.pop('x_p_value', None)
     p_value_y = kwargs.pop('y_p_value', None)
 
-    h = f'This latex figure presents "{fig_filename}" which was created from the following df:\n\n'
+    h = f'This latex figure presents "{fig_filename}",\nwhich was created from the df:\n\n'
 
     s = '\n\n'
-    s += f'To create the figure, this df was plotted with the following command:\n\n'
+    s += f'To create the figure, this df was plotted with the command:\n\n'
     s += f'df.plot(**{kwargs})'
     if ci_x:
         s += f'\n\nConfidence intervals for x-values were then plotted based on column: {repr(ci_x)}.'

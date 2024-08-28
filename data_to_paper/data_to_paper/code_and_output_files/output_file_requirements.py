@@ -13,7 +13,7 @@ from data_to_paper.utils import dedent_triple_quote_str, format_text_with_code_b
 from data_to_paper.utils.text_extractors import extract_to_nearest_newline
 from data_to_paper.utils.text_numeric_formatting import round_floats
 from data_to_paper.code_and_output_files.referencable_text import NumericReferenceableText, \
-    BaseReferenceableText
+    BaseReferenceableText, convert_str_to_latex_label
 
 from data_to_paper.run_gpt_code.overrides.pvalue import OnStrPValue, OnStr
 from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue
@@ -76,12 +76,27 @@ class OutputFileRequirement:
         self.delete_if_needed(file_path)
         return content
 
-    def get_code_header_for_file(self, filename: str, content: Optional[Any] = None) -> Optional[str]:
+    """Linking"""
+
+    def get_code_line_str_for_file(self, filename: str, content: Optional[Any] = None) -> Optional[str]:
         """
         Return a string which can be found in the line where we should go to when we want to see the code
         that created the file.
         """
         return filename
+
+    def get_code_line_label_for_file(self, filename: str, content: Optional[Any] = None) -> Optional[str]:
+        """
+        Return a label to add to the code at the line where we should go to when we want to see the code
+        """
+        return convert_str_to_latex_label(filename, prefix='code')
+
+    def get_hyperlink_label_for_file_header(self, filename: str, content: Optional[Any] = None) -> Optional[str]:
+        """
+        Return a hypertarget label to go to when we click the file header.
+        None to not create a hyperlink.
+        """
+        return self.get_code_line_label_for_file(filename, content)
 
 
 @dataclass(frozen=True)

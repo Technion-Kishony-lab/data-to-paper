@@ -33,16 +33,22 @@ class CodeAndOutput:
     dataframe_operations: Optional[DataframeOperations] = None
     description_of_created_files: DataFileDescriptions = None
 
-    def get_code_header_for_file(self, filename: str) -> Optional[str]:
+    def _get_file_requirement_and_content(self, filename: str):
+        return self.created_files.get_created_files_to_requirements_and_contents()[filename]
+
+    def _get_file_requirement(self, filename: str):
+        return self._get_file_requirement_and_content(filename)[0]
+
+    def get_code_line_str_for_file(self, filename: str) -> Optional[str]:
         """
         Return a string which can be found in the line where we should go to when we want to see the code
         that created the file.
         """
-        requirement, content = self.created_files.get_created_files_to_requirements_and_contents()[filename]
-        return requirement.get_code_header_for_file(filename, content)
+        requirement, content = self._get_file_requirement_and_content(filename)
+        return requirement.get_code_line_str_for_file(filename, content)
 
     def get_lineno_for_file(self, code: str, filename: str) -> Optional[int]:
-        header = self.get_code_header_for_file(filename)
+        header = self.get_code_line_str_for_file(filename)
         if header is None:
             return None
         lines = code.split('\n')
@@ -61,8 +67,25 @@ class CodeAndOutput:
         lines[lineno - 1] = ReferencedValue('', label).to_str(hypertarget_format) + lines[lineno - 1]
         return '\n'.join(lines)
 
-    def _get_label_for_code_creating_line_for_file(self, filename: str) -> str:
-        return convert_str_to_latex_label((self.name or '') + '-' + filename, 'code')
+    def _get_code_line_label_for_file(self, filename: str) -> str:
+        requirement, content = self._get_file_requirement_and_content(filename)
+        return requirement.get_code_line_label_for_file(filename, content)
+
+    def _get_hypertarget_for_appendix_file_header(self, filename: str) -> str:
+        return ReferencedValue(
+            value='',
+            label=convert_str_to_latex_label(filename, 'file'),
+            is_target=True).to_str(HypertargetFormat(position=HypertargetPosition.WRAP))
+
+    def _get_hyperlinked_header_for_appendix_file(self, filename: str) -> str:
+        return ReferencedValue(
+            value=replace_special_latex_chars(filename),
+            label=self._get_hyperlink_label_for_file_header(filename),
+            is_target=False).to_str(HypertargetFormat(position=HypertargetPosition.WRAP))
+
+    def _get_hyperlink_label_for_file_header(self, filename: str) -> str:
+        requirement, content = self._get_file_requirement_and_content(filename)
+        return requirement.get_hyperlink_label_for_file_header(filename, content)
 
     def _get_code_with_hypertargets(self) -> str:
         code = self.code
@@ -70,10 +93,10 @@ class CodeAndOutput:
             lineno = self.get_lineno_for_file(code, filename)
             if lineno is not None:
                 code = self._add_hypertarget_to_code(
-                    code, self._get_label_for_code_creating_line_for_file(filename), lineno)
+                    code, self._get_code_line_label_for_file(filename), lineno)
         return code
 
-    def as_latex_for_appendix(self, view_purpose: ViewPurpose) -> str:
+    def as_latex_for_appendix(self) -> str:
         s = f"\\section{{{self.name}}}\n"
         if self.code:
             s += "\\subsection{{Code}}\n"
@@ -87,20 +110,14 @@ class CodeAndOutput:
             s += "\\subsection{Code Description}\n"
             s += '\n' + self.code_explanation
 
-        outputs = self.created_files.get_created_content_files_to_pretty_contents(view_purpose=view_purpose,
-                                                                                  header_level=None)
+        outputs = self.created_files.get_created_content_files_to_pretty_contents(
+            view_purpose=ViewPurpose.FINAL_APPENDIX, header_level=None)
         if outputs:
             s += '\n\n' + "\\subsection{Code Output}"
             for filename, content in outputs.items():
-                s += '\n'
-                s += ReferencedValue(
-                    value='', label=convert_str_to_latex_label(filename, 'file'),
-                    is_target=True).to_str(HypertargetFormat(position=HypertargetPosition.WRAP))
-                header = replace_special_latex_chars(filename)
-                hyperlinked_header = ReferencedValue(
-                    value=header, label=self._get_label_for_code_creating_line_for_file(filename),
-                    is_target=False).to_str(HypertargetFormat(position=HypertargetPosition.WRAP))
-                s += f'\n\n\\subsubsection*{{{hyperlinked_header}}}'
+                hypertarget = self._get_hypertarget_for_appendix_file_header(filename)
+                hyperlinked_header = self._get_hyperlinked_header_for_appendix_file(filename)
+                s += f'\n{hypertarget}\n\n\\subsubsection*{{{hyperlinked_header}}}'
                 s += '\n\n' + wrap_as_latex_code_output(content)
         s = replace_non_utf8_chars(s)
         return s

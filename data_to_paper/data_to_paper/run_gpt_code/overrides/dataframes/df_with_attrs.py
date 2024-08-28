@@ -45,11 +45,11 @@ class ListInfoDataFrame(InfoDataFrame):
         return cls(df, extra_info=prior_extra_info + [extra_info])
 
 
-def save_as_list_info_df(func_name, df, label, kwargs=None):
+def save_as_list_info_df(func_name, df, filename, kwargs=None):
     """
     save df to pickle with the func
     """
     kwargs = {} if kwargs is None else kwargs
-    df = ListInfoDataFrame.from_prior_df(df, (func_name, df, label, kwargs))
-    pickle_filename = label + '.pkl'
+    df = ListInfoDataFrame.from_prior_df(df, (func_name, df, filename, kwargs))
+    pickle_filename = filename + '.pkl'
     df.to_pickle(pickle_filename)

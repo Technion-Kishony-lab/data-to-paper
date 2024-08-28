@@ -160,12 +160,11 @@ class DataFileDescriptions(List[DataFileDescription]):
 
     def to_latex(self,
                  section_name: str = 'Data Description',
-                 label: str = 'sec:data_description',
                  text: str = 'Here is the data description, as provided by the user:',
                  view_purpose: ViewPurpose = None) -> str:
         s = ''
-        s += f"\\section{{{section_name}}} \\label{{{label}}} {text}"
-        s += '\n\n' + wrap_as_latex_code_output(
+        s += f"\\section{{{section_name}}}\n{text}\n\n"
+        s += wrap_as_latex_code_output(
             self.pretty_repr(num_lines=0, view_purpose=view_purpose))
         return s
 

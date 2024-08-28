@@ -8,7 +8,9 @@ from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.code_and_output_files.file_view_params import ViewPurpose
 from data_to_paper.code_and_output_files.output_file_requirements import \
     OutputFileRequirements, DataOutputFileRequirement
-from data_to_paper.code_and_output_files.ref_numeric_values import HypertargetFormat, HypertargetPosition
+from data_to_paper.code_and_output_files.ref_numeric_values import HypertargetFormat, HypertargetPosition, \
+    ReferencedValue
+from data_to_paper.code_and_output_files.referencable_text import convert_str_to_latex_label
 from data_to_paper.research_types.hypothesis_testing.cast import ScientificAgent
 from data_to_paper.research_types.hypothesis_testing.coding.base_code_conversers import BaseTableCodeProductsGPT
 from data_to_paper.research_types.hypothesis_testing.coding.utils import create_pandas_and_stats_contexts
@@ -68,6 +70,19 @@ class TexDisplayitemContentOutputFileRequirement(BaseDataFramePickleContentOutpu
                                          view_purpose: ViewPurpose = None) -> str:
         func, args, kwargs = self._get_func_args_kwargs(content)
         pvalue_on_str = self._convert_view_purpose_to_pvalue_on_str(view_purpose)
+        if view_purpose == ViewPurpose.FINAL_INLINE:
+            caption = kwargs.get('caption', '')
+            caption_lines = caption.split('\n')
+            first_line = caption_lines[0]
+            filename = self._get_source_file(filename, content) or filename
+            first_line = r"\protect" + ReferencedValue(
+                value=first_line,
+                label=convert_str_to_latex_label(filename, prefix='file'),
+                is_target=False).to_str(HypertargetFormat(position=HypertargetPosition.WRAP))
+            caption_lines[0] = first_line
+            kwargs = kwargs.copy()
+            kwargs['caption'] = '\n'.join(caption_lines)
+
         with OnStrPValue(pvalue_on_str):
             return func(*args, **kwargs, should_format=True)
 

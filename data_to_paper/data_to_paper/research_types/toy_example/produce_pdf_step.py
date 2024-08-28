@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from typing import Dict
 
 from data_to_paper.base_steps import BaseLatexToPDF
-from data_to_paper.code_and_output_files.file_view_params import ViewPurpose
 
 from .products import DemoProducts
 
@@ -17,5 +16,5 @@ class ProduceDemoPaperPDF(BaseLatexToPDF):
 
     def _get_appendix(self):
         s = self.products.data_file_descriptions.to_latex()
-        s += '\n\n' + self.products.code_and_output.as_latex_for_appendix(view_purpose=ViewPurpose.FINAL_APPENDIX)
+        s += '\n\n' + self.products.code_and_output.as_latex_for_appendix()
         return s

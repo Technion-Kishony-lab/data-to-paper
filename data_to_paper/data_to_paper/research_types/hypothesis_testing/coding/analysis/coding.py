@@ -7,7 +7,8 @@ from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.code_and_output_files.file_view_params import ViewPurpose
 from data_to_paper.code_and_output_files.output_file_requirements import \
     OutputFileRequirements, PickleContentOutputFileRequirement, DataOutputFileRequirement
-from data_to_paper.code_and_output_files.referencable_text import LabeledNumericReferenceableText
+from data_to_paper.code_and_output_files.referencable_text import LabeledNumericReferenceableText, \
+    convert_str_to_latex_label
 from data_to_paper.llm_coding_utils.describe import describe_df
 from data_to_paper.llm_coding_utils.df_to_figure import df_to_figure
 from data_to_paper.llm_coding_utils.df_to_latex import df_to_latex
@@ -33,7 +34,7 @@ class BaseDataFramePickleContentOutputFileRequirement(PickleContentOutputFileReq
     referenceable_text_cls: type = LabeledNumericReferenceableText
 
     def _get_func_args_kwargs(self, content: ListInfoDataFrame) -> Tuple:
-        func_name, df, label, kwargs = content.extra_info[-1]
+        func_name, df, filename, kwargs = content.extra_info[-1]
         assert df.equals(content)
         if func_name == 'df_to_latex':
             func = df_to_latex
@@ -44,7 +45,7 @@ class BaseDataFramePickleContentOutputFileRequirement(PickleContentOutputFileReq
             kwargs['save_fig'] = False
         else:
             raise ValueError(f'Unknown function name: {func_name}')
-        return func, (content, label), kwargs
+        return func, (content, filename), kwargs
 
     def _is_figure(self, content: Any) -> bool:
         func, args, kwargs = self._get_func_args_kwargs(content)
@@ -63,11 +64,25 @@ class BaseDataFramePickleContentOutputFileRequirement(PickleContentOutputFileReq
             html = func(*args, **kwargs, is_html=True)
         return html, f'<h{level}>{filename}</h{level}>'
 
-    def get_code_header_for_file(self, filename: str, content: Optional[ListInfoDataFrame] = None) -> Optional[str]:
+    def get_code_line_str_for_file(self, filename: str, content: Optional[ListInfoDataFrame] = None) -> Optional[str]:
         func, args, kwargs = self._get_func_args_kwargs(content)
         label = args[1]
         table_or_figure = 'Table' if func == df_to_latex else 'Figure'
         return f'## {table_or_figure} {label}:'
+
+    def _get_source_file(self, filename: str, content: ListInfoDataFrame) -> Optional[str]:
+        filenames = [filename for _, _, filename, _ in content.extra_info]
+        if len(filenames) <= 1:
+            return None
+        filename = filenames[-2]
+        filename += '.pkl'
+        return filename
+
+    def get_hyperlink_label_for_file_header(self, filename: str, content: Optional[Any] = None) -> Optional[str]:
+        source_file = self._get_source_file(filename, content)
+        if source_file:
+            return convert_str_to_latex_label(source_file, prefix='file')
+        return super().get_hyperlink_label_for_file_header(filename, content)
 
 
 @dataclass(frozen=True)
@@ -88,7 +103,7 @@ class DictPickleContentOutputFileRequirement(PickleContentOutputFileRequirement)
         content = NiceDict(content, format_numerics_and_iterables=format_numerics_and_iterables)
         return str(content)
 
-    def get_code_header_for_file(self, filename: str, content: Optional[Any] = None) -> Optional[str]:
+    def get_code_line_str_for_file(self, filename: str, content: Optional[Any] = None) -> Optional[str]:
         return '# SAVE ADDITIONAL RESULTS'
 
 
@@ -165,8 +180,11 @@ class DataAnalysisDebuggerConverser(DebuggerConverser):
 
     def _get_issues_for_df_comments(self, code_and_output: CodeAndOutput, contexts) -> List[RunIssue]:
         issues = []
-        for df_file_name in code_and_output.created_files.get_created_content_files(match_filename='df_*.pkl'):
-            df_header = code_and_output.get_code_header_for_file(df_file_name)
+        files_to_requirements_and_contents = \
+            code_and_output.created_files.get_created_files_to_requirements_and_contents(
+                match_filename='df_*.pkl', is_content=True)
+        for df_file_name, (requirement, content) in files_to_requirements_and_contents.items():
+            df_header = requirement.get_code_line_str_for_file(df_file_name, content)
             if df_header and df_header not in code_and_output.code:
                 issues.append(RunIssue(
                     category="Code structure",

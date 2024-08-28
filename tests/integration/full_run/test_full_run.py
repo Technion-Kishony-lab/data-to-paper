@@ -22,3 +22,5 @@ def test_toy_example(tmpdir):
     files = ['paper.tex']
     for file in files:
         compare_files(output_directory / file, correct_output_directory / file)
+        # Overriding the correct output files with the new files
+        # os.system(f'cp {output_directory / file} {correct_output_directory / file}')

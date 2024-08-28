@@ -9,6 +9,7 @@
 \usepackage{color}
 \usepackage{listings}
 \usepackage{sectsty}
+\usepackage{graphicx}
 \sectionfont{\Large}
 \subsectionfont{\normalsize}
 \subsubsectionfont{\normalsize}
@@ -88,15 +89,16 @@ We’ve uncovered a numerical social hierarchy: primes at the tops of our favori
 \clearpage
 \appendix
 
-\section{Data Description} \label{sec:data_description} Here is the data description, as provided by the user:
+\section{Data Description}
+Here is the data description, as provided by the user:
 
 \begin{codeoutput}
-\#\# General Description
+## General Description
 
-\#\# Data Files
+## Data Files
 The dataset consists of 1 data file:
 
-\#\#\# "number.txt"
+### "number.txt"
 This file contains a large int, n.
 
 
@@ -149,7 +151,7 @@ def main():
 
     largest_prime = find_largest_prime(n)
 
-(*@\raisebox{2ex}{\hypertarget{code-Prime Number Search-output-txt}{}}@*)    with open('output.txt', 'w') as file:
+(*@\raisebox{2ex}{\hypertarget{code-output-txt}{}}@*)    with open('output.txt', 'w') as file:
         if largest_prime is not None:
             file.write(str(largest_prime))
         else:
@@ -162,9 +164,10 @@ main()
 
 
 
-\subsection{Code Output}\hypertarget{file-output-txt}{}
+\subsection{Code Output}
+\hypertarget{file-output-txt}{}
 
-\subsubsection*{\hyperlink{code-Prime Number Search-output-txt}{output.txt}}
+\subsubsection*{\hyperlink{code-output-txt}{output.txt}}
 
 \begin{codeoutput}
 9973

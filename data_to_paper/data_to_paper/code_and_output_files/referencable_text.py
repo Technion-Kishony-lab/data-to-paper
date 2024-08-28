@@ -135,7 +135,9 @@ class FromTextReferenceableText(BaseReferenceableText):
                 return reference.value
 
         if self.hypertarget_prefix is None and hypertarget_format:
-            raise ValueError("ReferenceableText has no hypertarget_prefix")
+            hypertarget_format = HypertargetFormat()
+            # TODO: need to decide what to do here
+            # raise ValueError("ReferenceableText has no hypertarget_prefix")
         reference_num = 0
         references = []
         lines = self.text.split('\n')

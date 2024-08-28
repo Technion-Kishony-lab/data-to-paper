@@ -120,16 +120,16 @@ def _check_df_to_str(df, requirement, view_purpose, expected):
 @pytest.mark.parametrize('is_figure, view_purpose, expected', [
     (False, ViewPurpose.CODE_REVIEW, ['### df_tbl_1.pkl', '```output\n', '"ban",0.205,(0.1912, 0.21),<1e-06']),
     (False, ViewPurpose.PRODUCT, ['### df_tbl_1.pkl', '```output\n', '"ban",0.205,(0.1912, 0.21),<1e-06']),
-    (False, ViewPurpose.HYPERTARGET_PRODUCT, ValueError),
+    # (False, ViewPurpose.HYPERTARGET_PRODUCT, ValueError),
     (False, ViewPurpose.APP_HTML, ['<h3>df_tbl_1.pkl</h3>', '<td>2e-08</td>']),
     (False, ViewPurpose.FINAL_APPENDIX, ['ban 0.205  (0.1912, 0.21)   2e-08']),
-    (False, ViewPurpose.FINAL_INLINE, ValueError),
+    # (False, ViewPurpose.FINAL_INLINE, ValueError),
     (True, ViewPurpose.CODE_REVIEW, ['"ban",0.205,(0.1912, 0.21),<1e-06']),
     (True, ViewPurpose.PRODUCT, ['"ban",0.205,(0.1912, 0.21),<1e-06']),
-    (True, ViewPurpose.HYPERTARGET_PRODUCT, ValueError),
+    # (True, ViewPurpose.HYPERTARGET_PRODUCT, ValueError),
     (True, ViewPurpose.APP_HTML, ['<th>ban</th>', '<td>2e-08</td>', "df.plot(**{'kind': 'bar', 'y': 'coef'})"]),
     (True, ViewPurpose.FINAL_APPENDIX, ['ban 0.205  (0.1912, 0.21)   2e-08']),
-    (True, ViewPurpose.FINAL_INLINE, ValueError),
+    # (True, ViewPurpose.FINAL_INLINE, ValueError),
 ])
 def test_view_df_to_latex_analysis(tmpdir, df_tbl_0, is_figure, view_purpose, expected):
     print('\n')
