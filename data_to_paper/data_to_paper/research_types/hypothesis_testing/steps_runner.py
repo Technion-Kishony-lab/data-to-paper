@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Type
 
+from data_to_paper.env import FOLDER_FOR_RUN
 from data_to_paper.base_steps import DirectorProductGPT, CheckLatexCompilation, DataStepRunner
 
 from .app_startup import HypothesisTestingStartDialog
@@ -66,6 +67,7 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
             latex_document=self.latex_document,
             output_filename='paper.pdf',
             paper_section_names=PAPER_SECTIONS_NAMES,
+            figures_folder=FOLDER_FOR_RUN,
         )
 
         self.stages_to_funcs = {

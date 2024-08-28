@@ -6,6 +6,8 @@ import numpy as np
 
 from typing import Optional, Collection, Tuple, Dict
 
+from pathlib import Path
+
 from data_to_paper.env import FOLDER_FOR_RUN
 from data_to_paper.servers.custom_types import Citation
 from data_to_paper.utils.file_utils import run_in_temp_directory
@@ -111,6 +113,7 @@ def add_watermark_to_pdf(pdf_path: str, watermark_path: str, output_path: str = 
 
 def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_directory: Optional[str] = None,
                                   references: Collection[Citation] = None, format_cite: bool = True,
+                                  figures_folder: Optional[Path] = None,
                                   raise_on_too_wide: bool = True) -> str:
     references = references or set()
     should_compile_with_bib = len(references) > 0
@@ -118,9 +121,10 @@ def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_dir
     pdflatex_params = ['pdflatex', '--shell-escape', '-interaction=nonstopmode', latex_file_name]
     with run_in_temp_directory():
         # Copy the figures from the running directory to the temp directory:
-        png_files_in_running_directory = [f for f in FOLDER_FOR_RUN.glob('*.png') if f.is_file()]
-        for png_file in png_files_in_running_directory:
-            shutil.copy(png_file, '.')
+        if figures_folder is not None:
+            png_files_in_running_directory = [f for f in figures_folder.glob('*.png') if f.is_file()]
+            for png_file in png_files_in_running_directory:
+                shutil.copy(png_file, '.')
 
         # Create the bib file:
         if should_compile_with_bib:

@@ -3,6 +3,8 @@ from dataclasses import dataclass, field
 from functools import partial
 from typing import List, Optional, Dict, Union, Iterable, Collection
 
+from pathlib import Path
+
 from data_to_paper.latex import save_latex_and_compile_to_pdf
 from data_to_paper.latex.clean_latex import process_latex_text_and_math
 from data_to_paper.latex.latex_to_pdf import evaluate_latex_num_command
@@ -194,6 +196,7 @@ class LatexDocument:
                      references: Collection[Citation] = None,
                      format_cite: bool = True,
                      add_before_document: Optional[str] = None,
+                     figures_folder: Optional[Path] = None,
                      file_stem: str = None,
                      output_directory: Optional[str] = None,
                      raise_on_too_wide: bool = True,
@@ -288,7 +291,7 @@ class LatexDocument:
         # Save and compile:
         pdf_output = save_latex_and_compile_to_pdf(s, file_stem=file_stem, output_directory=output_directory,
                                                    references=references, raise_on_too_wide=raise_on_too_wide,
-                                                   format_cite=format_cite)
+                                                   format_cite=format_cite, figures_folder=figures_folder)
         return s, pdf_output
 
     def compile_table(self, latex_table: str, file_stem: str = None, output_directory: Optional[str] = None) -> float:

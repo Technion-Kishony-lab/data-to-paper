@@ -1,6 +1,8 @@
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Collection
 
+from pathlib import Path
+
 from data_to_paper.servers.custom_types import Citation
 from data_to_paper.latex.latex_doc import LatexDocument
 
@@ -15,6 +17,7 @@ class BaseLatexToPDF(BaseFileProducer):
 
     latex_document: LatexDocument = field(default_factory=LatexDocument)
     paper_section_names: List[str] = None
+    figures_folder: Optional[Path] = None  # folder that includes png files for the pdf
 
     def _get_sections(self) -> Dict[str, str]:
         """
@@ -43,5 +46,6 @@ class BaseLatexToPDF(BaseFileProducer):
             format_cite=True,
             file_stem=self.output_file_stem,
             output_directory=str(self.output_directory),
+            figures_folder=self.figures_folder,
             raise_on_too_wide=False,
         )[0]
