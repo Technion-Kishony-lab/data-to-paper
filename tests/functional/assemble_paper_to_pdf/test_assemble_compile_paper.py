@@ -44,6 +44,7 @@ Temperature ($^{\\circ}$F) & Average melting time (s) & 95\\% CI \\\\
 """
     }
     code_and_output.to_latex.return_value = "Nice code here"
+    code_and_output.as_latex_for_appendix.return_value = "Nice code here"
     return code_and_output
 
 
@@ -76,7 +77,7 @@ def test_paper_assembler_compiler_gpt(tmpdir, products):
     latex_paper = paper_assembler_compiler.assemble_compile_paper()
 
     assert 'content of title' in latex_paper
-    assert r'\hypertarget{results0}{}}2+3 = 5' in latex_paper
+    assert r'\hypertarget{results0}{}2+3 = 5' in latex_paper
     assert r'2 + 3 is \hyperlink{results0}{5}' in latex_paper
     assert os.path.exists(os.path.join(tmpdir, paper_assembler_compiler.output_file_stem + '.tex'))
     assert os.path.exists(os.path.join(tmpdir, paper_assembler_compiler.output_file_stem + '.pdf'))

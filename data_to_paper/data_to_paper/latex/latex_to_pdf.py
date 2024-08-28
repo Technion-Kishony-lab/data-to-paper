@@ -81,11 +81,8 @@ def evaluate_latex_num_command(latex_str, ref_prefix='', enforce_explanation: bo
         latex_str = latex_str.replace(command + match + '}', replace_with)
         note = f'{formula} = {result}'
         if explanation:
-            # TODO: the newline leads to an error in pdflatex:
-            #  "! Paragraph ended before \hypertarget was complete."
-            #  Changing to spaces for now.
-            # note += f'\n\n{explanation}'
-            note += f'     {explanation}'
+            note += f'\n\n{explanation}'
+            # note += f'     {explanation}'
         labels_to_notes[label] = note
     return latex_str, labels_to_notes
 

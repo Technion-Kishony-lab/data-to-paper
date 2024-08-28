@@ -37,10 +37,11 @@ class ProduceScientificPaperPDFWithAppendix(BaseLatexToPDF):
         notes = self._get_all_notes()
         if not notes:
             return ''
-        text = ListReferenceableText(text='\n'.join([r'\item{@}'] * len(notes)),
+        template = '\n'.join(r'\item{@' + value + r'}' for key, value in notes.items())
+        text = ListReferenceableText(text=template,
                                      hypertarget_prefix='',
                                      pattern='@',
-                                     reference_list=[ReferencedValue(label=key, value=value, is_target=True)
+                                     reference_list=[ReferencedValue(label=key, value='', is_target=True)
                                                      for key, value in notes.items()]
                                      )
 
