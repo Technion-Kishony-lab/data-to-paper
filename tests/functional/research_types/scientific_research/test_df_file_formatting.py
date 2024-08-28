@@ -1,3 +1,5 @@
+from copy import copy
+
 import pandas as pd
 import pytest
 from pandas import DataFrame
@@ -61,7 +63,7 @@ def _simulate_displayitems(tmpdir, df: DataFrame, is_figure=False):
 
 def _simulate_df_to_latex_analysis_and_displayitems(tmpdir, df, is_figure=False):
     df_tbl_1 = _simulate_analysis(tmpdir, df, is_figure)
-    df_tbl_2 = _simulate_displayitems(tmpdir, df_tbl_1, is_figure)
+    df_tbl_2 = _simulate_displayitems(tmpdir, copy(df_tbl_1), is_figure)
     return df_tbl_1, df_tbl_2
 
 
