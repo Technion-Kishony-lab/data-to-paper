@@ -22,11 +22,13 @@ def test_data():
         'y': y,
         'y_2': y_2,
         'y_err': y_err,
-        'y_ci_lower': y_ci_lower,
-        'y_ci_upper': y_ci_upper,
+        'y_ci': list(zip(y_ci_lower, y_ci_upper)),
         'y_p_value': y_p_value,
     })
     yield df
+
+
+filename = 'test_plot'
 
 
 def test_basic_plot(test_data, tmpdir):
@@ -39,87 +41,80 @@ def test_plot_with_xlabel(test_data):
 
 def test_plot_with_caption_and_label(test_data, tmpdir):
     with run_in_directory(tmpdir):
-        df, filename = test_data
-        df_to_figure(df, filename=filename, caption='Test Caption', label='fig:test')
-        assert os.path.exists(filename)
+        latex = df_to_figure(test_data, filename=filename, caption='Test Caption', y='y')
+        assert "df.plot(**{'y': 'y'})" in latex
+        assert os.path.exists(filename + '.png')
 
 
 def test_plot_with_note_and_glossary(test_data, tmpdir):
     with run_in_directory(tmpdir):
-        df, filename = test_data
         note = 'This is a note.'
         glossary = {'y': 'Y-axis values'}
-        df_to_figure(df, filename=filename, note=note, glossary=glossary)
-        assert os.path.exists(filename)
+        latex = df_to_figure(test_data, filename=filename, note=note, glossary=glossary, y='y')
+        assert "df.plot(**{'y': 'y'})" in latex
+        assert "y: Y-axis values" in latex
+        assert os.path.exists(filename + '.png')
 
 
 def test_plot_with_yerr(test_data, tmpdir):
     with run_in_directory(tmpdir):
-        df, filename = test_data
-        df_to_figure(df, filename=filename, y='y', yerr='y_err')
-        assert os.path.exists(filename)
+        df_to_figure(test_data, filename=filename, y='y', yerr='y_err')
+        assert os.path.exists(filename + '.png')
 
 
 def test_plot_with_y_ci(test_data, tmpdir):
     with run_in_directory(tmpdir):
-        df, filename = test_data
-        df_to_figure(df, filename=filename, y='y', y_ci=('y_ci_lower', 'y_ci_upper'))
-        assert os.path.exists(filename)
+        df_to_figure(test_data, filename=filename, y='y', y_ci='y_ci')
+        assert os.path.exists(filename + '.png')
 
 
 def test_plot_with_y_p_value(test_data, tmpdir):
     with run_in_directory(tmpdir):
-        df, filename = test_data
-        df_to_figure(df, filename=filename, y='y', y_p_value='y_p_value', yerr='y_err')
-        assert os.path.exists(filename)
+        df_to_figure(test_data, filename=filename, y='y', y_p_value='y_p_value', yerr='y_err')
+        assert os.path.exists(filename + '.png')
 
 
 def test_plot_with_all_options(test_data, tmpdir):
     with run_in_directory(tmpdir):
-        df, filename = test_data
         df_to_figure(
-            df, filename=filename, caption='Full options',
-            label='fig:full_options', note='Note here', glossary={'x': 'X values', 'y': 'Y values'},
+            test_data, filename=filename, caption='Full options',
+            note='Note here', glossary={'x': 'X values', 'y': 'Y values'},
             xlabel='X Axis', ylabel='Y Axis', y='y', yerr='y_err', y_p_value='y_p_value'
         )
-        assert os.path.exists(filename)
+        assert os.path.exists(filename + '.png')
 
 
 def test_plot_with_all_options_kind_scatter(test_data, tmpdir):
     with run_in_directory(tmpdir):
-        df, filename = test_data
         df_to_figure(
-            df, filename=filename, caption='Full options',
-            label='fig:full_options', note='Note here', glossary={'x': 'X values', 'y': 'Y values'},
-            xlabel='X Axis', ylabel='Y Axis', x='x', y='y', yerr='y_err', y_p_value='y_p_value', kind='scatter'
+            test_data, filename=filename, caption='Full options',
+            note='Note here', glossary={'x': 'X values', 'y': 'Y values'},
+            xlabel='X Axis', ylabel='Y Axis', x='x', y='y', yerr='y_err', y_p_value='y_p_value', kind='bar'
         )
-        assert os.path.exists(filename)
+        assert os.path.exists(filename + '.png')
 
 
 def test_plot_with_all_options_kind_bar(test_data, tmpdir):
     with run_in_directory(tmpdir):
-        df, filename = test_data
         df_to_figure(
-            df, filename=filename, caption='Full options',
-            label='fig:full_options', note='Note here', glossary={'x': 'X values', 'y': 'Y values'},
-            y=['y', 'y_2'], yerr='y_err', y_p_value='y_p_value', kind='bar',
+            test_data, filename=filename, caption='Full options',
+            note='Note here', glossary={'x': 'X values', 'y': 'Y values'},
+            y=['y', 'y_2'], yerr=['y_err', 'y_err'], y_p_value=['y_p_value', 'y_p_value'], kind='bar',
             xlabel='x',
         )
-        assert os.path.exists(filename)
+        assert os.path.exists(filename + '.png')
 
 
 def test_plot_without_yerr_for_p_value(test_data, tmpdir):
     with run_in_directory(tmpdir):
-        df, filename = test_data
         with pytest.raises(ValueError):
-            df_to_figure(df, filename=filename, y='y', y_p_value='y_p_value')
+            df_to_figure(test_data, filename=filename, y='y', y_p_value='y_p_value')
 
 
 def test_plot_with_multiple_columns_input(test_data, tmpdir):
     with run_in_directory(tmpdir):
-        df, filename = test_data
-        df_to_figure(df, filename=filename, y=['y', 'y_2'])
-        assert os.path.exists(filename)
+        df_to_figure(test_data, filename=filename, y=['y', 'y_2'])
+        assert os.path.exists(filename + '.png')
 
 
 @pytest.fixture(scope="module")

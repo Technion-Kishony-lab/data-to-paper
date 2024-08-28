@@ -56,7 +56,7 @@ def df_to_figure(df: pd.DataFrame, filename: Optional[str],
         plt.close('all')
 
     index = kwargs.get('use_index', True)
-    kind = kwargs.get('kind', None)
+    kind = kwargs.get('kind', 'bar')
     if kind not in ALLOWED_PLOT_KINDS:
         raise ValueError(f'`kind` must be one of {ALLOWED_PLOT_KINDS}, but got {kind}.')
 
