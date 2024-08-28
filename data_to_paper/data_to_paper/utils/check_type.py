@@ -18,6 +18,13 @@ class WrongTypeException(data_to_paperException):
         return self.message
 
 
+def name_of_type(type_: type) -> str:
+    """
+    Get the name of the type.
+    """
+    return str(type_).replace('typing.', '').replace("<class '", '').replace("'>", '')
+
+
 def check_all_of_type(elements: Iterable, type_: type, description: str = ''):
     """
     Check if all elements are of a certain type.
@@ -45,7 +52,7 @@ def check_of_any_of_types(element: Any, types_: Iterable[type], description: str
         except WrongTypeException:
             pass
     raise WrongTypeException(
-        f'object{description} must be of one of the types: {", ".join([t.__name__ for t in types_])}')
+        f'object{description} must be of one of the types: {", ".join([name_of_type(t) for t in types_])}')
 
 
 def validate_value_type(value: Any, type_: type, description: str = ''):
@@ -69,7 +76,7 @@ def validate_value_type(value: Any, type_: type, description: str = ''):
         return
 
     if not isinstance(value, origin_type):
-        raise WrongTypeException(f'object{description} must be of type `{origin_type.__name__}`')
+        raise WrongTypeException(f'object{description} must be of type `{name_of_type(origin_type)}`')
 
     if not child_types:
         return
@@ -77,7 +84,7 @@ def validate_value_type(value: Any, type_: type, description: str = ''):
         check_all_of_type(value.keys(), child_types[0], f'within the dict keys{description}')
         check_all_of_type(value.values(), child_types[1], f'within the dict values{description}')
     elif isinstance(value, (list, set)) and len(child_types) == 1:
-        check_all_of_type(value, child_types[0], f'within the {type(value).__name__}{description}')
+        check_all_of_type(value, child_types[0], f'within the {name_of_type(type(value))}{description}')
     elif isinstance(value, tuple) and len(child_types) == len(value):
         check_all_of_types(value, child_types, f'within the tuple{description}')
     elif isinstance(value, Iterable):

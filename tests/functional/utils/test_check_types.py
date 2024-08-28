@@ -1,6 +1,6 @@
 import pytest
 
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Union
 from data_to_paper.utils.check_type import validate_value_type, WrongTypeException, raise_on_wrong_func_argument_types
 
 
@@ -16,6 +16,9 @@ from data_to_paper.utils.check_type import validate_value_type, WrongTypeExcepti
     ({'a': 1, 'b': 2.2}, Dict[str, int], "object within the dict values must be of type `int`"),
     ({'x': ['aaa', 'bbb']}, Dict[str, List[str]], None),
     ({'x': ['aaa', 2]}, Dict[str, List[str]], "object within the list within the dict values must be of type `str`"),
+    (0, Union[int, str], None),
+    (0.7, Union[int, List[int]], "object must be of one of the types: int, List[int]"),
+    (0.7, Union[int, str], "object must be of one of the types: int, str"),
 ])
 def test_validate_value_type(value, type_, expected):
     if expected is None:
