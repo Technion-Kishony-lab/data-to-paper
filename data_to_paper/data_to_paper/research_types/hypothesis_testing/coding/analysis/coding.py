@@ -101,7 +101,7 @@ class DictPickleContentOutputFileRequirement(PickleContentOutputFileRequirement)
     def _convert_content_to_labeled_text(self, content: Any, filename: str = None, num_file: int = int,
                                          view_purpose: ViewPurpose = None) -> str:
         content = NiceDict(content, format_numerics_and_iterables=format_numerics_and_iterables)
-        return str(content)
+        return super()._convert_content_to_labeled_text(content, filename, num_file, view_purpose)
 
     def get_code_line_str_for_file(self, filename: str, content: Optional[Any] = None) -> Optional[str]:
         return '# SAVE ADDITIONAL RESULTS'

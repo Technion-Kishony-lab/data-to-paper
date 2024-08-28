@@ -70,8 +70,7 @@ def df_to_latex_transpose(df: pd.DataFrame, filename: Optional[str], *args,
     index = kwargs.pop('index', True)
     header = kwargs.pop('header', True)
     header, index = index, header
-    return df_to_latex(df.T, filename, note=note, glossary=glossary, index=index,
-                       header=header, **kwargs)
+    return df_to_latex(df.T, filename, note=note, glossary=glossary, index=index, header=header, **kwargs)
 
 
 def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,

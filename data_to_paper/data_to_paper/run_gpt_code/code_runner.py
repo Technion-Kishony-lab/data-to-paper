@@ -181,18 +181,12 @@ class CodeRunner:
         except Exception:
             raise
         finally:
-            created_files = multi_context.contexts['TrackCreatedFiles'].created_files
-            if exception:
-                with run_in_directory(self.run_folder):
-                    # remove all the files that were created
-                    for file in created_files:
-                        if os.path.exists(file):
-                            os.remove(file)
             save_code_to_module_file()  # leave the module empty
 
         for context in multi_context.get_contexts():
             assert is_serializable(context), f"Context {context} is not serializable."
 
+        created_files = multi_context.contexts['TrackCreatedFiles'].created_files
         return result, created_files, multi_context, exception
 
     def _run_function_in_module(self, module: ModuleType):

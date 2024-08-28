@@ -48,7 +48,7 @@ def _get_errors(df: pd.DataFrame, columns: ColumnChoice, arg_name: str, scalars_
         result = np.array(df[column].to_list())
         if result.ndim == 1:
             if scalars_only is False:
-                raise ValueError(f'Argument `{arg_name}` refer to columns with tuples of two values.\n'
+                raise ValueError(f'Argument `{arg_name}` should refer to columns with two-value tuples.\n'
                                  f'But, column `{column}` contains only scalar values.')
             if scalars_only is None:
                 result = np.array([result, result])
@@ -56,7 +56,7 @@ def _get_errors(df: pd.DataFrame, columns: ColumnChoice, arg_name: str, scalars_
                 result = np.array([result])
         else:
             if scalars_only is True:
-                raise ValueError(f'Argument `{arg_name}` refer to columns with scalar values.\n'
+                raise ValueError(f'Argument `{arg_name}` should refer to columns with scalar values.\n'
                                  f'But, column `{column}` contains multi-dimensional values.')
             result = result.T
         results.append(result)

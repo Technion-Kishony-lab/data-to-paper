@@ -165,8 +165,9 @@ class BaseContentOutputFileRequirement(OutputFileRequirement):
                                        header_level: Optional[int] = 3) -> str:
         content, header = self._get_pretty_content_and_header(content, filename, num_file, view_purpose, header_level)
         if header_level:
+            newline = '<br>\n' if view_purpose.is_for_html() else '\n'
             if header:
-                return header + '\n' + content
+                return header + newline + content
         return content
 
     def _get_pretty_content_and_header(self, content: Any, filename: str = None, num_file: int = 0,
@@ -234,7 +235,7 @@ class ReferencableContentOutputFileRequirement(BaseContentOutputFileRequirement)
 
     def _convert_content_to_labeled_text(self, content: Any, filename: str = None, num_file: int = 0,
                                          view_purpose: ViewPurpose = None) -> str:
-        return str(content)
+        return super()._to_str(content, filename, num_file, view_purpose)
 
     def _get_referencable_text(self, content: Any, filename: str = None, num_file: int = 0,
                                view_purpose: ViewPurpose = None) -> BaseReferenceableText:

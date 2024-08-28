@@ -95,3 +95,10 @@ class NoveltySummaryProduct(Product):
         s += '<br>'
         s += self.novelty_assessment.as_html(level + 1)
         return s
+
+    def _get_content_as_formatted_text(self, level: int, view_purpose: ViewPurpose, **kwargs) -> str:
+        s = ''
+        s += self.most_similar_papers.as_formatted_text(level + 1, view_purpose=view_purpose)
+        s += '\n'
+        s += self.novelty_assessment.as_formatted_text(level + 1, view_purpose=view_purpose)
+        return s

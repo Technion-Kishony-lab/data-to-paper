@@ -26,6 +26,8 @@ def convert_filename_to_label(filename, label) -> str:
     """
     if label:
         raise ValueError(f'Do not provide the `label` argument. The label is derived from the filename.')
+    if not filename:
+        return ''
     label = Path(filename).stem
     ext = Path(filename).suffix
     if ext:

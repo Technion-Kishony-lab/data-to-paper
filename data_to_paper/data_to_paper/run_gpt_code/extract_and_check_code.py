@@ -10,7 +10,7 @@ from data_to_paper.run_gpt_code.run_issues import RunIssue, CodeProblem
 def get_issue_for_use_of_a_forbidden_function(func: str, suggest_print_to_output: bool) -> RunIssue:
     category = 'Use of un-allowed functions'
 
-    instructions = "Do not use the function `{func}` in your code."
+    instructions = f"Do not use the function `{func}` in your code."
     if func == 'print':
         instructions += \
             "\nIf you print conditional warning messages, please use `assert` or `raise` instead."
