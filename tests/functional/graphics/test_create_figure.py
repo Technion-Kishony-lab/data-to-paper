@@ -22,6 +22,8 @@ def test_data():
         'y': y,
         'y_2': y_2,
         'y_err': y_err,
+        'y_ci_lower': y_ci_lower,
+        'y_ci_upper': y_ci_upper,
         'y_ci': list(zip(y_ci_lower, y_ci_upper)),
         'y_p_value': y_p_value,
     })
@@ -65,6 +67,12 @@ def test_plot_with_yerr(test_data, tmpdir):
 def test_plot_with_y_ci(test_data, tmpdir):
     with run_in_directory(tmpdir):
         df_to_figure(test_data, filename=filename, y='y', y_ci='y_ci')
+        assert os.path.exists(filename + '.png')
+
+
+def test_plot_with_y_ci_low_high(test_data, tmpdir):
+    with run_in_directory(tmpdir):
+        df_to_figure(test_data, filename=filename, y='y', y_ci=('y_ci_lower', 'y_ci_upper'))
         assert os.path.exists(filename + '.png')
 
 
