@@ -219,7 +219,7 @@ def get_description_of_plot_creation(df, fig_filename, kwargs, is_html: bool = T
 
     s = '\n\n'
     s += f'To create the figure, this df was plotted with the command:\n\n'
-    s += f'df.plot(**{kwargs})'
+    s += f'df.plot({", ".join([f"{k}={repr(v)}" for k, v in kwargs.items()])})'
     if ci_x:
         s += f'\n\nConfidence intervals for x-values were then plotted based on column: {repr(ci_x)}.'
     if ci_y:

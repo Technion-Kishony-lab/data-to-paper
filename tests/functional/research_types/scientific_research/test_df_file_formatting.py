@@ -127,7 +127,7 @@ def _check_df_to_str(df, requirement, view_purpose, expected):
     (True, ViewPurpose.CODE_REVIEW, ['"ban",0.205,(0.1912, 0.21),2e-08']),
     (True, ViewPurpose.PRODUCT, ['"ban",0.205,(0.1912, 0.21),<1e-06']),
     # (True, ViewPurpose.HYPERTARGET_PRODUCT, ValueError),
-    (True, ViewPurpose.APP_HTML, ['<th>ban</th>', '<td>2e-08</td>', "df.plot(**{'kind': 'bar', 'y': 'coef'})"]),
+    (True, ViewPurpose.APP_HTML, ['<th>ban</th>', '<td>2e-08</td>', "df.plot(kind='bar', y='coef')"]),
     (True, ViewPurpose.FINAL_APPENDIX, ['ban 0.205  (0.1912, 0.21)   2e-08']),
     # (True, ViewPurpose.FINAL_INLINE, ValueError),
 ])
@@ -163,7 +163,7 @@ def test_view_df_to_latex_analysis(tmpdir, df_tbl_0, is_figure, view_purpose, ex
       r"% P-values for y-values were taken from column: 'P-value'."]),
     (True, ViewPurpose.HYPERTARGET_PRODUCT,
      ["```latex\n", r"\begin{figure}",
-      "{df_tbl_formatted.png}", "% df.plot(**{'kind': 'bar', 'y': 'coef'})",
+      "{df_tbl_formatted.png}", "% df.plot(kind='bar', y='coef')",
       r'% "bananas",\hypertarget{C1a}{0.205},(\hypertarget{C1b}{0.1912}, \hypertarget{C1c}{0.21}),<\hypertarget{C1d}{1e-06}']),
     (True, ViewPurpose.APP_HTML,
      ['* p &lt; 0.01', '<td>&lt;1e-06</td>']),
@@ -173,7 +173,7 @@ def test_view_df_to_latex_analysis(tmpdir, df_tbl_0, is_figure, view_purpose, ex
      [r'\label{figure:df-tbl-formatted}',
       r'% "bananas",0.205,(0.1912, 0.21),<1e-06',
       'NS p $>$= 0.01', '% "bananas",0.205,(0.1912, 0.21),<1e-06',
-      "% df.plot(**{'kind': 'bar', 'y': 'coef'})"]),
+      "% df.plot(kind='bar', y='coef')"]),
 ])
 def test_view_df_to_latex_displayitems(tmpdir, df_tbl_0, is_figure, view_purpose, expected):
     print('\n')

@@ -42,7 +42,7 @@ def test_plot_with_xlabel(test_data):
 def test_plot_with_caption_and_label(test_data, tmpdir):
     with run_in_directory(tmpdir):
         latex = df_to_figure(test_data, filename=filename, caption='Test Caption', y='y')
-        assert "df.plot(**{'y': 'y'})" in latex
+        assert "df.plot(y='y')" in latex
         assert os.path.exists(filename + '.png')
 
 
@@ -51,7 +51,7 @@ def test_plot_with_note_and_glossary(test_data, tmpdir):
         note = 'This is a note.'
         glossary = {'y': 'Y-axis values'}
         latex = df_to_figure(test_data, filename=filename, note=note, glossary=glossary, y='y')
-        assert "df.plot(**{'y': 'y'})" in latex
+        assert "df.plot(y='y')" in latex
         assert "y: Y-axis values" in latex
         assert os.path.exists(filename + '.png')
 
