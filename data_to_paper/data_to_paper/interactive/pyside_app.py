@@ -168,7 +168,11 @@ class StepsPanel(QWidget):
     def disable_refresh_of_all_steps(self):
         for step in self.step_widgets:
             if self.step_widgets[step].itemAt(1).widget() is not None:
+                # set reset button to not visible
                 self.step_widgets[step].itemAt(1).widget().setVisible(False)
+                # add a spacer to keep the layout consistent
+                spacer = QSpacerItem(20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
+                self.step_widgets[step].addItem(spacer)
 
 
 class Panel(QWidget):
