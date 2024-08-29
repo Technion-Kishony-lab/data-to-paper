@@ -157,6 +157,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser, HumanReviewAppInteractor)
 
             Please check if there is anything wrong in these results (like unexpected NaN values, or anything else \t
             that may indicate that code improvements are needed).
+            At this point, do NOT provide any corrected code or code fragments.
 
             {code_review_formatting_instructions}
 

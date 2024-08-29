@@ -511,7 +511,8 @@ class DataAnalysisCodeProductsGPT(BaseTableCodeProductsGPT):
 
         {file_contents_str}
 
-        Please review the table and return a list of point-by-point assessments. 
+        Please review the table and return a list of point-by-point assessments.
+        At this point, do NOT provide a corrected code or code fragment. 
         {code_review_formatting_instructions}
 
         For example:
@@ -551,6 +552,7 @@ class DataAnalysisCodeProductsGPT(BaseTableCodeProductsGPT):
         {file_contents_str}
 
         Please carefully review the code and these output files and return a point by point assessment.
+        At this point, do NOT provide a corrected code or code fragment.
         {code_review_formatting_instructions}:
 
         for example:
