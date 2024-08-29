@@ -1,7 +1,8 @@
 from dataclasses import dataclass, field
+from functools import partial
 from typing import Dict, List, Collection, Optional, Any
 
-from data_to_paper.env import PAUSE_AFTER_LITERATURE_SEARCH
+from data_to_paper.env import PAUSE_AFTER_LITERATURE_SEARCH, JSON_MODE
 
 from data_to_paper.utils import dedent_triple_quote_str, word_count
 from data_to_paper.utils.nice_list import NiceDict, NiceList
@@ -18,6 +19,7 @@ from .literature_search import LiteratureSearch, QueryCitationCollectionProduct,
 
 @dataclass
 class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundProductsConverser):
+    json_mode: bool = JSON_MODE
     number_of_papers_per_query: int = 100
     max_reviewing_rounds: int = 0
     literature_search: LiteratureSearch = field(default_factory=LiteratureSearch)
@@ -51,18 +53,22 @@ class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
     value_type: type = Dict[str, List[str]]
     goal_noun: str = 'literature search queries'
     goal_verb: str = 'write'
+
     mission_prompt: str = dedent_triple_quote_str("""
         Please write literature-search queries that we can use to search for papers related to our study.
 
         You would need to compose search queries to identify prior papers covering these {num_scopes} areas:
         {pretty_scopes_to_definitions}
 
-        Return your answer as a `Dict[str, List[str]]`, where the keys are the {num_scopes} areas noted above, \t
-        and the values are lists of query string. Each individual query should be a string with up to 5-10 words. 
+        Return your answer as {your_response_should_be_formatted_as}, \t
+        where the keys are the {num_scopes} areas noted above, \t
+        and the values are lists of query string.
+
+        Each individual query should be a string with up to 5-10 words. 
 
         For example, for a study reporting waning of the efficacy of the covid-19 BNT162b2 vaccine based on analysis \t
         of the "United Kingdom National Core Data (UK-NCD)", the queries could be:
-        ```python
+        ```{python_or_json}
         {pretty_scopes_to_examples}
         ```
 
@@ -81,8 +87,9 @@ class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
 
     @property
     def pretty_scopes_to_examples(self) -> str:
+        nice = partial(NiceList, wrap_with='"', prefix='[', suffix=']', separator=', ')
         return ('{\n' +
-                '\n'.join([f'    "{scope}": {definition_and_examples["examples"]}'
+                '\n'.join([f'    "{scope}": {nice(definition_and_examples["examples"])}'
                            for scope, definition_and_examples
                            in self.chosen_domains_to_definitions_and_examples.items()]) +
                 '\n}')
