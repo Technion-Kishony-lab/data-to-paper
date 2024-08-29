@@ -583,7 +583,7 @@ class DataAnalysisCodeProductsGPT(BaseTableCodeProductsGPT):
     )
 
     def _get_additional_contexts(self) -> Optional[Dict[str, Any]]:
-        return create_pandas_and_stats_contexts(allow_dataframes_to_change_existing_series=False,
+        return create_pandas_and_stats_contexts(allow_dataframes_to_change_existing_series=None,
                                                 enforce_saving_altered_dataframes=False,
                                                 issue_if_statistics_test_not_called=True)
 

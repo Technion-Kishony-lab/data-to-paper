@@ -36,6 +36,15 @@ def _check_for_df_to_figure_issues(df: pd.DataFrame, filename: str, kind=None, x
     if isinstance(y, str):
         y = [y]
 
+    if x is not None:
+        issues.append(RunIssue(
+            category=category,
+            issue=f'Do not use the `x` argument in `df_to_figure`.',
+            item=filename,
+            instructions='The x values should instead be placed in the index of the df.',
+            code_problem=CodeProblem.OutputFileContentLevelA,
+        ))
+
     # check that all columns are numeric:
     for column in y:
         if not pd.api.types.is_numeric_dtype(df[column]):

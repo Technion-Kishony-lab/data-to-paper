@@ -49,7 +49,7 @@ def _get_errors(df: pd.DataFrame, columns: ColumnChoice, arg_name: str, scalars_
         if result.ndim == 1:
             if scalars_only is False:
                 raise ValueError(f'Argument `{arg_name}` should refer to columns with two-value tuples.\n'
-                                 f'But, column `{column}` contains only scalar values.')
+                                 f'But, column `{column}` contains scalar values.')
             if scalars_only is None:
                 result = np.array([result, result])
             else:

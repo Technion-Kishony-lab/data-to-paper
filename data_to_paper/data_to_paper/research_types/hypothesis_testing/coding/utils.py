@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 from pathlib import Path
 
@@ -6,7 +6,7 @@ from data_to_paper.run_gpt_code.overrides.contexts import OverrideStatisticsPack
 from data_to_paper.run_gpt_code.overrides.dataframes import TrackDataFrames
 
 
-def create_pandas_and_stats_contexts(allow_dataframes_to_change_existing_series: bool = False,
+def create_pandas_and_stats_contexts(allow_dataframes_to_change_existing_series: Optional[bool] = False,
                                      enforce_saving_altered_dataframes: bool = False,
                                      issue_if_statistics_test_not_called: bool = False,
                                      ) -> Dict[str, Any]:
