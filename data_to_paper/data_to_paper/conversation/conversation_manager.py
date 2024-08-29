@@ -158,6 +158,7 @@ class ConversationManager:
 
     def get_and_append_assistant_message(self, tag: Optional[str] = None, comment: Optional[str] = None,
                                          is_code: bool = False, previous_code: Optional[str] = None,
+                                         is_json: bool = False,
                                          hidden_messages: GeneralMessageDesignation = None,
                                          expected_tokens_in_response: int = None,
                                          **kwargs  # for both create_message and openai params
@@ -180,6 +181,7 @@ class ConversationManager:
         model = openai_call_parameters.model_engine or ModelEngine.DEFAULT
         while True:
             message = self._try_get_and_append_llm_response(tag=tag, comment=comment, is_code=is_code,
+                                                            is_json=is_json,
                                                             previous_code=previous_code,
                                                             hidden_messages=actual_hidden_messages,
                                                             openai_call_parameters=openai_call_parameters,
@@ -209,6 +211,7 @@ class ConversationManager:
 
     def _try_get_and_append_llm_response(self, tag: Optional[str], comment: Optional[str] = None,
                                          is_code: bool = False, previous_code: Optional[str] = None,
+                                         is_json: bool = False,
                                          hidden_messages: GeneralMessageDesignation = None,
                                          openai_call_parameters: Optional[OpenaiCallParameters] = None,
                                          expected_tokens_in_response: int = None,
@@ -223,6 +226,8 @@ class ConversationManager:
         If failed due to openai exception. Record a failed action and return the exception.
         """
         openai_call_parameters = openai_call_parameters or OpenaiCallParameters()
+        if is_json:
+            openai_call_parameters.response_format = {"type": "json_object"}
         messages = self.conversation.get_chosen_messages(hidden_messages)
         content = try_get_llm_response(messages, expected_tokens_in_response=expected_tokens_in_response,
                                        **openai_call_parameters.to_dict())
@@ -237,7 +242,8 @@ class ConversationManager:
             context=messages,
             role=Role.ASSISTANT, content=content, tag=tag, agent=self.assistant_agent,
             openai_call_parameters=None if openai_call_parameters.is_all_none() else openai_call_parameters,
-            previous_code=previous_code, is_code=is_code)
+            previous_code=previous_code, is_code=is_code,
+            is_json=is_json)
         self._create_and_apply_action(
             AppendLLMResponse, comment=comment, hidden_messages=hidden_messages, message=message, **kwargs)
         return message

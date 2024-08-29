@@ -267,18 +267,27 @@ class CodeMessage(Message):
         return content
 
 
+@dataclass
+class JsonMessage(Message):
+    def get_content_after_hiding_incomplete_code(self) -> (str, bool):
+        return wrap_as_block(self.content, 'json'), False
+
+
 def create_message(role: Role, content: str, tag: str = '', agent: Optional[Agent] = None, ignore: bool = False,
                    openai_call_parameters: OpenaiCallParameters = None, context: List[Message] = None,
                    previous_code: str = None, is_code: bool = False,
+                   is_json: bool = False,
                    is_background: bool = False) -> Message:
     kwargs = dict(role=role, content=content, tag=tag, agent=agent, ignore=ignore,
                   openai_call_parameters=openai_call_parameters, context=context,
                   is_background=is_background)
+
     is_code = is_code or previous_code is not None
+    if is_json:
+        return JsonMessage(**kwargs)
     if is_code:
         return CodeMessage(previous_code=previous_code, **kwargs)
-    else:
-        return Message(**kwargs)
+    return Message(**kwargs)
 
 
 def create_message_from_other_message(other_message: Message,

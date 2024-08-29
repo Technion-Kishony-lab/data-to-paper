@@ -8,7 +8,6 @@ import importlib
 
 from typing import Optional, Type, Tuple, Any, Union, Iterable, Dict
 
-from data_to_paper.utils.file_utils import run_in_directory
 from data_to_paper.utils.types import ListBasedSet
 from data_to_paper.code_and_output_files.output_file_requirements import OutputFileRequirements
 

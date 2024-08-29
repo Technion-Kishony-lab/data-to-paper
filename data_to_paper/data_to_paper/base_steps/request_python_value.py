@@ -1,6 +1,7 @@
 import json
 from dataclasses import dataclass
 
+from data_to_paper import Message
 from data_to_paper.base_steps.base_products_conversers import ReviewBackgroundProductsConverser
 
 from typing import Any, Dict, Optional, get_origin, Collection, Iterable
@@ -33,15 +34,14 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
     json_mode: bool = False
     your_response_should_be_formatted_as: str = '{property_your_response_should_be_formatted_as}'
 
-    def __post_init__(self):
-        super().__post_init__()
-        if self.json_mode:
-            self.llm_parameters['response_format'] = {"type": "json_object"}
+    @property
+    def python_or_json(self) -> str:
+        return 'json' if self.json_mode else 'Python'
 
     @property
     def property_your_response_should_be_formatted_as(self) -> str:
         if self.json_mode:
-            return f"a JSON object that can be evaluated with `json.loads()` to a Python {self.type_name}."
+            return f"a json object that can be evaluated with `json.loads()` to a Python {self.type_name}."
         return f"a Python {self.type_name} wrapped within a triple backtick 'python' code block."
 
     @property
@@ -51,6 +51,10 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
     @property
     def type_name(self) -> str:
         return str(self.value_type).replace('typing.', '')
+
+    def apply_get_and_append_assistant_message(self, *args, **kwargs) -> Message:
+        kwargs['is_json'] = self.json_mode
+        return super().apply_get_and_append_assistant_message(*args, **kwargs)
 
     def get_valid_result_as_markdown(self) -> str:
         return wrap_as_block(self.valid_result, 'python')
@@ -163,7 +167,7 @@ class PythonDictWithDefinedKeysReviewBackgroundProductsConverser(PythonDictRevie
         check_response_value = super()._check_response_value(response_value)
         if self.requested_keys is not None:
             if set(response_value.keys()) != set(self.requested_keys):
-                type_name = 'JSON' if self.json_mode else 'Python'
+                type_name = 'json' if self.json_mode else 'Python'
                 self._raise_self_response_error(
                     title='# Incorrect keys in response',
                     error_message=f'Your response should include a {type_name} dict containing the keys: '

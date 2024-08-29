@@ -4,7 +4,7 @@ from functools import partial
 
 import colorama
 from pygments.formatters.html import HtmlFormatter
-from pygments.lexers import PythonLexer
+from pygments.lexers import PythonLexer, JsonLexer
 from pygments.lexer import RegexLexer
 from pygments.formatters import Terminal256Formatter
 from pygments.styles import get_style_by_name
@@ -68,6 +68,17 @@ def python_to_highlighted_text(code_str: str, color: str = '', label: Optional[s
         return highlight(code_str, PythonLexer(), terminal_formatter)
     else:
         return code_str
+
+
+def json_to_highlighted_html(json_str: str) -> str:
+    return highlight(json_str, JsonLexer(), html_code_formatter)
+
+
+def json_to_highlighted_text(json_str: str, color: str = '', label: Optional[str] = None) -> str:
+    if color:
+        return highlight(json_str, JsonLexer(), terminal_formatter)
+    else:
+        return json_str
 
 
 def demote_html_headers(html, demote_by=1):
@@ -209,6 +220,7 @@ TAGS_TO_FORMATTERS: Dict[Optional[str], Tuple[Callable, Callable]] = {
     'latex': (_light_colored_block, convert_latex_to_html),
     'error': (partial(_light_colored_block_no_tags, color=colorama.Fore.RED),
               partial(text_to_html, css_class="runtime_error")),
+    'json': (json_to_highlighted_text, json_to_highlighted_html),
     'system': (_light_colored_block_no_tags, NotImplemented),
     'comment': (_light_colored_block_no_tags, NotImplemented),
 }

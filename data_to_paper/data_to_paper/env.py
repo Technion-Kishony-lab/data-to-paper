@@ -38,6 +38,9 @@ SEMANTIC_SCHOLAR_API_KEY = os.environ.get('SEMANTIC_SCHOLAR_API_KEY', None)
 
 DEFAULT_MODEL_ENGINE = ModelEngine.GPT35_TURBO
 
+# Use json mode when requesting LLM structured response:
+JSON_MODE = True
+
 # Text width for conversation output:
 TEXT_WIDTH = 150
 
