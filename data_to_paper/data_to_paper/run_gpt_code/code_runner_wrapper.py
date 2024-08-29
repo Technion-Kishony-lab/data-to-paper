@@ -1,6 +1,7 @@
 import os
 import pickle
 import threading
+import multiprocessing
 import tempfile
 import uuid
 
@@ -19,6 +20,8 @@ from .exceptions import FailedRunningCode, CodeTimeoutException
 
 # process.queue fails on Mac OS X with large objects. Use file-based transfer instead.
 RUN_CACHE_FILEPATH = Mutable(None)
+
+USE_THREADING = False
 
 
 @dataclass
@@ -58,8 +61,12 @@ class CodeRunnerWrapper(CacheRunToFile):
         """
         queue_or_filepath = f"subprocess_output_{uuid.uuid4()}_{os.getpid()}.pkl"
         queue_or_filepath = os.path.join(tempfile.gettempdir(), queue_or_filepath)
+        if USE_THREADING:
+            process_cls = threading.Thread
+        else:
+            process_cls = multiprocessing.Process
         try:
-            process = threading.Thread(
+            process = process_cls(
                 target=self._run_code_and_put_result_in_queue,
                 args=(queue_or_filepath, ),
             )
@@ -71,7 +78,8 @@ class CodeRunnerWrapper(CacheRunToFile):
         process.start()
         process.join(self.timeout_sec)
         if process.is_alive():
-            process.terminate()  # Terminate the process if it's still alive after timeout
+            if not USE_THREADING:
+                process.terminate()  # Terminate the process if it's still alive after timeout
             process.join()
             result = (
                 None,
@@ -91,8 +99,14 @@ class CodeRunnerWrapper(CacheRunToFile):
         """
         Run the provided code and put the result in the queue.
         """
+        code_runner = self.code_runner
+        # TODO: this is not great becaue the timeout context is created upon first run
+        #  of the CodeRunner instance, so if we reset the time it is not effective.
+        # We want the inner timer to trigger first, because if it works we will
+        # also get the line number of the error:
+        code_runner.timeout_sec = self.timeout_sec - 1
         try:
-            result = self.code_runner.run(code=self.code)
+            result = code_runner.run(code=self.code)
         except Exception as e:
             result = e
         with open(queue_or_filepath, 'wb') as f:

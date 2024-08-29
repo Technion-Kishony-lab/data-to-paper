@@ -105,16 +105,31 @@ def test_runner_raise_code_timeout_exception():
     assert f"1 seconds" in str(exception.exception)
 
 
-# TODO: In this following test example we can't get the traceback properly because gevent wraps the child process
-#  run with hub object, need to find a way to get the traceback properly.
-code_multi_process1 = """
+code_multi_process_gipc = """
 import gipc
 import time
 p = gipc.start_process(target=time.sleep, args=(40,))
 p.join()
 """
 
-code_multi_process2 = """
+code_multi_process_threading = """
+import threading
+import time
+p = threading.Thread(target=time.sleep, args=(40,))
+p.start()
+p.join()
+"""
+
+code_multi_process_multiprocessing = """
+import multiprocessing
+import time
+p = multiprocessing.Process(target=time.sleep, args=(40,))
+p.start()
+p.join()
+"""
+
+
+code_multi_process_sklearn = """
 from sklearn.model_selection import GridSearchCV
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.datasets import make_regression
@@ -132,17 +147,37 @@ print(grid_search.best_params_)
 """
 
 
-@pytest.mark.skip("This test is not working with the threading implementation.")
-@pytest.mark.parametrize("code, result", [
-                         (code_multi_process1, []),
-                         (code_multi_process2, [('14', 'grid_search.fit(X, y)')]), ])
-def test_run_code_timeout_multiprocessing(code, result):
+code_same_process = """
+import time
+time.sleep(40)
+"""
+
+timeout_sec = 3
+
+# TODO: works ok for some of the log run cases, but not for all (see disabled cases below)
+
+@pytest.mark.parametrize("code, result, is_internal", [
+                         # (code_multi_process_gipc, []),
+                         (code_multi_process_threading, [(6, 'p.join()')], True),
+                         # (code_multi_process_multiprocessing, []),
+                         # (code_multi_process_sklearn, [('14', 'grid_search.fit(X, y)')]),
+                         (code_multi_process_sklearn, [], False),
+                         (code_same_process, [(3, 'time.sleep(40)')], True),
+])
+def test_run_code_timeout_multiprocessing(code, result, is_internal):
+    """
+    is_internal:
+        False if by CodeRunnerWrapper
+        True if the timeout is by CodeRunner (1 sec earlier).
+    """
     _, _, _, exception = \
         CodeRunnerWrapper(code=code,
-                          timeout_sec=5,
+                          timeout_sec=timeout_sec,
                           ).run_code_in_separate_process()
     assert isinstance(exception, FailedRunningCode)
+    print(exception.exception)
     assert isinstance(exception.exception, TimeoutError)
     lineno_lines, msg = exception.get_lineno_line_message()
+    print(lineno_lines)
     assert lineno_lines == result
-    assert msg == 'Code timeout after 5 seconds.'
+    assert msg == f'Code timeout after {timeout_sec - is_internal} seconds.'

@@ -45,7 +45,7 @@ JSON_MODE = True
 TEXT_WIDTH = 150
 
 # max time for code timeout when running LLM-writen code (seconds)
-MAX_EXEC_TIME = Mutable(2000)  # TODO: me!
+MAX_EXEC_TIME = Mutable(600)
 
 # Decide whether to present code debugging iterations as code diff or full.
 # Defining: compaction_code_diff = num_lines(new_code) - num_lines(code_diff)
