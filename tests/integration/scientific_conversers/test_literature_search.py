@@ -29,17 +29,19 @@ def scientific_products():
     return products
 
 
-response = {
+response = r"""
+{
     "background": ["COVID-19 spread", "COVID-19 vaccine efficacy"],
     "results": ["COVID-19 vaccine efficacy over time", "COVID-19 vaccine efficacy waning"]
 }
+"""
 
 
 @SEMANTIC_SCHOLAR_SERVER_CALLER.record_or_replay()
 def test_literature_search(scientific_products):
     searcher = TestLiteratureSearchReviewGPT()
     searcher.products = scientific_products
-    with OPENAI_SERVER_CALLER.mock([str(response)], record_more_if_needed=False):
+    with OPENAI_SERVER_CALLER.mock([response], record_more_if_needed=False):
         lit_search = searcher.get_literature_search()
     assert lit_search.keys() == {'background', 'results'}
     assert lit_search['background'].keys() == \

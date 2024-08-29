@@ -176,11 +176,11 @@ def test_request_code_with_revisions(code_running_converser):
     code3 = get_code_that_creates_files(file, "Best output")
     with OPENAI_SERVER_CALLER.mock(
             [f'Here is my first attempt:\n```python{code1}```\n',
-             '{"key issue is ...": ("CONCERN", you must make this change ...")}',
+             '{"key issue is ...": ["CONCERN", you must make this change ..."]}',
              f'Here is the improved code:\n```python{code2}```\n',
-             '{"some remaining issue ...": ("CONCERN", "we need to ...")}',
+             '{"some remaining issue ...": ["CONCERN", "we need to ..."]}',
              f'Here is the best code:\n```python{code3}```\n',
-             'No issues now. {}',
+             '{}',
              ],
             record_more_if_needed=False):
         code_and_output = code_running_converser.get_code_and_output()
@@ -202,13 +202,13 @@ def test_request_code_with_file_review_revisions(code_running_converser):
     code2 = get_code_that_creates_files('table_1.txt', "Improved output1", 'table_2.txt', "Improved output2")
     with OPENAI_SERVER_CALLER.mock(
             [f'Here is my first attempt:\n```python{code1}```\n',
-             'Code has issues {"key code issue is ...": ("CONCERN", "please fix code ...")}',
-             'table_1.txt is ok {}',
-             'table_2.txt has errors {"key issue is ...": ("CONCERN", "please fix ...")}',
+             '{"key code issue is ...": ["CONCERN", "please fix code ..."]}',
+             '{}',
+             '{"key issue is ...": ["CONCERN", "please fix ..."]}',
              f'Here is the improved code:\n```python{code2}```\n',
-             'Code is ok {}',
-             'table_1.txt is ok {}',
-             'table_2.txt is ok {}',
+             '{}',
+             '{}',
+             '{}',
              ],
             record_more_if_needed=False):
         code_and_output = code_running_converser.get_code_and_output()
