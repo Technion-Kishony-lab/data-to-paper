@@ -81,6 +81,7 @@ class BaseScientificCodeProductsGPT(BaseScientificCodeProductsHandler, BaseCodeP
         return Path(self.products.data_file_descriptions.data_folder)
 
 
+@dataclass
 class BaseTableCodeProductsGPT(BaseScientificCodeProductsGPT):
     df_to_latex_extra_vars: str = dedent_triple_quote_str('''
         note: str = None, 
@@ -104,7 +105,8 @@ class BaseTableCodeProductsGPT(BaseScientificCodeProductsGPT):
             """
         ''')
 
-    allowed_plot_kinds: NiceList[str] = NiceList(ALLOWED_PLOT_KINDS, wrap_with="'", separator=', ')
+    allowed_plot_kinds: NiceList[str] = field(
+        default_factory=lambda: NiceList(ALLOWED_PLOT_KINDS, wrap_with="'", separator=', '))
 
     df_to_figure_extra_vars: str = dedent_triple_quote_str('''
         xlabel: str = None, ylabel: str = None,

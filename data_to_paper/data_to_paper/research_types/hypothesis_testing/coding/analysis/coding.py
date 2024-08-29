@@ -402,8 +402,6 @@ class DataAnalysisCodeProductsGPT(BaseTableCodeProductsGPT):
         For clarity, use direct attribute access for clarity and simplicity.
         For clarity, access dataframes using string-based column/index names, \t
         rather than integer-based column/index positions.
-
-        Final Note: This time, make sure you create at least one table and at least one figure.
         """)
 
     code_review_prompts: Collection[CodeReviewPrompt] = (
