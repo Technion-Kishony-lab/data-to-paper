@@ -114,7 +114,7 @@ class BaseContentOutputFileRequirement(OutputFileRequirement):
         ViewPurpose.PRODUCT: OnStr.SMALLER_THAN,
         ViewPurpose.HYPERTARGET_PRODUCT: OnStr.SMALLER_THAN,
         ViewPurpose.APP_HTML: OnStr.WITH_ZERO,
-        ViewPurpose.CODE_REVIEW: OnStr.SMALLER_THAN,
+        ViewPurpose.CODE_REVIEW: OnStr.WITH_EPSILON,
         ViewPurpose.FINAL_APPENDIX: OnStr.WITH_ZERO,
         ViewPurpose.FINAL_INLINE: OnStr.LATEX_SMALLER_THAN,
     }
