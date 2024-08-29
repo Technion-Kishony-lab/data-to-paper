@@ -128,20 +128,20 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         {code_review_formatting_instructions}
 
         For example:
-        ```python
+        ```{python_or_json}
         {
             "NaN values in the output file":
-                ("CONCERN", "The output contains NaN values in ..."),
+                ["CONCERN", "The output contains NaN values in ..."],
             "Output file should be self-contained":
-                ("CONCERN", "A header is missing for ..."),
+                ["CONCERN", "A header is missing for ..."],
             "Output file should contain all the required analysis": 
-                ("OK", "Nothing is missing"),
+                ["OK", "Nothing is missing"],
             "Sensible results": 
-                ("CONCERN", "The average of ... does not make sense"),
+                ["CONCERN", "The average of ... does not make sense"],
             "<Any other issues you find>":
-                ("CONCERN", "<Issue description>"),
+                ["CONCERN", "<Issue description>"],
             "<Any other point you checked and asserted is OK>":
-                ("OK", "<Assertion description>"),
+                ["OK", "<Assertion description>"],
         }
         ```
 

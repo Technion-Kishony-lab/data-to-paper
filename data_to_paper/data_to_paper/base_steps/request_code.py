@@ -5,7 +5,7 @@ from typing import Optional, Tuple, Dict, Type, Any, NamedTuple, Collection, Lis
 
 from data_to_paper.types import HumanReviewType
 from data_to_paper.env import SUPPORTED_PACKAGES, PAUSE_AT_LLM_FEEDBACK, PAUSE_AT_PROMPT_FOR_LLM_FEEDBACK, \
-    AUTO_TERMINATE_AI_REVIEW
+    AUTO_TERMINATE_AI_REVIEW, JSON_MODE
 from data_to_paper.interactive import PanelNames
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.run_gpt_code.run_issues import CodeProblem
@@ -55,11 +55,12 @@ class CodeReviewPrompt(NamedTuple):
 @dataclass
 class RequestIssuesToSolutions(PythonDictReviewBackgroundProductsConverser):
     LLM_PARAMETERS = {'temperature': 0.5}
-    value_type: type = Dict[str, Tuple[str, str]]
+    value_type: type = Dict[str, List[str]]
+    json_mode: bool = JSON_MODE
     your_response_should_be_formatted_as: str = dedent_triple_quote_str("""
-        a Python Dict[str, Tuple[str, str]], \t
-        mapping the checks you have done (keys) to a Tuple[str, str], indicating either your concern \t
-        ("CONCERN", "<your concern>") or your assertion that this check is ok ("OK", "<your assertion>").""")
+        a json object that can be evaluated with `json.loads()` to a Python Dict[str, List[str]].
+        mapping the checks you have done (keys) to a list of 2 strings, indicating either your concern \t
+        ["CONCERN", "<your concern>"] or your assertion that this check is ok ["OK", "<your assertion>"]""")
     formatting_instructions_for_feedback: str = dedent_triple_quote_str("""
         Please correct your response according to my feedback, and send it again.
 
@@ -81,7 +82,7 @@ class RequestIssuesToSolutions(PythonDictReviewBackgroundProductsConverser):
             if type_ not in ('CONCERN', 'OK'):
                 self._raise_self_response_error(
                     title='# Invalid value.',
-                    error_message=f'The first element of the tuple should be "CONCERN" or "OK", but got "{type_}".'
+                    error_message=f'The first element of the array should be "CONCERN" or "OK", but got "{type_}".'
                 )
             response_value[key] = (type_, feedback)
         return response_value

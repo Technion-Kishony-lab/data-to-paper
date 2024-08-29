@@ -413,32 +413,39 @@ class DataAnalysisCodeProductsGPT(BaseTableCodeProductsGPT):
         I will need you to carefully check the Python code for possible flaws.
         {code_review_formatting_instructions}
 
+        ### CHECK FOR FUNDAMENTAL FLAWS:
+        Check for any fundamental mathematical or statistical flaws in the code.
+
+        ### CHECK FOR WRONG CALCULATIONS:
+        Explicitly list all key calculation in the code and look carefully for any mistakes.
+        You should directly cut and paste the key calculations from the code, and carefully assess them.
+
+        ### CHECK FOR MATH TRIVIALITIES:
+        Check for any mathematically trivial assessments / statistical tests.
+
+        ### OTHER ISSUES:
+        Any other issues you find in the code.
+
+        For each of these categories, you can provide one or more issues. 
         For example:
-        ```python
+
+        ```{python_or_json}
         {
-            # * CHECK FOR FUNDAMENTAL FLAWS:
-            # Check for any fundamental mathematical or statistical flaws in the code.
-            # For example:
-            "The analysis of <analysis name>": ("OK", "It is correct to ... "),
-            "The analysis of <other analysis name>": ("CONCERN", "Forgot to include ..."),
-            "The analysis of xxx vs yyy": ("CONCERN", "Different units were not standardized"),
+            "The analysis of <analysis name>": ["OK", "It is correct to ... "],
+            "The analysis of <other analysis name>": ["CONCERN", "Forgot to include ..."],
+            "The analysis of xxx vs yyy": ["CONCERN", "Different units were not standardized"],
 
-            # * CHECK FOR WRONG CALCULATIONS:
-            # Explicitly list all key calculation in the code and look carefully for any mistakes.
-            # You should directly cut and paste the key calculations from the code, and carefully assess them.           
-            # For example:
-            "mean_signal = np.mean(signal)": ("OK", "The mean is calculated correctly"),
-            "sem_signal = np.std(signal)": ("CONCERN", "Forgot to divide by sqrt(n)"),
-            "formula = 'y ~ a : b + c'": ("CONCERN", "The formula accounts for the interaction between a and b
-            but does not include their main effects"),  
+            "mean_signal = np.mean(signal)": ("OK", "The mean is calculated correctly"],
+            "sem_signal = np.std(signal)": ["CONCERN", "Forgot to divide by sqrt(n)"],
+            "formula = 'y ~ a : b + c'": ["CONCERN", "The formula accounts for the interaction between a and b
+            but does not include their main effects"],  
 
-            # * CHECK FOR MATH TRIVIALITIES:
-            # Check for any mathematically trivial assessments / statistical tests.
-            # For example:
-            "The test of positivity of mean(z)": ("CONCERN", "By definition, all z values are positive, so \t
-        the mean is triviality positive"),
-            "The test A > B": ("CONCERN", "In our case, this is always true because B is negative and A is positive"),
-            "The test C > 0": ("OK", "This is a valid test because ..."),
+            "The test of positivity of mean(z)": ["CONCERN", "By definition, all z values are positive, so \t
+        the mean is triviality positive"],
+            "The test A > B": ["CONCERN", "In our case, this is always true because B is negative and A is positive"],
+            "The test C > 0": ["OK", "This is a valid test because ..."],
+
+            "<Any other issues you find>": ["CONCERN", "<Issue description>"],
         }
         ```
 
@@ -449,53 +456,51 @@ class DataAnalysisCodeProductsGPT(BaseTableCodeProductsGPT):
         I will need you to carefully check the Python code for possible issues.
         {code_review_formatting_instructions}
 
+        ### DATASET PREPARATIONS:
+        - Missing values. If applicable, did we deal with missing, unknown, or undefined values,
+        or with special numeric values that stand for unknown/undefined?
+        Check the "{data_file_descriptions}" for any such missing values.
+        - Units. If applicable, did we correctly standardize numeric values with different units 
+        into same-unit values?
+        - Data restriction. If applicable, are we restricting the analysis to the correct part of the data
+        (based on the {hypothesis_testing_plan})?
+
+        ### DESCRIPTIVE STATISTICS:
+        As applicable, check for issues in the descriptive statistics.
+
+        ### PREPROCESSING:
+        Review the above "{data_file_descriptions}", then check our data preprocessing.
+        Are we performing all needed preprocessing steps? Are we mistakenly performing any unneeded steps?
+
+        ### ANALYSIS:        
+        As applicable, check for any data analysis issues. For instance, \t
+        verify that each analysis is done on the relevant data.
+
+        ### STATISTICAL TESTS:
+        Check the choice and implementation of statistical tests.
+
+        For each of these categories, you can provide one or more issues. 
         For example:
-        ```python
+
+        ```{python_or_json}
         {
-            # * DATASET PREPARATIONS:
-            # - Missing values. If applicable, did we deal with missing, unknown, or undefined values,
-            # or with special numeric values that stand for unknown/undefined?
-            # Check the "{data_file_descriptions}" for any such missing values.
-            # For example:
-            "Missing values": ("OK", "We correctly dealt with missing values"),
+            "Missing values": ["OK", "We correctly dealt with missing values"],
+            "Standardizing units": ["CONCERN", "In the comparison of x and y, different units were not standardized"],
+            "Data restriction": ["OK", "No data restriction is needed. We are correctly using all data"],  
 
-            # - Units. If applicable, did we correctly standardize numeric values with different units 
-            # into same-unit values?
-            # For example:
-            "Standardizing units": ("CONCERN", "In the comparison of x and y, different units were not standardized"),
+            "Descriptive statistics: presented if needed": ["OK", "The code does not create a descriptive statistics \t
+        table, but this is ok because ..."],
+            "Descriptive statistics: variable choice": ["CONCERN", "We should not have included xxx in the table ..."],
+            "Descriptive statistics: Correct data": ["CONCERN", "We mistakenly reported descriptive statistics on the \t
+        data after normalization"],
 
-            # - Data restriction. If applicable, are we restricting the analysis to the correct part of the data
-            # (based on the {hypothesis_testing_plan})?
-            # For example:
-            "Data restriction": ("OK", "No data restriction is needed. We are correctly using all data"),  
+            "Preprocessing": ["CONCERN", "We have normalized all variables, but xxx should not be normalized"],
 
-            # * DESCRIPTIVE STATISTICS:
-            # As applicable, check for issues in the descriptive statistics.
-            # For example:
-            "Descriptive statistics: presented if needed": ("OK", "The code does not create a descriptive statistics \t
-        table, but this is ok because ..."),
-            "Descriptive statistics: variable choice": ("CONCERN", "We should not have included xxx in the table ..."),
-            "Descriptive statistics: Correct data": ("CONCERN", "We mistakenly reported descriptive statistics on the \t
-        data after normalization"),
+            "Analysis on correct data": ["CONCERN", "We mistakenly performed the xxx analysis \t
+        on the preprocessed data. This step should have been done on the original data"],
 
-            # * PREPROCESSING:
-            # Review the above "{data_file_descriptions}", then check our data preprocessing.
-            # Are we performing all needed preprocessing steps? Are we mistakenly performing any unneeded steps?
-            # For example:
-            "Preprocessing": ("CONCERN", "We have normalized all variables, but xxx should not be normalized"),
-
-            # * ANALYSIS:        
-            # As applicable, check for any data analysis issues, including:
-
-            # - Each analysis is done on the relevant data.
-            # For example:
-            "Analysis on correct data": ("CONCERN", "We mistakenly performed the xxx analysis \t
-        on the preprocessed data. This step should have been done on the original data"),
-
-            # - Choice and implementation of statistical tests.
-            # For example:
-            "Choice of statistical test": ("CONCERN", "We should have used ttt test instead of sss test, because ..."),
-            "Implementation of statistical test <test name>": ("OK", "The implementation is correct, because ..."),
+            "Choice of statistical test": ["CONCERN", "We should have used ttt test instead of sss test, because ..."],
+            "Implementation of statistical test <test name>": ["OK", "The implementation is correct, because ..."],
         {regression_comments}\t
         {mediation_comments}\t
         {machine_learning_comments}\t
@@ -515,30 +520,35 @@ class DataAnalysisCodeProductsGPT(BaseTableCodeProductsGPT):
         At this point, do NOT provide a corrected code or code fragment. 
         {code_review_formatting_instructions}
 
+        Check the following:
+        ### SENSIBLE NUMERIC VALUES:
+        Check each numeric value in the table and make sure it is sensible.
+
+        ### MEASURES OF UNCERTAINTY: 
+        If the table reports nominal values (like regression coefs), 
+        does it also report their measures of uncertainty (like p-value, CI, or STD, as applicable)?
+
+        ### MISSING DATA: 
+        Are we missing key variables, or important results, that we should calculate and report in the table?
+
+        ### OTHER ISSUES:
+        Any other issues you find in the table.
+
+        For each of these categories, you can provide one or more issues. 
         For example:
-        ```python
+
+        ```{python_or_json}
         {
-            # * SENSIBLE NUMERIC VALUES:
-            # Check each numeric value in the table and make sure it is sensible.
-            # For example:
-            "Sensible values": ("OK", "All the values in the table are sensible"),
-            "Order of magnitude": ("CONCERN", "Weight values of 10^3 are not sensible"), 
-            "CI of variables": ("CONCERN", "The CI values of 'xxx' are not flanking the mean of 'xxx'"),
-            "Sign of values": ("CONCERN", "Height cannot be negative, but we have negative values"),
-            "Zero values": ("CONCERN", "We have zero values for ..., but this is not possible"),
+            "Sensible values": ["OK", "All the values in the table are sensible"],
+            "Order of magnitude": ["CONCERN", "Weight values of 10^3 are not sensible"], 
+            "CI of variables": ["CONCERN", "The CI values of 'xxx' are not flanking the mean of 'xxx'"],
+            "Sign of values": ["CONCERN", "Height cannot be negative, but we have negative values"],
+            "Zero values": ["CONCERN", "We have zero values for ..., but this is not possible"],
 
-            # * MEASURES OF UNCERTAINTY: 
-            # If the table reports nominal values (like regression coefs), 
-            # does it also report their measures of uncertainty (like p-value, CI, or STD, as applicable)?
-            # For example:
-            "Measures of uncertainty": ("CONCERN", "We should have included p-values for ..."),
-            # Or:
-            "Measures of uncertainty": ("CONCERN", "CI should be provided as a column of (lower, upper) tuple"),
+            "Measures of uncertainty": ["CONCERN", "We should have included p-values for ..."],
+            "Measures of uncertainty": ["CONCERN", "CI should be provided as a column of (lower, upper) tuple"],
 
-            # * MISSING DATA: 
-            # Are we missing key variables, or important results, that we should calculate and report in the table?
-            # For example:
-            "Missing data": ("CONCERN", "To fit with our hypothesis testing plan, we should have included ..."), 
+            "Missing data": ["CONCERN", "To fit with our hypothesis testing plan, we should have included ..."], 
         }
         ```
 
@@ -555,27 +565,28 @@ class DataAnalysisCodeProductsGPT(BaseTableCodeProductsGPT):
         At this point, do NOT provide a corrected code or code fragment.
         {code_review_formatting_instructions}:
 
-        for example:
-        ```python
+        ### COMPLETENESS OF TABLES:
+        Does the code create and output all needed results to address our {hypothesis_testing_plan}?
+
+        ### CONSISTENCY ACROSS TABLES:
+        Are the tables consistent in terms of the variables included, the measures of uncertainty, etc?
+
+        ### MISSING DATA: 
+        Are we missing key variables in a given table? Are we missing measures of uncertainty 
+        (like p-value, CI, or STD, as applicable)?
+
+        For each of these categories, you can provide one or more issues. 
+        For example:
+
+        ```{python_or_json}
         {
-            # * COMPLETENESS OF TABLES:
-            # Does the code create and output all needed results to address our {hypothesis_testing_plan}?
-            # For example:
-            "Completeness of output": ("OK", "We should include the P-values for the test in df_?.pkl"),
+            "Completeness of output": ["OK", "We should include the P-values for the test in df_?.pkl"],
 
-            # * CONSISTENCY ACROSS TABLES:
-            # Are the tables consistent in terms of the variables included, the measures of uncertainty, etc?
-            # For example:
-            "Consistency among tables": ("CONCERN", "In df_1.pkl, we provide age in years, but in df_2.pkl, \t
-        we provide age in months"),
+            "Consistency among tables": ["CONCERN", "In df_1.pkl, we provide age in years, but in df_2.pkl, \t
+        we provide age in months"],
 
-            # * MISSING DATA: 
-            # Are we missing key variables in a given table? Are we missing measures of uncertainty 
-            # (like p-value, CI, or STD, as applicable)?
-            # For example:
-            "Missing data": ("CONCERN", "We have to add the variable 'xxx' to df_?.pkl"),
-            "Measures of uncertainty": ("CONCERN", "We should have included p-values for ..."),
-
+            "Missing data": ["CONCERN", "We have to add the variable 'xxx' to df_?.pkl"],
+            "Measures of uncertainty": ["CONCERN", "We should have included p-values for ..."],
         {missing_tables_comments}
         }
         ```
@@ -601,7 +612,7 @@ class DataAnalysisCodeProductsGPT(BaseTableCodeProductsGPT):
                 # Note that the code does not create any tables.
                 # Research papers typically have 2 or more tables. \t
                 # Please suggest which tables to create and additional analysis needed.
-                "Missing tables": ("CONCERN", "I suggest creating tables for ...")""", indent=4)
+                "Missing tables": ["CONCERN", "I suggest creating tables for ..."]""", indent=4)
         if num_dfs == 1:
             return dedent_triple_quote_str("""
                 # * MISSING TABLES:
@@ -609,13 +620,13 @@ class DataAnalysisCodeProductsGPT(BaseTableCodeProductsGPT):
                 # Research papers typically have 2 or more tables. \t
                 # Are you sure all relevant tables are created? Can you suggest any additional analysis leading \t
                 to additional tables?
-                "Missing tables": ("CONCERN", "I suggest creating an extra table for showing ...")""", indent=4)
+                "Missing tables": ["CONCERN", "I suggest creating an extra table for showing ..."]""", indent=4)
         if num_dfs == 2:
             return dedent_triple_quote_str("""
                 # * MISSING TABLES:
                 # Considering our research goal and hypothesis testing plan,
                 # are all relevant tables created? If not, can you suggest any additional tables?
-                "Missing tables": ("CONCERN", "I suggest creating an extra table showing ...")""", indent=4)
+                "Missing tables": ["CONCERN", "I suggest creating an extra table showing ..."]""", indent=4)
         return ''
 
     @property
@@ -648,8 +659,8 @@ class DataAnalysisCodeProductsGPT(BaseTableCodeProductsGPT):
             manually multiply the variables)
             # For example:
             "Model with interaction terms": 
-                ("CONCERN", "We forgot to include the main effect in the xxx model, \t
-            please use the `*` operator in the formula")
+                ["CONCERN", "We forgot to include the main effect in the xxx model, \t
+            please use the `*` operator in the formula"]
             """, indent=4)
 
     @staticmethod
@@ -663,7 +674,7 @@ class DataAnalysisCodeProductsGPT(BaseTableCodeProductsGPT):
             # (by adding these same confounding factors to both the 'a' and 'b' paths)
             # For example:
             "Mediation analysis":
-                ("CONCERN", "We did not explicitly calculate the mediation effect")
+                ["CONCERN", "We did not explicitly calculate the mediation effect"]
             """, indent=4)
 
     @staticmethod
@@ -683,7 +694,7 @@ class DataAnalysisCodeProductsGPT(BaseTableCodeProductsGPT):
             # Are the best hyperparameters reported (either in a table file or in the "additional_results.pkl" file).
             # For example:
             "Hyperparameter tuning":
-                ("CONCERN", "We forgot to perform hyperparameter tuning")
+                ["CONCERN", "We forgot to perform hyperparameter tuning"]
             """, indent=4)
 
     def _get_specific_attrs_for_code_and_output(self, code_and_output: CodeAndOutput) -> Dict[str, str]:
