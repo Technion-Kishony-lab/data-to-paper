@@ -24,9 +24,9 @@ class OnStr(Enum):
     AS_FLOAT = 1
     SMALLER_THAN = 2  # with P_VALUE_MIN, e.g. "<1e-6"
     LATEX_SMALLER_THAN = 3  # with P_VALUE_MIN, e.g. "$<1e-6$"
-    WITH_EPSILON = 3  # with EPSILON, e.g. "1e-12"
-    WITH_ZERO = 4  # just format. no minimal value
-    DEBUG = 5
+    WITH_EPSILON = 4  # with EPSILON, e.g. "1e-12"
+    WITH_ZERO = 5  # just format. no minimal value
+    DEBUG = 6
 
     def st_sign(self):
         if self == OnStr.SMALLER_THAN:
