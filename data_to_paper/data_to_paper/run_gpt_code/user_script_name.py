@@ -1,6 +1,8 @@
 import os
 import traceback
 
+from pathlib import Path
+
 from data_to_paper.utils.mutable import Flag
 from data_to_paper.env import BASE_FOLDER
 
@@ -15,8 +17,11 @@ def is_filename_gpt_code(filename: str) -> bool:
     """
     Check if the filename is a gpt code filename or a test filename.
     """
+    folder = Path(filename).parent
     filename = os.path.basename(filename)
-    return filename == module_filename
+    # TODO: this is a hack. Need to define the file of the gpt script dynamically.
+    return filename == module_filename \
+        or str(folder).endswith('data_to_paper/scripts')
 
 
 def is_filename_test(filename: str) -> bool:

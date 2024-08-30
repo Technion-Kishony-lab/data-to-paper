@@ -245,6 +245,37 @@ class BaseCodeProductsGPT(BackgroundProductsConverser, HumanReviewAppInteractor)
         code_and_output.provided_code = format_value(self, self.provided_code)
         return code_and_output
 
+    def get_debugger(self, previous_code: Optional[str] = None,
+                     data_filenames: Optional[Collection[str]] = 'not_provided',
+                     data_folder: Optional[Path] = 'not_provided',
+                     is_new_conversation: Optional[bool] = 'not_provided',
+                     ) -> DebuggerConverser:
+        if data_filenames == 'not_provided':
+            data_filenames = self.data_filenames
+        if data_folder == 'not_provided':
+            data_folder = self.data_folder
+        if is_new_conversation == 'not_provided':
+            is_new_conversation = False
+        return self.debugger_cls.from_(
+            self,
+            is_new_conversation=is_new_conversation,
+            max_debug_iterations=self.max_debug_iterations_per_attempt,
+            background_product_fields_to_hide=(() if self.revision_round == 0
+                                               else self.background_product_fields_to_hide_during_code_revision),
+            code_and_output_cls=self.code_and_output_cls,
+            previous_code=previous_code,
+            previous_code_problem=CodeProblem.NoCode if previous_code is None else CodeProblem.AllOK,
+            code_extractor_cls=self.code_extractor_cls,
+            code_runner_cls=self.code_runner_cls,
+            output_file_requirements=self.output_file_requirements,
+            data_filenames=data_filenames,
+            data_folder=data_folder,
+            supported_packages=self.supported_packages,
+            model_engine=self.model_engine,
+            headers_required_in_code=self.headers_required_in_code,
+            additional_contexts=self._get_additional_contexts(),
+        )
+
     def _run_debugger(self, previous_code: Optional[str] = None
                       ) -> Tuple[Optional[CodeAndOutput], Optional[DebuggerConverser]]:
         for attempt in range(self.max_code_writing_attempts):
@@ -254,25 +285,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser, HumanReviewAppInteractor)
             self.comment(f'Starting to write and debug code. {revision_and_attempt}.')
 
             # we now call the debugger that will try to run and provide feedback in multiple iterations:
-            debugger = self.debugger_cls.from_(
-                self,
-                is_new_conversation=False,
-                max_debug_iterations=self.max_debug_iterations_per_attempt,
-                background_product_fields_to_hide=(() if self.revision_round == 0
-                                                   else self.background_product_fields_to_hide_during_code_revision),
-                code_and_output_cls=self.code_and_output_cls,
-                previous_code=previous_code,
-                previous_code_problem=CodeProblem.NoCode if previous_code is None else CodeProblem.AllOK,
-                code_extractor_cls=self.code_extractor_cls,
-                code_runner_cls=self.code_runner_cls,
-                output_file_requirements=self.output_file_requirements,
-                data_filenames=self.data_filenames,
-                data_folder=self.data_folder,
-                supported_packages=self.supported_packages,
-                model_engine=self.model_engine,
-                headers_required_in_code=self.headers_required_in_code,
-                additional_contexts=self._get_additional_contexts(),
-            )
+            debugger = self.get_debugger(previous_code)
             code_and_output = debugger.run_debugging()
             if code_and_output is None:
                 # debugging failed

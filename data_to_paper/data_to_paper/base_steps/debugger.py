@@ -352,7 +352,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         return CodeRunnerWrapper(
             code=code,
             timeout_sec=self.timeout_sec,
-            code_runner=self._get_code_runner(),
+            code_runner=self.get_code_runner(),
         )
 
     def _get_code_extractor(self) -> CodeExtractor:
@@ -361,7 +361,7 @@ class DebuggerConverser(BackgroundProductsConverser):
             code_extractor.headers_required_in_code = self.headers_required_in_code
         return code_extractor
 
-    def _get_code_runner(self) -> CodeRunner:
+    def get_code_runner(self) -> CodeRunner:
         return self.code_runner_cls(
             allowed_open_read_files=self.data_filenames,
             output_file_requirements=self.output_file_requirements,

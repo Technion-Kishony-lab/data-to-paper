@@ -6,7 +6,7 @@ from types import ModuleType
 import os
 import importlib
 
-from typing import Optional, Type, Tuple, Any, Union, Iterable, Dict
+from typing import Optional, Type, Tuple, Any, Union, Iterable, Dict, Callable
 
 from data_to_paper.utils.types import ListBasedSet
 from data_to_paper.code_and_output_files.output_file_requirements import OutputFileRequirements
@@ -94,7 +94,7 @@ class CodeRunner:
 
     _multi_context: MultiRunContext = None
 
-    _module: ModuleType = None
+    _module: Optional[ModuleType] = None
 
     def _get_or_create_multi_context(self) -> MultiRunContext:
         if self._multi_context is not None:
@@ -139,15 +139,18 @@ class CodeRunner:
         self._multi_context = MultiRunContext(contexts=contexts)
         return self._multi_context
 
-    def run(self, code: Optional[str] = None, module_filepath: Optional[str] = None
+    def run(self, code: Union[str, Callable, ModuleType]
             ) -> Tuple[Any, ListBasedSet[str], MultiRunContext, Optional[FailedRunningCode]]:
         """
         Run the provided code and report exceptions or specific warnings.
 
-        To run the code, we save it to a .py file and use the importlib to import it.
-        If the file was already imported before, we use importlib.reload.
-
-        save_as: name of file to save the code.  None to skip saving.
+        `code` can be provided as:
+        - a string of code to run,
+            To run the code, we save it to a .py file and use the importlib to import it.
+        - a function to run,
+            The function is called in the current context.
+        - a module to run,
+            The module is reloaded and the function is called in the current context.
 
         Returns:
             result: the result of a call to a function in the code, None if no function was called.
@@ -155,9 +158,13 @@ class CodeRunner:
             multi_context: the multi context that was used during the run.
             exception: an exception that was raised during the run, None if no exception was raised.
         """
-        if module_filepath is None:
+        if isinstance(code, str):
             self._module = generate_empty_code_module_object()
             save_code_to_module_file(code)
+        elif isinstance(code, ModuleType):
+            self._module = code
+        else:
+            self._module = None
 
         multi_context = self._get_or_create_multi_context()
         exception = None
@@ -165,11 +172,11 @@ class CodeRunner:
         try:
             with multi_context:
                 try:
-                    if module_filepath is None:
-                        module = importlib.reload(self._module)
+                    if self._module is None:
+                        result = code()
                     else:
-                        module = importlib.import_module(module_filepath)
-                    result = self._run_function_in_module(module)
+                        module = importlib.reload(self._module)
+                        result = self._run_function_in_module(module)
                 except RunIssue as e:
                     exception = e
                 except Exception as e:
