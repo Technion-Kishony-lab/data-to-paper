@@ -54,6 +54,12 @@ def test_fit_results_do_not_allow_summary(data_y_x):
         assert 'Do not use the `summary` function of statsmodels.' in str(e.value)
 
 
+def test_fit_results_allow_ufunc(data_y_x):
+    with OverrideStatisticsPackages():
+        model = logit('y ~ x', data=data_y_x).fit()
+        assert model.summary2().tables[1]['Coef.'].dtype == float
+
+
 @pytest.mark.parametrize('func', [
     sm.OLS,
     sm.WLS,

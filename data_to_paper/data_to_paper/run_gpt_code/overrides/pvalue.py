@@ -184,6 +184,7 @@ def convert_to_p_value(value, created_by: str = None, var_name: str = None,
     if isinstance(value, np.ndarray):
         return np.vectorize(convert_to_p_value)(value, **kwargs)
     if isinstance(value, pd.Series):
+        value = value.copy()
         kwargs.pop('var_name')
         for i in range(len(value)):
             value.iloc[i] = convert_to_p_value(value.iloc[i], var_name=value.index[i], **kwargs)
