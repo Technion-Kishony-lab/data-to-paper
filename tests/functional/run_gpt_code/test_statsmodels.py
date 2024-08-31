@@ -60,6 +60,14 @@ def test_fit_results_allow_ufunc(data_y_x):
         assert model.summary2().tables[1]['Coef.'].dtype == float
 
 
+def test_prevent_calling_summmary2_as_text(data_y_x):
+    with OverrideStatisticsPackages():
+        model = logit('y ~ x', data=data_y_x).fit()
+        summary2 = model.summary2()
+        with pytest.raises(RunIssue):
+            summary2.as_text()
+
+
 @pytest.mark.parametrize('func', [
     sm.OLS,
     sm.WLS,

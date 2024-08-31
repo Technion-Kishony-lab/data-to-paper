@@ -32,6 +32,15 @@ def _set_result_attr_or_modify_cache(result, attr, pvalues):
             result._cache[attr] = pvalues
 
 
+def custom_summary2_method(*args, **kwargs):
+    raise RunIssue.from_current_tb(
+        category="Statsmodels: good practices",
+        issue=f"Do not use any methods of the object created by summary2().",
+        instructions=f"Use instead the `tables` attribute of the object returned by summary2().",
+        code_problem=CodeProblem.RuntimeError,
+    )
+
+
 @dataclass
 class StatsmodelsFitPValueOverride(SystematicMethodReplacerContext, TrackPValueCreationFuncs):
     """
@@ -77,6 +86,11 @@ class StatsmodelsFitPValueOverride(SystematicMethodReplacerContext, TrackPValueC
                         table1[columns] = table1[columns].astype(float)
                     except ValueError:
                         pass
+
+            unallowed_method = ['as_text', 'as_latex', 'as_html', 'as_csv']
+            for method_name in unallowed_method:
+                if hasattr(result, method_name):
+                    setattr(result, method_name, custom_summary2_method)
 
             return result
 
