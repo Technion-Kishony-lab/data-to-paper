@@ -23,7 +23,7 @@ def format_numeric_value(value: numbers.Number, float_format: str = None) -> str
 
 def format_numerics_and_iterables(value: Any, numeric_formater: Callable = None, object_formatter: Callable = None):
     numeric_formater = numeric_formater or format_numeric_value
-    object_formatter = object_formatter or (lambda x: x)
+    object_formatter = object_formatter or (lambda x: str(x))
     if isinstance(value, numbers.Number):
         return numeric_formater(value)
     if isinstance(value, tuple):
