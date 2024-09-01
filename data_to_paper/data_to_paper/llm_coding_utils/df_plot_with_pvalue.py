@@ -9,7 +9,7 @@ from pandas import DataFrame
 from data_to_paper.run_gpt_code.overrides.pvalue import PValueToStars, OnStr, OnStrPValue
 from .describe import describe_value, describe_df
 from .matplotlib_utils import get_xy_coordinates_of_df_plot, \
-    replace_singleton_legend_with_axis_label, add_grid_line_at_zero_if_not_origin, rotate_xticklabels_if_not_numeric
+    replace_singleton_legend_with_axis_label, add_grid_line_at_base_if_needed, rotate_xticklabels_if_not_numeric
 from ..research_types.hypothesis_testing.env import MAX_BARS
 from ..run_gpt_code.overrides.dataframes.utils import df_to_html_with_value_format
 from ..utils import dedent_triple_quote_str
@@ -216,16 +216,13 @@ def df_plot_with_pvalue(df: DataFrame, x: Optional[str] = None, y: ColumnChoice 
         coords = get_xy_coordinates_of_df_plot(df, x=x, y=y, kind=kind)
         replace_singleton_legend_with_axis_label(ax, kind)
         rotate_xticklabels_if_not_numeric(ax)
-        if kind == 'bar':
-            add_grid_line_at_zero_if_not_origin(ax, 'h')
-        if kind == 'barh':
-            add_grid_line_at_zero_if_not_origin(ax, 'v')
 
         if y_p_value:
             y_p_values = _get_errors(df, y_p_value, 'y_p_value', scalars_only=True,
                                      is_list=isinstance(y, List), xy_name='y')
             if yerr is None:
                 raise ValueError('The `yerr` or `y_ci` argument must be provided when including `y_p_value`.')
+            min_y, max_y = ax.get_ylim()
             for col_index, index_data in coords.items():
                 for row_index, (x, y) in index_data.items():
                     p_val = y_p_values[col_index, 0, row_index]
@@ -236,7 +233,18 @@ def df_plot_with_pvalue(df: DataFrame, x: Optional[str] = None, y: ColumnChoice 
                     else:
                         y_plt = y + errs[1]
                         va = 'baseline'
-                    ax.text(x, y_plt, PValueToStars(p_val).convert_to_stars(), ha='center', va=va)
+                    text = ax.text(x, y_plt, PValueToStars(p_val).convert_to_stars(), ha='center', va=va, fontsize=10)
+                    bbox = text.get_window_extent()
+                    inv = ax.transData.inverted()
+                    bbox_data = inv.transform_bbox(bbox)
+                    text_height = bbox_data.intervaly[1] - bbox_data.intervaly[0]
+                    min_y = min(min_y, min(bbox_data.intervaly) - text_height * 0.3)
+                    max_y = max(max_y, max(bbox_data.intervaly) + text_height * 0.3)
+            ax.set_ylim(min_y, max_y)
+        if kind == 'bar':
+            add_grid_line_at_base_if_needed(ax, 'h')
+        if kind == 'barh':
+            add_grid_line_at_base_if_needed(ax, 'v')
     return ax
 
 
