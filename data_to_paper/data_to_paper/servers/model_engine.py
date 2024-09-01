@@ -53,6 +53,10 @@ class ModelEngine(IndexOrderedEnum):
         """
         return ModelEngine.MODEL_ENGINE_TO_MAX_TOKENS_AND_IN_OUT_DOLLAR[self][1:]
 
+    @property
+    def allows_json_mode(self):
+        return self in MODEL_ENGINES_ALLOWING_JSON_MODE
+
 
 ModelEngine.DEFAULT = ModelEngine.GPT4o_MINI
 
@@ -79,6 +83,8 @@ ModelEngine.MODEL_ENGINE_TO_MAX_TOKENS_AND_IN_OUT_DOLLAR = {
     ModelEngine.LLAMA_2_70b: (4096, 0.0007, 0.001),
     ModelEngine.CODELLAMA: (4096, 0.0006, 0.0006),
 }
+
+MODEL_ENGINES_ALLOWING_JSON_MODE = {ModelEngine.GPT4o_MINI, ModelEngine.GPT4o}
 
 
 @dataclass

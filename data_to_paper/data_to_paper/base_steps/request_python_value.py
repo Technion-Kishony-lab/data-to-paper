@@ -38,6 +38,10 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
     your_response_should_be_formatted_as: str = '{property_your_response_should_be_formatted_as}'
 
     @property
+    def is_really_json_mode(self) -> bool:
+        return self.json_mode and self.model_engine.allows_json_mode
+
+    @property
     def python_or_json(self) -> str:
         return 'json' if self.json_mode else 'Python'
 
@@ -56,7 +60,7 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
         return str(self.value_type).replace('typing.', '')
 
     def apply_get_and_append_assistant_message(self, *args, **kwargs) -> Message:
-        kwargs['is_json'] = self.json_mode
+        kwargs['is_json'] = self.is_really_json_mode
         return super().apply_get_and_append_assistant_message(*args, **kwargs)
 
     def get_valid_result_as_markdown(self) -> str:
@@ -67,11 +71,11 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
         Extracts the string of the python value from LLM response.
         If there is an error extracting the value, _raise_self_response_error is called.
         """
-        if self.json_mode:
+        if self.is_really_json_mode:
             return response
 
         try:
-            return extract_content_of_triple_quote_block(response, self.goal_noun, 'python')
+            return extract_content_of_triple_quote_block(response, self.goal_noun, self.python_or_json)
         except NoBlocksFailedExtractingBlock:
             pass
         except FailedExtractingBlock as e:
@@ -99,9 +103,9 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
         """
         Return a response that contains just the python value.
         """
-        if self.json_mode:
+        if self.is_really_json_mode:
             return extracted_text
-        return wrap_as_block(extracted_text, 'python')
+        return wrap_as_block(extracted_text, self.python_or_json)
 
     def _evaluate_python_value_from_str(self, response: str) -> Any:
         try:
@@ -170,10 +174,9 @@ class PythonDictWithDefinedKeysReviewBackgroundProductsConverser(PythonDictRevie
         check_response_value = super()._check_response_value(response_value)
         if self.requested_keys is not None:
             if set(response_value.keys()) != set(self.requested_keys):
-                type_name = 'json' if self.json_mode else 'Python'
                 self._raise_self_response_error(
                     title='# Incorrect keys in response',
-                    error_message=f'Your response should include a {type_name} dict containing the keys: '
+                    error_message=f'Your response should include a {self.python_or_json} dict containing the keys: '
                                   f'{self.requested_keys}')
 
         return check_response_value
