@@ -4,7 +4,7 @@ from functools import partial
 from pathlib import Path
 from typing import Optional, List, Tuple, Union, Iterable, Dict
 
-from data_to_paper.env import SAVE_INTERMEDIATE_LATEX
+from data_to_paper.env import SAVE_INTERMEDIATE_LATEX, WRITING_MODEL_ENGINE
 
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList
@@ -21,6 +21,7 @@ from data_to_paper.latex.latex_doc import LatexDocument
 from data_to_paper.latex.clean_latex import process_latex_text_and_math, check_usage_of_un_allowed_commands
 from data_to_paper.latex.latex_section_tags import get_list_of_tag_pairs_for_section_or_fragment, \
     SECTIONS_OR_FRAGMENTS_TO_TAG_PAIR_OPTIONS
+from data_to_paper.servers.model_engine import ModelEngine
 
 from .base_products_conversers import ReviewBackgroundProductsConverser
 from .result_converser import Rewind
@@ -114,6 +115,7 @@ class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgr
     Option for removing citations from the section.
     Option for reviewing the sections (set max_review_turns > 0).
     """
+    model_engine: ModelEngine = WRITING_MODEL_ENGINE
     should_remove_citations_from_section: bool = True
 
     section_names: List[str] = field(default_factory=list)

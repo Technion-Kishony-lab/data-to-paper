@@ -36,7 +36,9 @@ LLM_MODELS_TO_API_KEYS_AND_BASE_URL = dict[Optional[ModelEngine], str]({
 
 SEMANTIC_SCHOLAR_API_KEY = os.environ.get('SEMANTIC_SCHOLAR_API_KEY', None)
 
-DEFAULT_MODEL_ENGINE = ModelEngine.GPT35_TURBO
+CODING_MODEL_ENGINE = ModelEngine.GPT4
+JSON_MODEL_ENGINE = ModelEngine.GPT4o
+WRITING_MODEL_ENGINE = ModelEngine.GPT4o
 
 # Use json mode when requesting LLM structured response:
 JSON_MODE = True

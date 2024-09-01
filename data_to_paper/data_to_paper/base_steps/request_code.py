@@ -5,7 +5,7 @@ from typing import Optional, Tuple, Dict, Type, Any, NamedTuple, Collection, Lis
 
 from data_to_paper.types import HumanReviewType
 from data_to_paper.env import SUPPORTED_PACKAGES, PAUSE_AT_LLM_FEEDBACK, PAUSE_AT_PROMPT_FOR_LLM_FEEDBACK, \
-    AUTO_TERMINATE_AI_REVIEW, JSON_MODE
+    AUTO_TERMINATE_AI_REVIEW, JSON_MODE, CODING_MODEL_ENGINE
 from data_to_paper.interactive import PanelNames
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.run_gpt_code.run_issues import CodeProblem
@@ -22,6 +22,7 @@ from data_to_paper.interactive.human_review import HumanReviewAppInteractor
 from data_to_paper.interactive.symbols import Symbols
 from data_to_paper.run_gpt_code.code_runner import CodeRunner
 from data_to_paper.run_gpt_code.extract_and_check_code import CodeExtractor, ModifyAndCheckCodeExtractor
+from data_to_paper.servers.model_engine import ModelEngine
 
 from .debugger import DebuggerConverser
 from .base_products_conversers import BackgroundProductsConverser
@@ -90,6 +91,7 @@ class RequestIssuesToSolutions(PythonDictReviewBackgroundProductsConverser):
 
 @dataclass
 class BaseCodeProductsGPT(BackgroundProductsConverser, HumanReviewAppInteractor):
+    model_engine: ModelEngine = CODING_MODEL_ENGINE
     max_code_revisions: int = 5
     max_code_writing_attempts: int = 2
     max_debug_iterations_per_attempt: int = 12

@@ -2,7 +2,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Tuple, Dict, Any, Iterable, List, Collection, Type
 
-from data_to_paper.env import JSON_MODE
+from data_to_paper.env import JSON_MODE, WRITING_MODEL_ENGINE
 from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str, word_count
 from data_to_paper.base_steps.result_converser import Rewind
@@ -17,7 +17,6 @@ from .product_types import GoalAndHypothesisProduct, MostSimilarPapersProduct, N
     HypothesisTestingPlanProduct
 from .scientific_products import ScientificProducts
 from .writing_steps import ShowCitationProducts
-from .model_engines import get_model_engine_for_class
 
 
 @dataclass
@@ -35,7 +34,7 @@ class ScientificProductsQuotedReviewGPT(BaseProductsQuotedReviewGPT):
 
 @dataclass
 class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
-    model_engine: ModelEngine = field(default_factory=lambda: get_model_engine_for_class(GoalReviewGPT))
+    model_engine: ModelEngine = WRITING_MODEL_ENGINE
     LLM_PARAMETERS = {'temperature': 1.0}
     max_reviewing_rounds: int = 1
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions_no_headers',
@@ -122,7 +121,6 @@ class GetMostSimilarCitations(ShowCitationProducts, PythonDictReviewBackgroundPr
     allow_citations_from_step: str = 'goal'
     max_reviewing_rounds: int = 0
 
-    model_engine: ModelEngine = field(default_factory=lambda: get_model_engine_for_class(GetMostSimilarCitations))
     value_type: type = Dict[str, str]
     goal_noun: str = 'most similar papers'
     goal_verb: str = 'find'
@@ -180,7 +178,6 @@ class GetMostSimilarCitations(ShowCitationProducts, PythonDictReviewBackgroundPr
 class NoveltyAssessmentReview(ShowCitationProducts, PythonDictWithDefinedKeysReviewBackgroundProductsConverser):
     json_mode: bool = JSON_MODE
     products: ScientificProducts = None
-    model_engine: ModelEngine = field(default_factory=lambda: get_model_engine_for_class(NoveltyAssessmentReview))
     value_type: type = Dict[str, Any]
     allowed_values_for_keys: Dict[str, Iterable] = field(default_factory=lambda: {'choice': ('OK', 'REVISE')})
     default_rewind_for_result_error: Rewind = Rewind.AS_FRESH_CORRECTION  # to maintain chain of thought

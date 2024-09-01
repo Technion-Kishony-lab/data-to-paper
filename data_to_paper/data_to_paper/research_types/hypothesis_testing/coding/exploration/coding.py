@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Tuple, Optional, Dict, Any, Collection, List
 
 from data_to_paper.base_steps.request_code import CodeReviewPrompt
@@ -8,10 +8,7 @@ from data_to_paper.code_and_output_files.output_file_requirements import OutputF
 from data_to_paper.research_types.hypothesis_testing.cast import ScientificAgent
 from data_to_paper.research_types.hypothesis_testing.coding.base_code_conversers import BaseScientificCodeProductsGPT
 from data_to_paper.research_types.hypothesis_testing.coding.utils import create_pandas_and_stats_contexts
-from data_to_paper.research_types.hypothesis_testing.model_engines import get_model_engine_for_class
-from data_to_paper.run_gpt_code.overrides.pvalue import OnStr
 from data_to_paper.run_gpt_code.run_issues import RunIssue, CodeProblem
-from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.highlighted_text import output_to_highlighted_html
 from data_to_paper.utils.nice_list import NiceList
@@ -59,8 +56,6 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
     background_product_fields: Tuple[str, ...] = ('all_file_descriptions', )
     user_agent: ScientificAgent = ScientificAgent.DataExplorer
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, )
-    model_engine: ModelEngine = \
-        field(default_factory=lambda: get_model_engine_for_class(DataExplorationCodeProductsGPT))
 
     output_file_requirements: OutputFileRequirements = \
         OutputFileRequirements([EnforceContentOutputFileRequirement('data_exploration.txt')])

@@ -18,14 +18,12 @@ from data_to_paper.run_gpt_code.overrides.dataframes.df_with_attrs import ListIn
 from data_to_paper.research_types.hypothesis_testing.coding.analysis.utils import get_pickle_dump_attr_replacer
 from data_to_paper.research_types.hypothesis_testing.coding.base_code_conversers import BaseTableCodeProductsGPT
 from data_to_paper.research_types.hypothesis_testing.coding.utils import create_pandas_and_stats_contexts
-from data_to_paper.research_types.hypothesis_testing.model_engines import get_model_engine_for_class
 from data_to_paper.research_types.hypothesis_testing.scientific_products import HypertargetPrefix
 from data_to_paper.run_gpt_code.extract_and_check_code import ModifyAndCheckCodeExtractor, CodeExtractor
 from data_to_paper.run_gpt_code.overrides.dataframes.utils import df_to_string_with_format_value, \
     format_numerics_and_iterables
 from data_to_paper.run_gpt_code.overrides.pvalue import is_containing_p_value, OnStr, OnStrPValue
 from data_to_paper.run_gpt_code.run_issues import RunIssue, CodeProblem
-from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceDict
 
@@ -230,8 +228,6 @@ class DataAnalysisCodeProductsGPT(BaseTableCodeProductsGPT):
     )
     max_debug_iterations_per_attempt: int = 20
     max_code_revisions: int = 3
-    model_engine: ModelEngine = \
-        field(default_factory=lambda: get_model_engine_for_class(DataAnalysisCodeProductsGPT))
     user_agent: ScientificAgent = ScientificAgent.Debugger
 
     background_product_fields: Tuple[str, ...] = \

@@ -9,8 +9,6 @@ from data_to_paper.base_steps.literature_search import GET_LITERATURE_SEARCH_FOR
 from data_to_paper.latex.tables import get_displayitem_label
 from data_to_paper.research_types.hypothesis_testing.cast import ScientificAgent
 from data_to_paper.research_types.hypothesis_testing.scientific_products import ScientificProducts
-from data_to_paper.servers.model_engine import ModelEngine
-from data_to_paper.research_types.hypothesis_testing.model_engines import get_model_engine_for_class
 from data_to_paper.servers.custom_types import Citation
 
 from data_to_paper.utils import dedent_triple_quote_str
@@ -57,8 +55,6 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
     Base class for the writer of a paper section in latex format.
     """
     products: ScientificProducts = None
-    model_engine: ModelEngine = \
-        field(default_factory=lambda: get_model_engine_for_class(SectionWriterReviewBackgroundProductsConverser))
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions_no_headers', 'research_goal',
                                                   'codes:data_analysis', 'latex_displayitems', 'additional_results',
                                                   'title_and_abstract')
@@ -325,8 +321,6 @@ class IntroductionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsCo
     allow_citations_from_step: str = 'writing'
     should_remove_citations_from_section: bool = False
     max_reviewing_rounds: int = 1
-    model_engine: ModelEngine = \
-        field(default_factory=lambda: get_model_engine_for_class(IntroductionSectionWriterReviewGPT))
     section_specific_instructions: str = dedent_triple_quote_str("""\n
         The introduction should be interesting and pique your reader’s interest. 
         It should be written while citing relevant papers from the Literature Searches above.
@@ -639,8 +633,6 @@ class DiscussionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConv
     allow_citations_from_step: str = 'writing'
     should_remove_citations_from_section: bool = False
     max_reviewing_rounds: int = 1
-    model_engine: ModelEngine = \
-        field(default_factory=lambda: get_model_engine_for_class(DiscussionSectionWriterReviewGPT))
     section_review_specific_instructions: str = dedent_triple_quote_str("""\n
         Also, please suggest if you see any specific additional citations that are adequate to include \t
         (from the Literature Searches above).
