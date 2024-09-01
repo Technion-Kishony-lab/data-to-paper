@@ -1,5 +1,5 @@
 from types import ModuleType
-from typing import Callable, Union, Tuple, Any, Optional, TYPE_CHECKING, Type
+from typing import Callable, Union, Tuple, Any, Optional
 
 from .base_run_contexts import MultiRunContext
 from .exceptions import FailedRunningCode

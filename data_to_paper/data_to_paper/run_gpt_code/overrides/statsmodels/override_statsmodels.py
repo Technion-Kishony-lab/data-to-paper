@@ -1,12 +1,12 @@
 from __future__ import annotations
 import functools
-from typing import Iterable, Callable
+from typing import Iterable
 from dataclasses import dataclass
 
 from data_to_paper.env import TRACK_P_VALUES
 from ...attr_replacers import SystematicMethodReplacerContext, SystematicFuncReplacerContext, AttrReplacer
 from ...run_issues import CodeProblem, RunIssue
-from ..pvalue import convert_to_p_value, PValue, TrackPValueCreationFuncs, convert_p_values_to_floats
+from ..pvalue import convert_to_p_value, PValue, TrackPValueCreationFuncs
 
 MULTITEST_FUNCS_AND_PVAL_INDEXES = [
     ('multipletests', 1),

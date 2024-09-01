@@ -32,7 +32,7 @@ ColumnChoiceWithPairs = Union[str, NoneType, List[str], Tuple[str, str], List[Tu
 
 example_plotting = dedent_triple_quote_str("""
     Example of proper use of the `df_to_figure`:
-    
+
     df = pd.DataFrame({
         'apple': [1, 2, 3],
         'banana': [4, 5, 6],
@@ -42,13 +42,13 @@ example_plotting = dedent_triple_quote_str("""
         'apple_p_value': [0.1, 0.05, 0.001],
         'banana_p_value': [0.1, 0.05, 0.001],
     })
-    
+
     # Example 1: ci stored as tuples in a single column
     df_to_figure(df, 'example', y='apple', y_ci='apple_ci', y_p_value='apple_p_value')
-    
+
     # Example 2: ci stored as two separate columns
     df_to_figure(df, 'example', y='banana', y_ci=('banana_ci_low', 'banana_ci_high'), y_p_value='banana_p_value')
-    
+
     # Example 3: multiple y columns
     df_to_figure(df, 'example', 
         y=['apple', 'banana'],

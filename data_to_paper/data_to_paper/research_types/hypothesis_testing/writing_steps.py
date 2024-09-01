@@ -1,5 +1,5 @@
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Tuple, List, Set, Iterable
 
 from data_to_paper.base_steps import LatexReviewBackgroundProductsConverser, \

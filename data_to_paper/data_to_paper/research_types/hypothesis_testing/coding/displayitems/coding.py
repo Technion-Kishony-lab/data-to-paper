@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from functools import partial
 from typing import Iterable, Any, Type, Tuple, Optional, Dict, Collection, List
 

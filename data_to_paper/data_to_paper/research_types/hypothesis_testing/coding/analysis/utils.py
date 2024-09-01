@@ -2,7 +2,6 @@ import os
 
 from data_to_paper.run_gpt_code.attr_replacers import AttrReplacer
 from data_to_paper.run_gpt_code.overrides.pvalue import PValue, OnStrPValue, OnStr
-from data_to_paper.run_gpt_code.run_contexts import PreventFileOpen
 from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue
 
 
