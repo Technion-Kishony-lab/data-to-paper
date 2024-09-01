@@ -40,3 +40,14 @@ def test_extra_info_df_with_pd_to_pickle_under_track_df_context(tmpdir):
         loaded_df = pd.read_pickle('custom_df_pd.pickle')
     assert type(loaded_df) == InfoDataFrame
     assert loaded_df.extra_info == (7, 'ok')
+
+
+def test_extra_info_df_transpose(tmpdir):
+    os.chdir(tmpdir)
+    df = InfoDataFrame({'a': [1, 2]}, extra_info=(7, 'ok'))
+    assert df.columns.tolist() == ['a']
+
+    df = df.T
+    assert df.index.tolist() == ['a']
+    assert df.extra_info == (7, 'ok')
+    assert type(df) == InfoDataFrame

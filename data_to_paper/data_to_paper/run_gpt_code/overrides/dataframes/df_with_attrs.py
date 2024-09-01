@@ -1,4 +1,5 @@
 import pandas as pd
+from pandas import DataFrame
 
 
 class InfoDataFrame(pd.DataFrame):
@@ -32,6 +33,12 @@ class InfoDataFrame(pd.DataFrame):
         # Restore extra_info safely
         self.extra_info = state.pop('extra_info', None)
         super().__setstate__(state)
+
+    def transpose(self, *args, **kwargs):
+        # Ensure the custom constructor handles extra_info
+        df = super().transpose(*args, **kwargs)
+        df = self._constructor(df)
+        return df
 
 
 class ListInfoDataFrame(InfoDataFrame):
