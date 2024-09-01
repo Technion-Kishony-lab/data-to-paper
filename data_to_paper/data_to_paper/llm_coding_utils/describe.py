@@ -4,6 +4,7 @@ import numpy as np
 from pandas import DataFrame, Series
 
 from data_to_paper.code_and_output_files.referencable_text import label_numeric_value
+from data_to_paper.research_types.hypothesis_testing.env import MAX_BARS
 from data_to_paper.run_gpt_code.overrides.dataframes.df_methods import STR_FLOAT_FORMAT
 from data_to_paper.run_gpt_code.overrides.dataframes.utils import df_to_llm_readable_csv, df_to_latex_with_value_format
 from data_to_paper.run_gpt_code.overrides.pvalue import is_p_value, PValue
@@ -55,7 +56,7 @@ def describe_value(value: Any) -> str:
     return str(value)
 
 
-def describe_df(df: DataFrame, max_rows: Optional[int] = 25, max_columns: Optional[int] = 10,
+def describe_df(df: DataFrame, max_rows: Optional[int] = MAX_BARS, max_columns: Optional[int] = 10,
                 should_format: bool = True) -> str:
     """
     Describe the DataFrame in a way that can be used as a short string.

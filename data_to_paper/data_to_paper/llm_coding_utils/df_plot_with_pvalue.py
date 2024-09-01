@@ -10,6 +10,7 @@ from data_to_paper.run_gpt_code.overrides.pvalue import PValueToStars, OnStr, On
 from .describe import describe_value, describe_df
 from .matplotlib_utils import get_xy_coordinates_of_df_plot, \
     replace_singleton_legend_with_axis_label, add_grid_line_at_zero_if_not_origin, rotate_xticklabels_if_not_numeric
+from ..research_types.hypothesis_testing.env import MAX_BARS
 from ..run_gpt_code.overrides.dataframes.utils import df_to_html_with_value_format
 from ..utils import dedent_triple_quote_str
 from ..utils.check_type import raise_on_wrong_func_argument_types_decorator
@@ -247,18 +248,17 @@ def get_description_of_plot_creation(df, fig_filename, kwargs, is_html: bool = T
     This is what the LLM will get. This is essentially how the LLM "sees" the figure.
     More sophisticated implementations can be added in the future.
     """
-    len_df = len(df)
-    too_long = len_df > 25
-    if too_long:
-        df = df.head(3)
     if is_html:
+        len_df = len(df)
+        too_long = len_df > MAX_BARS
+        if too_long:
+            df = df.head(3)
         df_str = df_to_html_with_value_format(df, border=0, justify='left')
+        if too_long:
+            df_str += f'<br>... total {len_df} rows\n'
     else:
         with OnStrPValue(OnStr.SMALLER_THAN):
-            df_str = describe_df(df, should_format=should_format)
-    if too_long:
-        df_str += (f'\n...\n'
-                   f'Total number of rows: {len_df}\n')
+            df_str = describe_df(df, should_format=should_format, max_rows=MAX_BARS)
 
     kwargs = kwargs.copy()
     ci_x = kwargs.pop('x_ci', None)

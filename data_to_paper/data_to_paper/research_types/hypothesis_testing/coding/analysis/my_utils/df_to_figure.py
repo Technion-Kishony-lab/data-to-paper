@@ -5,6 +5,7 @@ import pandas as pd
 from data_to_paper.llm_coding_utils.df_to_figure import df_to_figure
 from data_to_paper.research_types.hypothesis_testing.coding.analysis.check_df_of_table import \
     check_output_df_for_content_issues
+from data_to_paper.research_types.hypothesis_testing.env import MAX_BARS
 from data_to_paper.run_gpt_code.overrides.dataframes.df_with_attrs import save_as_list_info_df
 from data_to_paper.run_gpt_code.overrides.pvalue import is_containing_p_value, is_only_p_values
 
@@ -71,7 +72,7 @@ def _check_for_df_to_figure_issues(df: pd.DataFrame, filename: str, kind=None, x
     if kind == 'bar':
         # Total number of bars:
         n_bars = len(df) * len(y)
-        if n_bars > 50:
+        if n_bars > MAX_BARS:
             issues.append(RunIssue(
                 category=category,
                 issue=f'The plot has {n_bars} bars, which is a large number.',
