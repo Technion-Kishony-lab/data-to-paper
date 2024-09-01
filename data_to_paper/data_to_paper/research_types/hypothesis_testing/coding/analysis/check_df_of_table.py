@@ -67,7 +67,7 @@ def check_df_has_only_numeric_str_bool_or_tuple_values(df: pd.DataFrame, filenam
             ))
             return issues
 
-    un_allowed_type_names = {f'`{type(value).__name__}`' for value in df.values.flatten()
+    un_allowed_type_names = {f'{type(value).__name__}' for value in df.values.flatten()
                              if not isinstance(value, (numbers.Number, str, bool, tuple, PValue))}
     if un_allowed_type_names:
         issues.append(RunIssue(

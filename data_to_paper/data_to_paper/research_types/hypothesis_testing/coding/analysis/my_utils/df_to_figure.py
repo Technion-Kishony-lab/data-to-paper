@@ -13,16 +13,16 @@ from data_to_paper.run_gpt_code.run_contexts import IssueCollector
 from data_to_paper.run_gpt_code.run_issues import RunIssue, CodeProblem
 
 
-def _df_to_figure(df: pd.DataFrame, filename: str, **kwargs):
+def _df_to_figure(df: pd.DataFrame, filename: str, raise_formatting_errors=False, **kwargs):
     """
     Replacement of df_to_figure to be used by LLM-writen code.
     """
+    df_to_figure(df, filename, raise_formatting_errors=raise_formatting_errors, **kwargs)
+
     issues = IssueCollector.get_runtime_instance().issues
     issues.extend(check_output_df_for_content_issues(df, filename, is_figure=True))
     issues.extend(_check_for_p_values_in_figure(df, filename, **kwargs))
     issues.extend(_check_for_df_to_figure_issues(df, filename, **kwargs))
-
-    df_to_figure(df, filename, raise_formatting_errors=False, **kwargs)
 
     # save df to pickle with the func and kwargs
     save_as_list_info_df('df_to_figure', df, filename, kwargs)

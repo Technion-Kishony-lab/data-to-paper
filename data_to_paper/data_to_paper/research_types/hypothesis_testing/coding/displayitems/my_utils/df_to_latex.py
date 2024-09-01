@@ -1,5 +1,6 @@
 from typing import Dict, List, Optional, Union, Iterable, Any
 
+import numpy as np
 import pandas as pd
 
 from data_to_paper.utils import dedent_triple_quote_str
@@ -39,7 +40,7 @@ def _find_longest_str_in_list(lst: Iterable[Union[str, Any]]) -> Optional[str]:
         return None
 
 
-def _find_longest_labels_in_index(index: [pd.Index, pd.MultiIndex]) -> Union[str, List[str]]:
+def _find_longest_labels_in_index(index: [pd.Index, pd.MultiIndex]) -> List[str]:
     """
     Find the longest label in the index.
     For multi-index, return the longest label in each level.
@@ -49,6 +50,21 @@ def _find_longest_labels_in_index(index: [pd.Index, pd.MultiIndex]) -> Union[str
         return [_find_longest_str_in_list(index.get_level_values(level).unique()) for level in range(index.nlevels)]
     else:
         return [_find_longest_str_in_list(index)]
+
+
+def _find_longest_labels_in_columns_relative_to_content(df, tolerance: int = 2) -> List[str]:
+    """
+    For each column we need to check to what extent its label extends its content width (the width it would have if
+    there was no label)
+    """
+    if isinstance(df.columns, pd.MultiIndex):
+        # TODO: Implement for multi-index
+        return []
+    column_label_widths = np.array([len(label) for label in df.columns])
+    column_content_widths = np.zeros_like(column_label_widths)
+    for i, column in enumerate(df.columns):
+        column_content_widths[i] = max(len(str(value)) for value in df[column])
+    return df.columns[column_label_widths - column_content_widths > tolerance]
 
 
 def _df_to_latex(df: pd.DataFrame, filename: str, **kwargs):
@@ -145,7 +161,29 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
                 """)
         else:
             transpose_message = ''
-        if all(len(label) < 10 for label in axes_labels):
+        index_note = ''
+        column_note = ''
+        if index:
+            longest_index_labels = _find_longest_labels_in_index(df.index)
+            longest_index_labels = [label for label in longest_index_labels if label is not None and len(label) > 6]
+            with OnStrPValue(OnStr.SMALLER_THAN):
+                longest_column_labels = _find_longest_labels_in_columns_relative_to_content(df)
+            longest_column_labels = [label for label in longest_column_labels if len(label) > 6]
+            if longest_index_labels:
+                index_note = dedent_triple_quote_str(f"""\n
+                    - Rename any long index labels to shorter names \t
+                    (for instance, some long label(s) in the index are: {longest_index_labels}). \t
+                    Use `df.rename(index=...)`
+                    """)
+
+            if longest_column_labels:
+                column_note = dedent_triple_quote_str(f"""\n
+                    - Rename any long column labels to shorter names \t
+                    (for instance, some long label(s) in the columns are: {longest_column_labels}). \t
+                    Use `df.rename(columns=...)`
+                    """)
+
+        if not index_note and not column_note and not transpose_message:
             drop_column_message = dedent_triple_quote_str("""\n
                 - Drop unnecessary columns. \t
                 If the labels cannot be shortened much, consider whether there might be any \t
@@ -154,16 +192,6 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
                 """)
         else:
             drop_column_message = ''
-        index_note = ''
-        if index:
-            longest_index_labels = _find_longest_labels_in_index(df.index)
-            longest_index_labels = [label for label in longest_index_labels if label is not None and len(label) > 6]
-            if longest_index_labels:
-                index_note = dedent_triple_quote_str(f"""\n
-                    - Rename any long index labels to shorter names \t
-                    (for instance, some long label(s) in the index are: {longest_index_labels}). \t
-                    Use `df.rename(index=...)`
-                    """)
 
         issues.append(RunIssue(
             category='Table too wide',
@@ -177,11 +205,8 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
                 ```
                 I tried to compile it, but the table is too wide. 
                 """).format(filename=filename, table=latex),
-            instructions=dedent_triple_quote_str("""                
-                Please change the code to make the table narrower. Consider any of the following options:
-
-                - Rename column labels to shorter names. Use `df.rename(columns=...)`
-                """) + index_note + drop_column_message + transpose_message,
+            instructions="Please change the code to make the table narrower. Consider any of the following options:\n\n" \
+                + index_note + column_note + drop_column_message + transpose_message,
             code_problem=CodeProblem.OutputFileContentLevelC,
         ))
 

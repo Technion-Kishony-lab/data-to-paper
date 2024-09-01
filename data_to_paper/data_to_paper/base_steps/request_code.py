@@ -355,28 +355,30 @@ class BaseCodeProductsGPT(BackgroundProductsConverser, HumanReviewAppInteractor)
             content_files_to_contents = self._get_content_files_to_contents(
                 code_and_output, code_review_prompt.wildcard_filename, code_review_prompt.individually)
             for filename, file_contents_str in content_files_to_contents.items():
+                requester = RequestIssuesToSolutions.from_(
+                    self,
+                    model_engine=self.model_engine,
+                    background_product_fields_to_hide=self.background_product_fields_to_hide_during_code_revision,
+                    app=None,
+                )
                 replacing_kwargs = dict(
                     file_contents_str=file_contents_str,
                     filename=filename,
                     **{k: Replacer(self, v).format_text()
                        for k, v in self._get_specific_attrs_for_code_and_output(code_and_output).items()},
                 )
-                header = Replacer(self, code_review_prompt.get_header(), kwargs=replacing_kwargs).format_text()
+                header = Replacer([self, requester], code_review_prompt.get_header(),
+                                  kwargs=replacing_kwargs).format_text()
                 formatted_code_review_prompt = \
-                    Replacer(self, '## Request ' + header + '\n' + code_review_prompt.prompt,
+                    Replacer([self, requester], '## Request ' + header + '\n' + code_review_prompt.prompt,
                              kwargs=replacing_kwargs).format_text()
                 self._app_send_prompt(PanelNames.FEEDBACK)
                 self._app_send_prompt(PanelNames.FEEDBACK, formatted_code_review_prompt,
                                       sleep_for=PAUSE_AT_PROMPT_FOR_LLM_FEEDBACK, from_md=True)
+                requester.mission_prompt = formatted_code_review_prompt
                 with self._app_temporarily_set_panel_status(PanelNames.FEEDBACK,
                                                             f"Waiting for LLM {header} ({self.model_engine})"):
-                    issues_to_is_ok_and_feedback = RequestIssuesToSolutions.from_(
-                        self,
-                        model_engine=self.model_engine,
-                        background_product_fields_to_hide=self.background_product_fields_to_hide_during_code_revision,
-                        mission_prompt=formatted_code_review_prompt,
-                        app=None,
-                    ).run_and_get_valid_result(with_review=False)
+                    issues_to_is_ok_and_feedback = requester.run_and_get_valid_result(with_review=False)
                 llm_msg, app_msg, is_all_ok = \
                     self._convert_issues_to_messages(issues_to_is_ok_and_feedback, header)
                 llm_msgs_and_is_issues.append((llm_msg, is_all_ok is True))

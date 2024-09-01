@@ -45,6 +45,7 @@ def test_table_with_list():
     ('7', False),
     ('D', True),
     ('SD', False),
+    ('Lower 95%', False),
 ])
 def test_is_unknown_abbreviation(phrase, expected):
     assert is_unknown_abbreviation(phrase) == expected

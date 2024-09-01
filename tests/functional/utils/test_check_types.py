@@ -9,16 +9,17 @@ from data_to_paper.utils.check_type import validate_value_type, WrongTypeExcepti
     ([1, 2, 3], list, None),
     ([1, 2, 3], List, None),
     ([], List, None),
-    (['abc', 1], List[str], "object within the list must be of type `str`"),
+    (['abc', 1], List[str], "object within the list must be of type `str` (but found `int`)"),
     (['abc', ''], List[str], None),
-    ([], Dict[str, int], "object must be of type `dict`"),
+    ([], Dict[str, int], "object must be of type `dict` (but found `list`)"),
     ({'a': 1}, Dict[str, int], None),
-    ({'a': 1, 'b': 2.2}, Dict[str, int], "object within the dict values must be of type `int`"),
+    ({'a': 1, 'b': 2.2}, Dict[str, int], "object within the dict values must be of type `int` (but found `float`)"),
     ({'x': ['aaa', 'bbb']}, Dict[str, List[str]], None),
-    ({'x': ['aaa', 2]}, Dict[str, List[str]], "object within the list within the dict values must be of type `str`"),
+    ({'x': ['aaa', 2]}, Dict[str, List[str]], "object within the list within the dict values must be of type `str` "
+                                              "(but found `int`)"),
     (0, Union[int, str], None),
-    (0.7, Union[int, List[int]], "object must be of one of the types: int, List[int]"),
-    (0.7, Union[int, str], "object must be of one of the types: int, str"),
+    (0.7, Union[int, List[int]], "object must be of one of the types: int, List[int] (but found `float`)"),
+    (0.7, Union[int, str], "object must be of one of the types: int, str (but found `float`)"),
 ])
 def test_validate_value_type(value, type_, expected):
     if expected is None:

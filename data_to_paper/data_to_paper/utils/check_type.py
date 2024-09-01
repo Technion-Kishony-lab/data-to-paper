@@ -52,7 +52,8 @@ def check_of_any_of_types(element: Any, types_: Iterable[type], description: str
         except WrongTypeException:
             pass
     raise WrongTypeException(
-        f'object{description} must be of one of the types: {", ".join([name_of_type(t) for t in types_])}')
+        f'object{description} must be of one of the types: {", ".join([name_of_type(t) for t in types_])} '
+        f'(but found `{name_of_type(type(element))}`)')
 
 
 def validate_value_type(value: Any, type_: type, description: str = ''):
@@ -76,7 +77,8 @@ def validate_value_type(value: Any, type_: type, description: str = ''):
         return
 
     if not isinstance(value, origin_type):
-        raise WrongTypeException(f'object{description} must be of type `{name_of_type(origin_type)}`')
+        raise WrongTypeException(f'object{description} must be of type `{name_of_type(origin_type)}` '
+                                 f'(but found `{name_of_type(type(value))}`)')
 
     if not child_types:
         return

@@ -440,8 +440,8 @@ class DataAnalysisCodeProductsGPT(BaseTableCodeProductsGPT):
 
             "mean_signal = np.mean(signal)": ("OK", "The mean is calculated correctly"],
             "sem_signal = np.std(signal)": ["CONCERN", "Forgot to divide by sqrt(n)"],
-            "formula = 'y ~ a : b + c'": ["CONCERN", "The formula accounts for the interaction between a and b
-            but does not include their main effects"],  
+            "formula = 'y ~ a : b + c'": ["CONCERN", "The formula accounts for the interaction between a and b \t
+        but does not include their main effects"],  
 
             "The test of positivity of mean(z)": ["CONCERN", "By definition, all z values are positive, so \t
         the mean is triviality positive"],

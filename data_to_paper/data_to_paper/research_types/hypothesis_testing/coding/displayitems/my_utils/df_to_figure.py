@@ -20,7 +20,7 @@ def _df_to_figure(df: pd.DataFrame, filename: str, label: str = None, **kwargs):
     Same as df_to_figure, but also checks for issues.
     """
     issues = IssueCollector.get_runtime_instance().issues
-    analysis_df_to_figure(df, filename, **kwargs)
+    analysis_df_to_figure(df, filename, raise_formatting_errors=True, **kwargs)
     label = convert_filename_to_label(filename, label)
     issues.extend(_check_for_figure_style_issues(df, filename, label=label, **kwargs))
 
