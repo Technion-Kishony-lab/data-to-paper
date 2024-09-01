@@ -52,6 +52,14 @@ class BaseDataFramePickleContentOutputFileRequirement(PickleContentOutputFileReq
         func, args, kwargs = self._get_func_args_kwargs(content)
         return func == df_to_figure
 
+    def _get_content_and_header_for_product(
+            self, content: Any, filename: str = None, num_file: int = 0, level: int = 3,
+            view_purpose: ViewPurpose = ViewPurpose.PRODUCT):
+        func_name = self._get_func_args_kwargs(content)[0].__name__
+        content, header = super()._get_content_and_header_for_product(content, filename, num_file, level, view_purpose)
+        header += f' (with {func_name})'
+        return content, header
+
     def _convert_content_to_labeled_text(self, content: Any, filename: str = None, num_file: int = 0,
                                          view_purpose: ViewPurpose = None) -> str:
         with OnStrPValue(self._convert_view_purpose_to_pvalue_on_str(view_purpose)):

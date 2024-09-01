@@ -25,7 +25,7 @@ class EnforceContentOutputFileRequirement(TextContentOutputFileRequirement, Nume
 
     def _get_content_and_header_for_app_html(self, content: Any, filename: str = None, num_file: int = 0,
                                              level: int = 3, view_purpose: ViewPurpose = ViewPurpose.APP_HTML):
-        content = self._to_str(content, OnStr.SMALLER_THAN)
+        content = self._to_str(content, filename, num_file, view_purpose)
         content = output_to_highlighted_html(content)
         return content, f'<h{level}>{filename}</h{level}>'
 
