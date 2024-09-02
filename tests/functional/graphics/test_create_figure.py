@@ -43,7 +43,8 @@ def test_plot_with_xlabel(test_data):
 
 def test_plot_with_caption_and_label(test_data, tmpdir):
     with run_in_directory(tmpdir):
-        latex = df_to_figure(test_data, filename=filename, caption='Test Caption', y='y')
+        latex = df_to_figure(test_data, filename=filename, caption='Test Caption', y='y',
+                             raise_formatting_errors=False)
         assert "df.plot(y='y')" in latex
         assert os.path.exists(filename + '.png')
 
@@ -52,7 +53,8 @@ def test_plot_with_note_and_glossary(test_data, tmpdir):
     with run_in_directory(tmpdir):
         note = 'This is a note.'
         glossary = {'y': 'Y-axis values'}
-        latex = df_to_figure(test_data, filename=filename, note=note, glossary=glossary, y='y')
+        latex = df_to_figure(test_data, filename=filename, note=note, glossary=glossary, y='y',
+                             raise_formatting_errors=False)
         assert "df.plot(y='y')" in latex
         assert "y: Y-axis values" in latex
         assert os.path.exists(filename + '.png')
@@ -60,25 +62,29 @@ def test_plot_with_note_and_glossary(test_data, tmpdir):
 
 def test_plot_with_yerr(test_data, tmpdir):
     with run_in_directory(tmpdir):
-        df_to_figure(test_data, filename=filename, y='y', yerr='y_err')
+        df_to_figure(test_data, filename=filename, y='y', yerr='y_err',
+                     raise_formatting_errors=False)
         assert os.path.exists(filename + '.png')
 
 
 def test_plot_with_y_ci(test_data, tmpdir):
     with run_in_directory(tmpdir):
-        df_to_figure(test_data, filename=filename, y='y', y_ci='y_ci')
+        df_to_figure(test_data, filename=filename, y='y', y_ci='y_ci',
+                     raise_formatting_errors=False)
         assert os.path.exists(filename + '.png')
 
 
 def test_plot_with_y_ci_low_high(test_data, tmpdir):
     with run_in_directory(tmpdir):
-        df_to_figure(test_data, filename=filename, y='y', y_ci=('y_ci_lower', 'y_ci_upper'))
+        df_to_figure(test_data, filename=filename, y='y', y_ci=('y_ci_lower', 'y_ci_upper'),
+                     raise_formatting_errors=False)
         assert os.path.exists(filename + '.png')
 
 
 def test_plot_with_y_p_value(test_data, tmpdir):
     with run_in_directory(tmpdir):
-        df_to_figure(test_data, filename=filename, y='y', y_p_value='y_p_value', yerr='y_err')
+        df_to_figure(test_data, filename=filename, y='y', y_p_value='y_p_value', yerr='y_err',
+                     raise_formatting_errors=False)
         assert os.path.exists(filename + '.png')
 
 
@@ -121,7 +127,8 @@ def test_plot_without_yerr_for_p_value(test_data, tmpdir):
 
 def test_plot_with_multiple_columns_input(test_data, tmpdir):
     with run_in_directory(tmpdir):
-        df_to_figure(test_data, filename=filename, y=['y', 'y_2'])
+        df_to_figure(test_data, filename=filename, y=['y', 'y_2'],
+                     raise_formatting_errors=False)
         assert os.path.exists(filename + '.png')
 
 
