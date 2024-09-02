@@ -11,7 +11,7 @@ from ..check_df_formatting import check_for_repetitive_value_in_column, checks_t
     check_for_unallowed_characters, check_for_un_glossary_abbreviations, \
     check_glossary_does_not_include_labels_that_are_not_in_df, check_displayitem_caption, \
     check_note_different_than_caption
-from ...utils import convert_filename_to_label
+from data_to_paper.llm_coding_utils.utils import convert_filename_to_label
 
 
 def _df_to_figure(df: pd.DataFrame, filename: str, label: str = None, **kwargs):

@@ -14,9 +14,7 @@ from .df_plot_with_pvalue import df_plot_with_pvalue, get_description_of_plot_cr
 from .matplotlib_utils import rotate_xticklabels_if_not_numeric, \
     raise_if_numeric_axes_do_not_have_labels
 from .note_and_legend import convert_note_and_glossary_to_html, convert_note_and_glossary_to_latex_figure_caption
-from .utils import convert_to_latex_comment
-from ..research_types.hypothesis_testing.coding.utils import convert_filename_to_label
-
+from .utils import convert_to_latex_comment, convert_filename_to_label
 
 # ALLOWED_PLOT_KINDS = ['line', 'scatter', 'bar', 'hist', 'box', 'kde', 'hexbin', 'pie']
 ALLOWED_PLOT_KINDS = ['bar']  # TODO: Add support for more plot kinds
@@ -58,7 +56,7 @@ def df_to_figure(df: pd.DataFrame, filename: Optional[str],
     index = kwargs.get('use_index', True)
     kind = kwargs.get('kind', 'bar')
     if kind not in ALLOWED_PLOT_KINDS:
-        raise ValueError(f'`kind` must be one of {ALLOWED_PLOT_KINDS}, but got {kind}.')
+        raise ValueError(f'`kind` must be one of {ALLOWED_PLOT_KINDS}, but got {repr(kind)}.')
 
     label = label or ''
 
