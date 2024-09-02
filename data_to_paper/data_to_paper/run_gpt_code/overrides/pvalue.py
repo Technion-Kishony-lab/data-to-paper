@@ -108,6 +108,9 @@ class PValue(OperatorValue):
         raise RunIssue.from_current_tb(
             category='Be careful with p-values',
             issue=self.error_message_on_forbidden_func.format(func_name=method_name, created_by=self.created_by),
+            instructions='Please leave p-values intact.\n'
+                         'Do not apply to p-values any function or operation '
+                         '(like str, repr, format, round, operators, etc).',
             code_problem=CodeProblem.RuntimeError,
         )
 

@@ -133,7 +133,8 @@ class BaseCodeProductsGPT(BackgroundProductsConverser, HumanReviewAppInteractor)
     your_response_should_be_formatted_as: str = RequestIssuesToSolutions.your_response_should_be_formatted_as
 
     code_review_formatting_instructions: str = \
-        'Your response should be formatted as {your_response_should_be_formatted_as}.'
+        'Your response should be formatted as {your_response_should_be_formatted_as}.\n' \
+        'Do NOT provide any corrected code or code fragments.'
 
     code_review_notes: str = dedent_triple_quote_str("""
         Notes:
@@ -160,7 +161,6 @@ class BaseCodeProductsGPT(BackgroundProductsConverser, HumanReviewAppInteractor)
 
             Please check if there is anything wrong in these results (like unexpected NaN values, or anything else \t
             that may indicate that code improvements are needed).
-            At this point, do NOT provide any corrected code or code fragments.
 
             {code_review_formatting_instructions}
 

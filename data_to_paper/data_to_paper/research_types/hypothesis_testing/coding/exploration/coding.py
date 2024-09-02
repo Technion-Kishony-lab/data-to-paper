@@ -119,7 +119,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         Please carefully check the Python code and the output for possible issues, and \t
         provide a point-by-point assessment. 
-        At this point, do NOT provide a corrected code or code fragment.
+
         {code_review_formatting_instructions}
 
         For example:

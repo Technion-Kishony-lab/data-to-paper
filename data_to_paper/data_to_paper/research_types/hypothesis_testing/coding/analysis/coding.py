@@ -460,6 +460,8 @@ class DataAnalysisCodeProductsGPT(BaseTableCodeProductsGPT):
             "The test C > 0": ["OK", "This is a valid test because ..."],
 
             "<Any other issues you find>": ["CONCERN", "<Issue description>"],
+            "<Any other concern you have>": ["CONCERN", "<Issue description>"],
+            <Any other assertion>: ["OK", "<Justification>"],
         }
         ```
 
@@ -531,7 +533,7 @@ class DataAnalysisCodeProductsGPT(BaseTableCodeProductsGPT):
         {file_contents_str}
 
         Please review the table and return a list of point-by-point assessments.
-        At this point, do NOT provide a corrected code or code fragment. 
+
         {code_review_formatting_instructions}
 
         Check the following:
@@ -576,7 +578,7 @@ class DataAnalysisCodeProductsGPT(BaseTableCodeProductsGPT):
         {file_contents_str}
 
         Please carefully review the code and these output files and return a point by point assessment.
-        At this point, do NOT provide a corrected code or code fragment.
+
         {code_review_formatting_instructions}:
 
         ### COMPLETENESS OF TABLES:
