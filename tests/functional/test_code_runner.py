@@ -98,7 +98,6 @@ def test_runner_create_issue_on_print():
     assert 'print' in multi_context.issues[0].issue
 
 
-@pytest.mark.skip("This test is not working with the threading implementation.")
 def test_runner_raise_code_timeout_exception():
     _, _, _, exception = \
         CodeRunnerWrapper(timeout_sec=1, code=code_runs_more_than_1_second).run_code_in_separate_process()
