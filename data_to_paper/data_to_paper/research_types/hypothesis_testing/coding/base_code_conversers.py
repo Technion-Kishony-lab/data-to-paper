@@ -121,17 +121,13 @@ class BaseTableCodeProductsGPT(BaseScientificCodeProductsGPT):
         ''', indent=4)
 
     df_to_figure_doc: str = dedent_triple_quote_str('''
-        ColumnChoice = Union[NoneType, List[str]]
-        ColumnChoiceWithPairs = Union[NoneType, List[str], List[Tuple[str, str]]]
-
         def df_to_figure(
                 df, filename: str, caption: str,
-                x: Optional[str] = None, y: ColumnChoice = None, 
-                kind: str = 'line',
+                x: Optional[str] = None, y: List[str] = None, 
+                kind: str = 'bar',
                 logx: bool = False, logy: bool = False,
-                yerr: ColumnChoiceWithPairs = None,
-                y_ci: ColumnChoiceWithPairs = None,
-                y_p_value: ColumnChoice = None,
+                y_ci: Optional[List[str]] = None,
+                y_p_value: Optional[List[str]] = None,
         {df_to_figure_extra_vars}\t
             ):
             """
@@ -140,31 +136,21 @@ class BaseTableCodeProductsGPT(BaseScientificCodeProductsGPT):
             `df`, `filename`, `caption`
 
             Parameters for df.plot():
-            `x` (optional, str): Column name for x-axis (index by default).
-            `y` (ColumnChoice): List of m column names for y-axis (m=1 for single plot, m>1 for multiple plots).
-            `kind` (str): {allowed_plot_kinds}.
+            `x`: Column name for x-axis (index by default).
+            `y`: List of m column names for y-axis (m=1 for single plot, m>1 for multiple plots).
+            `kind`: {allowed_plot_kinds}.
             `logx` / `logy` (bool): log scale for x/y axis.
         {df_to_figure_extra_vars_explain}\t
 
-            Errorbars can be specified with either `yerr` (when indicating deviations from nominal) or \t
-        `y_ci` (when indicating confidence intervals, flanking the nominal):
-            * `yerr` (ColumnChoiceWithPairs): List of m columns for y error bars. Each element can be:
-                - str denoting column with scalar values for symmetric error bars, spanning (df[y]-df[yerr], \t 
-        df[y]+df[yerr])
-                - str denoting column with 2-element tuple (bottom, top) for asymmetric error bars, \t
-        spanning (df[y]-df[yerr][0], df[y]+df[yerr][1])
-                - tuple of two strings ('lower', 'upper') denoting columns with lower and upper bounds for \t
-        error bars spanning (df[y]-df[yerr[0], df[y]+df[yerr[1])
-            * `y_ci` (ColumnChoiceWithPairs): List of m columns for y confidence intervals. Each element can be:
-                - str denoting column with 2-element tuple (lower, upper) for asymmetric confidence intervals, \t
-        spanning (df[y_ci][0], df[y_ci][1])
-                - tuple of two strings ('lower', 'upper') denoting columns with lower and upper bounds for \t
-        confidence intervals spanning (df[y_ci][0], df[y_ci][1]) 
+             `y_ci`: Confidence intervals for errorbars. 
+                List of m column names indicating confidence intervals for each y column. 
+                Each element in these columns must be a Tuple[float, float], \t
+        describing the lower and upper bounds of the CI. 
 
-            `y_p_value` (ColumnChoice): List of m columns for numeric p-values, which will be automatically \t
-        automatically plotted as stars ('***', '**', '*', 'ns') above the error bars.   
+             `y_p_value`: List of m column names for numeric p-values, which will be \t
+        plotted as stars ('***', '**', '*', 'ns') above the error bars.   
 
-            If provided, the length of `yerr`, `y_ci`, and `y_p_value` should be the same as of `y`.
+            If provided, the length of `y_ci`, and `y_p_value` should be the same as of `y`.
 
             Example:
             Suppose, we have:

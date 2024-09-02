@@ -46,6 +46,16 @@ def _check_for_df_to_figure_issues(df: pd.DataFrame, filename: str, kind=None, x
             code_problem=CodeProblem.OutputFileContentLevelA,
         ))
 
+    yerr = kwargs.get('yerr')
+    if yerr is not None:
+        issues.append(RunIssue(
+            category=category,
+            issue=f'Do not use the `yerr` argument in `df_to_figure`.',
+            item=filename,
+            instructions='Instead, directly indicate the confidence intervals using the `y_ci` argument.',
+            code_problem=CodeProblem.OutputFileContentLevelA,
+        ))
+
     # check that all columns are numeric:
     for column in y:
         if not pd.api.types.is_numeric_dtype(df[column]):

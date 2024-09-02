@@ -43,13 +43,10 @@ example_plotting = dedent_triple_quote_str("""
         'banana_p_value': [0.1, 0.05, 0.001],
     })
 
-    # Example 1: ci stored as tuples in a single column
+    # Example 1: single y column
     df_to_figure(df, 'example', y='apple', y_ci='apple_ci', y_p_value='apple_p_value')
 
-    # Example 2: ci stored as two separate columns
-    df_to_figure(df, 'example', y='banana', y_ci=('banana_ci_low', 'banana_ci_high'), y_p_value='banana_p_value')
-
-    # Example 3: multiple y columns
+    # Example 2: multiple y columns
     df_to_figure(df, 'example', 
         y=['apple', 'banana'],
         y_ci=['apple_ci', ('banana_ci_low', 'banana_ci_high')],
@@ -130,7 +127,12 @@ def _convert_err_and_ci_to_err(df: pd.DataFrame, xy: ColumnChoice, xy_name: str,
         return _get_errors(df, err, err_name, scalars_only=None, is_list=isinstance(xy, List), xy_name=xy_name)
     ci_vals = _get_errors(df, ci, ci_name, scalars_only=False, is_list=isinstance(xy, List), xy_name=xy_name)
     nominal = df[xy].to_numpy().T  # (n, m)
-    return np.array([nominal - ci_vals[:, 0, :], ci_vals[:, 1, :] - nominal]).swapaxes(0, 1)
+    errs = np.array([nominal - ci_vals[:, 0, :], ci_vals[:, 1, :] - nominal]).swapaxes(0, 1)
+    if np.any(errs < 0):
+        raise ValueError(f'Confidence intervals for {xy_name} values must be provided in the form of '
+                         f'(low, high) tuples. These values must FLANK the nominal value, '
+                         f'but the provided values do not.\n\n{example_plotting}')
+    return errs
 
 
 def _check_matching_column_choice(primary_name, optional_name, primary: ColumnChoice, optional: ColumnChoiceWithPairs):
@@ -200,6 +202,7 @@ def df_plot_with_pvalue(df: DataFrame, x: Optional[str] = None, y: ColumnChoice 
     """
     if y is None:
         raise ValueError('The `y` argument must be provided, indicating the column(s) to plot.')
+
     _check_matching_column_choice('y', 'y_p_value', y, y_p_value)
     _check_matching_column_choice('y', 'yerr', y, yerr)
     _check_matching_column_choice('y', 'y_ci', y, y_ci)
