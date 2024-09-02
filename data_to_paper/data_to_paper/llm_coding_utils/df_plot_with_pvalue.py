@@ -228,6 +228,10 @@ def df_plot_with_pvalue(df: DataFrame, x: Optional[str] = None, y: ColumnChoice 
             for col_index, index_data in coords.items():
                 for row_index, (x, y) in index_data.items():
                     p_val = y_p_values[col_index, 0, row_index]
+                    if not isinstance(p_val, float):
+                        raise ValueError(f'P-values must be numeric, but found `{type(p_val)}`.')
+                    if p_val < 0 or p_val > 1:
+                        raise ValueError(f'P-values must be between 0 and 1, but found `{p_val}`.')
                     errs = yerr[col_index, :, row_index]
                     if kind == 'bar' and y < 0:
                         y_plt = y - errs[0]
