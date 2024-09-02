@@ -187,7 +187,8 @@ class CodeRunner:
         except Exception:
             raise
         finally:
-            save_code_to_module_file()  # leave the module empty
+            pass
+            # save_code_to_module_file()  # leave the module empty
 
         for context in multi_context.get_contexts():
             assert is_serializable(context), f"Context {context} is not serializable."

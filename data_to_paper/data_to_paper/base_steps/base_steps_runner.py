@@ -50,7 +50,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
     project_directory: Path = None
     temp_folder_to_run_in: Path = FOLDER_FOR_RUN
     actions_and_conversations: ActionsAndConversations = field(default_factory=ActionsAndConversations)
-    should_remove_temp_folder: bool = True
+    should_remove_temp_folder: bool = False
 
     stages_to_conversations_lens: Dict[Stage, int] = field(default_factory=dict)
 
