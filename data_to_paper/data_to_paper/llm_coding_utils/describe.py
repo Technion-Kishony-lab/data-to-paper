@@ -1,10 +1,9 @@
-from typing import Any, Optional
+from typing import Any, Optional, Tuple
 
 import numpy as np
 from pandas import DataFrame, Series
 
 from data_to_paper.code_and_output_files.referencable_text import label_numeric_value
-from data_to_paper.research_types.hypothesis_testing.env import MAX_BARS
 from data_to_paper.run_gpt_code.overrides.dataframes.df_methods import STR_FLOAT_FORMAT
 from data_to_paper.run_gpt_code.overrides.dataframes.utils import df_to_llm_readable_csv, df_to_latex_with_value_format
 from data_to_paper.run_gpt_code.overrides.pvalue import is_p_value, PValue
@@ -56,11 +55,12 @@ def describe_value(value: Any) -> str:
     return str(value)
 
 
-def describe_df(df: DataFrame, max_rows: Optional[int] = MAX_BARS, max_columns: Optional[int] = 10,
+def describe_df(df: DataFrame, max_rows_and_columns_to_show: Tuple[Optional[int], Optional[int]],
                 should_format: bool = True) -> str:
     """
     Describe the DataFrame in a way that can be used as a short string.
     """
+    max_rows, max_columns = max_rows_and_columns_to_show
     num_lines = len(df)
     num_columns = len(df.columns)
     if max_columns is not None and num_columns > max_columns:
@@ -68,7 +68,7 @@ def describe_df(df: DataFrame, max_rows: Optional[int] = MAX_BARS, max_columns: 
     if max_rows is not None and num_lines > max_rows:
         df = df.head(3)
     s = df_to_llm_readable_csv(df, **_get_formatters(should_format))
-    if num_lines > max_rows:
+    if max_rows is not None and num_lines > max_rows:
         s += f'\n... total {num_lines} rows'
     return s
 

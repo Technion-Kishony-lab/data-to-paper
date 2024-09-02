@@ -10,7 +10,6 @@ from data_to_paper.run_gpt_code.overrides.pvalue import PValueToStars, OnStr, On
 from .describe import describe_value, describe_df
 from .matplotlib_utils import get_xy_coordinates_of_df_plot, \
     replace_singleton_legend_with_axis_label, add_grid_line_at_base_if_needed, rotate_xticklabels_if_not_numeric
-from ..research_types.hypothesis_testing.env import MAX_BARS
 from ..run_gpt_code.overrides.dataframes.utils import df_to_html_with_value_format
 from ..utils import dedent_triple_quote_str
 from ..utils.check_type import raise_on_wrong_func_argument_types_decorator
@@ -252,16 +251,18 @@ def df_plot_with_pvalue(df: DataFrame, x: Optional[str] = None, y: ColumnChoice 
 
 
 def get_description_of_plot_creation(df, fig_filename, kwargs, is_html: bool = True,
-                                     should_format: bool = False
+                                     should_format: bool = False,
+                                     max_rows_and_columns_to_show: Tuple[Optional[int], Optional[int]] = (None, None)
                                      ) -> str:
     """
     Get a description of how the plot was created.
     This is what the LLM will get. This is essentially how the LLM "sees" the figure.
     More sophisticated implementations can be added in the future.
     """
+    max_rows_to_show, max_columns_to_show = max_rows_and_columns_to_show
     if is_html:
         len_df = len(df)
-        too_long = len_df > MAX_BARS
+        too_long = max_rows_to_show is not None and len_df > max_rows_to_show
         if too_long:
             df = df.head(3)
         df_str = df_to_html_with_value_format(df, border=0, justify='left')
@@ -269,7 +270,8 @@ def get_description_of_plot_creation(df, fig_filename, kwargs, is_html: bool = T
             df_str += f'<br>... total {len_df} rows\n'
     else:
         with OnStrPValue(OnStr.SMALLER_THAN):
-            df_str = describe_df(df, should_format=should_format, max_rows=MAX_BARS)
+            df_str = describe_df(df, should_format=should_format,
+                                 max_rows_and_columns_to_show=max_rows_and_columns_to_show)
 
     kwargs = kwargs.copy()
     ci_x = kwargs.pop('x_ci', None)

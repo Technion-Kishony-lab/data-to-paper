@@ -54,6 +54,7 @@ def is_unknown_abbreviation(name: str) -> bool:
         return True
     words = re.split(pattern=r'[-_ ]', string=name)
     words = [word for word in words if word != '']
-    if all((word.islower() or word.istitle()) or word.isnumeric() or (word[:-1].isnumeric() and word[-1] == '%') for word in words):
+    if all((word.islower() or word.istitle()) or word.isnumeric()
+           or (word[:-1].isnumeric() and word[-1] == '%') for word in words):
         return False
     return True

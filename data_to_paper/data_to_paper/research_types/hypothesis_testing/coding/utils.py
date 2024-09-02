@@ -16,5 +16,3 @@ def create_pandas_and_stats_contexts(allow_dataframes_to_change_existing_series:
         'OverrideStatisticsPackages': OverrideStatisticsPackages(
             issue_if_statistics_test_not_called=issue_if_statistics_test_not_called),
     }
-
-

@@ -1,4 +1,4 @@
-from typing import Optional, Dict
+from typing import Optional, Dict, Tuple
 
 import pandas as pd
 from matplotlib import pyplot as plt
@@ -30,6 +30,7 @@ def df_to_figure(df: pd.DataFrame, filename: Optional[str],
                  raise_formatting_errors: bool = True,
                  is_html: bool = False,
                  should_format: bool = False,
+                 max_rows_and_columns_to_show: Tuple[Optional[int], Optional[int]] = (None, None),
                  **kwargs):
     """
     Create a matplotlib figure embedded in a LaTeX figure with a caption and label.
@@ -38,6 +39,11 @@ def df_to_figure(df: pd.DataFrame, filename: Optional[str],
     label = 'figure:' + label
 
     fig_filename = filename + '.png'
+
+    kind = kwargs.get('kind', 'bar')
+    if kind not in ALLOWED_PLOT_KINDS:
+        raise ValueError(f'`kind` must be one of {ALLOWED_PLOT_KINDS}, but got {repr(kind)}.')
+
     if save_fig:
         fig, ax = plt.subplots()
         fig.set_size_inches(4, 3)
@@ -54,10 +60,6 @@ def df_to_figure(df: pd.DataFrame, filename: Optional[str],
         plt.close('all')
 
     index = kwargs.get('use_index', True)
-    kind = kwargs.get('kind', 'bar')
-    if kind not in ALLOWED_PLOT_KINDS:
-        raise ValueError(f'`kind` must be one of {ALLOWED_PLOT_KINDS}, but got {repr(kind)}.')
-
     label = label or ''
 
     glossary = {} if glossary is None else glossary.copy()
@@ -65,12 +67,12 @@ def df_to_figure(df: pd.DataFrame, filename: Optional[str],
         glossary['Significance'] = PValueToStars().get_conversion_legend_text()
 
     caption = caption or ''
-
     if is_html:
         note_and_glossary = convert_note_and_glossary_to_html(df, note, glossary, index)
         caption_note_and_glossary = escape_html(caption) + '<br>' + note_and_glossary
         description = get_description_of_plot_creation(df, fig_filename, kwargs, is_html=True,
-                                                       should_format=should_format)
+                                                       should_format=should_format,
+                                                       max_rows_and_columns_to_show=max_rows_and_columns_to_show)
         s = get_figure_and_caption_as_html(fig_filename, caption_note_and_glossary.strip())
         s += description
     else:
@@ -78,7 +80,8 @@ def df_to_figure(df: pd.DataFrame, filename: Optional[str],
         caption_note_and_glossary = replace_special_latex_chars(caption) + '\n' + note_and_glossary
         with pvalue_on_str_for_latex():
             description = get_description_of_plot_creation(df, fig_filename, kwargs, is_html=False,
-                                                           should_format=should_format)
+                                                           should_format=should_format,
+                                                           max_rows_and_columns_to_show=max_rows_and_columns_to_show)
         s = get_figure_and_caption_as_latex(fig_filename, caption_note_and_glossary.strip(), label)
         s += '\n' + convert_to_latex_comment(description)
     return s

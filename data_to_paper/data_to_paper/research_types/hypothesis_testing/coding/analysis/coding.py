@@ -13,6 +13,7 @@ from data_to_paper.llm_coding_utils.describe import describe_df
 from data_to_paper.llm_coding_utils.df_to_figure import df_to_figure
 from data_to_paper.llm_coding_utils.df_to_latex import df_to_latex
 from data_to_paper.research_types.hypothesis_testing.cast import ScientificAgent
+from data_to_paper.research_types.hypothesis_testing.env import get_max_rows_and_columns
 from data_to_paper.run_gpt_code.code_runner import CodeRunner
 from data_to_paper.run_gpt_code.overrides.dataframes.df_with_attrs import ListInfoDataFrame
 from data_to_paper.research_types.hypothesis_testing.coding.analysis.utils import get_pickle_dump_attr_replacer
@@ -50,6 +51,12 @@ class BaseDataFramePickleContentOutputFileRequirement(PickleContentOutputFileReq
         func, args, kwargs = self._get_func_args_kwargs(content)
         return func == df_to_figure
 
+    def _plot_kind(self, content: Any) -> Optional[str]:
+        if not self._is_figure(content):
+            return None
+        func, args, kwargs = self._get_func_args_kwargs(content)
+        return kwargs.get('kind', 'bar')
+
     def _get_content_and_header_for_product(
             self, content: Any, filename: str = None, num_file: int = 0, level: int = 3,
             view_purpose: ViewPurpose = ViewPurpose.PRODUCT):
@@ -61,7 +68,11 @@ class BaseDataFramePickleContentOutputFileRequirement(PickleContentOutputFileReq
     def _convert_content_to_labeled_text(self, content: Any, filename: str = None, num_file: int = 0,
                                          view_purpose: ViewPurpose = None) -> str:
         with OnStrPValue(self._convert_view_purpose_to_pvalue_on_str(view_purpose)):
-            return describe_df(content, should_format=True)
+            return describe_df(
+                content, should_format=True,
+                max_rows_and_columns_to_show=get_max_rows_and_columns(is_figure=self._is_figure(content),
+                                                                      kind=self._plot_kind(content),
+                                                                      to_show=True))
 
     def _get_content_and_header_for_app_html(
             self, content: Any, filename: str = None, num_file: int = 0, level: int = 3,

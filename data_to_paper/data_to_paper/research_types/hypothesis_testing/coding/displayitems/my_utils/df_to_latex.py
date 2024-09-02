@@ -10,7 +10,6 @@ from data_to_paper.run_gpt_code.base_run_contexts import RegisteredRunContext
 from data_to_paper.run_gpt_code.run_contexts import ProvideData, IssueCollector
 
 from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue, RunIssues
-from data_to_paper.utils.dataframe import extract_df_axes_labels
 from ..check_df_formatting import check_for_repetitive_value_in_column, checks_that_rows_are_labelled, \
     check_for_unallowed_characters, check_for_un_glossary_abbreviations, \
     check_glossary_does_not_include_labels_that_are_not_in_df, check_displayitem_caption, \
@@ -127,9 +126,6 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
         else:
             e = compilation_func(latex, file_stem)
 
-    # Get all labels:
-    axes_labels = extract_df_axes_labels(df, with_title=False, string_only=True)
-
     if not isinstance(e, float):
         issues.append(RunIssue(
             category='Table pdflatex compilation failure',
@@ -205,8 +201,9 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
                 ```
                 I tried to compile it, but the table is too wide. 
                 """).format(filename=filename, table=latex),
-            instructions="Please change the code to make the table narrower. Consider any of the following options:\n\n" \
-                + index_note + column_note + drop_column_message + transpose_message,
+            instructions="Please change the code to make the table narrower. "
+                         "Consider any of the following options:\n"
+                         + index_note + column_note + drop_column_message + transpose_message,
             code_problem=CodeProblem.OutputFileContentLevelC,
         ))
 

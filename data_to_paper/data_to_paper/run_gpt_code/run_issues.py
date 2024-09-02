@@ -110,7 +110,6 @@ class RunIssue(FailedRunningCode):
         return hash((self.code_problem, self.category, self.item, self.issue, self.instructions, self.end_with))
 
 
-
 class RunIssues(List[RunIssue]):
 
     def append_if_does_not_exist(self, issue: RunIssue):

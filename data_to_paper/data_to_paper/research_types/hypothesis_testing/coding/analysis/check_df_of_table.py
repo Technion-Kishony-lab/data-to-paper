@@ -5,13 +5,11 @@ from typing import Dict, Union, Optional
 import numpy as np
 import pandas as pd
 
+from data_to_paper.research_types.hypothesis_testing.env import get_max_rows_and_columns
 from data_to_paper.run_gpt_code.overrides.dataframes.utils import df_to_llm_readable_csv
 from data_to_paper.run_gpt_code.overrides.pvalue import is_p_value, PValue
 from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue, RunIssues
 from data_to_paper.utils import dedent_triple_quote_str
-
-MAX_COLUMNS: Optional[int] = 6  # None for no limit
-MAX_ROWS: Optional[int] = 20
 
 
 def _is_non_integer_numeric(value) -> bool:
@@ -276,6 +274,7 @@ def check_df_size(df: pd.DataFrame, filename: str, max_rows: Optional[int], max_
 def check_output_df_for_content_issues(df: pd.DataFrame, filename: str,
                                        prior_dfs: Dict[str, pd.DataFrame] = None,
                                        is_figure: bool = False,
+                                       kind: Optional[str] = None
                                        ) -> RunIssues:
     prior_dfs = prior_dfs or {}
     issues = RunIssues()
@@ -286,10 +285,10 @@ def check_output_df_for_content_issues(df: pd.DataFrame, filename: str,
         return issues
 
     # Check if the df has too many columns or rows
-    if not is_figure:
-        issues.extend(check_df_size(df, filename,
-                                    max_rows=MAX_ROWS,
-                                    max_columns=MAX_COLUMNS))
+    max_rows, max_columns = get_max_rows_and_columns(is_figure, kind=kind, to_show=False)
+    issues.extend(check_df_size(df, filename,
+                                max_rows=max_rows,
+                                max_columns=max_columns))
 
     if issues:
         return issues
