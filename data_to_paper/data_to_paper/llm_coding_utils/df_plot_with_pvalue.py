@@ -190,7 +190,7 @@ def df_plot_with_legend(df: DataFrame, x: Optional[str] = None, y: ColumnChoice 
 
 @raise_on_wrong_func_argument_types_decorator
 def df_plot_with_pvalue(df: DataFrame, x: Optional[str] = None, y: ColumnChoice = None,
-                        kind: str = 'line', ax: Optional[plt.Axes] = None,
+                        kind: str = 'bar', ax: Optional[plt.Axes] = None,
                         xerr: Optional[str] = None, yerr: ColumnChoiceWithPairs = None,
                         y_ci: ColumnChoiceWithPairs = None,
                         y_p_value: ColumnChoice = None,
@@ -223,7 +223,7 @@ def df_plot_with_pvalue(df: DataFrame, x: Optional[str] = None, y: ColumnChoice 
             y_p_values = _get_errors(df, y_p_value, 'y_p_value', scalars_only=True,
                                      is_list=isinstance(y, List), xy_name='y')
             if yerr is None:
-                raise ValueError('The `yerr` or `y_ci` argument must be provided when including `y_p_value`.')
+                raise ValueError('The `y_ci` argument must be provided when including `y_p_value`.')
             min_y, max_y = ax.get_ylim()
             for col_index, index_data in coords.items():
                 for row_index, (x, y) in index_data.items():

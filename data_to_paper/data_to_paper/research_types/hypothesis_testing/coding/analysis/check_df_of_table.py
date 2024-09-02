@@ -1,6 +1,6 @@
 import numbers
 import re
-from typing import Dict, Union, Optional
+from typing import Dict, Union, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -239,35 +239,42 @@ def check_df_for_nan_values(df: pd.DataFrame, filename: str) -> RunIssues:
     return issues
 
 
-def check_df_size(df: pd.DataFrame, filename: str, max_rows: Optional[int], max_columns: Optional[int]) -> RunIssues:
+def _is_lower_than(value, threshold):
+    return threshold is not None and value <= threshold
+
+
+def check_df_size(df: pd.DataFrame, filename: str, max_rows_and_columns: Tuple[Optional[int], Optional[int]],
+                  is_figure: bool) -> RunIssues:
     """
     Check if the table has too many columns or rows
     """
     issues = RunIssues()
-    trimming_note = "Note that simply trimming the data is not always a good solution. " \
-                    "You might instead want to think of a different representation/organization of the table, " \
-                    "Or, consider representing the data as a figure."
-    transpose_note = "You might also consider transposing the table."
-    if max_columns is not None and df.shape[1] > max_columns:
-        issues.append(RunIssue(
-            category='Checking df: too many columns',
-            code_problem=CodeProblem.OutputFileContentLevelA,
-            item=filename,
-            issue=f'The table has {len(df.columns)} columns, which is way too many for a scientific table.',
-            instructions=f"Please revise the code so that created tables "
-                         f"have just 2-5 columns and definitely not more than {max_columns}.\n" + trimming_note +
-                         (transpose_note if df.shape[0] <= max_columns else '')
-        ))
+    shape = df.shape
+    if _is_lower_than(shape[0], max_rows_and_columns[0]) and _is_lower_than(shape[1], max_rows_and_columns[1]):
+        return issues
+    if _is_lower_than(shape[0], max_rows_and_columns[1]) and _is_lower_than(shape[1], max_rows_and_columns[0]):
+        transpose_note = "You might also consider transposing the df.\n"
+    else:
+        transpose_note = ""
 
-    if max_rows is not None and df.shape[0] > max_rows:
-        issues.append(RunIssue(
-            category='Checking df: too many rows',
-            code_problem=CodeProblem.OutputFileContentLevelA,
-            item=filename,
-            issue=f'The table has {df.shape[0]} rows, which is way too many for a scientific table.',
-            instructions=f"Please revise the code so that created tables "
-                         f"have a maximum of {max_rows} rows.\n" + trimming_note
-        ))
+    table_or_figure = 'figure' if is_figure else 'table'
+    trimming_note = f"Note that simply trimming the data is not always a good solution. " \
+                    f"You might instead consider a different representation/organization of the {table_or_figure}.\n"
+    if not is_figure:
+        trimming_note += "Or, consider representing the data as a figure.\n"
+    for ax, rows_or_columns in enumerate(('rows', 'columns')):
+        if not _is_lower_than(shape[ax], max_rows_and_columns[ax]):
+            issues.append(RunIssue(
+                category='Checking df: too many columns/rows',
+                code_problem=CodeProblem.OutputFileContentLevelA,
+                item=filename,
+                issue=f'The {table_or_figure} df has {shape[ax]} {rows_or_columns}, which is too many for '
+                      f'our {table_or_figure}.',
+                instructions=f"Please revise the code so that df of created {table_or_figure} "
+                             f"have a maximum of {max_rows_and_columns[ax]} {rows_or_columns}.\n"
+                             + trimming_note + transpose_note,
+            ))
+
     return issues
 
 
@@ -285,10 +292,9 @@ def check_output_df_for_content_issues(df: pd.DataFrame, filename: str,
         return issues
 
     # Check if the df has too many columns or rows
-    max_rows, max_columns = get_max_rows_and_columns(is_figure, kind=kind, to_show=False)
     issues.extend(check_df_size(df, filename,
-                                max_rows=max_rows,
-                                max_columns=max_columns))
+                                is_figure=is_figure,
+                                max_rows_and_columns=get_max_rows_and_columns(is_figure, kind=kind, to_show=False)))
 
     if issues:
         return issues

@@ -2,7 +2,7 @@ from typing import Optional, List
 
 import pandas as pd
 
-from data_to_paper.llm_coding_utils.df_to_figure import df_to_figure
+from data_to_paper.llm_coding_utils.df_to_figure import df_to_figure, ALLOWED_PLOT_KINDS
 from data_to_paper.research_types.hypothesis_testing.coding.analysis.check_df_of_table import \
     check_output_df_for_content_issues
 from data_to_paper.research_types.hypothesis_testing.env import get_max_rows_and_columns, MAX_BARS
@@ -37,6 +37,15 @@ def _check_for_df_to_figure_issues(df: pd.DataFrame, filename: str, kind=None, x
                                    **kwargs) -> List[RunIssue]:
 
     issues = []
+
+    if kind is None:
+        issues.append(RunIssue(
+            category=category,
+            issue=f'Plot kind is not specified.',
+            item=filename,
+            instructions=f'Specify the `kind` argument. available options are: {ALLOWED_PLOT_KINDS},',
+            code_problem=CodeProblem.OutputFileContentLevelA,
+        ))
 
     if isinstance(y, str):
         y = [y]
@@ -103,6 +112,7 @@ def _check_for_df_to_figure_issues(df: pd.DataFrame, filename: str, kind=None, x
         'bar': _check_for_df_to_figure_issues_bar,
         'hist': _check_for_df_to_figure_issues_hist,
         'box': _check_for_df_to_figure_issues_box,
+        'line': _check_for_df_to_figure_issues_line,
     }
     check_func = kind_to_check_func.get(kind)
     if check_func is not None:
@@ -141,8 +151,7 @@ def _check_for_p_values_in_figure(df: pd.DataFrame, filename: str,
         category='Plotting P-values',
         issue=msg,
         item=filename,
-        instructions='To plot p-values with `df_to_figure`, the df must have exactly one column with p-values, '
-                     'and its name must be provided in the `x_p_value` or `y_p_value` argument.',
+        instructions='To plot p-values with `df_to_figure`, use the `y_p_value` argument.',
         code_problem=CodeProblem.OutputFileContentLevelA,
     ) for msg in msgs]
 
@@ -171,3 +180,17 @@ def _check_for_df_to_figure_issues_box(df: pd.DataFrame, filename: str, kind=Non
                 code_problem=CodeProblem.OutputFileContentLevelA,
             ))
     return issues
+
+
+def _check_for_df_to_figure_issues_line(df: pd.DataFrame, filename: str, kind=None, x=None, y=None,
+                                        **kwargs) -> List[RunIssue]:
+    # check that we do not have non-numeric x:
+    issues = []
+    if x is not None and not pd.api.types.is_numeric_dtype(df.index):
+        issues.append(RunIssue(
+            category=category,
+            issue=f'The x values are not numeric, so they are not suitable for a line plot.',
+            item=filename,
+            instructions='Consider another kind of plot, like a bar plot (kind="bar").',
+            code_problem=CodeProblem.OutputFileContentLevelA,
+        ))
