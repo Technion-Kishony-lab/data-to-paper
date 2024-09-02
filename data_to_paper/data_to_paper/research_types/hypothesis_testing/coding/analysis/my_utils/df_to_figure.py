@@ -91,6 +91,20 @@ def _check_for_df_to_figure_issues(df: pd.DataFrame, filename: str, kind=None, x
                 code_problem=CodeProblem.OutputFileContentLevelA,
             ))
 
+    for axis in ['x', 'y']:
+        label = kwargs.get(axis + 'label')
+        is_log = kwargs.get('log' + axis)
+
+    if isinstance(label, str) and 'odds ratio' in label.lower() and not is_log:
+        issues.append(RunIssue(
+            category=category,
+            issue=f'The {axis}-axis label contains the term "odds ratio", but the axis is not in log scale.',
+            item=filename,
+            instructions=f'Consider using a log scale for the {axis}-axis (setting `log{axis}=True`).',
+            code_problem=CodeProblem.OutputFileContentLevelA,
+            forgive_after=1,
+        ))
+
     return issues
 
 
