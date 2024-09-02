@@ -113,6 +113,7 @@ class DebuggerConverser(BackgroundProductsConverser):
     previous_code_problem: CodeProblem = CodeProblem.NoCode
     code_and_output_cls: Type[CodeAndOutput] = CodeAndOutput
 
+    issues_to_counts: Dict[RunIssue, int] = field(default_factory=dict)
     """
     PROPERTIES
     """
@@ -438,14 +439,24 @@ class DebuggerConverser(BackgroundProductsConverser):
         """
         if code_and_output and self.app:
             self._app_send_prompt(PanelNames.PRODUCT, code_and_output.as_html(), provided_as_html=True)
+
+        # Get issues
         if issues is None:
             return code_and_output
-        # Get Problem
         if isinstance(issues, RunIssue):
             issues = [issues]
         if not isinstance(issues, RunIssues):
             issues = RunIssues(issues)
 
+        # remove issues exceeding the max allowed
+        for issue in issues:
+            if issue.forgive_after is not None and \
+                    self.issues_to_counts.get(issue, 0) >= issue.forgive_after:
+                issues.remove(issue)
+        if not issues:
+            return code_and_output
+
+        # Get Problem
         problem = issues.get_most_severe_problem()
 
         # Get Action
@@ -493,7 +504,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         if action == "repost":
             self._post_code_as_fresh(code_and_output.code, problem, action_stage)
 
-        message, comment = issues.get_message_and_comment(
+        message, comment, posted_issues = issues.get_message_and_comment(
             end_with=format_value(self, self.prompt_to_append_at_end_of_response))
         message += '\n\nREGENERATE' if action == "regenerate" else ''
         with self._app_temporarily_set_panel_status(PanelNames.FEEDBACK):
@@ -506,6 +517,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         if action == "regen":
             # To regenerate, we delete the required pairs of assistant+user messages
             # (including the last message which is the just-posted user response to current issue).
+            posted_issues = []
             self.apply_delete_messages(
                 RangeMessageDesignation.from_(start=(action_stage - current_stage - 1) * 2, end=-1),
                 comment=f'REGENERATE (back to stage {action_stage})',
@@ -513,6 +525,9 @@ class DebuggerConverser(BackgroundProductsConverser):
             self._requesting_small_change = False
         else:
             self._requesting_small_change = issues.do_all_issues_request_small_change()
+        # add posted issues to the counts:
+        for issue in posted_issues:
+            self.issues_to_counts[issue] = self.issues_to_counts.get(issue, 0) + 1
         return None
 
     @_raise_if_reset()
@@ -531,7 +546,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         except FailedExtractingBlock as e:
             return self._respond_to_issues(self._get_issue_for_missing_or_multiple_code_blocks(e))
 
-        code_runner = self._get_code_runner_wrapper(code)
+        code_runner_wrapper = self._get_code_runner_wrapper(code)
         code_and_output = self.code_and_output_cls(code=code)
         # We were able to extract the code. We now statically check the code before running it.
         static_code_check_issues = []
@@ -544,7 +559,7 @@ class DebuggerConverser(BackgroundProductsConverser):
             return self._respond_to_issues(static_code_check_issues, code_and_output)
 
         # Code passes static checks. We can now run the code.
-        result, created_files, multi_context, exception = code_runner.run()
+        result, created_files, multi_context, exception = code_runner_wrapper.run()
         issues = multi_context.issues
         contexts = multi_context.contexts
         code_and_output = self._get_code_and_output(code, result, created_files, contexts)

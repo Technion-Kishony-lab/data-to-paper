@@ -75,7 +75,7 @@ class RunIssue(FailedRunningCode):
     comment: str = None
     end_with: Optional[str] = None
     requesting_small_change: bool = False
-    forgive_after: int = None  # Forgive after this many times,  None means never forgive
+    forgive_after: Optional[int] = None  # Forgive after this many times,  None means never forgive
 
     @classmethod
     def from_current_tb(cls, code_problem: CodeProblem = None, category: str = None, item: str = None,
@@ -106,6 +106,10 @@ class RunIssue(FailedRunningCode):
     def __str__(self):
         return RunIssues([self]).get_message_and_comment()[0]
 
+    def __hash__(self):
+        return hash((self.code_problem, self.category, self.item, self.issue, self.instructions, self.end_with))
+
+
 
 class RunIssues(List[RunIssue]):
 
@@ -113,7 +117,8 @@ class RunIssues(List[RunIssue]):
         if issue not in self:
             self.append(issue)
 
-    def get_message_and_comment(self, most_severe_only: bool = True, end_with: str = '') -> Tuple[str, str]:
+    def get_message_and_comment(self, most_severe_only: bool = True, end_with: str = ''
+                                ) -> Tuple[str, str, List[RunIssue]]:
         """
         We compose all the issues into a single message, and a single comment.
         """
@@ -125,6 +130,7 @@ class RunIssues(List[RunIssue]):
             s += 'There are some issues that need to be corrected:\n\n'
 
         code_problems = sorted(set(issue.code_problem for issue in issues))
+        posted_issues = []
         for code_problem in code_problems:
             categories = sorted(set(issue.category for issue in issues if issue.code_problem == code_problem))
             notes = []
@@ -139,6 +145,7 @@ class RunIssues(List[RunIssue]):
                 last_linenos_and_lines = None
                 last_item = None
                 for issue in issues_in_category:
+                    posted_issues.append(issue)
                     if issue.item and issue.item != last_item:
                         last_item = issue.item
                         note += f'## {issue.item}:\n'
@@ -169,7 +176,7 @@ class RunIssues(List[RunIssue]):
             end_with = shared_end_with
         if end_with:
             s += f'\n{end_with}'
-        return s, comment
+        return s, comment, posted_issues
 
     def get_most_severe_problem(self):
         return min(issue.code_problem for issue in self)
