@@ -5,7 +5,7 @@ import colorama
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import NamedTuple, Optional, List, Tuple
+from typing import NamedTuple, Optional, List
 
 from data_to_paper.env import TEXT_WIDTH, MINIMAL_COMPACTION_TO_SHOW_CODE_DIFF, HIDE_INCOMPLETE_CODE
 from data_to_paper.base_cast import Agent
@@ -128,7 +128,7 @@ class Message:
         s += colored_text(sep * TEXT_WIDTH, text_color)
         return s
 
-    def get_content_after_hiding_incomplete_code(self) -> Tuple[str, bool]:
+    def get_content_after_hiding_incomplete_code(self) -> tuple[str, bool]:
         """
         Detect if the message contains incomplete code.
         """
@@ -152,7 +152,7 @@ class Message:
             return 0
         return count_number_of_tokens_in_message(self.context, self.get_llm_model())
 
-    def _get_triple_quote_formatted_content(self, with_header: bool = True) -> Tuple[str, bool]:
+    def _get_triple_quote_formatted_content(self, with_header: bool = True) -> tuple[str, bool]:
         content, is_incomplete_code = self.get_content_after_hiding_incomplete_code()
         if self.role == Role.SYSTEM:
             content = wrap_text_with_triple_quotes(content, 'system')
@@ -237,7 +237,7 @@ class CodeMessage(Message):
         diff = list(diff)[3:]
         return '\n'.join(diff)
 
-    def get_content_after_hiding_incomplete_code(self) -> Tuple[str, bool]:
+    def get_content_after_hiding_incomplete_code(self) -> tuple[str, bool]:
         """
         Detect if the message contains incomplete code.
         """
