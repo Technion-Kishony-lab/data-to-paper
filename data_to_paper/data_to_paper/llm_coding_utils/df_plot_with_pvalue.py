@@ -198,7 +198,7 @@ def df_plot_with_pvalue(df: DataFrame, x: Optional[str] = None, y: ColumnChoice 
                         y_p_value: ColumnChoice = None,
                         **kwargs):
     """
-    Same as df.plot, but allows for plotting p-values as 'NS', '*', '**', or '***'.
+    Same as df.plot, but allows for plotting p-values as 'ns', '*', '**', or '***'.
     p_value: A string representing the column name of the p-values.
     """
     if y is None:
@@ -246,8 +246,8 @@ def df_plot_with_pvalue(df: DataFrame, x: Optional[str] = None, y: ColumnChoice 
                     inv = ax.transData.inverted()
                     bbox_data = inv.transform_bbox(bbox)
                     text_height = bbox_data.intervaly[1] - bbox_data.intervaly[0]
-                    min_y = min(min_y, min(bbox_data.intervaly) - text_height * 0.3)
-                    max_y = max(max_y, max(bbox_data.intervaly) + text_height * 0.3)
+                    min_y = min(min_y, min(bbox_data.intervaly) - text_height)
+                    max_y = max(max_y, max(bbox_data.intervaly) + text_height)
             ax.set_ylim(min_y, max_y)
         if kind == 'bar':
             add_grid_line_at_base_if_needed(ax, 'h')

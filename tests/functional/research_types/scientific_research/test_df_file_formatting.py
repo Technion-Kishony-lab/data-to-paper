@@ -172,7 +172,7 @@ def test_view_df_to_latex_analysis(tmpdir, df_tbl_0, is_figure, view_purpose, ex
     (True, ViewPurpose.FINAL_INLINE,
      [r'\label{figure:df-tbl-formatted}',
       r'% "bananas",0.205,(0.1912, 0.21),<1e-06',
-      'NS p $>$= 0.01', '% "bananas",0.205,(0.1912, 0.21),<1e-06',
+      'ns p $>$= 0.01', '% "bananas",0.205,(0.1912, 0.21),<1e-06',
       "% df.plot(kind='bar', y='coef')"]),
 ])
 def test_view_df_to_latex_displayitems(tmpdir, df_tbl_0, is_figure, view_purpose, expected):

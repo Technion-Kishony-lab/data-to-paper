@@ -142,13 +142,14 @@ class BaseTableCodeProductsGPT(BaseScientificCodeProductsGPT):
             `logx` / `logy` (bool): log scale for x/y axis.
         {df_to_figure_extra_vars_explain}\t
 
-             `y_ci`: Confidence intervals for errorbars. 
+            `y_ci`: Confidence intervals for errorbars. 
                 List of m column names indicating confidence intervals for each y column. 
                 Each element in these columns must be a Tuple[float, float], \t
         describing the lower and upper bounds of the CI. 
 
-             `y_p_value`: List of m column names for numeric p-values, which will be \t
-        plotted as stars ('***', '**', '*', 'ns') above the error bars.   
+             `y_p_value`: List of m column names (List[str]) containing numeric p-values of the \t
+        corresponding y columns. These numeric values will be automatically converted by df_to_figure to \t
+        stars ('***', '**', '*', 'ns') and plotted above the error bars.
 
             If provided, the length of `y_ci`, and `y_p_value` should be the same as of `y`.
 

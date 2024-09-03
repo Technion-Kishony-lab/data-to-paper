@@ -309,12 +309,12 @@ class PValueToStars:
             return '**'
         if p_value < levels[0]:
             return '*'
-        return 'NS'
+        return 'ns'
 
     def get_conversion_legend_text(self) -> str:
-        #  NS p >= 0.01, * p < 0.01, ** p < 0.001, *** p < 0.0001
+        #  ns p >= 0.01, * p < 0.01, ** p < 0.001, *** p < 0.0001
         levels = self.levels
-        legend = [f'NS p >= {levels[0]}']
+        legend = [f'ns p >= {levels[0]}']
         for i, level in enumerate(levels):
             legend.append(f'{(i + 1) * "*"} p < {level}')
         return ', '.join(legend)
