@@ -7,6 +7,7 @@ from data_to_paper.code_and_output_files.referencable_text import label_numeric_
 from data_to_paper.run_gpt_code.overrides.dataframes.df_methods import STR_FLOAT_FORMAT
 from data_to_paper.run_gpt_code.overrides.dataframes.utils import df_to_llm_readable_csv, df_to_latex_with_value_format
 from data_to_paper.run_gpt_code.overrides.pvalue import is_p_value, PValue
+from data_to_paper.utils.numerics import is_lower_eq
 
 
 def _label_p_value(p_value):
@@ -63,12 +64,12 @@ def describe_df(df: DataFrame, max_rows_and_columns_to_show: Tuple[Optional[int]
     max_rows, max_columns = max_rows_and_columns_to_show
     num_lines = len(df)
     num_columns = len(df.columns)
-    if max_columns is not None and num_columns > max_columns:
+    if not is_lower_eq(num_columns, max_columns):
         return f'DataFrame(shape={df.shape})'
-    if max_rows is not None and num_lines > max_rows:
+    if not is_lower_eq(num_lines, max_rows):
         df = df.head(3)
     s = df_to_llm_readable_csv(df, **_get_formatters(should_format))
-    if max_rows is not None and num_lines > max_rows:
+    if not is_lower_eq(num_lines, max_rows):
         s += f'\n... total {num_lines} rows'
     return s
 

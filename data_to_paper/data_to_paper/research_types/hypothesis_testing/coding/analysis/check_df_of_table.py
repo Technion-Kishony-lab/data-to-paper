@@ -10,6 +10,7 @@ from data_to_paper.run_gpt_code.overrides.dataframes.utils import df_to_llm_read
 from data_to_paper.run_gpt_code.overrides.pvalue import is_p_value, PValue
 from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue, RunIssues
 from data_to_paper.utils import dedent_triple_quote_str
+from data_to_paper.utils.numerics import is_lower_eq
 
 
 def _is_non_integer_numeric(value) -> bool:
@@ -239,10 +240,6 @@ def check_df_for_nan_values(df: pd.DataFrame, filename: str) -> RunIssues:
     return issues
 
 
-def _is_lower_than(value, threshold):
-    return threshold is not None and value <= threshold
-
-
 def check_df_size(df: pd.DataFrame, filename: str, max_rows_and_columns: Tuple[Optional[int], Optional[int]],
                   is_figure: bool) -> RunIssues:
     """
@@ -250,9 +247,9 @@ def check_df_size(df: pd.DataFrame, filename: str, max_rows_and_columns: Tuple[O
     """
     issues = RunIssues()
     shape = df.shape
-    if _is_lower_than(shape[0], max_rows_and_columns[0]) and _is_lower_than(shape[1], max_rows_and_columns[1]):
+    if is_lower_eq(shape[0], max_rows_and_columns[0]) and is_lower_eq(shape[1], max_rows_and_columns[1]):
         return issues
-    if _is_lower_than(shape[0], max_rows_and_columns[1]) and _is_lower_than(shape[1], max_rows_and_columns[0]):
+    if is_lower_eq(shape[0], max_rows_and_columns[1]) and is_lower_eq(shape[1], max_rows_and_columns[0]):
         transpose_note = "You might also consider transposing the df.\n"
     else:
         transpose_note = ""
@@ -263,7 +260,7 @@ def check_df_size(df: pd.DataFrame, filename: str, max_rows_and_columns: Tuple[O
     if not is_figure:
         trimming_note += "Or, consider representing the data as a figure.\n"
     for ax, rows_or_columns in enumerate(('rows', 'columns')):
-        if not _is_lower_than(shape[ax], max_rows_and_columns[ax]):
+        if not is_lower_eq(shape[ax], max_rows_and_columns[ax]):
             issues.append(RunIssue(
                 category='Checking df: too many columns/rows',
                 code_problem=CodeProblem.OutputFileContentLevelA,

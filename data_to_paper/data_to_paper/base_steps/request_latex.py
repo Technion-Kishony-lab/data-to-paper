@@ -25,6 +25,7 @@ from data_to_paper.servers.model_engine import ModelEngine
 
 from .base_products_conversers import ReviewBackgroundProductsConverser
 from .result_converser import Rewind
+from ..utils.numerics import is_lower_eq
 
 
 def is_similar_bibtex_ids(incorrect_id: str, correct_id: str) -> bool:
@@ -81,7 +82,7 @@ class CheckLatexCompilation:
             latex_document.get_document(content, file_stem=file_stem, output_directory=output_directory,
                                         format_cite=False)
         except TooWideTableOrText as e:
-            if tolerance_for_too_wide_in_pts is not None and e.overflow_in_pts > tolerance_for_too_wide_in_pts:
+            if not is_lower_eq(e.overflow_in_pts, tolerance_for_too_wide_in_pts):
                 return e
         except BaseLatexProblemInCompilation as e:
             return e
