@@ -63,7 +63,7 @@ def df_to_figure(df: pd.DataFrame, filename: Optional[str],
     label = label or ''
 
     glossary = {} if glossary is None else glossary.copy()
-    if 'x_p_value' in kwargs or 'y_p_value' in kwargs:
+    if kwargs.get('x_p_value') or kwargs.get('y_p_value'):
         glossary['Significance'] = PValueToStars().get_conversion_legend_text()
 
     caption = caption or ''

@@ -5,7 +5,7 @@ from pytest import fixture
 
 from data_to_paper.latex.latex_doc import LatexDocument
 from data_to_paper.llm_coding_utils.df_to_latex import df_to_latex
-from data_to_paper.research_types.hypothesis_testing.coding.displayitems.abbreviations import is_unknown_abbreviation
+from data_to_paper.research_types.hypothesis_testing.check_df_to_funcs.abbreviations import is_unknown_abbreviation
 
 THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
 

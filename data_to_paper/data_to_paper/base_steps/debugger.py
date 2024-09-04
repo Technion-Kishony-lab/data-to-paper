@@ -6,7 +6,7 @@ from typing import Optional, List, Tuple, Union, Type, Dict, Any, Iterable
 
 import numpy as np
 
-from data_to_paper.env import SUPPORTED_PACKAGES, PRINT_COMMENTS, MAX_EXEC_TIME, PAUSE_AT_RULE_BASED_FEEDBACK
+from data_to_paper.env import SUPPORTED_PACKAGES, PRINT_DEBUG_COMMENTS, MAX_EXEC_TIME, PAUSE_AT_RULE_BASED_FEEDBACK
 from data_to_paper.utils import dedent_triple_quote_str, line_count
 from data_to_paper.utils.replacer import format_value
 from data_to_paper.utils.print_to_file import print_and_log
@@ -486,7 +486,7 @@ class DebuggerConverser(BackgroundProductsConverser):
             action1, action2 = action.split('/')
             action = action1 if problem.get_stage() >= self.previous_code_problem.get_stage() else action2
 
-        if PRINT_COMMENTS:
+        if PRINT_DEBUG_COMMENTS:
             print_and_log(f'=====================\n'
                           f'current_stage={current_stage}\n'
                           f'      problem={problem}\n'

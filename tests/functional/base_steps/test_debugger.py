@@ -30,11 +30,11 @@ class TestCodeRunnerWithForgive(CodeRunner):
         context = MultiRunContext()
         if 'Small problem' in code:
             context.issues = [RunIssue(issue='Small problem that can be forgiven',
-                                       code_problem=CodeProblem.OutputFileContentLevelA,
+                                       code_problem=CodeProblem.OutputFileAnnotation,
                                        forgive_after=1)]
         else:
             context.issues = [RunIssue(issue='Big problem that cannot be forgiven',
-                                       code_problem=CodeProblem.OutputFileContentLevelA,
+                                       code_problem=CodeProblem.OutputFileAnnotation,
                                        forgive_after=None)]
         return None, [], context, None
 

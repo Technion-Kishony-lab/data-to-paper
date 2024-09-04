@@ -213,8 +213,8 @@ def df_plot_with_pvalue(df: DataFrame, x: Optional[str] = None, y: ColumnChoice 
         try:
             ax = df_plot_with_legend(df, x=x, y=y, kind=kind, ax=ax, xerr=xerr, yerr=yerr, **kwargs)
         except Exception as e:
-            msg = f'Error calling df.plot(x={describe_value(x)}, y={describe_value(y)}, kind={kind}, ' \
-                  f'xerr={describe_value(xerr)}, yerr={describe_value(yerr)}, **{kwargs}):\n' \
+            msg = f'Error calling df.plot(x={describe_value(x)}, y={describe_value(y)}, kind={describe_value(kind)}, ' \
+                  f'xerr={describe_value(xerr)}, yerr={describe_value(yerr)}, **{describe_value(kwargs)}):\n' \
                   f'Got the following exception:\n{e}'
             raise ValueError(msg)
         coords = get_xy_coordinates_of_df_plot(df, x=x, y=y, kind=kind)

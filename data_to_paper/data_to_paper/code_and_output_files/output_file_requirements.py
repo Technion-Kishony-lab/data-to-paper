@@ -279,7 +279,7 @@ class TextContentOutputFileRequirement(ReferencableContentOutputFileRequirement)
                 item=filename,
                 issue=f'The code created the output file "{filename}", but the file is just empty!',
                 instructions="Please revise the code to make sure it correctly writes to the output file.",
-                code_problem=CodeProblem.OutputFileContentLevelA,
+                code_problem=CodeProblem.OutputFileContentA,
             ))
 
         if self.max_tokens is not None \
@@ -297,7 +297,7 @@ class TextContentOutputFileRequirement(ReferencableContentOutputFileRequirement)
                     ```
                     """).format(filename, extract_to_nearest_newline(content, self.max_tokens)),
                 instructions="Only sensible-length output should be written to the file.",
-                code_problem=CodeProblem.OutputFileContentLevelC,
+                code_problem=CodeProblem.OutputFileContentB,
             ))
 
         return issues

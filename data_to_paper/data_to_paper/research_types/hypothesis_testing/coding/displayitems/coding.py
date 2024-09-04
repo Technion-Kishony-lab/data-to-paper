@@ -112,7 +112,7 @@ class DisplayitemsDebuggerConverser(DebuggerConverser):
                 category='Missing output files',
                 issue=f"You did not create a tex file for the following tables: {missing_tex_files}",
                 instructions=f"Please create a tex file for each table.",
-                code_problem=CodeProblem.OutputFileContentLevelA,
+                code_problem=CodeProblem.OutputFileCallingSyntax,
             )]
         return super()._get_issues_for_created_output_files(code_and_output, contexts)
 

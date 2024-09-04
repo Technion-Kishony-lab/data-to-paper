@@ -190,7 +190,7 @@ class DataAnalysisDebuggerConverser(DebuggerConverser):
                 issue='We are presenting results for a statistical-testing paper, but no p-values are reported in '
                       'any of the created files.',
                 instructions='Please revise the code to perform statistical tests and report p-values in the tables.',
-                code_problem=CodeProblem.OutputFileContentLevelA,
+                code_problem=CodeProblem.OutputFileContentA,
             ))
         if issues:
             return issues
@@ -210,7 +210,7 @@ class DataAnalysisDebuggerConverser(DebuggerConverser):
                     instructions='Please make sure all saved tables have a header comment with the table name.\n'
                                  'If you are creating multiple tables in the same section of the code, '
                                  'you should precede this section with a separate comment for each of the tables.',
-                    code_problem=CodeProblem.OutputFileContentLevelA,
+                    code_problem=CodeProblem.OutputFileAnnotation,
                 ))
         return issues
 

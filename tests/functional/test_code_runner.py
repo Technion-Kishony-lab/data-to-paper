@@ -153,7 +153,7 @@ time.sleep(40)
 
 timeout_sec = 3
 
-# TODO: works ok for some of the log run cases, but not for all (see disabled cases below)
+# TODO: works ok for some of the long run cases, but not for all (see disabled cases below)
 
 @pytest.mark.parametrize("code, result, is_internal", [
                          # (code_multi_process_gipc, []),

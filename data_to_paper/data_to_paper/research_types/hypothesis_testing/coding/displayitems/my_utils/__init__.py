@@ -1,7 +1,4 @@
-"""
-Contains functions that can be imported and used by LLM-writen code.
-The functions in this package are overridden functions that search for issues before running the raw functions.
-"""
+# Utils made available to the LLM code for the display items step
 
 from .df_to_latex import _df_to_latex as df_to_latex
 from .df_to_figure import _df_to_figure as df_to_figure

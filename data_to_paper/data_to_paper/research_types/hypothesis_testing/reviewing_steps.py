@@ -412,7 +412,7 @@ class HypothesesTestingPlanReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPr
 
         # We want explicit hypotheses. Check that the hypotheses have at least 7 words:
         for hypothesis, test in hypotheses.items():
-            if word_count(hypothesis) < 7:
+            if word_count(hypothesis) < 5:
                 self._raise_self_response_error(
                     title='# Hypothesis too short',
                     error_message=f'The hypothesis "{hypothesis}" is too short.\n'

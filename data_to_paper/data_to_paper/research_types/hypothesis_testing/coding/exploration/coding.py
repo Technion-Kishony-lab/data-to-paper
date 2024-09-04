@@ -40,7 +40,7 @@ class EnforceContentOutputFileRequirement(TextContentOutputFileRequirement, Nume
                       f'{NiceList(self.headers_required_in_output, wrap_with="`")}.\n'
                       f'But, these headers are missing: '
                       f'{NiceList(missing_headers, wrap_with="`")}.',
-                code_problem=CodeProblem.OutputFileContentLevelA,
+                code_problem=CodeProblem.OutputFileCallingSyntax,
             ))
 
         return issues

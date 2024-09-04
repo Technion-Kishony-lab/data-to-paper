@@ -23,11 +23,12 @@ class CodeProblem(IndexOrderedEnum):
     SyntaxError = 'Syntax error'
     MissingOutputFiles = 'Missing output files'
     NonBreakingRuntimeIssue = 'Non-breaking runtime issue'
-    OutputFileContentLevelA = 'Output file content level A (specific)'
-    OutputFileContentLevelB = 'Output file content level B (less specific)'
-    OutputFileContentLevelC = 'Output file content level C (general)'
-    OutputFileDesignLevelA = 'Output file design level A (specific)'
-    OutputFileDesignLevelB = 'Output file design level B (general)'
+    OutputFileCallingSyntax = 'Problem in the calling syntax of the output creation func'
+    OutputFileContentA = 'Output file content first check (analysis stage)'
+    OutputFileContinuity = 'Check dependency on previous output'
+    OutputFileContentB = 'Output file content second check (displayitems stage)'
+    OutputFileCompilation = 'Output file failed compilation'
+    OutputFileAnnotation = 'Output file annotation'
     AllOK = 'All OK'
 
     def is_incomplete(self) -> bool:
