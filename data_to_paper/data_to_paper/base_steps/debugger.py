@@ -1,5 +1,3 @@
-import importlib
-
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional, List, Tuple, Union, Type, Dict, Any, Iterable
@@ -10,42 +8,26 @@ from data_to_paper.env import SUPPORTED_PACKAGES, PRINT_DEBUG_COMMENTS, MAX_EXEC
 from data_to_paper.utils import dedent_triple_quote_str, line_count
 from data_to_paper.utils.replacer import format_value
 from data_to_paper.utils.print_to_file import print_and_log
-
+from data_to_paper.utils.text_formatting import wrap_as_block
+from data_to_paper.base_cast import Agent
 from data_to_paper.conversation.message_designation import RangeMessageDesignation
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
-from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue, RunIssues
 from data_to_paper.code_and_output_files.output_file_requirements import BaseContentOutputFileRequirement, \
     OutputFileRequirements
+
+from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue, RunIssues
 from data_to_paper.run_gpt_code.code_runner_wrapper import CodeRunnerWrapper
 from data_to_paper.run_gpt_code.code_utils import FailedExtractingBlock, IncompleteBlockFailedExtractingBlock
 from data_to_paper.run_gpt_code.exceptions import FailedRunningCode, UnAllowedFilesCreated, \
     CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule
 from data_to_paper.interactive import PanelNames, Symbols
-
-from data_to_paper.base_cast import Agent
-from data_to_paper.utils.text_formatting import wrap_as_block
+from data_to_paper.run_gpt_code.known_mis_imports import KNOWN_MIS_IMPORTS
 from data_to_paper.run_gpt_code.base_run_contexts import RunContext
 from data_to_paper.run_gpt_code.code_runner import CodeRunner
 from data_to_paper.run_gpt_code.extract_and_check_code import get_issue_for_use_of_a_forbidden_function, CodeExtractor
 
 from .base_products_conversers import BackgroundProductsConverser
 from .converser import _raise_if_reset
-
-KNOWN_MIS_IMPORTS = {
-    'Mediation': 'statsmodels.stats.mediation',
-}
-
-
-# assert KNOWN_MIS_IMPORTS:
-def _assert_known_mis_imports():
-    for name, module in KNOWN_MIS_IMPORTS.items():
-        try:
-            importlib.import_module(module, name)
-        except ImportError:
-            raise ImportError(f"Wrong imports in KNOWN_MIS_IMPORTS.\nFailed importing {name} from {module}")
-
-
-_assert_known_mis_imports()
 
 
 def _get_description_of_run_error(error: Exception):
@@ -139,11 +121,15 @@ class DebuggerConverser(BackgroundProductsConverser):
             ', '.join(f'"{r.generic_filename}"' for r in requirements)
         )
 
+    def _get_allowed_packages(self, contexts) -> str:
+        import_context = contexts['ModifyImport']
+        return self.supported_packages + import_context.get_custom_imports()
+
     """
     ISSUES
     """
 
-    def _get_issue_for_known_mis_imports(self, error: ImportError) -> Optional[RunIssue]:
+    def _get_issue_for_known_mis_imports(self, error: ImportError, allowed_packages) -> Optional[RunIssue]:
         if not hasattr(error, 'fromlist'):
             return
         if error.fromlist is None:
@@ -162,23 +148,24 @@ class DebuggerConverser(BackgroundProductsConverser):
             category='Importing packages',
             issue=_get_description_of_run_error(error),
             instructions=dedent_triple_quote_str("""
-                Your code should only use these packages: {supported_packages}.
+                Your code should only use these packages: {allowed_packages}.
                 Note that there is a `{var}` in `{known_package}`. Is this perhaps what you needed? 
-                """).format(supported_packages=self.supported_packages, var=var, known_package=KNOWN_MIS_IMPORTS[var]),
+                """).format(allowed_packages=allowed_packages, var=var, known_package=KNOWN_MIS_IMPORTS[var]),
             code_problem=CodeProblem.RuntimeError,
             comment='ImportError detected in gpt code',
         )
 
-    def _get_issue_for_allowed_packages(self, error: ImportError, e: FailedRunningCode = None) -> Optional[RunIssue]:
-        respond_to_known_mis_imports = self._get_issue_for_known_mis_imports(error)
+    def _get_issue_for_allowed_packages(self, error: ImportError, contexts) -> Optional[RunIssue]:
+        allowed_packages = self._get_allowed_packages(contexts)
+        respond_to_known_mis_imports = self._get_issue_for_known_mis_imports(error, allowed_packages)
         if respond_to_known_mis_imports:
             return respond_to_known_mis_imports
         return RunIssue(
             category='Importing packages',
             issue=_get_description_of_run_error(error),
             instructions=dedent_triple_quote_str("""
-                Your code should only use these packages: {supported_packages}.
-                """).format(supported_packages=self.supported_packages),
+                Your code should only use these packages: {allowed_packages}.
+                """).format(allowed_packages=allowed_packages),
             code_problem=CodeProblem.RuntimeError,
             comment='ImportError detected in gpt code',
         )
@@ -566,9 +553,10 @@ class DebuggerConverser(BackgroundProductsConverser):
         if exception is not None:
             if isinstance(exception, RunIssue):
                 run_time_issue = exception
+            elif isinstance(exception, ImportError):
+                run_time_issue = self._get_issue_for_allowed_packages(exception.exception, contexts)
             else:
                 exceptions_to_funcs = {
-                    ImportError: self._get_issue_for_allowed_packages,
                     TimeoutError: self._get_issue_for_timeout,
                     UnAllowedFilesCreated: self._get_issue_for_un_allowed_files_created,
                     FileNotFoundError: self._get_issue_for_file_not_found,
