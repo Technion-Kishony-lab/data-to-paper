@@ -1,3 +1,23 @@
+"""
+All rule-based checks of calls to `df_to_figure` and `df_to_latex` are defined here.
+
+The checks are divided into categories:
+
+For the analysis step:
+1. Syntax checks: checks for correct syntax of the calls to `df_to_figure` and `df_to_latex`.
+2. Content checks (analysis): Check for content of the dataframes created in the analysis step.
+
+For the display-item step, we further add:
+3. Continuity checks: Check that the df are created from the output of the analysis step.
+4. Content checks (display-item): Check for content of the dataframes created in the display-item step.
+5. Compilation checks: Run compilation and check for errors and wide tables.
+6. Annotation checks: Check for annotations (like the labels of the df, and note, glossary, and caption).
+
+
+Note: check methods must start with `check_`.
+"""
+
+
 from dataclasses import dataclass, field
 import numbers
 import re
@@ -15,6 +35,7 @@ from data_to_paper.run_gpt_code.run_contexts import ProvideData
 
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.dataframe import extract_df_row_labels, extract_df_column_labels, extract_df_axes_labels
+from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.utils.numerics import is_lower_eq
 
 from data_to_paper.research_types.hypothesis_testing.env import get_max_rows_and_columns, MAX_BARS
@@ -134,6 +155,26 @@ class BaseDfChecker(BaseChecker):
         else:
             return self.kwargs.get('index', True)
 
+    def get_x_labels(self):
+        if self.is_figure:
+            if self.index:
+                return self.df.index
+            x = self.x
+            if x is None:
+                return np.array(range(self.df.shape[0]))
+            return self.df[x]
+        else:
+            if self.index:
+                return self.df.index
+            # if the index is not used, it is the first column that behaves as the index:
+            return self.df.iloc[:, 0]
+
+    def get_y_labels(self):
+        if self.is_figure:
+            y, _, _, _ = self.get_xy_err_ci_p_value('y', as_list=True)
+            return y
+        return self.df.columns
+
     @property
     def note(self) -> Optional[str]:
         return self.kwargs.get('note', None)
@@ -182,16 +223,23 @@ class BaseDfChecker(BaseChecker):
     def x_p_value(self) -> Optional[str]:
         return self.kwargs.get('x_p_value', None)
 
+    @staticmethod
+    def _convert_to_list(value):
+        if value is None:
+            return []
+        return [value] if isinstance(value, str) else value
+
     def get_xy_err_ci_p_value(self, x_or_y: str, as_list=False):
+
         xy = getattr(self, x_or_y)
         err = getattr(self, f'{x_or_y}err')
         ci = getattr(self, f'{x_or_y}_ci')
         p_value = getattr(self, f'{x_or_y}_p_value')
         if as_list:
-            xy = [xy] if isinstance(xy, str) else xy
-            err = [err] if isinstance(err, str) else err
-            ci = [ci] if isinstance(ci, str) else ci
-            p_value = [p_value] if isinstance(p_value, str) else p_value
+            xy = self._convert_to_list(xy)
+            err = self._convert_to_list(err)
+            ci = self._convert_to_list(ci)
+            p_value = self._convert_to_list(p_value)
         return xy, err, ci, p_value
 
     CHOICE_OF_CHECKS = {}
@@ -845,7 +893,33 @@ class TableCompilationDfContentChecker(CompilationDfContentChecker):
 
 
 @dataclass
-class SecondTableContentChecker(BaseContentDfChecker):
+class SecondContentChecker(BaseContentDfChecker):
+
+    UNWANTED_LABELS = ['intercept']
+
+    def check_for_unwanted_labels_in_x_or_y(self):
+        for xy in ['x', 'y']:
+            labels = self.get_x_labels() if xy == 'x' else self.get_y_labels()
+            unwanted_labels = [label for label in labels if label in self.UNWANTED_LABELS]
+            if unwanted_labels:
+                nice_unwanted_labels = NiceList(unwanted_labels, wrap_with='"')
+                self._append_issue(
+                    category='Atypical choice of data to present',
+                    issue=f'The {self.table_or_figure} includes data of {nice_unwanted_labels}.',
+                    instructions=dedent_triple_quote_str(f"""
+                        Including {nice_unwanted_labels} in a scientific {self.table_or_figure} is not common.
+                        Please consider removing the {nice_unwanted_labels}.
+                        """),
+                    forgive_after=2,
+                )
+
+    CHOICE_OF_CHECKS = BaseContentDfChecker.CHOICE_OF_CHECKS | {
+        check_for_unwanted_labels_in_x_or_y: True,
+    }
+
+
+@dataclass
+class TableSecondContentChecker(SecondContentChecker):
     func_name: str = 'df_to_latex'
 
     def check_for_repetitive_value_in_column(self):
@@ -883,13 +957,13 @@ class SecondTableContentChecker(BaseContentDfChecker):
                             """),
                     )
 
-    CHOICE_OF_CHECKS = BaseDfChecker.CHOICE_OF_CHECKS | {
+    CHOICE_OF_CHECKS = SecondContentChecker.CHOICE_OF_CHECKS | {
         check_for_repetitive_value_in_column: True,
     }
 
 
 @dataclass
-class SecondFigureContentChecker(BaseContentDfChecker):
+class SecondFigureContentChecker(SecondContentChecker):
     func_name: str = 'df_to_figure'
 
     ODDS_RATIO_TERMS_CAPS = [('odds ratio', False), ('OR', True)]
@@ -916,7 +990,7 @@ class SecondFigureContentChecker(BaseContentDfChecker):
                         )
                         break
 
-    CHOICE_OF_CHECKS = BaseDfChecker.CHOICE_OF_CHECKS | {
+    CHOICE_OF_CHECKS = SecondContentChecker.CHOICE_OF_CHECKS | {
         check_log_scale_for_odds_ratios: True,
     }
 
@@ -1151,7 +1225,7 @@ def check_df_to_latex_displayitems(df: pd.DataFrame, filename: str, kwargs) -> R
         TableSyntaxDfChecker,
         TableDfContentChecker,
         ContinuityDfChecker,
-        SecondTableContentChecker,
+        TableSecondContentChecker,
         TableCompilationDfContentChecker,
         AnnotationDfChecker,
     ]
