@@ -354,9 +354,9 @@ class BaseContentDfChecker(BaseDfChecker):
 
 @dataclass
 class DfContentChecker(BaseContentDfChecker):
-    VALUES_CATEGORY = 'Checking df: values'
-    INDEX_COLUMN_CATEGORY = 'Checking df: index/columns'
-    SIZE_CATEGORY = 'Checking df: size'
+    VALUES_CATEGORY = 'Problem with df values'
+    INDEX_COLUMN_CATEGORY = 'Problem with df index/columns'
+    SIZE_CATEGORY = 'Too large df'
 
     def _check_if_df_within_df(self) -> bool:
         for value in self.df.values.flatten():
@@ -525,8 +525,8 @@ class DfContentChecker(BaseContentDfChecker):
 class TableDfContentChecker(DfContentChecker):
     func_name: str = 'df_to_latex'
 
-    OVERLAYING_VALUES_CATEGORY = 'Checking df: Overlapping values'
-    DF_DISPLAY_CATEGORY = 'Checking df: min/max'
+    OVERLAYING_VALUES_CATEGORY = 'Overlapping values'
+    DF_DISPLAY_CATEGORY = 'The df looks like a df.describe() table, not a scientific table'
 
     def check_df_is_a_result_of_describe(self):
         """
@@ -867,7 +867,7 @@ class SecondTableContentChecker(BaseContentDfChecker):
                     pass
                 else:
                     self._append_issue(
-                        category='Checking df: Repetitive values',
+                        category='Same value throughout a column',
                         issue=f'The column "{column_label}" has the same unique value for all rows.',
                         instructions=dedent_triple_quote_str(f"""
                             Please revise the code so that it:

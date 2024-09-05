@@ -207,9 +207,50 @@ class DataAnalysisDebuggerConverser(DebuggerConverser):
                 issues.append(RunIssue(
                     category="Code structure",
                     issue=f'Your code is missing a comment "{df_header}".',
-                    instructions='Please make sure all saved tables have a header comment with the table name.\n'
-                                 'If you are creating multiple tables in the same section of the code, '
-                                 'you should precede this section with a separate comment for each of the tables.',
+                    instructions=dedent_triple_quote_str("""
+                        Please make sure all saved tables/figures have a comment with their chosen tag.
+                        This comment should be placed at the beginning of the section of the code that creates \t
+                        the table/figure. Like this:
+                        
+                        ```python
+                        ...
+                        
+                        ## Table df_tag1:
+                        caption = "..."
+                        ...  # any analysis code related to df_tag1
+                        df_tag1 = ...
+                        df_to_latex(df_tag1, 'df_tag1', caption=caption)
+                        
+                        ## Figure df_tag2:
+                        caption = "..."
+                        ...  # any analysis code related to df_tag2
+                        df_tag2 = ...
+                        df_to_figure(df_tag2, 'df_tag2', caption=caption)
+                        
+                        ...
+                        ```
+                        
+                        If you are creating multiple tables in the same code section, '
+                        you should precede this section with a separate comment for each of the tables.
+                        Like this:
+                        
+                        ```python
+                        ...
+                        
+                        ## Table df_tag1:
+                        caption1 = "..."                        
+                        ## Figure df_tag2:
+                        caption2 = "..."
+                        
+                        ...  # any analysis code related to both df_tag1 and df_tag2
+                        df_tag1 = ...
+                        df_to_latex(df_tag1, 'df_tag1', caption=caption1)
+                        df_tag2 = ...
+                        df_to_figure(df_tag2, 'df_tag2', caption=caption2)
+                        
+                        ...
+                        ```
+                        """),
                     code_problem=CodeProblem.OutputFileAnnotation,
                 ))
         return issues
@@ -460,8 +501,8 @@ class DataAnalysisCodeProductsGPT(BaseTableCodeProductsGPT):
             "The test C > 0": ["OK", "This is a valid test because ..."],
 
             "<Any other issues you find>": ["CONCERN", "<Issue description>"],
-            "<Any other concern you have>": ["CONCERN", "<Issue description>"],
-            <Any other assertion>: ["OK", "<Justification>"],
+            "<Any other assertion>": ["OK", "<Assertion description>"],
+            "etc": ["OK/CONCERN", "..."],
         }
         ```
 
@@ -565,6 +606,10 @@ class DataAnalysisCodeProductsGPT(BaseTableCodeProductsGPT):
             "Measures of uncertainty": ["CONCERN", "CI should be provided as a column of (lower, upper) tuple"],
 
             "Missing data": ["CONCERN", "To fit with our hypothesis testing plan, we should have included ..."], 
+
+            "<Any other issues you find>": ["CONCERN", "<Issue description>"],
+            "<Any other assertion>": ["OK", "<Assertion description>"],
+            "etc": ["OK/CONCERN", "..."],
         }
         ```
 

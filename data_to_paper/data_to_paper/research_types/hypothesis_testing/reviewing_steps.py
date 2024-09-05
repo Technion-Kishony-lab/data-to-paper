@@ -307,7 +307,7 @@ class HypothesesTestingPlanReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPr
         {
             "ISSUES": {
                 "<Issue>": "<Description of the issue and how it should be accounted for>",
-                "<Another issue>": "..."
+                "<Another issue>": "...",
                 "etc": "..."
             }
 

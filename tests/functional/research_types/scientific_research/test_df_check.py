@@ -62,7 +62,8 @@ def test_ChainChecker_transfer_intermediate_results():
             self._append_issue(issue='issue 2')
             self.intermediate_results['result_2'] = 2
 
-    issues, intermediate_results = create_and_run_chain_checker([TestChecker, TestChecker2])
+    issues, intermediate_results = create_and_run_chain_checker([TestChecker, TestChecker2],
+                                                                stop_after_first_issue=False)
     assert len(issues) == 2
     assert intermediate_results == {'result_1': 1, 'result_2': 2}
 
