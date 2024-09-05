@@ -9,16 +9,13 @@ from data_to_paper.run_gpt_code.overrides.pvalue import PValueToStars, convert_p
     pvalue_on_str_for_latex
 from data_to_paper.utils.text_formatting import escape_html
 from data_to_paper.utils.check_type import raise_on_wrong_func_argument_types_decorator
-from data_to_paper.env import FOLDER_FOR_RUN
 
 from .df_plot_with_pvalue import df_plot_with_pvalue, get_description_of_plot_creation
 from .matplotlib_utils import rotate_xticklabels_if_not_numeric, \
     raise_if_numeric_axes_do_not_have_labels
 from .note_and_legend import convert_note_and_glossary_to_html, convert_note_and_glossary_to_latex_figure_caption
 from .utils import convert_to_latex_comment, convert_filename_to_label
-
-# ALLOWED_PLOT_KINDS = ['line', 'scatter', 'bar', 'hist', 'box', 'kde', 'hexbin', 'pie']
-ALLOWED_PLOT_KINDS = ['bar']  # TODO: Add support for more plot kinds
+from .consts import ALLOWED_PLOT_KINDS
 
 
 @raise_on_wrong_func_argument_types_decorator

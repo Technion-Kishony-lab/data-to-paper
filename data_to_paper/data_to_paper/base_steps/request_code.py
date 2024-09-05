@@ -83,7 +83,7 @@ class RequestIssuesToSolutions(PythonDictReviewBackgroundProductsConverser):
             if type_ not in ('CONCERN', 'OK'):
                 self._raise_self_response_error(
                     title='# Invalid value.',
-                    error_message=f'The first element of the array should be "CONCERN" or "OK", but got "{type_}".'
+                    error_message=f'The first element of the array should be "CONCERN" or "OK", but got {repr(type_)}.'
                 )
             response_value[key] = (type_, feedback)
         return response_value

@@ -11,9 +11,7 @@ from data_to_paper.code_and_output_files.output_file_requirements import \
     OutputFileRequirements, PickleContentOutputFileRequirement, DataOutputFileRequirement
 from data_to_paper.code_and_output_files.referencable_text import LabeledNumericReferenceableText, \
     convert_str_to_latex_label
-from data_to_paper.llm_coding_utils.describe import describe_df
-from data_to_paper.llm_coding_utils.df_to_figure import df_to_figure
-from data_to_paper.llm_coding_utils.df_to_latex import df_to_latex
+from data_to_paper.llm_coding_utils import describe_df,  df_to_figure, df_to_latex
 from data_to_paper.research_types.hypothesis_testing.cast import ScientificAgent
 from data_to_paper.research_types.hypothesis_testing.check_df_to_funcs.df_checker import check_df_to_figure_analysis, \
     check_df_to_latex_analysis
@@ -249,43 +247,43 @@ class DataAnalysisDebuggerConverser(DebuggerConverser):
                         Please make sure all saved tables/figures have a comment with their chosen tag.
                         This comment should be placed at the beginning of the section of the code that creates \t
                         the table/figure. Like this:
-                        
+
                         ```python
                         ...
-                        
+
                         ## Table df_tag1:
                         caption = "..."
                         ...  # any analysis code related to df_tag1
                         df_tag1 = ...
                         df_to_latex(df_tag1, 'df_tag1', caption=caption)
-                        
+
                         ## Figure df_tag2:
                         caption = "..."
                         ...  # any analysis code related to df_tag2
                         df_tag2 = ...
                         df_to_figure(df_tag2, 'df_tag2', caption=caption)
-                        
+
                         ...
                         ```
-                        
+
                         If you are creating multiple tables in the same code section, '
                         you should precede this section with a separate comment for each of the tables.
                         Like this:
-                        
+
                         ```python
                         ...
-                        
+
                         ## Table df_tag1:
                         caption1 = "..."                        
                         ## Figure df_tag2:
                         caption2 = "..."
-                        
+
                         ...  # any analysis code related to both df_tag1 and df_tag2
                         df_tag1 = ...
                         df_to_latex(df_tag1, 'df_tag1', caption=caption1)
                         df_tag2 = ...
                         df_to_figure(df_tag2, 'df_tag2', caption=caption2)
-                        
+
                         ...
                         ```
                         """),

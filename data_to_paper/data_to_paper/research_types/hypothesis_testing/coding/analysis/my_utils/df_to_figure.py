@@ -1,6 +1,6 @@
 import pandas as pd
 
-from data_to_paper.llm_coding_utils.df_to_figure import df_to_figure
+from data_to_paper.llm_coding_utils import df_to_figure
 from data_to_paper.research_types.hypothesis_testing.env import get_max_rows_and_columns
 from data_to_paper.run_gpt_code.overrides.dataframes.df_with_attrs import save_as_list_info_df
 

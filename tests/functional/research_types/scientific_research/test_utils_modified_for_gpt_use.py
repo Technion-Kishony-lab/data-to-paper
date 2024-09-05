@@ -61,8 +61,10 @@ def test_check_df_of_table_for_content_issues_with_repeated_value_in_prior_table
 
 
 def test_check_df_of_table_for_header_issues(df):
-    df.columns = [('a', 'b'), 'x']
+    class MyClass:
+        pass
+    df.columns = [MyClass(), 'x']
     issues = FigureDfContentChecker(df=df, filename='df_tag',
                                     kwargs={'y': ['x']}).run_checks()[0]
     assert len(issues) == 1
-    assert 'tuple' in issues[0].issue
+    assert 'MyClass' in issues[0].issue

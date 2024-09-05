@@ -12,7 +12,7 @@ from data_to_paper.exceptions import TerminateException
 from data_to_paper.interactive import HumanAction, BaseApp
 from data_to_paper.env import LLM_MODELS_TO_API_KEYS_AND_BASE_URL, CHOSEN_APP, \
     FAKE_REQUEST_HUMAN_RESPONSE_ON_PLAYBACK, SHOW_LLM_CONTEXT
-from data_to_paper.utils.print_to_file import print_and_log_red, print_and_log
+from data_to_paper.utils.print_to_file import print_and_log_red
 from data_to_paper.utils.serialize import SerializableValue, deserialize_serializable_value
 from data_to_paper.utils.text_formatting import dedent_triple_quote_str
 from data_to_paper.conversation.stage import Stage, delete_all_stages_following_stage

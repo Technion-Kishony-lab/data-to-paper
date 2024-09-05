@@ -1,7 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Type
 
-from data_to_paper.env import FOLDER_FOR_RUN
 from data_to_paper.base_steps import DirectorProductGPT, CheckLatexCompilation, DataStepRunner
 
 from .app_startup import HypothesisTestingStartDialog

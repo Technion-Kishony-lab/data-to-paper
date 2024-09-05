@@ -5,13 +5,13 @@ import pandas as pd
 from pathlib import Path
 
 from data_to_paper.latex.clean_latex import process_latex_text_and_math
-from data_to_paper.llm_coding_utils.describe import df_to_numerically_labeled_latex
-from data_to_paper.llm_coding_utils.note_and_legend import convert_note_and_glossary_to_latex_table_caption, \
-    convert_note_and_glossary_to_html
 from data_to_paper.run_gpt_code.overrides.dataframes.utils import df_to_html_with_value_format
 from data_to_paper.run_gpt_code.overrides.pvalue import pvalue_on_str_for_latex
 from data_to_paper.utils.check_type import raise_on_wrong_func_argument_types_decorator
 
+from .describe import df_to_numerically_labeled_latex
+from .note_and_legend import convert_note_and_glossary_to_latex_table_caption, \
+    convert_note_and_glossary_to_html
 from .utils import convert_filename_to_label
 
 THREEPARTTABLE = r"""\begin{table}[htbp]

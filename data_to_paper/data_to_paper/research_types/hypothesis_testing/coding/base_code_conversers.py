@@ -4,7 +4,7 @@ from typing import Tuple, Optional
 
 from data_to_paper.base_steps import BaseCodeProductsGPT
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
-from data_to_paper.llm_coding_utils.df_to_figure import ALLOWED_PLOT_KINDS
+from data_to_paper.llm_coding_utils import ALLOWED_PLOT_KINDS
 from data_to_paper.research_types.hypothesis_testing.cast import ScientificAgent
 from data_to_paper.research_types.hypothesis_testing.scientific_products import ScientificProducts, get_code_name, \
     get_code_agent

@@ -19,7 +19,6 @@ Note: check methods must start with `check_`.
 
 
 from dataclasses import dataclass, field
-import numbers
 import re
 from typing import Dict, Union, Optional, List, Any, Tuple, Type, ClassVar, Callable
 
@@ -27,8 +26,7 @@ import numpy as np
 import pandas as pd
 
 from data_to_paper.env import PRINT_DEBUG_COMMENTS
-from data_to_paper.llm_coding_utils.df_to_figure import ALLOWED_PLOT_KINDS
-from data_to_paper.llm_coding_utils.df_to_latex import df_to_latex
+from data_to_paper.llm_coding_utils import df_to_latex, df_to_figure, ALLOWED_PLOT_KINDS, DF_ALLOWED_TYPES
 from data_to_paper.run_gpt_code.base_run_contexts import RegisteredRunContext
 from data_to_paper.run_gpt_code.overrides.dataframes.df_with_attrs import ListInfoDataFrame
 from data_to_paper.run_gpt_code.run_contexts import ProvideData
@@ -143,6 +141,10 @@ class BaseDfChecker(BaseChecker):
     @property
     def is_figure(self):
         return self.func_name == 'df_to_figure'
+
+    @property
+    def func(self):
+        return df_to_figure if self.is_figure else df_to_latex
 
     @property
     def table_or_figure(self):
@@ -377,8 +379,8 @@ class BaseContentDfChecker(BaseDfChecker):
 
     prior_dfs: Dict[str, pd.DataFrame] = field(default_factory=dict)
 
-    ALLOWED_VALUE_TYPES = (numbers.Number, str, bool, tuple, PValue)
-    ALLOWED_COLUMN_AND_INDEX_TYPES = {'columns': (int, str, bool), 'index': (int, str, bool)}
+    ALLOWED_VALUE_TYPES = DF_ALLOWED_TYPES + (PValue, )
+    ALLOWED_COLUMN_AND_INDEX_TYPES = {'columns': DF_ALLOWED_TYPES, 'index': DF_ALLOWED_TYPES}
     ALLOW_MULTI_INDEX_FOR_COLUMN_AND_INDEX = {'columns': True, 'index': True}
 
     DEFAULT_CATEGORY = 'Checking content of created dfs'
@@ -562,7 +564,7 @@ class TableDfContentChecker(DfContentChecker):
                 instructions=dedent_triple_quote_str(f"""
                     Please revise the code making sure the figure is built with an index that represents meaningful \t
                     numeric data. Or, for categorical data, the index should be a list of strings.
-                    
+
                     Note: labeling row with sequential numbers is not common in scientific tables. \t
                     But, if you are sure that starting each row with a sequential number is really what you want, \t
                     then convert it from int to strings, so that it is clear that it is not a mistake.
@@ -656,7 +658,6 @@ class TableDfContentChecker(DfContentChecker):
 @dataclass
 class FigureDfContentChecker(DfContentChecker):
     func_name: str = 'df_to_figure'
-    ALLOWED_COLUMN_AND_INDEX_TYPES = {'columns': (str,), 'index': (int, str, bool, float)}
     ALLOW_MULTI_INDEX_FOR_COLUMN_AND_INDEX = {'columns': False, 'index': False}
 
     DEFAULT_CATEGORY = 'Checking figure'

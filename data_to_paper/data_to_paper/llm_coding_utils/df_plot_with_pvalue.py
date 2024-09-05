@@ -12,6 +12,7 @@ from data_to_paper.utils.highlighted_text import text_to_html
 from data_to_paper.utils.numerics import is_lower_eq
 
 from data_to_paper.run_gpt_code.overrides.pvalue import PValueToStars, OnStr, OnStrPValue
+from .consts import DfAllowedTyping
 from .describe import describe_value, describe_df
 from .matplotlib_utils import get_xy_coordinates_of_df_plot, \
     replace_singleton_legend_with_axis_label, add_grid_line_at_base_if_needed, rotate_xticklabels_if_not_numeric
@@ -27,31 +28,46 @@ RC_PARAMS = {
 }
 
 NoneType = type(None)
-ColumnChoice = Union[str, NoneType, List[str]]
-ColumnChoiceWithPairs = Union[str, NoneType, List[str], Tuple[str, str], List[Tuple[str, str]]]
+ColumnChoice = Union[DfAllowedTyping, NoneType, List[DfAllowedTyping]]
+ColumnChoiceWithPairs = Union[DfAllowedTyping, NoneType, List[DfAllowedTyping],
+    Tuple[DfAllowedTyping, DfAllowedTyping], List[Tuple[DfAllowedTyping, DfAllowedTyping]]]
 
 
 example_plotting = dedent_triple_quote_str("""
     Example of proper use of the `df_to_figure`:
 
+    # Example 1: ci as (low, high) tuples
     df = pd.DataFrame({
         'apple': [1, 2, 3],
         'banana': [4, 5, 6],
         'apple_ci': [(0.9, 1.1), (1.8, 2.2), (2.7, 3.3)],
-        'banana_ci_low': [3.9, 4.8, 5.7],
-        'banana_ci_high': [4.1, 5.2, 6.3],
+        'banana_ci': [(3.9, 4.1), (4.8, 5.2), (5.7, 6.3)],
         'apple_p_value': [0.1, 0.05, 0.001],
         'banana_p_value': [0.1, 0.05, 0.001],
     })
+    
+    df_to_figure(df, 'example1', kind='bar', y=['apple', 'banana'], 
+        y_ci=['apple_ci', 'banana_ci'],
+        y_p_value=['apple_p_value', 'banana_p_value']
+    )
+        
+    # Example 2: ci as two separate columns
+    df = pd.DataFrame({
+        'apple': [1, 2, 3],
+        'banana': [4, 5, 6],
+        'apple_low': [0.9, 1.8, 2.7],
+        'apple_high': [1.1, 2.2, 3.3],
+        'banana_low': [3.9, 4.8, 5.7],
+        'banana_high': [4.1, 5.2, 6.3],
+        'apple_p_value': [0.1, 0.05, 0.001],
+        'banana_p_value': [0.1, 0.05, 0.001],
+    })
+    
+    df_to_figure(df, 'example2', kind='bar', y=['apple', 'banana'], 
+        y_ci=[('apple_low', 'apple_high'), ('banana_low', 'banana_high')], 
+        y_p_value=['apple_p_value', 'banana_p_value']
+    )
 
-    # Example 1: single y column
-    df_to_figure(df, 'example', y='apple', y_ci='apple_ci', y_p_value='apple_p_value')
-
-    # Example 2: multiple y columns
-    df_to_figure(df, 'example', 
-        y=['apple', 'banana'],
-        y_ci=['apple_ci', ('banana_ci_low', 'banana_ci_high')],
-        y_p_value=['apple_p_value', 'banana_p_value'])
     """)
 
 
@@ -193,7 +209,7 @@ def df_plot_with_legend(df: DataFrame, x: Optional[str] = None, y: ColumnChoice 
 @raise_on_wrong_func_argument_types_decorator
 def df_plot_with_pvalue(df: DataFrame, x: Optional[str] = None, y: ColumnChoice = None,
                         kind: str = 'bar', ax: Optional[plt.Axes] = None,
-                        xerr: Optional[str] = None, yerr: ColumnChoiceWithPairs = None,
+                        xerr: Optional[DfAllowedTyping] = None, yerr: ColumnChoiceWithPairs = None,
                         y_ci: ColumnChoiceWithPairs = None,
                         y_p_value: ColumnChoice = None,
                         **kwargs):

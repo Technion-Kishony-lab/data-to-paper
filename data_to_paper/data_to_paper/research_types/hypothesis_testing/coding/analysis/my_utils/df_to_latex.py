@@ -1,6 +1,5 @@
 import pandas as pd
 
-from data_to_paper.llm_coding_utils.df_to_latex import df_to_latex
 from data_to_paper.run_gpt_code.overrides.dataframes.df_with_attrs import save_as_list_info_df
 
 from data_to_paper.utils.check_type import raise_on_wrong_func_argument_types
