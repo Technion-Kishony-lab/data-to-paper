@@ -15,6 +15,8 @@ from data_to_paper.llm_coding_utils.describe import describe_df
 from data_to_paper.llm_coding_utils.df_to_figure import df_to_figure
 from data_to_paper.llm_coding_utils.df_to_latex import df_to_latex
 from data_to_paper.research_types.hypothesis_testing.cast import ScientificAgent
+from data_to_paper.research_types.hypothesis_testing.check_df_to_funcs.df_checker import check_df_to_figure_analysis, \
+    check_df_to_latex_analysis
 from data_to_paper.research_types.hypothesis_testing.env import get_max_rows_and_columns
 from data_to_paper.run_gpt_code.code_runner import CodeRunner
 from data_to_paper.run_gpt_code.overrides.dataframes.df_with_attrs import ListInfoDataFrame
@@ -105,9 +107,35 @@ class BaseDataFramePickleContentOutputFileRequirement(PickleContentOutputFileReq
             return convert_str_to_latex_label(source_file, prefix='file')
         return super().get_hyperlink_label_for_file_header(filename, content)
 
+    def get_issues_for_output_file_content(self, filename: str, content: Any) -> List[RunIssue]:
+        issues = super().get_issues_for_output_file_content(filename, content)
+        func, args, kwargs = self._get_func_args_kwargs(content)
+        file_stem = args[1]
+        assert file_stem == filename.split('.')[0]
+        if self._is_figure(content):
+            issues.extend(self._check_df_to_figure(content, file_stem, kwargs))
+        else:
+            issues.extend(self._check_df_to_latex(content, file_stem, kwargs))
+        return issues
+
+    @staticmethod
+    def _check_df_to_figure(content, file_stem, kwargs):
+        return []
+
+    @staticmethod
+    def _check_df_to_latex(content, file_stem, kwargs):
+        return []
+
 
 @dataclass(frozen=True)
 class DataFramePickleContentOutputFileRequirement(BaseDataFramePickleContentOutputFileRequirement):
+    @staticmethod
+    def _check_df_to_figure(content, file_stem, kwargs):
+        return check_df_to_figure_analysis(content, file_stem, kwargs)
+
+    @staticmethod
+    def _check_df_to_latex(content, file_stem, kwargs):
+        return check_df_to_latex_analysis(content, file_stem, kwargs)
 
     def _get_content_and_header_for_final_appendix(
             self, content: Any, filename: str = None, num_file: int = 0, level: int = 3,
@@ -181,6 +209,15 @@ class DataAnalysisDebuggerConverser(DebuggerConverser):
         Check that a PValue instance appear in at least one of the created tables.
         """
         issues = super()._get_issues_for_created_output_files(code_and_output, contexts)
+        if issues:
+            return issues
+        issues = self.get_issues_for_missing_p_values(code_and_output)
+        if issues:
+            return issues
+        return self._get_issues_for_df_comments(code_and_output, contexts)
+
+    def get_issues_for_missing_p_values(self, code_and_output: CodeAndOutput) -> List[RunIssue]:
+        issues = []
         any_pvalues = False
         for names_to_contents in code_and_output.created_files.values():
             for content in names_to_contents.values():
@@ -195,9 +232,7 @@ class DataAnalysisDebuggerConverser(DebuggerConverser):
                 instructions='Please revise the code to perform statistical tests and report p-values in the tables.',
                 code_problem=CodeProblem.OutputFileContentA,
             ))
-        if issues:
-            return issues
-        return self._get_issues_for_df_comments(code_and_output, contexts)
+        return issues
 
     def _get_issues_for_df_comments(self, code_and_output: CodeAndOutput, contexts) -> List[RunIssue]:
         issues = []

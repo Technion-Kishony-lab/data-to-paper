@@ -18,11 +18,12 @@ from data_to_paper.research_types.hypothesis_testing.scientific_products import 
 from data_to_paper.run_gpt_code.attr_replacers import PreventAssignmentToAttrs, PreventCalling, AttrReplacer
 from data_to_paper.run_gpt_code.code_runner import CodeRunner
 from data_to_paper.run_gpt_code.overrides.pvalue import PValue, OnStr, OnStrPValue
-from data_to_paper.run_gpt_code.run_contexts import ProvideData
+from data_to_paper.run_gpt_code.run_contexts import ProvideData, IssueCollector
 from data_to_paper.run_gpt_code.run_issues import RunIssue, CodeProblem
 from data_to_paper.utils import dedent_triple_quote_str
 
-from ..analysis.coding import BaseDataFramePickleContentOutputFileRequirement
+from ..analysis.coding import BaseDataFramePickleContentOutputFileRequirement, DataAnalysisDebuggerConverser
+from ...check_df_to_funcs.df_checker import check_df_to_figure_displayitems, check_df_to_latex_displayitems
 
 
 @dataclass
@@ -42,6 +43,14 @@ class DataframePreventAssignmentToAttrs(PreventAssignmentToAttrs):
 @dataclass(frozen=True)
 class TexDisplayitemContentOutputFileRequirement(BaseDataFramePickleContentOutputFileRequirement):
     hypertarget_prefixes: Optional[Tuple[str]] = HypertargetPrefix.LATEX_TABLES.value
+
+    @staticmethod
+    def _check_df_to_figure(content, file_stem, kwargs):
+        return check_df_to_figure_displayitems(content, file_stem, kwargs)
+
+    @staticmethod
+    def _check_df_to_latex(content, file_stem, kwargs):
+        return check_df_to_latex_displayitems(content, file_stem, kwargs)
 
     def _convert_view_purpose_to_pvalue_on_str(self, view_purpose: ViewPurpose) -> OnStr:
         return OnStr.SMALLER_THAN
@@ -99,10 +108,10 @@ class UtilsCodeRunner(CodeRunner):
 
 
 @dataclass
-class DisplayitemsDebuggerConverser(DebuggerConverser):
+class DisplayitemsDebuggerConverser(DataAnalysisDebuggerConverser):
     products: ScientificProducts = None
 
-    def _get_issues_for_created_output_files(self, code_and_output: CodeAndOutput, contexts) -> List[RunIssue]:
+    def _get_issues_for_missing_dfs(self, code_and_output: CodeAndOutput) -> List[RunIssue]:
         created_pkl_df_files = self.products.get_created_dfs()
         required_tex_files = [file.replace('.pkl', '.tex') for file in created_pkl_df_files]
         created_tex_files = code_and_output.created_files.get_created_content_files()
@@ -114,7 +123,16 @@ class DisplayitemsDebuggerConverser(DebuggerConverser):
                 instructions=f"Please create a tex file for each table.",
                 code_problem=CodeProblem.OutputFileCallingSyntax,
             )]
-        return super()._get_issues_for_created_output_files(code_and_output, contexts)
+        return []
+
+    def _get_issues_for_created_output_files(self, code_and_output: CodeAndOutput, contexts) -> List[RunIssue]:
+        issues = super()._get_issues_for_created_output_files(code_and_output, contexts)
+        if issues:
+            return issues
+        return self._get_issues_for_missing_dfs(code_and_output)
+
+    def _get_issues_for_df_comments(self, code_and_output: CodeAndOutput, contexts) -> List[RunIssue]:
+        return []  # TODO: Implement this method
 
 
 @dataclass
