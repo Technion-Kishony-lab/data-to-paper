@@ -119,7 +119,7 @@ def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_dir
     latex_file_name = file_stem + '.tex'
     pdflatex_params = ['pdflatex', '--shell-escape', '-interaction=nonstopmode', latex_file_name]
     with run_in_temp_directory():
-        # Copy the figures from the running directory to the temp directory:
+        # Copy the figures from the output directory to the temp directory:
         if figures_folder is not None:
             png_files_in_running_directory = [f for f in figures_folder.glob('*.png') if f.is_file()]
             for png_file in png_files_in_running_directory:

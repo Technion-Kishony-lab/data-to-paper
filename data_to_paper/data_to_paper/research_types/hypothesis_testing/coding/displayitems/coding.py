@@ -138,9 +138,14 @@ class CreateDisplayitemsCodeProductsGPT(BaseTableCodeProductsGPT, CheckLatexComp
          'created_files_content:data_analysis:df_*.pkl')
     allow_data_files_from_sections: Tuple[Optional[str]] = ('data_analysis', )
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'my_utils')
-    output_file_requirements: OutputFileRequirements = OutputFileRequirements([
-        TexDisplayitemContentOutputFileRequirement('df_*_formatted.pkl', minimal_count=1),
-        DataOutputFileRequirement('df_*_formatted.png', minimal_count=0, should_make_available_for_next_steps=False)])
+
+    def _create_output_file_requirements(self) -> OutputFileRequirements:
+        return OutputFileRequirements([
+            TexDisplayitemContentOutputFileRequirement('df_*_formatted.pkl', minimal_count=1,
+                                                       figure_folder=self.output_directory),
+            DataOutputFileRequirement('df_*_formatted.png', minimal_count=0,
+                                      folder_to_move_to=self.output_directory,
+                                      should_make_available_for_next_steps=False)])
 
     provided_code: str = dedent_triple_quote_str('''
         {df_to_latex_doc}

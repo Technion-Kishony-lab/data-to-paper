@@ -16,8 +16,6 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT):
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, 'data_exploration', )
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'imblearn')
 
-    output_file_requirements: OutputFileRequirements = OutputFileRequirements([DataOutputFileRequirement('*.csv')])
-
     mission_prompt: str = dedent_triple_quote_str("""
         As part of a data-preprocessing phase, please write a complete short Python code for getting a \t
         cleaned, normalized, same-unit, balanced version of the data, ready for use in following analysis \t
@@ -45,6 +43,9 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT):
         Do not provide a sketch or pseudocode; write a complete runnable code.
         Do not create any graphics, figures or any plots.
         """)
+
+    def _create_output_file_requirements(self) -> OutputFileRequirements:
+        return OutputFileRequirements([DataOutputFileRequirement('*.csv')])
 
     def _get_additional_contexts(self) -> Dict[str, Any]:
         return create_pandas_and_stats_contexts(allow_dataframes_to_change_existing_series=False,

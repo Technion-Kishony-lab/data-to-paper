@@ -33,9 +33,6 @@ class DemoCodeProductsGPT(BaseCodeProductsGPT):
     def data_folder(self) -> Optional[Path]:
         return Path(self.products.data_file_descriptions.data_folder)
 
-    output_file_requirements: OutputFileRequirements = \
-        OutputFileRequirements([TextContentOutputFileRequirement('output.txt')])
-
     supported_packages: Tuple[str, ...] = ('numpy', )
 
     mission_prompt: str = dedent_triple_quote_str("""
@@ -47,3 +44,6 @@ class DemoCodeProductsGPT(BaseCodeProductsGPT):
         If needed, you can use the following packages which are already installed:
         {supported_packages}
         """)
+
+    def _create_output_file_requirements(self) -> OutputFileRequirements:
+        return OutputFileRequirements([TextContentOutputFileRequirement('output.txt')])

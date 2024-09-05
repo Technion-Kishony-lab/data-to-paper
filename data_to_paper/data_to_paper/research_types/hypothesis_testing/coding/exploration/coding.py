@@ -57,10 +57,10 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
     user_agent: ScientificAgent = ScientificAgent.DataExplorer
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, )
 
-    output_file_requirements: OutputFileRequirements = \
-        OutputFileRequirements([EnforceContentOutputFileRequirement('data_exploration.txt')])
-
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy')
+
+    def _create_output_file_requirements(self) -> OutputFileRequirements:
+        return OutputFileRequirements([EnforceContentOutputFileRequirement('data_exploration.txt')])
 
     @property
     def output_filename(self) -> str:

@@ -47,6 +47,11 @@ class OutputFileRequirement:
     minimal_count: int
     should_keep_file: bool = NotImplemented
     should_make_available_for_next_steps: bool = True
+    folder_to_move_to: Optional[Path] = None
+
+    def move_to_destination_folder_if_needed(self, file_path: str):
+        if self.folder_to_move_to:
+            os.rename(file_path, self.folder_to_move_to / os.path.basename(file_path))
 
     def is_wildcard(self):
         return '*' in self.generic_filename or '?' in self.generic_filename
@@ -382,13 +387,6 @@ class OutputFileRequirementsToFileToContent(Dict[OutputFileRequirement, Dict[str
         """
         return [filename for filenames_to_contents in self.values() for filename in filenames_to_contents.keys()]
 
-    def get_all_created_and_undeleted_files(self) -> List[str]:
-        """
-        Return the names of all the files created by the run, and which were kept, not deleted.
-        """
-        return [filename for requirement, files_to_contents in self.items()
-                for filename in files_to_contents.keys() if requirement.should_keep_file]
-
     def get_created_files_available_for_next_steps(self) -> List[str]:
         """
         Return the names of the files created by the run, and which should be made available for the next steps.
@@ -430,6 +428,12 @@ class OutputFileRequirementsToFileToContent(Dict[OutputFileRequirement, Dict[str
         Return the names of the files created by the run, and which were kept, not deleted.
         """
         return list(self.get_created_files_to_requirements_and_contents(match_filename, is_content=False).keys())
+
+    def move_to_destination_folders_if_needed(self, run_folder: Optional[Path] = None):
+        for requirement, files_to_contents in self.items():
+            for filename in files_to_contents.keys():
+                filepath = run_folder / filename if run_folder else filename
+                requirement.move_to_destination_folder_if_needed(filepath)
 
     def delete_all_created_files(self, run_folder: Optional[Path] = None):
         """

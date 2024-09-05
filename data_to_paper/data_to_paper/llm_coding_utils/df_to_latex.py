@@ -2,6 +2,7 @@ import re
 from typing import Optional, Dict
 
 import pandas as pd
+from pathlib import Path
 
 from data_to_paper.latex.clean_latex import process_latex_text_and_math
 from data_to_paper.llm_coding_utils.describe import df_to_numerically_labeled_latex
@@ -65,6 +66,7 @@ def df_to_latex(df: pd.DataFrame, filename: Optional[str],
                 glossary: Optional[Dict[str, str]] = None,
                 is_wide: bool = True,
                 is_html: Optional[bool] = False,
+                figure_folder: Optional[Path] = None,  # needed for compatibility with df_to_figure
                 should_format: bool = False,
                 **kwargs):
     """

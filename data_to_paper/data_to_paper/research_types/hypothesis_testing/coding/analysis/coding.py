@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import Tuple, List, Optional, Dict, Any, Type, Collection
 
+from pathlib import Path
+
 from data_to_paper.base_steps import DebuggerConverser
 from data_to_paper.base_steps.request_code import CodeReviewPrompt
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
@@ -32,6 +34,7 @@ from data_to_paper.utils.nice_list import NiceDict
 @dataclass(frozen=True)
 class BaseDataFramePickleContentOutputFileRequirement(PickleContentOutputFileRequirement):
     referenceable_text_cls: type = LabeledNumericReferenceableText
+    figure_folder: Optional[Path] = None
 
     def _get_func_args_kwargs(self, content: ListInfoDataFrame) -> Tuple:
         func_name, df, filename, kwargs = content.extra_info[-1]
@@ -79,7 +82,7 @@ class BaseDataFramePickleContentOutputFileRequirement(PickleContentOutputFileReq
             view_purpose: ViewPurpose = ViewPurpose.APP_HTML):
         func, args, kwargs = self._get_func_args_kwargs(content)
         with OnStrPValue(self._convert_view_purpose_to_pvalue_on_str(view_purpose)):
-            html = func(*args, **kwargs, is_html=True)
+            html = func(*args, **kwargs, is_html=True, figure_folder=self.figure_folder)
         return html, f'<h{level}>{filename}</h{level}>'
 
     def get_code_line_str_for_file(self, filename: str, content: Optional[ListInfoDataFrame] = None) -> Optional[str]:
@@ -291,12 +294,14 @@ class DataAnalysisCodeProductsGPT(BaseTableCodeProductsGPT):
 
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'statsmodels', 'sklearn', 'pickle')
 
-    output_file_requirements: OutputFileRequirements = OutputFileRequirements(
-        [DataFramePickleContentOutputFileRequirement('df_*.pkl', 1),
-         DataOutputFileRequirement('df_*.png', 0, should_make_available_for_next_steps=False),
-         DictPickleContentOutputFileRequirement('additional_results.pkl', 1,
-                                                hypertarget_prefixes=HypertargetPrefix.ADDITIONAL_RESULTS.value)
-         ])
+    def _create_output_file_requirements(self) -> OutputFileRequirements:
+        return OutputFileRequirements(
+            [DataFramePickleContentOutputFileRequirement('df_*.pkl', 1, figure_folder=self.output_directory),
+             DataOutputFileRequirement('df_*.png', 0, should_make_available_for_next_steps=False,
+                                       folder_to_move_to=self.output_directory),
+             DictPickleContentOutputFileRequirement('additional_results.pkl', 1,
+                                                    hypertarget_prefixes=HypertargetPrefix.ADDITIONAL_RESULTS.value)
+             ])
 
     provided_code: str = dedent_triple_quote_str('''
             {df_to_latex_doc}

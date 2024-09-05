@@ -1,7 +1,8 @@
-from typing import Optional, Dict, Tuple
+from typing import Optional, Dict, Tuple, Union
 
 import pandas as pd
 from matplotlib import pyplot as plt
+from pathlib import Path
 
 from data_to_paper.latex.clean_latex import process_latex_text_and_math, replace_special_latex_chars
 from data_to_paper.run_gpt_code.overrides.pvalue import PValueToStars, convert_p_values_to_floats, \
@@ -29,6 +30,7 @@ def df_to_figure(df: pd.DataFrame, filename: Optional[str],
                  save_fig: bool = True,
                  raise_formatting_errors: bool = True,
                  is_html: bool = False,
+                 figure_folder: Optional[Path] = None,
                  should_format: bool = False,
                  max_rows_and_columns_to_show: Tuple[Optional[int], Optional[int]] = (None, None),
                  **kwargs):
@@ -73,7 +75,8 @@ def df_to_figure(df: pd.DataFrame, filename: Optional[str],
         description = get_description_of_plot_creation(df, fig_filename, kwargs, is_html=True,
                                                        should_format=should_format,
                                                        max_rows_and_columns_to_show=max_rows_and_columns_to_show)
-        s = get_figure_and_caption_as_html(fig_filename, caption_note_and_glossary.strip())
+        figure_path = figure_folder / fig_filename if figure_folder else fig_filename
+        s = get_figure_and_caption_as_html(figure_path, caption_note_and_glossary.strip())
         s += description
     else:
         note_and_glossary = convert_note_and_glossary_to_latex_figure_caption(df, note, glossary, index)
@@ -103,7 +106,7 @@ def get_figure_and_caption_as_latex(filename: str, caption: str, label: str) -> 
     return latex.strip()
 
 
-def get_figure_and_caption_as_html(filename: str, caption: str, width: int = None):
+def get_figure_and_caption_as_html(filepath: Union[str, Path], caption: str, width: int = None):
     """
     Save a figure with a caption and label.
     """
@@ -113,7 +116,7 @@ def get_figure_and_caption_as_html(filename: str, caption: str, width: int = Non
         width_str = f'width="{width}"'
     html = f"""
         <div>
-        <img src="{FOLDER_FOR_RUN / filename}" alt="{caption}" {width_str} />
+        <img src="{filepath}" alt="{caption}" {width_str} />
         <p>{caption}</p>
         </div>
     """

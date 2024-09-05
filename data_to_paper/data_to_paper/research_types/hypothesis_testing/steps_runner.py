@@ -67,7 +67,7 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
             latex_document=self.latex_document,
             output_filename='paper.pdf',
             paper_section_names=PAPER_SECTIONS_NAMES,
-            figures_folder=FOLDER_FOR_RUN,
+            figures_folder=self.output_directory,
         )
 
         self.stages_to_funcs = {

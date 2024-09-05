@@ -550,6 +550,10 @@ class DebuggerConverser(BackgroundProductsConverser):
         issues = multi_context.issues
         contexts = multi_context.contexts
         code_and_output = self._get_code_and_output(code, result, created_files, contexts)
+
+        # move the graphics files to the output folder:
+        code_and_output.created_files.move_to_destination_folders_if_needed(self.data_folder)
+
         if exception is not None:
             if isinstance(exception, RunIssue):
                 run_time_issue = exception

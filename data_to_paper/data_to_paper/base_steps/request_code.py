@@ -116,10 +116,6 @@ class BaseCodeProductsGPT(BackgroundProductsConverser, HumanReviewAppInteractor)
     mission_prompt: str = 'Please write a code to analyze the data.'
     termination_phrase: str = 'No issues found.'
 
-    output_file_requirements: OutputFileRequirements = \
-        OutputFileRequirements((TextContentOutputFileRequirement('results.txt'),))
-    # The name of the file that gpt code is instructed to save the results to.
-
     code_name: str = ''  # e.g. "data analysis"
 
     present_code_as_fresh: str = dedent_triple_quote_str("""
@@ -185,6 +181,19 @@ class BaseCodeProductsGPT(BackgroundProductsConverser, HumanReviewAppInteractor)
             {code_review_notes}
             """)),
     )
+
+    _output_file_requirements: OutputFileRequirements = None
+
+    def _create_output_file_requirements(self) -> OutputFileRequirements:
+        return OutputFileRequirements((
+            TextContentOutputFileRequirement('results.txt'),
+        ))
+
+    @property
+    def output_file_requirements(self) -> OutputFileRequirements:
+        if self._output_file_requirements is None:
+            self._output_file_requirements = self._create_output_file_requirements()
+        return self._output_file_requirements
 
     @property
     def requested_output_filenames(self):
