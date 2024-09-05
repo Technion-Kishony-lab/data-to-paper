@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import builtins
 import os
+import tempfile
 import warnings
 
 from contextlib import contextmanager
@@ -36,6 +37,10 @@ class IssueCollector(SingletonRegisteredRunContext):
     pass
 
 
+def _is_temp_file(file_name):
+    return file_name.startswith(tempfile.gettempdir())
+
+
 @dataclass
 class PreventFileOpen(SingletonRegisteredRunContext):
     SYSTEM_FILES = ['templates/latex_table.tpl', 'templates/latex_longtable.tpl', 'ttf/DejaVuSans.ttf',
@@ -65,10 +70,11 @@ class PreventFileOpen(SingletonRegisteredRunContext):
 
     def is_allowed_write_file(self, file_name: str) -> bool:
         file_path = Path(file_name).resolve()
-        if self.allowed_write_folder is not None and file_path.parents[0].resolve() != self.allowed_write_folder:
+        if self.allowed_write_folder is not None and file_path.parents[0].resolve() != self.allowed_write_folder and \
+                not _is_temp_file(file_name):
             return False
         return self.allowed_write_files == 'all' or \
-            is_name_matches_list_of_wildcard_names(file_path.name, self.allowed_write_files)
+            is_name_matches_list_of_wildcard_names(file_path.name, self.allowed_write_files) or _is_temp_file(file_name)
 
     def open_wrapper(self, *args, **kwargs):
         file_name = args[0] if len(args) > 0 else kwargs.get('file', None)
