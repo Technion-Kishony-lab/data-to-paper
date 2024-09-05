@@ -256,9 +256,6 @@ def try_get_llm_response(messages: List[Message],
                           f'for {tokens} context tokens and {expected_tokens_in_response} expected tokens.')
     else:
         print_and_log_red(f'Using {model_engine}.')
-    if tokens + expected_tokens_in_response < ModelEngine.DEFAULT.max_tokens and model_engine > ModelEngine.DEFAULT:
-        print_and_log(f'WARNING: Consider using {ModelEngine.DEFAULT} (max {ModelEngine.DEFAULT.max_tokens} tokens).',
-                      should_log=False)
     try:
         action = OPENAI_SERVER_CALLER.get_server_response(messages, model_engine=model_engine, **kwargs)
         if isinstance(action, HumanAction):
