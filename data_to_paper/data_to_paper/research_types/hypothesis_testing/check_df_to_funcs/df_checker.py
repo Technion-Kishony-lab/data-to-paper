@@ -406,6 +406,16 @@ class DfContentChecker(BaseContentDfChecker):
     INDEX_COLUMN_CATEGORY = 'Problem with df index/columns'
     SIZE_CATEGORY = 'Too large df'
 
+    def get_relevant_part_of_df(self):
+        """
+        Get the part of the df that is relevant for the checks.
+        """
+        if not self.is_figure:
+            return self.df
+        y, yerr, y_ci, y_p_value = self.get_xy_err_ci_p_value('y', as_list=True)
+        x, xerr, x_ci, x_p_value = self.get_xy_err_ci_p_value('x', as_list=True)
+        return self.df[y + yerr + y_ci + y_p_value + x + xerr + x_ci + x_p_value]
+
     def _check_if_df_within_df(self) -> bool:
         for value in self.df.values.flatten():
             if isinstance(value, (pd.Series, pd.DataFrame)):
@@ -436,7 +446,8 @@ class DfContentChecker(BaseContentDfChecker):
         """
         Check if the df has NaN values or PValue with value of nan
         """
-        df_with_raw_pvalues = self.df.applymap(lambda v: v.value if is_p_value(v) else v)
+        relevant_df = self.get_relevant_part_of_df()
+        df_with_raw_pvalues = relevant_df.applymap(lambda v: v.value if is_p_value(v) else v)
         isnull = pd.isnull(df_with_raw_pvalues)
         num_nulls = isnull.sum().sum()
         if num_nulls > 0:
@@ -531,41 +542,11 @@ class DfContentChecker(BaseContentDfChecker):
                 instructions=instructions,
             )
 
-    def check_df_size(self):
-        """
-        Check if the df has too many columns or rows
-        """
-        shape = self.df.shape
-        max_rows_and_columns = self._get_max_rows_and_columns()
-        if is_lower_eq(shape[0], max_rows_and_columns[0]) and is_lower_eq(shape[1], max_rows_and_columns[1]):
-            return
-        if is_lower_eq(shape[0], max_rows_and_columns[1]) and is_lower_eq(shape[1], max_rows_and_columns[0]):
-            transpose_note = "You might also consider transposing the df.\n"
-        else:
-            transpose_note = ""
-        max_rows, max_columns = max_rows_and_columns
-        trimming_note = f"Note that simply trimming the data is not always a good solution. " \
-                        f"You might instead consider a different representation/organization " \
-                        f"of the presented data.\n"
-        if not self.is_figure:
-            trimming_note += "Or, consider representing the data as a figure.\n"
-        for ax, rows_or_columns in enumerate(('rows', 'columns')):
-            if not is_lower_eq(shape[ax], max_rows_and_columns[ax]):
-                self._append_issue(
-                    category=self.SIZE_CATEGORY,
-                    issue=f'The {self.table_or_figure} df has {shape[ax]} {rows_or_columns}, which is too many for '
-                          f'our {self.table_or_figure} (max allowed: {max_rows_and_columns[ax]}).',
-                    instructions=f"Please revise the code so that df of created {self.table_or_figure} "
-                                 f"have a maximum of {max_rows} rows and {max_columns} columns.\n"
-                                 + trimming_note + transpose_note,
-                )
-
     CHOICE_OF_CHECKS = BaseDfChecker.CHOICE_OF_CHECKS | {
         check_df_for_nan_values: True,
         check_df_value_types: True,
         check_df_headers_type: True,
         check_df_index_is_a_range: True,
-        check_df_size: True,
     }
 
 
@@ -641,10 +622,38 @@ class TableDfContentChecker(DfContentChecker):
                     forgive_after=1,
                 )
 
+    def check_df_size(self):
+        """
+        Check if the df has too many columns or rows
+        """
+        shape = self.df.shape
+        max_rows_and_columns = self._get_max_rows_and_columns()
+        if is_lower_eq(shape[0], max_rows_and_columns[0]) and is_lower_eq(shape[1], max_rows_and_columns[1]):
+            return
+        max_rows, max_columns = max_rows_and_columns
+        instructions = dedent_triple_quote_str(f"""
+            Please revise the code so that df of created Tables
+            have a maximum of {max_rows} rows and {max_columns} columns.
+            Note that simply trimming the data is typically not a good solution.
+            You might instead consider a different representation/organization of the table.
+            Or, consider representing the data as a figure.
+            """)
+        if is_lower_eq(shape[0], max_rows_and_columns[1]) and is_lower_eq(shape[1], max_rows_and_columns[0]):
+            instructions += "\nYou might also want to consider transposing the df (df = df.T)."
+        for ax, rows_or_columns in enumerate(('rows', 'columns')):
+            if not is_lower_eq(shape[ax], max_rows_and_columns[ax]):
+                self._append_issue(
+                    category=self.SIZE_CATEGORY,
+                    issue=f'This table has {shape[ax]} {rows_or_columns}, which is too many for '
+                          f'a scientific table (max allowed: {max_rows_and_columns[ax]}).',
+                    instructions=instructions
+                )
+
     CHOICE_OF_CHECKS = {
         check_df_is_a_result_of_describe: True,  # We want to start with detecting describe tables.
         check_df_for_repeated_values: True,
         check_df_for_repeated_values_in_prior_dfs: True,
+        check_df_size: True,
     } | DfContentChecker.CHOICE_OF_CHECKS
 
 
@@ -656,6 +665,37 @@ class FigureDfContentChecker(DfContentChecker):
 
     DEFAULT_CATEGORY = 'Checking figure'
     P_VALUE_CATEGORY = 'Plotting P-values'
+
+    def check_df_size(self):
+        """
+        Check if the df has too many columns or rows
+        """
+        shape = self.get_relevant_part_of_df().shape
+        max_rows_and_columns = self._get_max_rows_and_columns()
+        if is_lower_eq(shape[0], max_rows_and_columns[0]) and is_lower_eq(shape[1], max_rows_and_columns[1]):
+            return
+        max_rows, max_columns = max_rows_and_columns
+        if not is_lower_eq(shape[0], max_rows):
+            self._append_issue(
+                category=self.SIZE_CATEGORY,
+                issue=f'The df of this figure has {shape[0]} rows, which is too many '
+                      f'(max allowed: {max_rows}).',
+                instructions=dedent_triple_quote_str(f"""
+                        Please revise the code so that this figure df shows a maximum of {max_rows} rows.
+                        Note that simply trimming the data is typically not a good solution.
+                        Carefully consider the data that is most important to show, and remove other rows.
+                        Or, consider representing the data more aggregated.
+                """)
+            )
+        num_series = len(self.get_y_labels())
+        columns_per_series = shape[1] / num_series
+        max_series = int(max_columns / columns_per_series)
+        if not is_lower_eq(shape[1], max_columns) and num_series > 2:
+            self._append_issue(
+                category=self.SIZE_CATEGORY,
+                issue=f'This figure has {num_series} series which is too many for a single plot.',
+                instructions=f'Please revise the code so that this figure df shows a maximum of {max_series} series.'
+            )
 
     def check_that_y_values_are_numeric(self):
         y, yerr, y_ci, y_p_value = self.get_xy_err_ci_p_value('y', as_list=True)
@@ -757,9 +797,10 @@ class FigureDfContentChecker(DfContentChecker):
             )
 
     CHOICE_OF_CHECKS = DfContentChecker.CHOICE_OF_CHECKS | {
+        check_for_max_number_of_bars: True,
+        check_df_size: True,
         check_that_y_values_are_numeric: True,
         check_for_p_values_in_figure: True,
-        check_for_max_number_of_bars: True,
         check_that_y_values_are_diverse: True,
         check_for_numeric_x_for_line_and_scatter: True,
     }
