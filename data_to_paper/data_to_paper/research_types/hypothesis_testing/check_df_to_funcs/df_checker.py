@@ -505,48 +505,17 @@ class DfContentChecker(BaseContentDfChecker):
                     instructions=f"The df {column_or_index} headers should be {allowed_types}.",
                 )
 
-    def check_df_index_is_a_range(self):
-        """
-        Check if the index of the dataframe is just a numeric range.
-        """
-        if not self.index:
-            return
-        num_rows = self.df.shape[0]
-        index_is_range = not isinstance(self.df.index, pd.MultiIndex) \
-            and [ind for ind in self.df.index] == list(range(num_rows)) and self.df.index.dtype == int
-        if index_is_range:
-            if self.is_figure:
-                issue = dedent_triple_quote_str(f"""
-                    We are using the index of the df as the x-values of the plot.
-                    But, the index of df "{self.filename}" is just a range from 0 to {num_rows - 1}.
-                    """)
-                instructions = dedent_triple_quote_str(f"""
-                    Please revise the code making sure the figure is built with an index that represents meaningful \t
-                    numeric data. Or, for categorical data, the index should be a list of strings.
-                    """)
-            else:
-                issue = dedent_triple_quote_str(f"""
-                    The index of the df is used by `df_to_latex` as the row labels.
-                    But, the index of df "{self.filename}" is just a range from 0 to {num_rows - 1}.
-                    """)
-                instructions = dedent_triple_quote_str(f"""
-                    Please revise the code making sure the df is built with an index that has \t
-                    meaningful row labels.
-                    Labeling row with sequential numbers is not common in scientific tables. 
-                    Though, if you are sure that starting each row with a sequential number is really what you want, \t
-                    then convert it from int to strings, so that it is clear that it is not a mistake.
-                    """)
-            self._append_issue(
-                category=self.INDEX_COLUMN_CATEGORY,
-                issue=issue,
-                instructions=instructions,
-            )
+    @staticmethod
+    def _is_index_a_range(index, max_allowed_range: int = 2):
+        num_rows = len(index)
+        return not isinstance(index, pd.MultiIndex) \
+            and list(index) == list(range(num_rows)) and index.dtype == int \
+            and num_rows > max_allowed_range
 
     CHOICE_OF_CHECKS = BaseDfChecker.CHOICE_OF_CHECKS | {
         check_df_for_nan_values: True,
         check_df_value_types: True,
         check_df_headers_type: True,
-        check_df_index_is_a_range: True,
     }
 
 
@@ -556,6 +525,8 @@ class TableDfContentChecker(DfContentChecker):
 
     OVERLAYING_VALUES_CATEGORY = 'Overlapping values'
     DF_DISPLAY_CATEGORY = 'The df looks like a df.describe() table, not a scientific table'
+
+    MAX_ROWS_ALLOWED_FOR_RANGE_AS_INDEX = 2
 
     def check_df_is_a_result_of_describe(self):
         """
@@ -572,6 +543,30 @@ class TableDfContentChecker(DfContentChecker):
                     Please revise the code so that the tables only include scientifically relevant statistics.
                     """),
                 forgive_after=3,
+            )
+
+    def check_df_index_is_a_range(self):
+        """
+        Check if the index of the dataframe is just a numeric range.
+        """
+        if not self.index:
+            return
+        num_rows = self.df.shape[0]
+        if self._is_index_a_range(self.df.index, self.MAX_ROWS_ALLOWED_FOR_RANGE_AS_INDEX):
+            self._append_issue(
+                category=self.INDEX_COLUMN_CATEGORY,
+                issue=dedent_triple_quote_str(f"""
+                    The function `df_to_latex` uses the index as the row labels.
+                    But, the index of df "{self.filename}" is just a range from 0 to {num_rows - 1}.
+                    """),
+                instructions=dedent_triple_quote_str(f"""
+                    Please revise the code making sure the figure is built with an index that represents meaningful \t
+                    numeric data. Or, for categorical data, the index should be a list of strings.
+                    
+                    Note: labeling row with sequential numbers is not common in scientific tables. \t
+                    But, if you are sure that starting each row with a sequential number is really what you want, \t
+                    then convert it from int to strings, so that it is clear that it is not a mistake.
+                    """),
             )
 
     def check_df_for_repeated_values(self):
@@ -632,7 +627,7 @@ class TableDfContentChecker(DfContentChecker):
             return
         max_rows, max_columns = max_rows_and_columns
         instructions = dedent_triple_quote_str(f"""
-            Please revise the code so that df of created Tables
+            Please revise the code so that df of created Tables \t
             have a maximum of {max_rows} rows and {max_columns} columns.
             Note that simply trimming the data is typically not a good solution.
             You might instead consider a different representation/organization of the table.
@@ -651,6 +646,7 @@ class TableDfContentChecker(DfContentChecker):
 
     CHOICE_OF_CHECKS = {
         check_df_is_a_result_of_describe: True,  # We want to start with detecting describe tables.
+        check_df_index_is_a_range: True,
         check_df_for_repeated_values: True,
         check_df_for_repeated_values_in_prior_dfs: True,
         check_df_size: True,
