@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Union, Type, Optional, Dict, Callable
 
 from data_to_paper.base_products.file_descriptions import CreateDataFileDescriptions, DataFileDescriptions
-from data_to_paper.env import FOLDER_FOR_RUN
+from data_to_paper.env import FOLDER_FOR_RUN, DEBUG_MODE
 from data_to_paper.interactive.base_app_startup import BaseStartDialog
 from data_to_paper.servers.api_cost import StageToCost
 from data_to_paper.utils.file_utils import clear_directory
@@ -50,7 +50,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
     project_directory: Path = None
     temp_folder_to_run_in: Path = FOLDER_FOR_RUN
     actions_and_conversations: ActionsAndConversations = field(default_factory=ActionsAndConversations)
-    should_remove_temp_folder: bool = False
+    should_remove_temp_folder: bool = not DEBUG_MODE
 
     stages_to_conversations_lens: Dict[Stage, int] = field(default_factory=dict)
 

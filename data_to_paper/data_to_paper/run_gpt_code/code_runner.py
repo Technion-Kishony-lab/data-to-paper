@@ -8,6 +8,7 @@ import importlib
 
 from typing import Optional, Type, Tuple, Any, Union, Iterable, Dict, Callable
 
+from data_to_paper.env import DEBUG_MODE
 from data_to_paper.utils.types import ListBasedSet
 from data_to_paper.code_and_output_files.output_file_requirements import OutputFileRequirements
 
@@ -193,8 +194,8 @@ class CodeRunner:
         except Exception:
             raise
         finally:
-            pass
-            # save_code_to_module_file()  # leave the module empty
+            if not DEBUG_MODE:
+                save_code_to_module_file()  # leave the module empty
 
         for context in multi_context.get_contexts():
             assert is_serializable(context), f"Context {context} is not serializable."

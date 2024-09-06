@@ -30,7 +30,7 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 
-from data_to_paper.env import PRINT_DEBUG_COMMENTS
+from data_to_paper.env import DEBUG_MODE
 from data_to_paper.llm_coding_utils import df_to_latex, df_to_figure, ALLOWED_PLOT_KINDS, DF_ALLOWED_VALUE_TYPES
 from data_to_paper.llm_coding_utils.consts import DF_ALLOWED_COLUMN_TYPES
 from data_to_paper.llm_coding_utils.df_to_figure import run_create_fig_for_df_to_figure_and_get_axis_parameters
@@ -96,7 +96,7 @@ class BaseChecker:
             num_created_issues = len(self.issues) - num_issues_before
             if should_stop and not num_created_issues:
                 assert False, f'Check {check.__name__} returned True, but no issues were created.'
-            if PRINT_DEBUG_COMMENTS:
+            if DEBUG_MODE:
                 print(f'Check "{check.__name__}" created {num_created_issues} issues.')
             if self.issues and (self.stop_after_first_issue or should_stop):
                 break
