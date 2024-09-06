@@ -2,7 +2,7 @@
 import numbers
 from typing import Union
 
-FIG_SIZE_INCHES = (4, 3)
+FIG_SIZE_INCHES = (5, 3)
 
 ALLOWED_PLOT_KINDS = ['bar']  # TODO: Add support for more plot kinds
 

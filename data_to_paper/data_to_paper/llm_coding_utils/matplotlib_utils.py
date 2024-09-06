@@ -61,6 +61,7 @@ def replace_singleton_legend_with_axis_label(ax: plt.Axes, kind: str) -> Optiona
     legend_keys = [text.get_text() for text in legend.get_texts()]
     is_singleton = len(legend_keys) == 1
     if not is_singleton:
+        legend.set_bbox_to_anchor((1.05, 1))
         return
     singleton_legend_key = legend_keys[0]
     if kind == 'barh':
