@@ -2,6 +2,8 @@ from typing import Dict, Any, Tuple, Optional
 
 import pandas as pd
 
+from data_to_paper.utils.check_type import raise_on_wrong_func_argument_types_decorator
+
 
 def is_str_in_df(df: pd.DataFrame, s: str):
     return any(s in level for level in getattr(df.index, 'levels', [df.index]) +
@@ -11,6 +13,7 @@ def is_str_in_df(df: pd.DataFrame, s: str):
 AbbrToNameDef = Dict[Any, Tuple[Optional[str], Optional[str]]]
 
 
+@raise_on_wrong_func_argument_types_decorator
 def split_mapping(abbrs_to_names_and_definitions: AbbrToNameDef):
     abbrs_to_names = {abbr: name for abbr, (name, definition) in
                       abbrs_to_names_and_definitions.items() if name is not None}

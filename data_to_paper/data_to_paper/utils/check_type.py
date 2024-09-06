@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import inspect
 from dataclasses import dataclass
+from functools import wraps
 from typing import Iterable, Any, get_args, get_origin, Union
 
 from data_to_paper.exceptions import data_to_paperException
@@ -118,6 +119,7 @@ def raise_on_wrong_func_argument_types_decorator(func):
     """
     Decorator for the raise_on_wrong_func_argument_types function.
     """
+    @wraps(func)
     def wrapper(*args, **kwargs):
         raise_on_wrong_func_argument_types(func, *args, **kwargs)
         return func(*args, **kwargs)

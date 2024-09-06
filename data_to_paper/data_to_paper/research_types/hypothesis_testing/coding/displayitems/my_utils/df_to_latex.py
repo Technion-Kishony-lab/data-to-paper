@@ -5,7 +5,7 @@ from data_to_paper.research_types.hypothesis_testing.coding.analysis.my_utils.df
 
 def displayitems_df_to_latex(df: pd.DataFrame, filename: str, **kwargs):
     """
-    Replacement of df_to_latex to be used by LLM-writen code.
-    Same as df_to_latex, but also checks for issues.
+    Same as analysis_df_to_latex, but for displayitems.
+    See docstring of analysis_df_to_latex for more information.
     """
     analysis_df_to_latex(df, filename, **kwargs)

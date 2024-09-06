@@ -6,8 +6,7 @@ from data_to_paper.base_steps import DebuggerConverser, CheckLatexCompilation
 from data_to_paper.base_steps.request_code import CodeReviewPrompt
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.code_and_output_files.file_view_params import ViewPurpose
-from data_to_paper.code_and_output_files.output_file_requirements import \
-    OutputFileRequirements, DataOutputFileRequirement
+from data_to_paper.code_and_output_files.output_file_requirements import OutputFileRequirements
 from data_to_paper.code_and_output_files.ref_numeric_values import HypertargetFormat, HypertargetPosition, \
     ReferencedValue
 from data_to_paper.code_and_output_files.referencable_text import convert_str_to_latex_label
@@ -23,7 +22,7 @@ from data_to_paper.run_gpt_code.run_issues import RunIssue, CodeProblem
 from data_to_paper.utils import dedent_triple_quote_str
 
 from ..analysis.coding import BaseDataFramePickleContentOutputFileRequirement, DataAnalysisDebuggerConverser
-from ...check_df_to_funcs.df_checker import check_df_to_figure_displayitems, check_df_to_latex_displayitems
+from ...check_df_to_funcs.df_checker import check_displayitem_df
 
 
 @dataclass
@@ -44,13 +43,8 @@ class DataframePreventAssignmentToAttrs(PreventAssignmentToAttrs):
 class TexDisplayitemContentOutputFileRequirement(BaseDataFramePickleContentOutputFileRequirement):
     hypertarget_prefixes: Optional[Tuple[str]] = HypertargetPrefix.LATEX_TABLES.value
 
-    @staticmethod
-    def _check_df_to_figure(content, file_stem, kwargs):
-        return check_df_to_figure_displayitems(content, file_stem, kwargs)
-
-    @staticmethod
-    def _check_df_to_latex(content, file_stem, kwargs):
-        return check_df_to_latex_displayitems(content, file_stem, kwargs)
+    def _check_df(self, content):
+        return check_displayitem_df(content, output_folder=self.output_folder)
 
     def _convert_view_purpose_to_pvalue_on_str(self, view_purpose: ViewPurpose) -> OnStr:
         return OnStr.SMALLER_THAN
@@ -160,10 +154,8 @@ class CreateDisplayitemsCodeProductsGPT(BaseTableCodeProductsGPT, CheckLatexComp
     def _create_output_file_requirements(self) -> OutputFileRequirements:
         return OutputFileRequirements([
             TexDisplayitemContentOutputFileRequirement('df_*_formatted.pkl', minimal_count=1,
-                                                       figure_folder=self.output_directory),
-            DataOutputFileRequirement('df_*_formatted.png', minimal_count=0,
-                                      folder_to_move_to=self.output_directory,
-                                      should_make_available_for_next_steps=False)])
+                                                       output_folder=self.output_directory),
+        ])
 
     provided_code: str = dedent_triple_quote_str('''
         {df_to_latex_doc}
@@ -233,7 +225,7 @@ class CreateDisplayitemsCodeProductsGPT(BaseTableCodeProductsGPT, CheckLatexComp
         ### Consult with the "{data_file_descriptions}" and the "{codes:data_analysis}" 
         ### for choosing the actual labels and their proper scientific names and definitions.
 
-        # Process df_tag:  ### tag is a placeholder for the actual name of the df created by the {codes:data_analysis}
+        ## Process df_tag:  ### tag is a placeholder for the actual name of the df created by the {codes:data_analysis}
         df_tag = pd.read_pickle('df_tag.pkl')
 
         # Format values:

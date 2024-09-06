@@ -13,6 +13,7 @@ from data_to_paper.code_and_output_files.output_file_requirements import OutputF
 
 from .base_run_contexts import MultiRunContext
 from .attr_replacers import PreventCalling
+from .config import configure_matplotlib
 from .run_contexts import PreventFileOpen, ModifyImport, WarningHandler, IssueCollector, \
     TrackCreatedFiles, RunInDirectory
 
@@ -24,6 +25,8 @@ from .run_issues import RunIssue
 from data_to_paper import llm_created_scripts
 module_dir = os.path.dirname(llm_created_scripts.__file__)
 module_default_filepath = os.path.join(module_dir, module_filename)
+
+USING_MATPLOTLIB_IN_GPT_CODE = False
 
 
 def save_code_to_module_file(code: str = None):
@@ -158,6 +161,9 @@ class CodeRunner:
             multi_context: the multi context that was used during the run.
             exception: an exception that was raised during the run, None if no exception was raised.
         """
+        if USING_MATPLOTLIB_IN_GPT_CODE:
+            configure_matplotlib()
+
         if isinstance(code, str):
             self._module = generate_empty_code_module_object()
             save_code_to_module_file(code)

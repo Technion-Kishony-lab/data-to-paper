@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Tuple, Union
+from typing import Optional, Dict, Tuple, Union, List, Iterable
 
 import pandas as pd
 from matplotlib import pyplot as plt
@@ -9,13 +9,14 @@ from data_to_paper.run_gpt_code.overrides.pvalue import PValueToStars, convert_p
     pvalue_on_str_for_latex
 from data_to_paper.utils.text_formatting import escape_html
 from data_to_paper.utils.check_type import raise_on_wrong_func_argument_types_decorator
+from data_to_paper.utils.multi_process import run_func_in_separate_process
+from data_to_paper.run_gpt_code.config import configure_matplotlib
 
 from .df_plot_with_pvalue import df_plot_with_pvalue, get_description_of_plot_creation
-from .matplotlib_utils import rotate_xticklabels_if_not_numeric, \
-    raise_if_numeric_axes_do_not_have_labels
+from .matplotlib_utils import check_if_numeric_axes_have_labels
 from .note_and_legend import convert_note_and_glossary_to_html, convert_note_and_glossary_to_latex_figure_caption
 from .utils import convert_to_latex_comment, convert_filename_to_label
-from .consts import ALLOWED_PLOT_KINDS
+from .consts import ALLOWED_PLOT_KINDS, FIG_SIZE_INCHES
 
 
 @raise_on_wrong_func_argument_types_decorator
@@ -24,8 +25,7 @@ def df_to_figure(df: pd.DataFrame, filename: Optional[str],
                  label: Optional[str] = None,
                  note: Optional[str] = None,
                  glossary: Optional[Dict[str, str]] = None,
-                 save_fig: bool = True,
-                 raise_formatting_errors: bool = True,
+                 create_fig: bool = False,
                  is_html: bool = False,
                  figure_folder: Optional[Path] = None,
                  should_format: bool = False,
@@ -38,25 +38,14 @@ def df_to_figure(df: pd.DataFrame, filename: Optional[str],
     label = 'figure:' + label
 
     fig_filename = filename + '.png'
+    figure_path = figure_folder / fig_filename if figure_folder else fig_filename
 
     kind = kwargs.get('kind', 'bar')
     if kind not in ALLOWED_PLOT_KINDS:
         raise ValueError(f'`kind` must be one of {ALLOWED_PLOT_KINDS}, but got {repr(kind)}.')
 
-    if save_fig:
-        fig, ax = plt.subplots()
-        fig.set_size_inches(4, 3)
-        df_with_p_values_replaced = convert_p_values_to_floats(df.copy())
-        df_plot_with_pvalue(df_with_p_values_replaced, ax=ax, **kwargs)
-        rotate_xticklabels_if_not_numeric(ax)
-        if raise_formatting_errors:
-            raise_if_numeric_axes_do_not_have_labels(ax)
-        fig.tight_layout()  # Adjusts subplot parameters to give the plot more room
-        fig.savefig(fig_filename)
-        ax.clear()
-        fig.clear()
-        plt.close(fig)
-        plt.close('all')
+    if create_fig:
+        create_fig_for_df_to_figure(df, filepath=figure_path, **kwargs)
 
     index = kwargs.get('use_index', True)
     label = label or ''
@@ -72,7 +61,6 @@ def df_to_figure(df: pd.DataFrame, filename: Optional[str],
         description = get_description_of_plot_creation(df, fig_filename, kwargs, is_html=True,
                                                        should_format=should_format,
                                                        max_rows_and_columns_to_show=max_rows_and_columns_to_show)
-        figure_path = figure_folder / fig_filename if figure_folder else fig_filename
         s = get_figure_and_caption_as_html(figure_path, caption_note_and_glossary.strip())
         s += description
     else:
@@ -85,6 +73,70 @@ def df_to_figure(df: pd.DataFrame, filename: Optional[str],
         s = get_figure_and_caption_as_latex(fig_filename, caption_note_and_glossary.strip(), label)
         s += '\n' + convert_to_latex_comment(description)
     return s
+
+
+def _replace_with_str_no_underscores(s):
+    if s is None:
+        return s
+    if not isinstance(s, str):
+        if isinstance(s, Iterable):
+            return type(s)([_replace_with_str_no_underscores(col) for col in s])
+        s = str(s)
+    return s.replace('_', ' ')
+
+
+def replace_df_column_names_to_str_with_no_underscores(df: pd.DataFrame, **kwargs):
+
+    # find all the underscores in the column names:
+    df = df.copy()
+    df.columns = _replace_with_str_no_underscores(df.columns)
+
+    for arg in ['x', 'y', 'yerr', 'xerr', 'x_ci', 'y_ci', 'x_p_value', 'y_p_value']:
+        if arg in kwargs:
+            kwargs[arg] = _replace_with_str_no_underscores(kwargs[arg])
+    return df, kwargs
+
+
+def run_create_fig_for_df_to_figure_in_separate_process(df: pd.DataFrame, filepath: Optional[Path] = None,
+                                                        should_separate: bool = True, **kwargs) -> List[str]:
+    """
+    Run the `create_fig_for_df_to_figure` function in a separate process.
+    Otherwise we get killing of the kernel due to matplotlib issues.
+    """
+    if not should_separate:
+        return create_fig_for_df_to_figure(df, filepath, **kwargs)
+    return run_func_in_separate_process(create_fig_for_df_to_figure, df, filepath, **kwargs)
+
+
+def create_fig_for_df_to_figure(df: pd.DataFrame, filepath: Optional[Path] = None, **kwargs) -> List[str]:
+    configure_matplotlib()
+    fig, ax = plt.subplots()
+    fig.set_size_inches(*FIG_SIZE_INCHES)
+    df = convert_p_values_to_floats(df.copy())
+
+    # Replace underscores with spaces in the column names
+    df, kwargs = replace_df_column_names_to_str_with_no_underscores(df, **kwargs)
+
+    df_plot_with_pvalue(df, ax=ax, **kwargs)
+
+    # Adjusts subplot parameters to give the plot more room
+    fig.tight_layout()
+
+    if filepath:
+        fig.savefig(filepath)
+    formatting_messages = []
+    msg = check_if_numeric_axes_have_labels(ax)
+    if msg:
+        formatting_messages += [msg]
+    # TODO: add more formatting checks here
+
+    # figure cleanup
+    ax.clear()
+    fig.clear()
+    plt.close(fig)
+    plt.close('all')
+
+    return formatting_messages
 
 
 def get_figure_and_caption_as_latex(filename: str, caption: str, label: str) -> str:

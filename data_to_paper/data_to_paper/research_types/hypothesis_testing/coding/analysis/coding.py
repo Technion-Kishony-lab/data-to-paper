@@ -8,16 +8,16 @@ from data_to_paper.base_steps.request_code import CodeReviewPrompt
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.code_and_output_files.file_view_params import ViewPurpose
 from data_to_paper.code_and_output_files.output_file_requirements import \
-    OutputFileRequirements, PickleContentOutputFileRequirement, DataOutputFileRequirement
+    OutputFileRequirements, PickleContentOutputFileRequirement
 from data_to_paper.code_and_output_files.referencable_text import LabeledNumericReferenceableText, \
     convert_str_to_latex_label
-from data_to_paper.llm_coding_utils import describe_df,  df_to_figure, df_to_latex
+from data_to_paper.llm_coding_utils import describe_df, df_to_figure, df_to_latex
 from data_to_paper.research_types.hypothesis_testing.cast import ScientificAgent
-from data_to_paper.research_types.hypothesis_testing.check_df_to_funcs.df_checker import check_df_to_figure_analysis, \
-    check_df_to_latex_analysis
+from data_to_paper.research_types.hypothesis_testing.check_df_to_funcs.df_checker import check_analysis_df
 from data_to_paper.research_types.hypothesis_testing.env import get_max_rows_and_columns
 from data_to_paper.run_gpt_code.code_runner import CodeRunner
-from data_to_paper.run_gpt_code.overrides.dataframes.df_with_attrs import ListInfoDataFrame
+from data_to_paper.run_gpt_code.overrides.dataframes.df_with_attrs import ListInfoDataFrame, \
+    get_call_info_from_list_info_df
 from data_to_paper.research_types.hypothesis_testing.coding.analysis.utils import get_pickle_dump_attr_replacer
 from data_to_paper.research_types.hypothesis_testing.coding.base_code_conversers import BaseTableCodeProductsGPT
 from data_to_paper.research_types.hypothesis_testing.coding.utils import create_pandas_and_stats_contexts
@@ -34,21 +34,10 @@ from data_to_paper.utils.nice_list import NiceDict
 @dataclass(frozen=True)
 class BaseDataFramePickleContentOutputFileRequirement(PickleContentOutputFileRequirement):
     referenceable_text_cls: type = LabeledNumericReferenceableText
-    figure_folder: Optional[Path] = None
+    output_folder: Optional[Path] = None  # where the figures will be saved
 
     def _get_func_args_kwargs(self, content: ListInfoDataFrame) -> Tuple:
-        func_name, df, filename, kwargs = content.extra_info[-1]
-        assert df.equals(content)
-        if func_name == 'df_to_latex':
-            func = df_to_latex
-            func.__name__ = 'df_to_latex'
-        elif func_name == 'df_to_figure':
-            func = df_to_figure
-            func.__name__ = 'df_to_figure'
-            kwargs['save_fig'] = False
-        else:
-            raise ValueError(f'Unknown function name: {func_name}')
-        return func, (content, filename), kwargs
+        return get_call_info_from_list_info_df(content)
 
     def _is_figure(self, content: Any) -> bool:
         func, args, kwargs = self._get_func_args_kwargs(content)
@@ -82,7 +71,7 @@ class BaseDataFramePickleContentOutputFileRequirement(PickleContentOutputFileReq
             view_purpose: ViewPurpose = ViewPurpose.APP_HTML):
         func, args, kwargs = self._get_func_args_kwargs(content)
         with OnStrPValue(self._convert_view_purpose_to_pvalue_on_str(view_purpose)):
-            html = func(*args, **kwargs, is_html=True, figure_folder=self.figure_folder)
+            html = func(*args, **kwargs, is_html=True, figure_folder=self.output_folder)
         return html, f'<h{level}>{filename}</h{level}>'
 
     def get_code_line_str_for_file(self, filename: str, content: Optional[ListInfoDataFrame] = None) -> Optional[str]:
@@ -107,33 +96,17 @@ class BaseDataFramePickleContentOutputFileRequirement(PickleContentOutputFileReq
 
     def get_issues_for_output_file_content(self, filename: str, content: Any) -> List[RunIssue]:
         issues = super().get_issues_for_output_file_content(filename, content)
-        func, args, kwargs = self._get_func_args_kwargs(content)
-        file_stem = args[1]
-        assert file_stem == filename.split('.')[0]
-        if self._is_figure(content):
-            issues.extend(self._check_df_to_figure(content, file_stem, kwargs))
-        else:
-            issues.extend(self._check_df_to_latex(content, file_stem, kwargs))
+        issues.extend(self._check_df(content))
         return issues
 
-    @staticmethod
-    def _check_df_to_figure(content, file_stem, kwargs):
-        return []
-
-    @staticmethod
-    def _check_df_to_latex(content, file_stem, kwargs):
+    def _check_df(self, content):
         return []
 
 
 @dataclass(frozen=True)
 class DataFramePickleContentOutputFileRequirement(BaseDataFramePickleContentOutputFileRequirement):
-    @staticmethod
-    def _check_df_to_figure(content, file_stem, kwargs):
-        return check_df_to_figure_analysis(content, file_stem, kwargs)
-
-    @staticmethod
-    def _check_df_to_latex(content, file_stem, kwargs):
-        return check_df_to_latex_analysis(content, file_stem, kwargs)
+    def _check_df(self, content):
+        return check_analysis_df(content, output_folder=self.output_folder)
 
     def _get_content_and_header_for_final_appendix(
             self, content: Any, filename: str = None, num_file: int = 0, level: int = 3,
@@ -329,9 +302,7 @@ class DataAnalysisCodeProductsGPT(BaseTableCodeProductsGPT):
 
     def _create_output_file_requirements(self) -> OutputFileRequirements:
         return OutputFileRequirements(
-            [DataFramePickleContentOutputFileRequirement('df_*.pkl', 1, figure_folder=self.output_directory),
-             DataOutputFileRequirement('df_*.png', 0, should_make_available_for_next_steps=False,
-                                       folder_to_move_to=self.output_directory),
+            [DataFramePickleContentOutputFileRequirement('df_*.pkl', 1, output_folder=self.output_directory),
              DictPickleContentOutputFileRequirement('additional_results.pkl', 1,
                                                     hypertarget_prefixes=HypertargetPrefix.ADDITIONAL_RESULTS.value)
              ])

@@ -1,4 +1,4 @@
-from typing import Optional, Union, Tuple, Iterable, List
+from typing import Optional, Union, Tuple, List
 
 import matplotlib as mpl
 import numpy as np
@@ -29,8 +29,9 @@ RC_PARAMS = {
 
 NoneType = type(None)
 ColumnChoice = Union[DfAllowedTyping, NoneType, List[DfAllowedTyping]]
-ColumnChoiceWithPairs = Union[DfAllowedTyping, NoneType, List[DfAllowedTyping],
-    Tuple[DfAllowedTyping, DfAllowedTyping], List[Tuple[DfAllowedTyping, DfAllowedTyping]]]
+ColumnChoiceWithPairs = \
+    Union[DfAllowedTyping, NoneType, List[DfAllowedTyping],
+          Tuple[DfAllowedTyping, DfAllowedTyping], List[Tuple[DfAllowedTyping, DfAllowedTyping]]]
 
 
 example_plotting = dedent_triple_quote_str("""
@@ -45,12 +46,12 @@ example_plotting = dedent_triple_quote_str("""
         'apple_p_value': [0.1, 0.05, 0.001],
         'banana_p_value': [0.1, 0.05, 0.001],
     })
-    
+
     df_to_figure(df, 'example1', kind='bar', y=['apple', 'banana'], 
         y_ci=['apple_ci', 'banana_ci'],
         y_p_value=['apple_p_value', 'banana_p_value']
     )
-        
+
     # Example 2: ci as two separate columns
     df = pd.DataFrame({
         'apple': [1, 2, 3],
@@ -62,7 +63,7 @@ example_plotting = dedent_triple_quote_str("""
         'apple_p_value': [0.1, 0.05, 0.001],
         'banana_p_value': [0.1, 0.05, 0.001],
     })
-    
+
     df_to_figure(df, 'example2', kind='bar', y=['apple', 'banana'], 
         y_ci=[('apple_low', 'apple_high'), ('banana_low', 'banana_high')], 
         y_p_value=['apple_p_value', 'banana_p_value']
@@ -174,36 +175,13 @@ def _check_matching_column_choice(primary_name, optional_name, primary: ColumnCh
 
 
 def df_plot_with_legend(df: DataFrame, x: Optional[str] = None, y: ColumnChoice = None,
+                        yerr: ColumnChoiceWithPairs = None, xerr: ColumnChoiceWithPairs = None,
                         **kwargs):
     """
     Same as df.plot, but replaces underscores in the df columns with spaces to allow for better legend display.
     df.plot will otherwise skip columns with underscores in the legend.
     """
-
-    def replace_underscores_with_spaces(s):
-        if not isinstance(s, str):
-            return s
-        return s.replace('_', ' ')
-
-    # find all the underscores in the column names:
-    df = df.copy()
-    columns = df.columns
-    columns_with_spaces = [replace_underscores_with_spaces(col) for col in columns]
-    df.columns = columns_with_spaces
-    rows = df.index
-    rows_with_spaces = [replace_underscores_with_spaces(row) for row in rows]
-    df.index = rows_with_spaces
-
-    # replace in `y`:
-    if isinstance(y, str):
-        y = y.replace('_', ' ')
-    elif isinstance(y, Iterable):
-        y = [col.replace('_', ' ') for col in y]
-
-    if isinstance(x, str):
-        x = x.replace('_', ' ')
-
-    return df.plot(x=x, y=y, **kwargs)
+    return df.plot(x=x, y=y, yerr=yerr, xerr=xerr, **kwargs)
 
 
 @raise_on_wrong_func_argument_types_decorator
@@ -269,6 +247,8 @@ def df_plot_with_pvalue(df: DataFrame, x: Optional[str] = None, y: ColumnChoice 
             add_grid_line_at_base_if_needed(ax, 'h')
         if kind == 'barh':
             add_grid_line_at_base_if_needed(ax, 'v')
+    rotate_xticklabels_if_not_numeric(ax)
+
     return ax
 
 

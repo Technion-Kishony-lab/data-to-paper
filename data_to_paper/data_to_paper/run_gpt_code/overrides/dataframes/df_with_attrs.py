@@ -59,3 +59,16 @@ def save_as_list_info_df(func_name, df, filename, kwargs=None):
     df = ListInfoDataFrame.from_prior_df(df, (func_name, df, filename, kwargs))
     pickle_filename = filename + '.pkl'
     df.to_pickle(pickle_filename)
+
+
+def get_call_info_from_list_info_df(list_info_df: ListInfoDataFrame):
+    from data_to_paper.llm_coding_utils import df_to_latex, df_to_figure
+    func_name, df, filename, kwargs = list_info_df.extra_info[-1]
+    assert df.equals(list_info_df)
+    if func_name == 'df_to_latex':
+        func = df_to_latex
+    elif func_name == 'df_to_figure':
+        func = df_to_figure
+    else:
+        raise ValueError(f'Unknown function name: {func_name}')
+    return func, (list_info_df, filename), kwargs

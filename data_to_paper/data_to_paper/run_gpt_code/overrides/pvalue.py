@@ -106,7 +106,7 @@ class PValue(OperatorValue):
 
     def _raise_if_forbidden_func(self, method_name):
         raise RunIssue.from_current_tb(
-            category='Be careful with p-values',
+            category='Do not convert or manipulate p-values',
             issue=self.error_message_on_forbidden_func.format(func_name=method_name, created_by=self.created_by),
             instructions='Please leave p-values intact.\n'
                          'Do not apply to p-values any function or operation '

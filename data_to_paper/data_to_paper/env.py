@@ -5,7 +5,10 @@ from pathlib import Path
 
 from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils.mutable import Mutable, Flag
+from .run_gpt_code.config import configure_matplotlib
 from .types import HumanReviewType
+
+configure_matplotlib()
 
 BASE_FOLDER = Path(__file__).parent.parent.parent
 

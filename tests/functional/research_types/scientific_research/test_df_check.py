@@ -74,9 +74,13 @@ def test_ChainChecker_transfer_intermediate_results():
 @pytest.mark.parametrize('filename, legitimate', [
     ('df_table', True),
     ('df_ta?ble', False),
+    ('df_table_formatted', True),
+    ('df_table.pkl', False),
 ])
 def test_SyntaxDfChecker_filename(filename, legitimate):
-    issues, _ = SyntaxDfChecker(filename=filename).run_checks()
+    checker = SyntaxDfChecker(filename=filename)
+    checker.check_filename()
+    issues = checker.issues
     if legitimate:
         assert not issues
     else:
@@ -86,7 +90,9 @@ def test_SyntaxDfChecker_filename(filename, legitimate):
 
 @pytest.mark.parametrize('label', [None, 'label'])
 def test_SyntaxDfChecker_no_label(label):
-    issues, _ = SyntaxDfChecker(filename='df_table', kwargs={'label': label}).run_checks()
+    checkers = SyntaxDfChecker(filename='df_table', kwargs={'label': label})
+    checkers.check_no_label()
+    issues = checkers.issues
     if label:
         assert len(issues) == 1
         assert 'label' in issues[0].issue

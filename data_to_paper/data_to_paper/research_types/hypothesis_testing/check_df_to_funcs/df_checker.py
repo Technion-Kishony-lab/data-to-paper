@@ -15,6 +15,10 @@ For the display-item step, we further add:
 
 
 Note: check methods must start with `check_`.
+Use CHOICE_OF_CHECKS to specify the order and which checks to run.
+
+For transparency, all check_ methods must be specified in CHOICE_OF_CHECKS.
+This is automatically asserted by the BaseChecker class.
 """
 
 
@@ -24,14 +28,18 @@ from typing import Dict, Union, Optional, List, Any, Tuple, Type, ClassVar, Call
 
 import numpy as np
 import pandas as pd
+from pathlib import Path
 
 from data_to_paper.env import PRINT_DEBUG_COMMENTS
 from data_to_paper.llm_coding_utils import df_to_latex, df_to_figure, ALLOWED_PLOT_KINDS, DF_ALLOWED_TYPES
+from data_to_paper.llm_coding_utils.df_to_figure import run_create_fig_for_df_to_figure_in_separate_process
 from data_to_paper.run_gpt_code.base_run_contexts import RegisteredRunContext
-from data_to_paper.run_gpt_code.overrides.dataframes.df_with_attrs import ListInfoDataFrame
+from data_to_paper.run_gpt_code.overrides.dataframes.df_with_attrs import ListInfoDataFrame, \
+    get_call_info_from_list_info_df
 from data_to_paper.run_gpt_code.run_contexts import ProvideData
 
 from data_to_paper.utils import dedent_triple_quote_str
+from data_to_paper.utils.check_type import raise_on_wrong_func_argument_types, WrongTypeException
 from data_to_paper.utils.dataframe import extract_df_row_labels, extract_df_column_labels, extract_df_axes_labels
 from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.utils.numerics import is_lower_eq
@@ -95,6 +103,10 @@ class BaseChecker:
         self._run_checks()
         return self.issues, self.intermediate_results
 
+    @property
+    def any_issues(self) -> bool:
+        return bool(self.issues)
+
     CHOICE_OF_CHECKS: ClassVar[Optional[Dict[Callable, bool]]] = None
 
 
@@ -122,13 +134,17 @@ def create_and_run_chain_checker(checkers: List[Type[BaseChecker]], stop_after_f
 
 @dataclass
 class BaseDfChecker(BaseChecker):
-    func_name: str = 'df_to_figure/df_to_latex'
+    func: Callable = None
     df: pd.DataFrame = None
     filename: str = None
     kwargs: dict = field(default_factory=dict)
 
+    output_folder: Optional[Path] = None  # where compiled figures and tables are saved
+
     DEFAULT_CATEGORY: ClassVar[str] = None
     DEFAULT_CODE_PROBLEM: ClassVar[CodeProblem] = None
+
+    NAMES_OF_KWARGS_FOR_LATEX = ['caption', 'label', 'note', 'glossary']
 
     def _append_issue(self, category: str = None, item: str = None, issue: str = '', instructions: str = '',
                       code_problem: CodeProblem = None, forgive_after: Optional[int] = None):
@@ -138,13 +154,22 @@ class BaseDfChecker(BaseChecker):
         super()._append_issue(category=category, item=item, issue=issue, instructions=instructions,
                               code_problem=code_problem, forgive_after=forgive_after)
 
+    def _run_and_get_result_and_exception(self, **additional_kwargs) -> Tuple[Any, Optional[Exception]]:
+        try:
+            result = self.func(self.df, self.filename, **self.kwargs, **additional_kwargs)
+        except Exception as e:
+            return None, e
+        return result, None
+
+    @property
+    def func_name(self):
+        if self.func is None:
+            return None
+        return self.func.__name__
+
     @property
     def is_figure(self):
         return self.func_name == 'df_to_figure'
-
-    @property
-    def func(self):
-        return df_to_figure if self.is_figure else df_to_latex
 
     @property
     def table_or_figure(self):
@@ -191,7 +216,7 @@ class BaseDfChecker(BaseChecker):
 
     @property
     def kind(self) -> Optional[str]:
-        return self.kwargs.get('kind', None)
+        return self.kwargs.get('kind', 'bar')
 
     @property
     def x(self) -> Optional[str]:
@@ -244,6 +269,13 @@ class BaseDfChecker(BaseChecker):
             p_value = self._convert_to_list(p_value)
         return xy, err, ci, p_value
 
+    @property
+    def kwargs_for_plot(self):
+        """
+        Remove the kwargs for latex from the kwargs.
+        """
+        return {key: value for key, value in self.kwargs.items() if key not in self.NAMES_OF_KWARGS_FOR_LATEX}
+
     CHOICE_OF_CHECKS = {}
 
 
@@ -258,13 +290,21 @@ class SyntaxDfChecker(BaseDfChecker):
     DEFAULT_CATEGORY = 'Checking df_to_figure/df_to_latex for call syntax'
     DEFAULT_CODE_PROBLEM = CodeProblem.OutputFileCallingSyntax
 
+    def check_argument_types(self):
+        try:
+            raise_on_wrong_func_argument_types(df_to_latex, self.df, self.filename, **self.kwargs)
+        except WrongTypeException as e:
+            self._append_issue(issue=str(e))
+            return True  # No more checks. Further checks may create errors.
+
     def check_filename(self):
         """
         Check if the filename of in the format `df_<alphanumeric>`.
         """
-        if not re.match(pattern=r'^df_\w+$', string=self.filename):
+        pattern = r'^df_[a-zA-Z0-9_]+$'
+        if not re.match(pattern=pattern, string=self.filename):
             self._append_issue(
-                issue=f'The filename of the {self.table_or_figure} should be in the format `df_<alphanumeric>`, '
+                issue=f'Filenames of tables and figures should be in the format `df_<alphanumeric>` (without .ext), '
                       f'but got "{self.filename}".',
             )
 
@@ -275,7 +315,9 @@ class SyntaxDfChecker(BaseDfChecker):
                       f'It is automatically generated from the filename.',
                 instructions='Please remove the `label` argument.',
             )
+
     CHOICE_OF_CHECKS = BaseDfChecker.CHOICE_OF_CHECKS | {
+        check_argument_types: True,
         check_filename: True,
         check_no_label: True,
     }
@@ -283,7 +325,7 @@ class SyntaxDfChecker(BaseDfChecker):
 
 @dataclass
 class TableSyntaxDfChecker(SyntaxDfChecker):
-    func_name: str = 'df_to_latex'
+    func: Callable = df_to_latex
 
     def check_that_index_is_true(self):
         if not self.index:
@@ -310,7 +352,7 @@ class TableSyntaxDfChecker(SyntaxDfChecker):
 
 @dataclass
 class FigureSyntaxDfChecker(SyntaxDfChecker):
-    func_name: str = 'df_to_figure'
+    func: Callable = df_to_figure
 
     def check_kind_arg(self):
         """
@@ -523,7 +565,7 @@ class DfContentChecker(BaseContentDfChecker):
 
 @dataclass
 class TableDfContentChecker(DfContentChecker):
-    func_name: str = 'df_to_latex'
+    func: Callable = df_to_latex
 
     OVERLAYING_VALUES_CATEGORY = 'Overlapping values'
     DF_DISPLAY_CATEGORY = 'The df looks like a df.describe() table, not a scientific table'
@@ -657,7 +699,7 @@ class TableDfContentChecker(DfContentChecker):
 
 @dataclass
 class FigureDfContentChecker(DfContentChecker):
-    func_name: str = 'df_to_figure'
+    func: Callable = df_to_figure
     ALLOW_MULTI_INDEX_FOR_COLUMN_AND_INDEX = {'columns': False, 'index': False}
 
     DEFAULT_CATEGORY = 'Checking figure'
@@ -809,16 +851,53 @@ class FigureDfContentChecker(DfContentChecker):
 @dataclass
 class CompilationDfContentChecker(BaseContentDfChecker):
     intermediate_results: Dict[str, Any] = field(default_factory=lambda: {'width': None})
+    DEFAULT_CATEGORY = 'Table/Figure compilation failure'
+
+    def check_creating_latex_and_html(self):
+        for is_html in [False, True]:
+            with OnStrPValue(OnStr.SMALLER_THAN):
+                result, e = self._run_and_get_result_and_exception(is_html=is_html)
+            if e is not None:
+                self._append_issue(
+                    issue=f'Failed to create the table. Got:\n{e}',
+                    instructions='Please revise the code to fix the issue.',
+                )
+                return True
+
+    CHOICE_OF_CHECKS = BaseContentDfChecker.CHOICE_OF_CHECKS | {
+        check_creating_latex_and_html: True,
+    }
 
 
 @dataclass
 class FigureCompilationDfContentChecker(CompilationDfContentChecker):
-    func_name: str = 'df_to_figure'
+    func: Callable = df_to_figure
+
+    def check_compilation_and_create_the_figure(self):
+        """
+        Formatting messages are stored in the `formatting_messages` variable.
+        """
+        try:
+            formatting_messages = \
+                run_create_fig_for_df_to_figure_in_separate_process(self.df,
+                                                                    self.output_folder / f'{self.filename}.png',
+                                                                    **self.kwargs_for_plot)
+        except Exception as e:
+            self._append_issue(
+                issue=f'Failed to create the figure. Got:\n{e}',
+                instructions='Please revise the code to fix the issue.',
+            )
+            return True
+        self.intermediate_results['formatting_messages'] = formatting_messages
+
+    CHOICE_OF_CHECKS = CompilationDfContentChecker.CHOICE_OF_CHECKS | {
+        check_compilation_and_create_the_figure: True,
+    }
 
 
 @dataclass
 class TableCompilationDfContentChecker(CompilationDfContentChecker):
-    func_name: str = 'df_to_latex'
+    func: Callable = df_to_latex
 
     def _df_to_latex_transpose(self):
         assert 'columns' not in self.kwargs, "assumes columns is None"
@@ -922,7 +1001,7 @@ class TableCompilationDfContentChecker(CompilationDfContentChecker):
             # table is fine
             pass
 
-    CHOICE_OF_CHECKS = BaseDfChecker.CHOICE_OF_CHECKS | {
+    CHOICE_OF_CHECKS = CompilationDfContentChecker.CHOICE_OF_CHECKS | {
         check_compilation_and_get_width: True,
     }
 
@@ -935,10 +1014,13 @@ class SecondContentChecker(BaseContentDfChecker):
 
     UNWANTED_LABELS = ['intercept']
 
+    def _is_label_unwanted(self, label):
+        return any(label.lower() in unwanted_label for unwanted_label in self.UNWANTED_LABELS)
+
     def check_for_unwanted_labels_in_x_or_y(self):
         for xy in ['x', 'y']:
             labels = self.get_x_labels() if xy == 'x' else self.get_y_labels()
-            unwanted_labels = [label for label in labels if label in self.UNWANTED_LABELS]
+            unwanted_labels = [label for label in labels if self._is_label_unwanted(label)]
             if unwanted_labels:
                 nice_unwanted_labels = NiceList(unwanted_labels, wrap_with='"')
                 self._append_issue(
@@ -958,7 +1040,7 @@ class SecondContentChecker(BaseContentDfChecker):
 
 @dataclass
 class TableSecondContentChecker(SecondContentChecker):
-    func_name: str = 'df_to_latex'
+    func: Callable = df_to_latex
 
     def check_for_repetitive_value_in_column(self):
         for icol in range(self.df.shape[1]):
@@ -1002,7 +1084,7 @@ class TableSecondContentChecker(SecondContentChecker):
 
 @dataclass
 class SecondFigureContentChecker(SecondContentChecker):
-    func_name: str = 'df_to_figure'
+    func: Callable = df_to_figure
 
     ODDS_RATIO_TERMS_CAPS = [('odds ratio', False), ('OR', True)]
 
@@ -1056,6 +1138,7 @@ class AnnotationDfChecker(BaseContentDfChecker):
         return isinstance(self.width, float) and self.width < 0.8
 
     def check_for_unallowed_characters_in_labels(self):
+        any_issues = False
         for char, char_name in self.UN_ALLOWED_CHARS:
             for is_row in [True, False]:
                 if is_row:
@@ -1066,6 +1149,7 @@ class AnnotationDfChecker(BaseContentDfChecker):
                     index_or_columns = 'columns'
                 unallowed_labels = sorted([label for label in labels if char in label])
                 if unallowed_labels:
+                    any_issues = True
                     self._append_issue(
                         category=f'The df row/column labels contain un-allowed characters',
                         issue=dedent_triple_quote_str(f"""
@@ -1083,9 +1167,14 @@ class AnnotationDfChecker(BaseContentDfChecker):
                             {index_or_columns} names to the new ones.
                             """)
                     )
+        return any_issues  # we don't want additional issues if working on the underscores
 
     def check_for_abbreviations_not_in_glossary(self):
-        axes_labels = extract_df_axes_labels(self.df, with_title=False, string_only=True)
+        if self.is_figure:
+            axes_labels = list(self.get_y_labels()) + list(self.get_x_labels())
+        else:
+            # this can deal with multi-indexes:
+            axes_labels = extract_df_axes_labels(self.df, with_title=False, string_only=True)
         abbr_labels = [label for label in axes_labels if is_unknown_abbreviation(label)]
         glossary = self.glossary or {}
         un_mentioned_abbr_labels = sorted([label for label in abbr_labels if label not in glossary])
@@ -1199,6 +1288,22 @@ class AnnotationDfChecker(BaseContentDfChecker):
     }
 
 
+class FigureAnnotationDfChecker(AnnotationDfChecker):
+    func: Callable = df_to_figure
+
+    def check_figure_formatting_messages(self):
+        formatting_messages = self.intermediate_results.get('formatting_messages')
+        if formatting_messages:
+            self._append_issue(
+                category='Figure formatting',
+                issue='\n\n'.join(formatting_messages),
+            )
+
+    CHOICE_OF_CHECKS = AnnotationDfChecker.CHOICE_OF_CHECKS | {
+        check_figure_formatting_messages: True,
+    }
+
+
 """ FILE CONTINUITY """
 
 
@@ -1212,7 +1317,17 @@ class ContinuityDfChecker(BaseContentDfChecker):
                 issue=f"You can only use the loaded `df` object (you can change the loaded df, but not replace it)",
             )
             return
-        previous_filename = self.df.extra_info[-2][2]
+        if not isinstance(self.df, ListInfoDataFrame):
+            extra_info = None
+        else:
+            extra_info = self.df.extra_info
+        if extra_info is None or len(extra_info) < 2:
+            self._append_issue(
+                issue="The df should be created from a previous df (not from scratch).\n"
+                      "Only use inplace operations on the df loaded from the previous step.",
+            )
+            return
+        previous_filename = extra_info[-2][2]
         should_be_filename = previous_filename + '_formatted'
         if self.filename != should_be_filename:
             self._append_issue(
@@ -1230,35 +1345,44 @@ class ContinuityDfChecker(BaseContentDfChecker):
 """ RUN CHECKERS """
 
 
-def check_df_to_figure_analysis(df: pd.DataFrame, filename: str, kwargs) -> RunIssues:
+def create_and_run_chain_checker_from_list_info_df(checkers: List[Type[BaseContentDfChecker]], df, **k
+                                                   ) -> Tuple[RunIssues, Dict[str, Any]]:
+    func, args, kwargs = get_call_info_from_list_info_df(df)
+    assert len(args) == 2, "args should have df and filename"
+    df, filename = args
+    return create_and_run_chain_checker(checkers, df=df, func=func, filename=filename, kwargs=kwargs, **k)
+
+
+def check_df_to_figure_analysis(df: ListInfoDataFrame, **k) -> RunIssues:
     checkers = [
         FigureSyntaxDfChecker,
         FigureDfContentChecker,
+        FigureCompilationDfContentChecker,  # This will actually create the png file
     ]
-    return create_and_run_chain_checker(checkers, df=df, filename=filename, kwargs=kwargs)[0]
+    return create_and_run_chain_checker_from_list_info_df(checkers, df=df, **k)[0]
 
 
-def check_df_to_latex_analysis(df: pd.DataFrame, filename: str, kwargs) -> RunIssues:
+def check_df_to_latex_analysis(df: ListInfoDataFrame, **k) -> RunIssues:
     checkers = [
         TableSyntaxDfChecker,
         TableDfContentChecker,
     ]
-    return create_and_run_chain_checker(checkers, df=df, filename=filename, kwargs=kwargs)[0]
+    return create_and_run_chain_checker_from_list_info_df(checkers, df=df, **k)[0]
 
 
-def check_df_to_figure_displayitems(df: pd.DataFrame, filename: str, kwargs) -> RunIssues:
+def check_df_to_figure_displayitems(df: ListInfoDataFrame, **k) -> RunIssues:
     checkers = [
         FigureSyntaxDfChecker,
         FigureDfContentChecker,
+        FigureCompilationDfContentChecker,  # Create png. Stores annotation messages in intermediate_results
         ContinuityDfChecker,
         SecondFigureContentChecker,
-        FigureCompilationDfContentChecker,
-        AnnotationDfChecker,
+        FigureAnnotationDfChecker,
     ]
-    return create_and_run_chain_checker(checkers, df=df, filename=filename, kwargs=kwargs)[0]
+    return create_and_run_chain_checker_from_list_info_df(checkers, df=df, **k)[0]
 
 
-def check_df_to_latex_displayitems(df: pd.DataFrame, filename: str, kwargs) -> RunIssues:
+def check_df_to_latex_displayitems(df: ListInfoDataFrame, **k) -> RunIssues:
     checkers = [
         TableSyntaxDfChecker,
         TableDfContentChecker,
@@ -1267,4 +1391,44 @@ def check_df_to_latex_displayitems(df: pd.DataFrame, filename: str, kwargs) -> R
         TableCompilationDfContentChecker,
         AnnotationDfChecker,
     ]
-    return create_and_run_chain_checker(checkers, df=df, filename=filename, kwargs=kwargs)[0]
+    return create_and_run_chain_checker_from_list_info_df(checkers, df=df, **k)[0]
+
+
+def check_analysis_df(df: ListInfoDataFrame, **k) -> RunIssues:
+    func, args, kwargs = get_call_info_from_list_info_df(df)
+    if func == df_to_figure:
+        return check_df_to_figure_analysis(df, **k)
+    elif func == df_to_latex:
+        return check_df_to_latex_analysis(df, **k)
+    else:
+        raise ValueError(f"func should be either df_to_figure or df_to_latex, not {func}")
+
+
+def check_displayitem_df(df: ListInfoDataFrame, **k) -> RunIssues:
+    func, args, kwargs = get_call_info_from_list_info_df(df)
+    if func == df_to_figure:
+        return check_df_to_figure_displayitems(df, **k)
+    elif func == df_to_latex:
+        return check_df_to_latex_displayitems(df, **k)
+    else:
+        raise ValueError(f"func should be either df_to_figure or df_to_latex, not {func}")
+
+
+""" FILENAME CHECKERS """
+
+
+def get_issue_if_filename_not_legit_df_tag(filename: str, func: Callable = None) -> Optional[RunIssue]:
+    """
+    check if the filename is in the correct format
+    """
+    checker = SyntaxDfChecker(filename=filename, func=func)
+    checker.check_filename()
+    return checker.issues[0] if checker.issues else None
+
+
+def raise_issue_if_filename_not_legit_df_tag(filename: str, func: Callable = None):
+    if not isinstance(filename, str):
+        raise ValueError(f"filename should be a string, not {type(filename)}")
+    issue = get_issue_if_filename_not_legit_df_tag(filename, func)
+    if issue:
+        raise issue

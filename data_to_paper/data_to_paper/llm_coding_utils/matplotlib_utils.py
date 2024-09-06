@@ -103,9 +103,10 @@ def rotate_xticklabels_if_not_numeric(ax: plt.Axes):
         ax.figure.tight_layout()  # Adjusts subplot parameters to give the plot more room
 
 
-def raise_if_numeric_axes_do_not_have_labels(ax: plt.Axes):
+def check_if_numeric_axes_have_labels(ax: plt.Axes) -> Optional[str]:
     """
-    Raise an error if the axes are numeric and do not have labels.
+    Check if all axes with numeric labels have labels.
+    Return an error message if not.
     """
     x_numeric, y_numeric = are_axes_numeric(ax)
     msgs = []
@@ -115,4 +116,4 @@ def raise_if_numeric_axes_do_not_have_labels(ax: plt.Axes):
         msgs.append('The y-axis is numeric, but it does not have a label. Use `ylabel=` to add a label.')
     if msgs:
         msg = 'All axes with numeric labels must have labels.\n' + '\n'.join(msgs)
-        raise ValueError(msg)
+        return msg

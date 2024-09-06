@@ -425,7 +425,12 @@ class DebuggerConverser(BackgroundProductsConverser):
         - Regenerate ("regen0", "regen1", "regen2": the original response, the second response, the third response)
         """
         if code_and_output and self.app:
-            self._app_send_prompt(PanelNames.PRODUCT, code_and_output.as_html(), provided_as_html=True)
+            try:
+                code_and_output_as_html = code_and_output.as_html()
+            except Exception:  # noqa
+                pass
+            else:
+                self._app_send_prompt(PanelNames.PRODUCT, code_and_output_as_html, provided_as_html=True)
 
         # Get issues
         if issues is None:
@@ -550,9 +555,6 @@ class DebuggerConverser(BackgroundProductsConverser):
         issues = multi_context.issues
         contexts = multi_context.contexts
         code_and_output = self._get_code_and_output(code, result, created_files, contexts)
-
-        # move the graphics files to the output folder:
-        code_and_output.created_files.move_to_destination_folders_if_needed(self.data_folder)
 
         if exception is not None:
             if isinstance(exception, RunIssue):
