@@ -13,7 +13,7 @@ from data_to_paper.utils.multi_process import run_func_in_separate_process
 from data_to_paper.run_gpt_code.config import configure_matplotlib
 
 from .df_plot_with_pvalue import df_plot_with_pvalue, get_description_of_plot_creation
-from .matplotlib_utils import check_if_numeric_axes_have_labels
+from .matplotlib_utils import get_axis_parameters, AxisParameters
 from .note_and_legend import convert_note_and_glossary_to_html, convert_note_and_glossary_to_latex_figure_caption
 from .utils import convert_to_latex_comment, convert_filename_to_label
 from .consts import ALLOWED_PLOT_KINDS, FIG_SIZE_INCHES
@@ -45,7 +45,7 @@ def df_to_figure(df: pd.DataFrame, filename: Optional[str],
         raise ValueError(f'`kind` must be one of {ALLOWED_PLOT_KINDS}, but got {repr(kind)}.')
 
     if create_fig:
-        create_fig_for_df_to_figure(df, filepath=figure_path, **kwargs)
+        create_fig_for_df_to_figure_and_get_axis_parameters(df, filepath=figure_path, **kwargs)
 
     index = kwargs.get('use_index', True)
     label = label or ''
@@ -97,18 +97,18 @@ def replace_df_column_names_to_str_with_no_underscores(df: pd.DataFrame, **kwarg
     return df, kwargs
 
 
-def run_create_fig_for_df_to_figure_in_separate_process(df: pd.DataFrame, filepath: Optional[Path] = None,
-                                                        should_separate: bool = True, **kwargs) -> List[str]:
+def run_create_fig_for_df_to_figure_and_get_axis_parameters(df: pd.DataFrame, filepath: Optional[Path] = None,
+                                                            in_separate_process: bool = True, **kwargs) -> List[str]:
     """
     Run the `create_fig_for_df_to_figure` function in a separate process.
     Otherwise we get killing of the kernel due to matplotlib issues.
     """
-    if not should_separate:
-        return create_fig_for_df_to_figure(df, filepath, **kwargs)
-    return run_func_in_separate_process(create_fig_for_df_to_figure, df, filepath, **kwargs)
+    return run_func_in_separate_process(create_fig_for_df_to_figure_and_get_axis_parameters, df, filepath,
+                                        in_separate_process=in_separate_process, **kwargs)
 
 
-def create_fig_for_df_to_figure(df: pd.DataFrame, filepath: Optional[Path] = None, **kwargs) -> List[str]:
+def create_fig_for_df_to_figure_and_get_axis_parameters(df: pd.DataFrame, filepath: Optional[Path] = None,
+                                                        **kwargs) -> AxisParameters:
     configure_matplotlib()
     fig, ax = plt.subplots()
     fig.set_size_inches(*FIG_SIZE_INCHES)
@@ -124,11 +124,8 @@ def create_fig_for_df_to_figure(df: pd.DataFrame, filepath: Optional[Path] = Non
 
     if filepath:
         fig.savefig(filepath)
-    formatting_messages = []
-    msg = check_if_numeric_axes_have_labels(ax)
-    if msg:
-        formatting_messages += [msg]
-    # TODO: add more formatting checks here
+
+    axis_parameters = get_axis_parameters(ax)
 
     # figure cleanup
     ax.clear()
@@ -136,7 +133,7 @@ def create_fig_for_df_to_figure(df: pd.DataFrame, filepath: Optional[Path] = Non
     plt.close(fig)
     plt.close('all')
 
-    return formatting_messages
+    return axis_parameters
 
 
 def get_figure_and_caption_as_latex(filename: str, caption: str, label: str) -> str:

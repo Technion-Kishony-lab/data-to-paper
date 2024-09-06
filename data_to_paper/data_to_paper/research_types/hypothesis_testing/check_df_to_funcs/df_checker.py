@@ -31,8 +31,10 @@ import pandas as pd
 from pathlib import Path
 
 from data_to_paper.env import PRINT_DEBUG_COMMENTS
-from data_to_paper.llm_coding_utils import df_to_latex, df_to_figure, ALLOWED_PLOT_KINDS, DF_ALLOWED_TYPES
-from data_to_paper.llm_coding_utils.df_to_figure import run_create_fig_for_df_to_figure_in_separate_process
+from data_to_paper.llm_coding_utils import df_to_latex, df_to_figure, ALLOWED_PLOT_KINDS, DF_ALLOWED_VALUE_TYPES
+from data_to_paper.llm_coding_utils.consts import DF_ALLOWED_COLUMN_TYPES
+from data_to_paper.llm_coding_utils.df_to_figure import run_create_fig_for_df_to_figure_and_get_axis_parameters
+from data_to_paper.llm_coding_utils.matplotlib_utils import AxisParameters
 from data_to_paper.run_gpt_code.base_run_contexts import RegisteredRunContext
 from data_to_paper.run_gpt_code.overrides.dataframes.df_with_attrs import ListInfoDataFrame, \
     get_call_info_from_list_info_df
@@ -250,23 +252,49 @@ class BaseDfChecker(BaseChecker):
     def x_p_value(self) -> Optional[str]:
         return self.kwargs.get('x_p_value', None)
 
-    @staticmethod
-    def _convert_to_list(value):
-        if value is None:
-            return []
-        return [value] if isinstance(value, str) else value
+    def get_xlabel(self):
+        label = self.kwargs.get('xlabel', None)
+        if label is not None:
+            return label
+        return self.x
 
-    def get_xy_err_ci_p_value(self, x_or_y: str, as_list=False):
+    def get_ylabel(self):
+        label = self.kwargs.get('ylabel', None)
+        if label is not None:
+            return label
+        if not isinstance(self.y, list):
+            return self.y
+        return None
+
+    @staticmethod
+    def _convert_to_list(value, flatten):
+        if value is None:
+            as_list = []
+        else:
+            as_list = [value] if isinstance(value, str) else value
+
+        if not flatten:
+            return as_list
+
+        flatten_list = []
+        for item in as_list:
+            if isinstance(item, tuple):
+                flatten_list.extend(item)
+            else:
+                flatten_list.append(item)
+        return flatten_list
+
+    def get_xy_err_ci_p_value(self, x_or_y: str, as_list=False, flatten=False):
 
         xy = getattr(self, x_or_y)
         err = getattr(self, f'{x_or_y}err')
         ci = getattr(self, f'{x_or_y}_ci')
         p_value = getattr(self, f'{x_or_y}_p_value')
         if as_list:
-            xy = self._convert_to_list(xy)
-            err = self._convert_to_list(err)
-            ci = self._convert_to_list(ci)
-            p_value = self._convert_to_list(p_value)
+            xy = self._convert_to_list(xy, flatten)
+            err = self._convert_to_list(err, flatten)
+            ci = self._convert_to_list(ci, flatten)
+            p_value = self._convert_to_list(p_value, flatten)
         return xy, err, ci, p_value
 
     @property
@@ -391,7 +419,7 @@ class FigureSyntaxDfChecker(SyntaxDfChecker):
         """
         base_arg_names = ['', 'err', '_ci', '_p_value']
         for xy in ['x', 'y']:
-            args = self.get_xy_err_ci_p_value(xy, as_list=True)
+            args = self.get_xy_err_ci_p_value(xy, as_list=True, flatten=True)
             arg_names = [xy + arg_name for arg_name in base_arg_names]
             for arg, arg_name in zip(args, arg_names):
                 if arg is None:
@@ -421,8 +449,8 @@ class BaseContentDfChecker(BaseDfChecker):
 
     prior_dfs: Dict[str, pd.DataFrame] = field(default_factory=dict)
 
-    ALLOWED_VALUE_TYPES = DF_ALLOWED_TYPES + (PValue, )
-    ALLOWED_COLUMN_AND_INDEX_TYPES = {'columns': DF_ALLOWED_TYPES, 'index': DF_ALLOWED_TYPES}
+    ALLOWED_VALUE_TYPES = DF_ALLOWED_VALUE_TYPES + (PValue,)
+    ALLOWED_COLUMN_AND_INDEX_TYPES = {'columns': DF_ALLOWED_COLUMN_TYPES, 'index': DF_ALLOWED_VALUE_TYPES}
     ALLOW_MULTI_INDEX_FOR_COLUMN_AND_INDEX = {'columns': True, 'index': True}
 
     DEFAULT_CATEGORY = 'Checking content of created dfs'
@@ -456,8 +484,8 @@ class DfContentChecker(BaseContentDfChecker):
         """
         if not self.is_figure:
             return self.df
-        y, yerr, y_ci, y_p_value = self.get_xy_err_ci_p_value('y', as_list=True)
-        x, xerr, x_ci, x_p_value = self.get_xy_err_ci_p_value('x', as_list=True)
+        y, yerr, y_ci, y_p_value = self.get_xy_err_ci_p_value('y', as_list=True, flatten=True)
+        x, xerr, x_ci, x_p_value = self.get_xy_err_ci_p_value('x', as_list=True, flatten=True)
         return self.df[y + yerr + y_ci + y_p_value + x + xerr + x_ci + x_p_value]
 
     def _check_if_df_within_df(self) -> bool:
@@ -875,20 +903,19 @@ class FigureCompilationDfContentChecker(CompilationDfContentChecker):
 
     def check_compilation_and_create_the_figure(self):
         """
-        Formatting messages are stored in the `formatting_messages` variable.
+        Axis parameters are returned and stored in intermediate_results.
         """
-        try:
-            formatting_messages = \
-                run_create_fig_for_df_to_figure_in_separate_process(self.df,
+        axis_parameters, exception = \
+            run_create_fig_for_df_to_figure_and_get_axis_parameters(self.df,
                                                                     self.output_folder / f'{self.filename}.png',
                                                                     **self.kwargs_for_plot)
-        except Exception as e:
+        if exception is not None:
             self._append_issue(
-                issue=f'Failed to create the figure. Got:\n{e}',
+                issue=f'Failed to create the figure. Got:\n{exception}',
                 instructions='Please revise the code to fix the issue.',
             )
             return True
-        self.intermediate_results['formatting_messages'] = formatting_messages
+        self.intermediate_results['axis_parameters'] = axis_parameters
 
     CHOICE_OF_CHECKS = CompilationDfContentChecker.CHOICE_OF_CHECKS | {
         check_compilation_and_create_the_figure: True,
@@ -1055,7 +1082,7 @@ class TableSecondContentChecker(SecondContentChecker):
             if data_unique is not None and len(data_unique) == 1 and len(data) > 5:
                 data0 = data.iloc[0]
                 # check if the value is a number
-                if not isinstance(data0, (int, float)):
+                if not isinstance(data0, (int, float, np.number)):
                     pass
                 elif round(data0) == data0 and data0 < 10:
                     pass
@@ -1088,14 +1115,18 @@ class SecondFigureContentChecker(SecondContentChecker):
 
     ODDS_RATIO_TERMS_CAPS = [('odds ratio', False), ('OR', True)]
 
+    @property
+    def axis_parameters(self) -> AxisParameters:
+        return self.intermediate_results.get('axis_parameters')
+
     def check_log_scale_for_odds_ratios(self):
         """
         Odds ratios should typically be plotted on a log scale.
         Check if the x or y label contains the term "odds ratio".
         """
         for axis in ['x', 'y']:
-            label = self.kwargs.get(axis + 'label')
-            is_log = self.kwargs.get('log' + axis)
+            label = self.axis_parameters.xlabel if axis == 'x' else self.axis_parameters.ylabel
+            is_log = self.axis_parameters.xscale == 'log' if axis == 'x' else self.axis_parameters.yscale == 'log'
             if label is not None and is_log is not True:
                 for term, is_caps in self.ODDS_RATIO_TERMS_CAPS:
                     modified_label = label.lower() if not is_caps else label
@@ -1291,16 +1322,35 @@ class AnnotationDfChecker(BaseContentDfChecker):
 class FigureAnnotationDfChecker(AnnotationDfChecker):
     func: Callable = df_to_figure
 
-    def check_figure_formatting_messages(self):
-        formatting_messages = self.intermediate_results.get('formatting_messages')
-        if formatting_messages:
+    @property
+    def axis_parameters(self) -> AxisParameters:
+        return self.intermediate_results.get('axis_parameters')
+
+    def check_if_numeric_axes_have_labels(self):
+        """
+        Check if all axes with numeric labels have labels.
+        Return an error message if not.
+        """
+        axis_parameters = self.axis_parameters
+        x_numeric = axis_parameters.is_x_axis_numeric()
+        y_numeric = axis_parameters.is_y_axis_numeric()
+        msgs = []
+        if x_numeric and not axis_parameters.xlabel:
+            msgs.append('The x-axis is numeric, but it does not have a label. Use `xlabel=` to add a label.')
+        if y_numeric and not axis_parameters.ylabel:
+            msgs.append('The y-axis is numeric, but it does not have a label. Use `ylabel=` to add a label.')
+        if msgs:
+            msg = 'All axes with numeric labels must have labels.\n' + '\n'.join(msgs)
             self._append_issue(
-                category='Figure formatting',
-                issue='\n\n'.join(formatting_messages),
+                issue=msg,
+                instructions=dedent_triple_quote_str("""
+                    Please revise the code to add labels.
+                    Use the arguments `xlabel` and `ylabel` of `df_to_figure`.
+                    """),
             )
 
     CHOICE_OF_CHECKS = AnnotationDfChecker.CHOICE_OF_CHECKS | {
-        check_figure_formatting_messages: True,
+        check_if_numeric_axes_have_labels: True,
     }
 
 

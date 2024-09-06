@@ -1,4 +1,5 @@
-from typing import Tuple, Optional, Dict
+from dataclasses import dataclass
+from typing import Tuple, Optional, Dict, List, Union
 
 from matplotlib import pyplot as plt
 
@@ -103,17 +104,47 @@ def rotate_xticklabels_if_not_numeric(ax: plt.Axes):
         ax.figure.tight_layout()  # Adjusts subplot parameters to give the plot more room
 
 
-def check_if_numeric_axes_have_labels(ax: plt.Axes) -> Optional[str]:
+@dataclass(frozen=True)
+class AxisParameters:
+    title: str
+    xlabel: str
+    ylabel: str
+    xscale: str
+    yscale: str
+    xlim: Tuple[float, float]
+    ylim: Tuple[float, float]
+    xticks: List[float]
+    yticks: List[float]
+    xticklabels: List[Union[str, float]]
+    yticklabels: List[Union[str, float]]
+
+    def is_x_axis_numeric(self) -> bool:
+        """
+        Check if all the ticks are numeric.
+        """
+        return all(isinstance(tick, (int, float)) for tick in self.xticks)
+
+    def is_y_axis_numeric(self) -> bool:
+        """
+        Check if all the ticks are numeric.
+        """
+        return all(isinstance(tick, (int, float)) for tick in self.yticks)
+
+
+def get_axis_parameters(ax: plt.Axes) -> AxisParameters:
     """
-    Check if all axes with numeric labels have labels.
-    Return an error message if not.
+    Get the parameters of the axes.
     """
-    x_numeric, y_numeric = are_axes_numeric(ax)
-    msgs = []
-    if x_numeric and not ax.get_xlabel():
-        msgs.append('The x-axis is numeric, but it does not have a label. Use `xlabel=` to add a label.')
-    if y_numeric and not ax.get_ylabel():
-        msgs.append('The y-axis is numeric, but it does not have a label. Use `ylabel=` to add a label.')
-    if msgs:
-        msg = 'All axes with numeric labels must have labels.\n' + '\n'.join(msgs)
-        return msg
+    return AxisParameters(
+        title=ax.get_title(),
+        xlabel=ax.get_xlabel(),
+        ylabel=ax.get_ylabel(),
+        xscale=ax.get_xscale(),
+        yscale=ax.get_yscale(),
+        xlim=ax.get_xlim(),
+        ylim=ax.get_ylim(),
+        xticks=ax.get_xticks(),
+        yticks=ax.get_yticks(),
+        xticklabels=ax.get_xticklabels(),
+        yticklabels=ax.get_yticklabels(),
+    )

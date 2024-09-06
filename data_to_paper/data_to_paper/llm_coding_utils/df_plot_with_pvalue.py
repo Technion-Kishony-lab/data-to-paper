@@ -12,7 +12,7 @@ from data_to_paper.utils.highlighted_text import text_to_html
 from data_to_paper.utils.numerics import is_lower_eq
 
 from data_to_paper.run_gpt_code.overrides.pvalue import PValueToStars, OnStr, OnStrPValue
-from .consts import DfAllowedTyping
+from .consts import DfColumnTyping
 from .describe import describe_value, describe_df
 from .matplotlib_utils import get_xy_coordinates_of_df_plot, \
     replace_singleton_legend_with_axis_label, add_grid_line_at_base_if_needed, rotate_xticklabels_if_not_numeric
@@ -28,10 +28,10 @@ RC_PARAMS = {
 }
 
 NoneType = type(None)
-ColumnChoice = Union[DfAllowedTyping, NoneType, List[DfAllowedTyping]]
+ColumnChoice = Union[DfColumnTyping, NoneType, List[DfColumnTyping]]
 ColumnChoiceWithPairs = \
-    Union[DfAllowedTyping, NoneType, List[DfAllowedTyping],
-          Tuple[DfAllowedTyping, DfAllowedTyping], List[Tuple[DfAllowedTyping, DfAllowedTyping]]]
+    Union[DfColumnTyping, NoneType, List[DfColumnTyping],
+          Tuple[DfColumnTyping, DfColumnTyping], List[Tuple[DfColumnTyping, DfColumnTyping]]]
 
 
 example_plotting = dedent_triple_quote_str("""
@@ -185,9 +185,9 @@ def df_plot_with_legend(df: DataFrame, x: Optional[str] = None, y: ColumnChoice 
 
 
 @raise_on_wrong_func_argument_types_decorator
-def df_plot_with_pvalue(df: DataFrame, x: Optional[str] = None, y: ColumnChoice = None,
+def df_plot_with_pvalue(df: DataFrame, x: Optional[DfColumnTyping] = None, y: ColumnChoice = None,
                         kind: str = 'bar', ax: Optional[plt.Axes] = None,
-                        xerr: Optional[DfAllowedTyping] = None, yerr: ColumnChoiceWithPairs = None,
+                        xerr: Optional[DfColumnTyping] = None, yerr: ColumnChoiceWithPairs = None,
                         y_ci: ColumnChoiceWithPairs = None,
                         y_p_value: ColumnChoice = None,
                         **kwargs):
