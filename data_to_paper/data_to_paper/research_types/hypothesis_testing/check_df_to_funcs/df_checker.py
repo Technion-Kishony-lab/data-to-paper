@@ -1215,7 +1215,7 @@ class ContinuityDfChecker(BaseContentDfChecker):
                 issue=f"You can only use the loaded `df` object (you can change the loaded df, but not replace it)",
             )
             return
-        previous_filename = self.df.extra_info[-1][2]
+        previous_filename = self.df.extra_info[-2][2]
         should_be_filename = previous_filename + '_formatted'
         if self.filename != should_be_filename:
             self._append_issue(
