@@ -522,7 +522,7 @@ class DebuggerConverser(BackgroundProductsConverser):
             self.issues_to_counts[issue] = self.issues_to_counts.get(issue, 0) + 1
         return None
 
-    @_raise_if_reset()
+    @_raise_if_reset
     def _get_code_and_respond_to_issues(self, response: str) -> Optional[CodeAndOutput]:
         """
         Get a code from the LLM, run it and return code and result.

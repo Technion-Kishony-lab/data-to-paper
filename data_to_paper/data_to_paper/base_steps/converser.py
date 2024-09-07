@@ -19,22 +19,19 @@ from data_to_paper.utils.print_to_file import print_and_log_red, print_and_log_m
 from data_to_paper.base_cast import Agent
 
 
-def _raise_if_reset():
+def _raise_if_reset(func):
     """
     Add this decorator to any method where we need to check if the user has clicked a reset button.
     Only need to apply to methods that takes a while to run.
     """
-    def decorator(func):
-        @wraps(func)
-        def wrapper(self, *args, **kwargs):
-            self._check_and_reset()
-            result = func(self, *args, **kwargs)
-            self._check_and_reset()
-            return result
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        self._check_and_reset()
+        result = func(self, *args, **kwargs)
+        self._check_and_reset()
+        return result
 
-        return wrapper
-
-    return decorator
+    return wrapper
 
 
 @dataclass
@@ -134,7 +131,7 @@ class Converser(Copier, AppInteractor):
         else:
             print_and_log_red(comment)
 
-    @_raise_if_reset()
+    @_raise_if_reset
     def apply_get_and_append_assistant_message(self, tag: Optional[StrOrReplacer] = None,
                                                comment: Optional[StrOrReplacer] = None,
                                                is_code: bool = False, previous_code: Optional[str] = None,
@@ -161,7 +158,7 @@ class Converser(Copier, AppInteractor):
                                       provided_as_html=True)
         return message
 
-    @_raise_if_reset()
+    @_raise_if_reset
     def _show_and_edit_content(self, content: StrOrReplacer,
                                editing_title: str, editing_instructions: str, in_field_instructions: str,
                                send_to_app: Optional[bool], app_panel: PanelNames, sleep_for: Optional[float]) -> str:
@@ -174,7 +171,7 @@ class Converser(Copier, AppInteractor):
             self._app_send_prompt(app_panel, content, from_md=True, demote_headers_by=1, sleep_for=sleep_for)
         return content
 
-    @_raise_if_reset()
+    @_raise_if_reset
     def apply_append_user_message(self, content: StrOrReplacer, tag: Optional[StrOrReplacer] = None,
                                   comment: Optional[StrOrReplacer] = None,
                                   ignore: bool = False,
@@ -202,7 +199,7 @@ class Converser(Copier, AppInteractor):
                                         send_to_app, app_panel, sleep_for)
         return result
 
-    @_raise_if_reset()
+    @_raise_if_reset
     def apply_append_system_message(self, content: StrOrReplacer, tag: Optional[StrOrReplacer] = None,
                                     comment: Optional[StrOrReplacer] = None,
                                     ignore: bool = False,
@@ -219,7 +216,7 @@ class Converser(Copier, AppInteractor):
             ignore=ignore,
             **kwargs)
 
-    @_raise_if_reset()
+    @_raise_if_reset
     def apply_append_surrogate_message(self, content: StrOrReplacer,
                                        tag: Optional[StrOrReplacer] = None, comment: Optional[StrOrReplacer] = None,
                                        ignore: bool = False,
