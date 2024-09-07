@@ -174,16 +174,6 @@ def _check_matching_column_choice(primary_name, optional_name, primary: ColumnCh
                          f'\n\n{example_plotting}')
 
 
-def df_plot_with_legend(df: DataFrame, x: Optional[str] = None, y: ColumnChoice = None,
-                        yerr: ColumnChoiceWithPairs = None, xerr: ColumnChoiceWithPairs = None,
-                        **kwargs):
-    """
-    Same as df.plot, but replaces underscores in the df columns with spaces to allow for better legend display.
-    df.plot will otherwise skip columns with underscores in the legend.
-    """
-    return df.plot(x=x, y=y, yerr=yerr, xerr=xerr, **kwargs)
-
-
 @raise_on_wrong_func_argument_types_decorator
 def df_plot_with_pvalue(df: DataFrame, x: Optional[DfColumnTyping] = None, y: ColumnChoice = None,
                         kind: str = 'bar', ax: Optional[plt.Axes] = None,
@@ -205,7 +195,7 @@ def df_plot_with_pvalue(df: DataFrame, x: Optional[DfColumnTyping] = None, y: Co
     yerr = _convert_err_and_ci_to_err(df, y, 'y', yerr, y_ci)
     with mpl.rc_context(rc=RC_PARAMS):
         try:
-            ax = df_plot_with_legend(df, x=x, y=y, kind=kind, ax=ax, xerr=xerr, yerr=yerr, **kwargs)
+            ax = df.plot(x=x, y=y, kind=kind, ax=ax, xerr=xerr, yerr=yerr, **kwargs)
         except Exception as e:
             msg = f'Error calling df.plot(x={describe_value(x)}, y={describe_value(y)}, kind={describe_value(kind)}, ' \
                   f'xerr={describe_value(xerr)}, yerr={describe_value(yerr)}, **{describe_value(kwargs)}):\n' \

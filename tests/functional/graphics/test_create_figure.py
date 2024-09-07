@@ -1,16 +1,51 @@
+from functools import partial
+
 import pytest
 import pandas as pd
 import numpy as np
 import os
 
+from pathlib import Path
+
 from data_to_paper.llm_coding_utils.df_to_figure import df_to_figure
-from data_to_paper.llm_coding_utils.df_plot_with_pvalue import df_plot_with_pvalue
 from data_to_paper.utils.file_utils import run_in_directory
+
+
+df_to_figure = partial(df_to_figure, create_fig=True)
+
+
+CORRECT_FIGURES_FOLDER = Path(__file__).parent / 'correct_figures'
+MODIFIED_FIGURES_FOLDER = Path(__file__).parent / 'modified_figures'
+
+
+# Define a fixture that returns the current test name
+@pytest.fixture
+def name_of_test(request, tmpdir):
+    testname = request.node.name
+
+    if not MODIFIED_FIGURES_FOLDER.exists():
+        MODIFIED_FIGURES_FOLDER.mkdir()
+    if not CORRECT_FIGURES_FOLDER.exists():
+        CORRECT_FIGURES_FOLDER.mkdir()
+    with run_in_directory(MODIFIED_FIGURES_FOLDER):
+        yield testname
+
+    # check if the figures are the same:
+    correct_fig = CORRECT_FIGURES_FOLDER / (testname + '.png')
+    modified_fig = MODIFIED_FIGURES_FOLDER / (testname + '.png')
+    assert correct_fig.exists(), f"Correct figure {testname} does not exist."
+    assert modified_fig.exists(),  f"Figure {testname} was not created."
+    if correct_fig.read_bytes() != modified_fig.read_bytes():
+        assert False, \
+            f"Figures are different. If the new figure is correct, move it to correct_figures folder."
+    # delete the modified figure if it is the same as the correct one
+    os.remove(modified_fig)
 
 
 @pytest.fixture(scope="module")
 def test_data():
     x = range(10)
+    np.random.seed(0)
     y = np.random.randn(10)
     y_2 = np.random.randn(10)
     y_err = np.random.rand(10) * 0.1
@@ -30,94 +65,86 @@ def test_data():
     yield df
 
 
-filename = 'test_plot'
+def test_basic_plot(name_of_test, test_data):
+    df_to_figure(test_data, filename=name_of_test, y='y')
 
 
-def test_basic_plot(test_data, tmpdir):
-    df_plot_with_pvalue(test_data, y='y')
+def test_plot_with_xlabel(name_of_test, test_data):
+    df_to_figure(test_data, filename=name_of_test, xlabel='X Axis Label', y='y')
 
 
-def test_plot_with_xlabel(test_data):
-    df_plot_with_pvalue(test_data, xlabel='X Axis Label', y='y')
+def test_plot_with_caption_and_label(name_of_test, test_data):
+    latex = df_to_figure(test_data, filename=name_of_test, caption='Test Caption', y='y')
+    assert "df.plot(y='y')" in latex
+    assert os.path.exists(name_of_test + '.png')
 
 
-def test_plot_with_caption_and_label(test_data, tmpdir):
-    with run_in_directory(tmpdir):
-        latex = df_to_figure(test_data, filename=filename, caption='Test Caption', y='y', create_fig=True)
-        assert "df.plot(y='y')" in latex
-        assert os.path.exists(filename + '.png')
+def test_plot_with_long_xtick_labels(name_of_test, test_data):
+    test_data['x'] = ['This is a long label' for _ in range(10)]
+    df_to_figure(test_data, filename=name_of_test, y='y')
+    assert os.path.exists(name_of_test + '.png')
 
 
-def test_plot_with_note_and_glossary(test_data, tmpdir):
-    with run_in_directory(tmpdir):
-        note = 'This is a note.'
-        glossary = {'y': 'Y-axis values'}
-        latex = df_to_figure(test_data, filename=filename, note=note, glossary=glossary, y='y', create_fig=True)
-        assert "df.plot(y='y')" in latex
-        assert "y: Y-axis values" in latex
-        assert os.path.exists(filename + '.png')
+def test_plot_with_note_and_glossary(name_of_test, test_data):
+    note = 'This is a note.'
+    glossary = {'y': 'Y-axis values'}
+    latex = df_to_figure(test_data, filename=name_of_test, note=note, glossary=glossary, y='y')
+    assert "df.plot(y='y')" in latex
+    assert "y: Y-axis values" in latex
+    assert os.path.exists(name_of_test + '.png')
 
 
-def test_plot_with_yerr(test_data, tmpdir):
-    with run_in_directory(tmpdir):
-        df_to_figure(test_data, filename=filename, y='y', yerr='y_err', create_fig=True)
-        assert os.path.exists(filename + '.png')
+def test_plot_with_yerr(name_of_test, test_data):
+    df_to_figure(test_data, filename=name_of_test, y='y', yerr='y_err')
+    assert os.path.exists(name_of_test + '.png')
 
 
-def test_plot_with_y_ci(test_data, tmpdir):
-    with run_in_directory(tmpdir):
-        df_to_figure(test_data, filename=filename, y='y', y_ci='y_ci', create_fig=True)
-        assert os.path.exists(filename + '.png')
+def test_plot_with_y_ci(name_of_test, test_data):
+    df_to_figure(test_data, filename=name_of_test, y='y', y_ci='y_ci')
+    assert os.path.exists(name_of_test + '.png')
 
 
-def test_plot_with_y_ci_low_high(test_data, tmpdir):
-    with run_in_directory(tmpdir):
-        df_to_figure(test_data, filename=filename, y='y',
-                     y_ci=('y_ci_lower', 'y_ci_upper'), create_fig=True)
-        assert os.path.exists(filename + '.png')
+def test_plot_with_y_ci_low_high(name_of_test, test_data):
+    df_to_figure(test_data, filename=name_of_test, y='y',
+                 y_ci=('y_ci_lower', 'y_ci_upper'))
+    assert os.path.exists(name_of_test + '.png')
 
 
-def test_plot_with_y_p_value(test_data, tmpdir):
-    with run_in_directory(tmpdir):
-        df_to_figure(test_data, filename=filename, y='y', y_p_value='y_p_value',
-                     yerr='y_err', create_fig=True)
-        assert os.path.exists(filename + '.png')
+def test_plot_with_y_p_value(name_of_test, test_data):
+    df_to_figure(test_data, filename=name_of_test, y='y', y_p_value='y_p_value',
+                 yerr='y_err')
+    assert os.path.exists(name_of_test + '.png')
 
 
-def test_plot_with_all_options(test_data, tmpdir):
-    with run_in_directory(tmpdir):
-        df_to_figure(test_data, filename=filename, caption='Full options', note='Note here',
-                     glossary={'x': 'X values', 'y': 'Y values'}, xlabel='X Axis', ylabel='Y Axis', y='y', yerr='y_err',
-                     y_p_value='y_p_value', create_fig=True)
-        assert os.path.exists(filename + '.png')
+def test_plot_with_all_options(name_of_test, test_data):
+    df_to_figure(test_data, filename=name_of_test, caption='Full options', note='Note here',
+                 glossary={'x': 'X values', 'y': 'Y values'}, xlabel='X Axis', ylabel='Y Axis', y='y', yerr='y_err',
+                 y_p_value='y_p_value')
+    assert os.path.exists(name_of_test + '.png')
 
 
-def test_plot_with_all_options_kind_scatter(test_data, tmpdir):
-    with run_in_directory(tmpdir):
-        df_to_figure(test_data, filename=filename, caption='Full options', note='Note here',
-                     glossary={'x': 'X values', 'y': 'Y values'}, xlabel='X Axis', ylabel='Y Axis', x='x', y='y',
-                     yerr='y_err', y_p_value='y_p_value', kind='bar', create_fig=True)
-        assert os.path.exists(filename + '.png')
+def test_plot_with_all_options_kind_scatter(name_of_test, test_data):
+    df_to_figure(test_data, filename=name_of_test, caption='Full options', note='Note here',
+                 glossary={'x': 'X values', 'y': 'Y values'}, xlabel='X Axis', ylabel='Y Axis', x='x', y='y',
+                 yerr='y_err', y_p_value='y_p_value', kind='bar')
+    assert os.path.exists(name_of_test + '.png')
 
 
-def test_plot_with_all_options_kind_bar(test_data, tmpdir):
-    with run_in_directory(tmpdir):
-        df_to_figure(test_data, filename=filename, caption='Full options', note='Note here',
-                     glossary={'x': 'X values', 'y': 'Y values'}, y=['y', 'y_2'], yerr=['y_err', 'y_err'],
-                     y_p_value=['y_p_value', 'y_p_value'], kind='bar', xlabel='x', create_fig=True)
-        assert os.path.exists(filename + '.png')
+def test_plot_with_all_options_kind_bar(name_of_test, test_data):
+    df_to_figure(test_data, filename=name_of_test, caption='Full options', note='Note here',
+                 glossary={'x': 'X values', 'y': 'Y values'}, y=['y', 'y_2'], yerr=['y_err', 'y_err'],
+                 y_p_value=['y_p_value', 'y_p_value'], kind='bar', xlabel='x')
+    assert os.path.exists(name_of_test + '.png')
 
 
-def test_plot_without_yerr_for_p_value(test_data, tmpdir):
-    with run_in_directory(tmpdir):
-        with pytest.raises(ValueError):
-            df_to_figure(test_data, filename=filename, y='y', y_p_value='y_p_value', create_fig=True)
+def test_plot_without_yerr_for_p_value(test_data):
+    with pytest.raises(ValueError):
+        df_to_figure(test_data, filename='test', y='y', y_p_value='y_p_value')
 
 
-def test_plot_with_multiple_columns_input(test_data, tmpdir):
-    with run_in_directory(tmpdir):
-        df_to_figure(test_data, filename=filename, y=['y', 'y_2'], create_fig=True)
-        assert os.path.exists(filename + '.png')
+def test_plot_with_multiple_columns_input(name_of_test, test_data):
+    df_to_figure(test_data, filename=name_of_test, y=['y', 'y_2'])
+    assert os.path.exists(name_of_test + '.png')
 
 
 @pytest.fixture(scope="module")
@@ -140,13 +167,13 @@ def df_for_plot():
     return df
 
 
-def test_df_plot_with_pvalue_yerr(df_for_plot):
-    df_plot_with_pvalue(df_for_plot, y=['apples', 'oranges', 'bananas'],
-                        yerr=['apples_err', 'oranges_err', 'bananas_err'],
-                        y_p_value=['apples_p_value', 'oranges_p_value', 'bananas_p_value'])
+def test_df_plot_with_pvalue_yerr(name_of_test, df_for_plot):
+    df_to_figure(df_for_plot, filename=name_of_test, y=['apples', 'oranges', 'bananas'],
+                 yerr=['apples_err', 'oranges_err', 'bananas_err'],
+                 y_p_value=['apples_p_value', 'oranges_p_value', 'bananas_p_value'])
 
 
-def test_df_plot_with_pvalue_y_ci(df_for_plot):
-    df_plot_with_pvalue(df_for_plot, y=['apples', 'oranges', 'bananas'],
-                        y_ci=['apples_ci', 'oranges_ci', 'bananas_ci'],
-                        y_p_value=['apples_p_value', 'oranges_p_value', 'bananas_p_value'])
+def test_df_plot_with_pvalue_y_ci(name_of_test, df_for_plot):
+    df_to_figure(df_for_plot, filename=name_of_test, y=['apples', 'oranges', 'bananas'],
+                 y_ci=['apples_ci', 'oranges_ci', 'bananas_ci'],
+                 y_p_value=['apples_p_value', 'oranges_p_value', 'bananas_p_value'])

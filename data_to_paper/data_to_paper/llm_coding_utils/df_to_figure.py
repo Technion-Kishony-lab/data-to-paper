@@ -114,7 +114,8 @@ def create_fig_for_df_to_figure_and_get_axis_parameters(df: pd.DataFrame, filepa
     fig.set_size_inches(*FIG_SIZE_INCHES)
     df = convert_p_values_to_floats(df.copy())
 
-    # Replace underscores with spaces in the column names
+    # Replace underscores with spaces in the column names.
+    # Otherwise df.plot() may skip the column with underscores in the name.
     df, kwargs = replace_df_column_names_to_str_with_no_underscores(df, **kwargs)
 
     df_plot_with_pvalue(df, ax=ax, **kwargs)
