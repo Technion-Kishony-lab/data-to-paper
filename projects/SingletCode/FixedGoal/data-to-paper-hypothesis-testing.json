@@ -1,0 +1,11 @@
+{
+    "research_goal": "The research goal is to evaluate and compare the performance of four doublet detection algorithms across various scRNA-seq datasets, as indicated in the \"dataset\" column, using three metrics: AUPRC, AUROC, and TNR.",
+    "data_filenames": [
+        "../data/barcodedNonBarcoded_AUPRC_AUROC_TNR.csv",
+        "../data/TNR_plotted_formatted.csv"
+    ],
+    "data_files_is_binary": [
+        false,
+        false
+    ]
+}

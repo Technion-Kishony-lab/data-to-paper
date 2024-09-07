@@ -1,0 +1,10 @@
+The CSV file contains a dataset with each row representing a result and each column representing a feature. The columns in the dataset are as follows:
+
+"": Index number
+"X": Index number
+"condition": The doublet detection algorithm used to generate the AUPRC, AUROC, and TNR data (options include DoubletFinder, hybrid, scDblFinder, or Scrublet)
+"dataset": The scRNA-seq dataset from which the data originated
+"sample": The specific sample within the corresponding scRNA-seq dataset
+"TNR": True negative rate
+“dbl_exp”: Expected true doublet rate from 10X Genomics
+"dbl_act": Actual true doublet rate from 10X Genomics
