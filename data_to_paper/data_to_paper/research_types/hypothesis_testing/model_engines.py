@@ -3,10 +3,10 @@ from data_to_paper.servers.model_engine import ModelEngine
 TYPE_OF_MODELS = 'closed'
 
 if TYPE_OF_MODELS == 'closed':
-    ModelEngine.DEFAULT = ModelEngine.GPT4o_MINI
+    ModelEngine.DEFAULT = ModelEngine.GPT4o
     CLASSES_TO_MODEL_ENGINES = {
         "DataExplorationCodeProductsGPT": ModelEngine.GPT4o,
-        "BaseCreateTablesCodeProductsGPT": ModelEngine.GPT4o,
+        "BaseCreateTablesCodeProductsGPT": ModelEngine.GPT4,
         "GetMostSimilarCitations": ModelEngine.GPT4o,
         "IsGoalOK": ModelEngine.GPT4o,
         "NoveltyAssessmentReview": ModelEngine.GPT4o,
