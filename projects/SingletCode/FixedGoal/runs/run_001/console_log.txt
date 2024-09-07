@@ -639,8 +639,8 @@ Your explanation should be written in LaTeX, and should be enclosed within a LaT
 Remember to enclose your explanation within a LaTeX Code Block, so that I can easily copy-paste it![0m
 [36m======================================================================================================================================================[0m
 
-[31mUsing GPT4 (max 8192 tokens) for 1799 context tokens and 500 expected tokens.[0m
-[36m[8] ===== ASSISTANT{'model_engine': <ModelEngine.GPT4: 'gpt-4'>} {Performer} -> "Data Exploration Code - Explanation"  ===============================
+[31mUsing GPT4o (max 128000 tokens) for 1799 context tokens and 500 expected tokens.[0m
+[36m[8] ===== ASSISTANT{'model_engine': <ModelEngine.GPT4o: 'gpt-4o'>} {Performer} -> "Data Exploration Code - Explanation"  =============================
 [0m[96m
 CONTEXT TOTAL (1799 tokens):
 # 0    SYSTEM (  15 tokens): You are a scientist who needs to write explanation of the Data Exploration code.
@@ -651,7 +651,7 @@ CONTEXT TOTAL (1799 tokens):
 # 5      USER ( 151 tokens): Please return a triple-backtick Latex Block explaining what the code above [...] copy-paste it!
 
 # 6 ASSISTANT ( 243 tokens): latex \section{Code Explanation} The provided code conducts a comprehensive [...] scRNA-seq datasets.
-                                                                               {'model_engine': <ModelEngine.GPT4: 'gpt-4'>}
+                                                                               {'model_engine': <ModelEngine.GPT4o: 'gpt-4o'>}
 [0m[36m
 
 [0m[96m```latex
@@ -1026,8 +1026,8 @@ study goal.
 Remember to return a valid Python dictionary with the structure described above.[0m
 [36m======================================================================================================================================================[0m
 
-[31mUsing GPT4 (max 8192 tokens) for 3068 context tokens and 500 expected tokens.[0m
-[36m[10] ==== ASSISTANT{'model_engine': <ModelEngine.GPT4: 'gpt-4'>} {Performer} -> "Hypothesis Testing Plan"  ===========================================
+[31mUsing GPT4o (max 128000 tokens) for 3068 context tokens and 500 expected tokens.[0m
+[36m[10] ==== ASSISTANT{'model_engine': <ModelEngine.GPT4o: 'gpt-4o'>} {Performer} -> "Hypothesis Testing Plan"  =========================================
 [0m[96m
 CONTEXT TOTAL (3068 tokens):
 # 0    SYSTEM (  12 tokens): You are a scientist who needs to write hypothesis testing plan.
@@ -1040,7 +1040,7 @@ CONTEXT TOTAL (3068 tokens):
 # 7      USER ( 543 tokens): We would like to test the specified hypotheses using the provided dataset. We [...] described above.
 
 # 8 ASSISTANT ( 392 tokens): python {  'ISSUES': {  'Missing data points': 'Based on the Data Exploration [...] comparisons.'  } }
-                                                                               {'model_engine': <ModelEngine.GPT4: 'gpt-4'>}
+                                                                               {'model_engine': <ModelEngine.GPT4o: 'gpt-4o'>}
 [0m[36m
 
 [0m[38;5;15m{[39m
@@ -1090,8 +1090,8 @@ Remember, your response should be formatted as a Python dictionary with the foll
 
 [31mDeleteMessages(<11> - <-3> [0 MESSAGES]) -> Hypothesis Testing Plan[0m
 
-[31mUsing GPT4 (max 8192 tokens) for 3587 context tokens and 500 expected tokens.[0m
-[36m[12] ==== ASSISTANT{'model_engine': <ModelEngine.GPT4: 'gpt-4'>} {Performer} -> "Hypothesis Testing Plan"  ===========================================
+[31mUsing GPT4o (max 128000 tokens) for 3587 context tokens and 500 expected tokens.[0m
+[36m[12] ==== ASSISTANT{'model_engine': <ModelEngine.GPT4o: 'gpt-4o'>} {Performer} -> "Hypothesis Testing Plan"  =========================================
 [0m[96m
 CONTEXT TOTAL (3587 tokens):
 # 0    SYSTEM (  12 tokens): You are a scientist who needs to write hypothesis testing plan.
@@ -1106,7 +1106,7 @@ CONTEXT TOTAL (3587 tokens):
 # 9      USER ( 126 tokens): # Hypothesis too short The hypothesis "Differences in AUPRC score between [...] '...',  # ... }
 
 #10 ASSISTANT ( 488 tokens): python {  'ISSUES': {  'Missing data points': 'Based on the Data Exploration [...] comparisons.'  } }
-                                                                               {'model_engine': <ModelEngine.GPT4: 'gpt-4'>}
+                                                                               {'model_engine': <ModelEngine.GPT4o: 'gpt-4o'>}
 [0m[36m
 
 [0m[38;5;15m{[39m
@@ -1182,8 +1182,8 @@ Send back a complete rewrite of the hypothesis testing plan.
 Make sure to send the full corrected hypothesis testing plan, not just the parts that were revised.[0m
 [32m------------------------------------------------------------------------------------------------------------------------------------------------------[0m
 
-[31mUsing GPT4 (max 8192 tokens) for 3610 context tokens and 500 expected tokens.[0m
-[36m[12] ==== ASSISTANT{'model_engine': <ModelEngine.GPT4: 'gpt-4'>} {Performer} -> "Hypothesis Testing Plan"  ===========================================
+[31mUsing GPT4o (max 128000 tokens) for 3610 context tokens and 500 expected tokens.[0m
+[36m[12] ==== ASSISTANT{'model_engine': <ModelEngine.GPT4o: 'gpt-4o'>} {Performer} -> "Hypothesis Testing Plan"  =========================================
 [0m[96m
 CONTEXT TOTAL (3610 tokens):
 # 0    SYSTEM (  12 tokens): You are a scientist who needs to write hypothesis testing plan.
@@ -1198,7 +1198,7 @@ CONTEXT TOTAL (3610 tokens):
 # 9      USER (  53 tokens): focus on the first hypothesis   Please correct your response according to any [...] that were revised.
 
 #10 ASSISTANT ( 662 tokens): # Hypothesis Testing Plan   This hypothesis test plan focuses on the first [...] performance metric.
-                                                                               {'model_engine': <ModelEngine.GPT4: 'gpt-4'>}
+                                                                               {'model_engine': <ModelEngine.GPT4o: 'gpt-4o'>}
 [0m[36m
 
 # Hypothesis Testing Plan
@@ -1268,8 +1268,8 @@ Remember, your response should be formatted as a Python dictionary with the foll
 [38;5;15m}[39m
 [32m------------------------------------------------------------------------------------------------------------------------------------------------------[0m
 
-[31mUsing GPT4 (max 8192 tokens) for 4387 context tokens and 500 expected tokens.[0m
-[36m[14] ==== ASSISTANT{'model_engine': <ModelEngine.GPT4: 'gpt-4'>} {Performer} -> "Hypothesis Testing Plan"  ===========================================
+[31mUsing GPT4o (max 128000 tokens) for 4387 context tokens and 500 expected tokens.[0m
+[36m[14] ==== ASSISTANT{'model_engine': <ModelEngine.GPT4o: 'gpt-4o'>} {Performer} -> "Hypothesis Testing Plan"  =========================================
 [0m[96m
 CONTEXT TOTAL (4387 tokens):
 # 0    SYSTEM (  12 tokens): You are a scientist who needs to write hypothesis testing plan.
@@ -1286,7 +1286,7 @@ CONTEXT TOTAL (4387 tokens):
 #11      USER ( 115 tokens): # Incorrect response format Could not find a valid Python Dict[str, Dict[str, [...] '...',  # ... }
 
 #12 ASSISTANT ( 302 tokens): I apologize for misunderstanding the request previously. Here is the updated [...] testing.'  } }
-                                                                               {'model_engine': <ModelEngine.GPT4: 'gpt-4'>}
+                                                                               {'model_engine': <ModelEngine.GPT4o: 'gpt-4o'>}
 [0m[36m
 
 I apologize for misunderstanding the request previously. Here is the updated hypothesis testing plan in Python dictionary form:
@@ -1689,7 +1689,7 @@ are combined in a dataframe and saved to a file as the basis for the hypothesis 
 'additional_results.pkl'.[0m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<12> - <-1> [1 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -1807,7 +1807,7 @@ I apologize for the confusion. The error is due to using a tuple instead of a li
 [38;5;197m+[39m[38;5;15mdf0[39m[38;5;15m [39m[38;5;197m=[39m[38;5;15m [39m[38;5;15mdata[39m[38;5;197m.[39m[38;5;15mgroupby[39m[38;5;15m([39m[38;5;186m'[39m[38;5;186mcondition[39m[38;5;186m'[39m[38;5;15m)[39m[38;5;15m[[39m[38;5;15m[[39m[38;5;186m'[39m[38;5;186mauprc[39m[38;5;186m'[39m[38;5;15m,[39m[38;5;15m [39m[38;5;186m'[39m[38;5;186mauroc[39m[38;5;186m'[39m[38;5;15m,[39m[38;5;15m [39m[38;5;186m'[39m[38;5;186mTNR[39m[38;5;186m'[39m[38;5;15m][39m[38;5;15m][39m[38;5;197m.[39m[38;5;15mdescribe[39m[38;5;15m([39m[38;5;15m)[39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<12> - <-1> [3 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -1931,7 +1931,7 @@ Here's the updated Python code:
 In this version of the code, I've changed 'TNR' to 'TNR_x' which should match the name of the column as it's offered in the merged DataFrame.[0m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<12> - <-1> [3 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -2061,7 +2061,7 @@ DataFrame. Let's fix this in the corrected complete code:
 [38;5;197m+[39m[38;5;15m    [39m[38;5;15m}[39m[38;5;15m)[39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<12> - <-1> [3 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -2231,7 +2231,7 @@ This code will now perform ANOVA tests for each metric (auprc, auroc, and TNR) t
 each test instead of generating a warning.[0m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<12> - <-1> [3 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -2360,7 +2360,7 @@ This code performs the same analysis but uses attribute access to extract the F-
 also stores the F-statistics in the final dataframe.[0m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<12> - <-1> [3 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -2465,7 +2465,7 @@ Sure, I have revised the code according to your feedback. Here is the corrected 
 [38;5;197m-[39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<12> - <-1> [3 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -2572,7 +2572,7 @@ each condition.
 [38;5;197m+[39m[38;5;15mdf0[39m[38;5;15m [39m[38;5;197m=[39m[38;5;15m [39m[38;5;15mdata[39m[38;5;197m.[39m[38;5;15mgroupby[39m[38;5;15m([39m[38;5;186m'[39m[38;5;186mcondition[39m[38;5;186m'[39m[38;5;15m)[39m[38;5;15m[[39m[38;5;15m[[39m[38;5;186m'[39m[38;5;186mauprc[39m[38;5;186m'[39m[38;5;15m,[39m[38;5;15m [39m[38;5;186m'[39m[38;5;186mauroc[39m[38;5;186m'[39m[38;5;15m,[39m[38;5;15m [39m[38;5;186m'[39m[38;5;186mTNR_x[39m[38;5;186m'[39m[38;5;15m][39m[38;5;15m][39m[38;5;197m.[39m[38;5;15magg[39m[38;5;15m([39m[38;5;15m[[39m[38;5;186m'[39m[38;5;186mmean[39m[38;5;186m'[39m[38;5;15m,[39m[38;5;15m [39m[38;5;186m'[39m[38;5;186mstd[39m[38;5;186m'[39m[38;5;15m][39m[38;5;15m)[39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<12> - <-1> [3 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -2681,7 +2681,7 @@ Of course, you're right. Here is the complete code revised according to your not
 [38;5;197m+[39m[38;5;15mdf1[39m[38;5;197m.[39m[38;5;15mset_index[39m[38;5;15m([39m[38;5;186m'[39m[38;5;186mMetric[39m[38;5;186m'[39m[38;5;15m,[39m[38;5;15m [39m[38;5;15minplace[39m[38;5;197m=[39m[38;5;81mTrue[39m[38;5;15m)[39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mAppendMessage, Debug iteration 9/20: Code modifies dataframe series[0m
 [32m[16] ---- USER {Debugger} -> "Data Analysis Code"  ---------------------------------------------------------------------------------------------------
 [0m[32m# Dataframe series change
@@ -2741,7 +2741,7 @@ Of course, I see your point. Here is the complete code revised according to your
 [38;5;197m+[39m[38;5;15m    [39m[38;5;186m'[39m[38;5;186mTotal number of observations[39m[38;5;186m'[39m[38;5;15m:[39m[38;5;15m [39m[38;5;15mlen[39m[38;5;15m([39m[38;5;15mdata[39m[38;5;15m)[39m
 [36m======================================================================================================================================================[0m
 
-CodeRunner: Running and caching output.
+CodeRunner: Using cached output.
 [31mDeleteMessages(<11> - <-1> [6 MESSAGES]) -> Data Analysis Code[0m
 
 [31mAppendMessage, Adding the debugged code as if it was the original response.[0m
@@ -3443,8 +3443,8 @@ Your explanation should be written in LaTeX, and should be enclosed within a LaT
 Remember to enclose your explanation within a LaTeX Code Block, so that I can easily copy-paste it![0m
 [36m======================================================================================================================================================[0m
 
-[31mUsing GPT4 (max 8192 tokens) for 1600 context tokens and 500 expected tokens.[0m
-[36m[8] ===== ASSISTANT{'model_engine': <ModelEngine.GPT4: 'gpt-4'>} {Performer} -> "Data Analysis Code - Explanation"  ==================================
+[31mUsing GPT4o (max 128000 tokens) for 1600 context tokens and 500 expected tokens.[0m
+[36m[8] ===== ASSISTANT{'model_engine': <ModelEngine.GPT4o: 'gpt-4o'>} {Performer} -> "Data Analysis Code - Explanation"  ================================
 [0m[96m
 CONTEXT TOTAL (1600 tokens):
 # 0    SYSTEM (  15 tokens): You are a scientist who needs to write explanation of the Data Analysis code.
@@ -3455,7 +3455,7 @@ CONTEXT TOTAL (1600 tokens):
 # 5      USER ( 149 tokens): Please return a triple-backtick Latex Block explaining what the code above [...] copy-paste it!
 
 # 6 ASSISTANT ( 352 tokens): latex \section{Code Explanation} The provided python script conducts an [...] of observations.
-                                                                               {'model_engine': <ModelEngine.GPT4: 'gpt-4'>}
+                                                                               {'model_engine': <ModelEngine.GPT4o: 'gpt-4o'>}
 [0m[36m
 
 [0m[96m```latex
@@ -3744,7 +3744,7 @@ CONTEXT TOTAL (2983 tokens):
 [38;5;15m    [39m[38;5;15mlegend[39m[38;5;197m=[39m[38;5;15mlegend1[39m[38;5;15m)[39m
 [36m======================================================================================================================================================[0m
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 [31mDeleteMessages(<12> - <-1> [1 MESSAGES]) -> LaTeX Table Design Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -3888,7 +3888,7 @@ Thank you for your feedback! I have added the necessary label explanations to th
 [38;5;197m-[39m[38;5;15mmapping1[39m[38;5;15m [39m[38;5;197m|[39m[38;5;197m=[39m[38;5;15m [39m[38;5;15mshared_mapping[39m
 [36m======================================================================================================================================================[0m
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 [31mDeleteMessages(<12> - <-1> [3 MESSAGES]) -> LaTeX Table Design Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -4015,7 +4015,7 @@ labels in the table. Let's correct this. Here is the corrected code:
 [38;5;197m+[39m[38;5;15m    [39m[38;5;186m'[39m[38;5;186mMetric_String[39m[38;5;186m'[39m[38;5;15m:[39m[38;5;15m [39m[38;5;15m([39m[38;5;186m'[39m[38;5;186mAlgorithm[39m[38;5;186m'[39m[38;5;15m,[39m[38;5;15m [39m[38;5;186m'[39m[38;5;186mName of the doublet detection algorithm[39m[38;5;186m'[39m[38;5;15m)[39m
 [36m======================================================================================================================================================[0m
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 [31mDeleteMessages(<12> - <-1> [3 MESSAGES]) -> LaTeX Table Design Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -4163,7 +4163,7 @@ Now, the legend and renaming issues are addressed correctly. The table row and c
 the legend.[0m
 [36m======================================================================================================================================================[0m
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 [31mDeleteMessages(<12> - <-1> [3 MESSAGES]) -> LaTeX Table Design Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -4312,7 +4312,7 @@ version of the code:
 [38;5;197m+[39m[38;5;15m    [39m[38;5;15mcaption[39m[38;5;197m=[39m[38;5;186m"[39m[38;5;186mComparisons of doublet detection algorithms performance[39m[38;5;186m"[39m[38;5;15m,[39m
 [36m======================================================================================================================================================[0m
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 [31mDeleteMessages(<12> - <-1> [3 MESSAGES]) -> LaTeX Table Design Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -4441,7 +4441,7 @@ With this updated code, all required abbreviations are mapped to their full form
 `to_latex_with_note` within your Python script.[0m
 [36m======================================================================================================================================================[0m
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 [31mDeleteMessages(<12> - <-1> [3 MESSAGES]) -> LaTeX Table Design Code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -4571,7 +4571,7 @@ Understood, and my apologies for the oversight. Here is the corrected code:
 This version of the code correctly adds the 'TNR' to the legend of table_0.tex.[0m
 [36m======================================================================================================================================================[0m
 
-UtilsCodeRunner: Running and caching output.
+UtilsCodeRunner: Using cached output.
 [31mDeleteMessages(<11> - <-1> [4 MESSAGES]) -> LaTeX Table Design Code[0m
 
 [31mAppendMessage, Adding the debugged code as if it was the original response.[0m
@@ -5109,8 +5109,8 @@ For example, for a study reporting waning of the efficacy of the covid-19 BNT162
 Your response should be formatted as a Python Dict[str, List[str]] wrapped within a triple backtick 'python' code block.[0m
 [36m======================================================================================================================================================[0m
 
-[31mUsing GPT4 (max 8192 tokens) for 1818 context tokens and 500 expected tokens.[0m
-[36m[12] ==== ASSISTANT{'model_engine': <ModelEngine.GPT4: 'gpt-4'>} {Performer} -> "Literature Search for Writing"  =====================================
+[31mUsing GPT4o (max 128000 tokens) for 1818 context tokens and 500 expected tokens.[0m
+[36m[12] ==== ASSISTANT{'model_engine': <ModelEngine.GPT4o: 'gpt-4o'>} {Performer} -> "Literature Search for Writing"  ===================================
 [0m[96m
 CONTEXT TOTAL (1818 tokens):
 # 0    SYSTEM (  12 tokens): You are a scientist who needs to write literature search queries.
@@ -5125,7 +5125,7 @@ CONTEXT TOTAL (1818 tokens):
 # 9      USER ( 321 tokens): Please write literature-search queries that we can use to search for papers [...] code block.
 
 #10 ASSISTANT ( 159 tokens): python {  "background": ['single-cell RNA sequencing', 'scRNA-seq doublets', [...] detection'] }
-                                                                               {'model_engine': <ModelEngine.GPT4: 'gpt-4'>}
+                                                                               {'model_engine': <ModelEngine.GPT4o: 'gpt-4o'>}
 [0m[36m
 
 [0m[38;5;15m{[39m
@@ -9120,4 +9120,24 @@ chose to provide bullet-point feedback then DO NOT include "The `Discussion` sec
 
 [36m[20] SURROGATE {Performer} -> "Writing: Discussion"  : 
 latex \section{Discussion}  This study aimed to evaluate and compare the performance of four [...] used for benchmarking discussed herein.[0m
+
+----- COMPLETED RUN ------
+## Completed
+This *data-to-paper* research cycle is now completed.
+The manuscript is ready. 
+
+The created manuscript and all other output files are saved in:
+/home/talifargan/git_projects/data-to-paper/projects/SingletCode/FixedGoal/runs/run_001
+
+You can click "Compile Paper" stage button to open the manuscript.
+
+Please check the created manuscript rigorously and carefully.
+
+
+*Remember that the process is not error-free and the responsibility for the final manuscript remains with you.*
+
+
+You can close the app now.
+
+----------------------------
 
