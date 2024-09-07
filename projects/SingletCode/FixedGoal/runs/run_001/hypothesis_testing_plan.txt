@@ -1,0 +1,14 @@
+## Statistical considerations:
+### Missing data points:
+The variables "sample" and "dbl_act" in the "barcodedNonBarcoded_AUPRC_AUROC_TNR.csv" have missing values. Depending on the specific research question and the nature of the missing data, this can be addressed using either omission of the missing points or an appropriate imputation method.
+### Dependencies between data points:
+Due to dependencies between samples from the same dataset, we should consider using a mixed effect model which can account for the non-independence (i.e., the grouping structure) among data points.
+### Multiple Comparisons:
+Since comparisons are being made across four doublet detection algorithms, we may need to correct for multiple testing using techniques like the Bonferroni Correction.
+
+## Hypotheses:
+### Hypothesis:
+Differences in AUPRC score between doublet detection algorithms
+### Test:
+A mixed-effect ANOVA can be performed with "condition" (algorithm used) as the fixed effect and "dataset" as the random effect. The dependent variable will be the "auprc". If the ANOVA reveals significant differences, multiple pairwise comparisons (post hoc tests) can be conducted to determine which specific groups (algorithms) differ, and the resulting p-values should be corrected for multiple testing.
+
