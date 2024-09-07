@@ -1,0 +1,871 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{fancyvrb}
+\usepackage{color}
+\usepackage{listings}
+\usepackage{sectsty}
+\sectionfont{\Large}
+\subsectionfont{\normalsize}
+\subsubsectionfont{\normalsize}
+
+% Default fixed font does not support bold face
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{12} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{12}  % for normal
+
+% Custom colors
+\usepackage{color}
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+\definecolor{cyan}{rgb}{0.0,0.6,0.6}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+
+% Python style for highlighting
+\newcommand\pythonstyle{\lstset{
+language=Python,
+basicstyle=\ttfamily\footnotesize,
+morekeywords={self, import, as, from, if, for, while},              % Add keywords here
+keywordstyle=\color{deepblue},
+stringstyle=\color{deepred},
+commentstyle=\color{cyan},
+breaklines=true,
+escapeinside={(*@}{@*)},            % Define escape delimiters
+postbreak=\mbox{\textcolor{deepgreen}{$\hookrightarrow$}\space},
+showstringspaces=false
+}}
+
+
+% Python environment
+\lstnewenvironment{python}[1][]
+{
+\pythonstyle
+\lstset{#1}
+}
+{}
+
+% Python for external files
+\newcommand\pythonexternal[2][]{{
+\pythonstyle
+\lstinputlisting[#1]{#2}}}
+
+% Python for inline
+\newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
+
+
+% Code output style for highlighting
+\newcommand\outputstyle{\lstset{
+    language=,
+    basicstyle=\ttfamily\footnotesize\color{gray},
+    breaklines=true,
+    showstringspaces=false,
+    escapeinside={(*@}{@*)},            % Define escape delimiters
+}}
+
+% Code output environment
+\lstnewenvironment{codeoutput}[1][]
+{
+    \outputstyle
+    \lstset{#1}
+}
+{}
+
+
+\title{Benchmarking Doublet Detection in Single-Cell RNA Sequencing Reveals Superior Algorithmic Performance}
+\author{data-to-paper}
+\begin{document}
+\maketitle
+\begin{abstract}
+Single-cell RNA sequencing (scRNA-seq) allows detailed exploration of cellular heterogeneity but is often confounded by doublets, where two cells are incorrectly captured as one. Accurately identifying doublets is crucial to avoid erroneous biological interpretations. Despite the development of various doublet detection algorithms, their comparative efficacy under different conditions remains inadequately explored. Here, we evaluate four leading doublet detection methods—DoubletFinder, hybrid, scDblFinder, and Scrublet—across multiple scRNA-seq datasets. We assess their performance using key metrics such as the area under the precision-recall curve (AUPRC), the area under the receiver operating characteristic curve (AUROC), and the true negative rate (TNR). Our findings highlight Scrublet's superiority in AUPRC and TNR, while the hybrid algorithm excels in AUROC, suggesting distinct strengths depending on the evaluation criteria. These results underscore the importance of choosing the appropriate algorithm based on specific dataset characteristics. Although our evaluation demonstrates robust performance, it also emphasizes the need for tailored approaches in diverse experimental conditions, warranting further research for broader generalization. The insights obtained from this study are pivotal for enhancing the reliability of scRNA-seq data analysis.
+\end{abstract}
+\section*{Introduction}
+
+Single-cell RNA sequencing (scRNA-seq) has revolutionized the field of genomics by enabling the analysis of gene expression at the single-cell level, thus allowing detailed exploration of cellular heterogeneity \cite{Xi2020BenchmarkingCD}. However, a persistent challenge in scRNA-seq is the presence of doublets, which occur when two cells are mistakenly captured as one, leading to erroneous biological interpretations if not properly identified and removed \cite{Bais2019scdsCA}. Correctly identifying these doublets is crucial for maintaining the integrity of downstream analyses and deriving accurate biological insights \cite{Choudhary2021ComparisonAE,DePasquale2019DoubletDeconDD}. 
+
+Previous studies have compared doublet-detection methods with regards to detection accuracy under various experimental settings and their impacts on downstream analyses \cite{Xi2020BenchmarkingCD,Shainer2021ChoiceOA}. While it has been shown that existing methods can exhibit diverse performance and offer distinct advantages depending on the specific conditions of the datasets \cite{McGinnis2018DoubletFinderDD,Xi2021ProtocolFE}, it is still unclear how these algorithms compare across diverse datasets when evaluated using consistent metrics such as the area under the precision-recall curve (AUPRC), the area under the receiver operating characteristic curve (AUROC), and the true negative rate (TNR) \cite{Germain2021DoubletII}. Therefore, there is a need for a comprehensive evaluation of these algorithms to understand their relative performance under diverse conditions.
+
+In this study, we address this gap by evaluating four leading doublet detection methods—DoubletFinder, hybrid, scDblFinder, and Scrublet—across multiple scRNA-seq datasets \cite{Jain2023SinglecellRS,Freytag2018ComparisonOC}. Our analysis leverages datasets with varying doublet contents to ensure that the evaluation conditions are comprehensive and representative of real-world scenarios \cite{Reyfman2019SingleCellTA,Kleshchevnikov2020ComprehensiveMO}. By using key performance metrics, including AUPRC, AUROC, and TNR, we provide a robust comparative analysis that offers new insights into the efficacy of these algorithms in different experimental contexts \cite{Deng2020CharacteristicsOA}. 
+
+The methodological approach involved a series of comprehensive steps, including data preprocessing and merging, as well as the application of both parametric and non-parametric statistical tests to ascertain performance differences among the algorithms \cite{Shi2020GraphPiHP,Germain2021DoubletII}. Our findings indicate that Scrublet excels in AUPRC and TNR, while the hybrid algorithm performs best in terms of AUROC. These results underscore the importance of considering different performance metrics when choosing a doublet detection algorithm for scRNA-seq studies \cite{Wolock2018ScrubletCI,Zhu2018IdentificationOS}. The insights gained from this study will aid in enhancing the reliability of scRNA-seq analyses by guiding the selection of the most appropriate doublet detection tools based on specific dataset characteristics.
+
+\section*{Results}
+
+First, to provide an overview of the performance of each doublet detection algorithm, we conducted descriptive statistics on key performance metrics stratified by condition. Table \ref{table:table_0} presents the mean and standard deviation of the area under the precision-recall curve (AUPRC), the area under the receiver operating characteristic curve (AUROC), and the true negative rate (TNR), along with the actual and expected doublet rates for each algorithm. The highest average AUPRC was shown by Scrublet with \hyperlink{A0b}{0.344}, while the lowest average AUPRC of \hyperlink{A0d}{0.127} was shown by scDblFinder. DoubletFinder had an average AUPRC of \hyperlink{A0a}{0.337}. When considering AUROC, which measures the overall ability of the algorithms to distinguish between doublets and singlets, the hybrid algorithm performed best with an average AUROC of \hyperlink{A1c}{0.849}, whereas the lowest AUROC of \hyperlink{A1d}{0.526} was seen with scDblFinder. DoubletFinder had an average AUROC of \hyperlink{A1a}{0.807}. As for the TNR, which reflects how well the algorithms correctly identify non-doublets, Scrublet outperformed the others with an average TNR of \hyperlink{A2b}{0.949}.
+
+% This latex table was generated from: `table_0.pkl`
+\begin{table}[h]
+\caption{\protect\hyperlink{file-table-0-pkl}{Descriptive statistics of performance metrics stratified by condition}}
+\label{table:table_0}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrrrr}
+\toprule
+condition & DbltFndr & Scrblt & hyb & scDBlFndr \\
+\midrule
+\textbf{Avg. AUPRC} & \raisebox{2ex}{\hypertarget{A0a}{}}0.337 & \raisebox{2ex}{\hypertarget{A0b}{}}0.344 & \raisebox{2ex}{\hypertarget{A0c}{}}0.34 & \raisebox{2ex}{\hypertarget{A0d}{}}0.127 \\
+\textbf{Avg. AUROC} & \raisebox{2ex}{\hypertarget{A1a}{}}0.807 & \raisebox{2ex}{\hypertarget{A1b}{}}0.815 & \raisebox{2ex}{\hypertarget{A1c}{}}0.849 & \raisebox{2ex}{\hypertarget{A1d}{}}0.526 \\
+\textbf{Avg. TNR} & \raisebox{2ex}{\hypertarget{A2a}{}}0.944 & \raisebox{2ex}{\hypertarget{A2b}{}}0.949 & \raisebox{2ex}{\hypertarget{A2c}{}}0.943 & \raisebox{2ex}{\hypertarget{A2d}{}}0.928 \\
+\textbf{Avg. Act. Doublet Rate} & \raisebox{2ex}{\hypertarget{A3a}{}}0.08 & \raisebox{2ex}{\hypertarget{A3b}{}}0.08 & \raisebox{2ex}{\hypertarget{A3c}{}}0.08 & \raisebox{2ex}{\hypertarget{A3d}{}}0.08 \\
+\textbf{Avg. Exp. Doublet Rate} & \raisebox{2ex}{\hypertarget{A4a}{}}0.138 & \raisebox{2ex}{\hypertarget{A4b}{}}0.138 & \raisebox{2ex}{\hypertarget{A4c}{}}0.138 & \raisebox{2ex}{\hypertarget{A4d}{}}0.138 \\
+\textbf{StdDev AUPRC} & \raisebox{2ex}{\hypertarget{A5a}{}}0.108 & \raisebox{2ex}{\hypertarget{A5b}{}}0.12 & \raisebox{2ex}{\hypertarget{A5c}{}}0.0928 & \raisebox{2ex}{\hypertarget{A5d}{}}0.107 \\
+\textbf{StdDev AUROC} & \raisebox{2ex}{\hypertarget{A6a}{}}0.0571 & \raisebox{2ex}{\hypertarget{A6b}{}}0.0604 & \raisebox{2ex}{\hypertarget{A6c}{}}0.0516 & \raisebox{2ex}{\hypertarget{A6d}{}}0.154 \\
+\textbf{StdDev TNR} & \raisebox{2ex}{\hypertarget{A7a}{}}0.00832 & \raisebox{2ex}{\hypertarget{A7b}{}}0.00875 & \raisebox{2ex}{\hypertarget{A7c}{}}0.00707 & \raisebox{2ex}{\hypertarget{A7d}{}}0.0103 \\
+\textbf{StdDev Act. Doublet Rate} & \raisebox{2ex}{\hypertarget{A8a}{}}0 & \raisebox{2ex}{\hypertarget{A8b}{}}0 & \raisebox{2ex}{\hypertarget{A8c}{}}0 & \raisebox{2ex}{\hypertarget{A8d}{}}0 \\
+\textbf{StdDev Exp. Doublet Rate} & \raisebox{2ex}{\hypertarget{A9a}{}}0.0697 & \raisebox{2ex}{\hypertarget{A9b}{}}0.0697 & \raisebox{2ex}{\hypertarget{A9c}{}}0.0697 & \raisebox{2ex}{\hypertarget{A9d}{}}0.0697 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{Avg. AUPRC}: Average Area Under Precision-Recall Curve
+\item \textbf{Avg. AUROC}: Average Area Under Receiver Operating Characteristics Curve
+\item \textbf{Avg. TNR}: Average True Negative rate
+\item \textbf{StdDev AUPRC}: Standard Deviation of AUPRC
+\item \textbf{StdDev AUROC}: Standard Deviation of AUROC
+\item \textbf{StdDev TNR}: Standard Deviation of TNR
+\item \textbf{Avg. Act. Doublet Rate}: Average actual doublet rate
+\item \textbf{Avg. Exp. Doublet Rate}: Average expected doublet rate
+\item \textbf{StdDev Act. Doublet Rate}: Standard Deviation of the actual doublet rate
+\item \textbf{StdDev Exp. Doublet Rate}: Standard Deviation of the expected doublet rate
+\item \textbf{DbltFndr}: Doublet Finder Algorithm
+\item \textbf{Scrblt}: Scrublet Algorithm
+\item \textbf{hyb}: Hybrid Algorithm
+\item \textbf{scDBlFndr}: scDblFinder Algorithm
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+Then, to statistically ascertain whether there are significant differences in the area under the precision-recall curve (AUPRC) among the different algorithms, we performed an ANOVA test. As shown in Table \ref{table:table_1}, the ANOVA results indicate a significant difference in AUPRC scores across the four algorithms (F-value: \hyperlink{B0a}{513}, P-value: $<$ \hyperlink{B0b}{$10^{-6}$}). This suggests that the choice of algorithm significantly affects how well doublets are identified based on AUPRC metrics. Scrublet was identified as the best-performing algorithm in terms of AUPRC.
+
+% This latex table was generated from: `table_1.pkl`
+\begin{table}[h]
+\caption{\protect\hyperlink{file-table-1-pkl}{ANOVA results comparing Area Under Precision-Recall Curve (AUPRC) across algorithms}}
+\label{table:table_1}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrll}
+\toprule
+ & F-value & P-value & Best Algorithm \\
+\midrule
+\textbf{AUPRC} & \raisebox{2ex}{\hypertarget{B0a}{}}513 & $<$\raisebox{2ex}{\hypertarget{B0b}{}}$10^{-6}$ & Scrublet \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{AUPRC}: Area Under Precision-Recall Curve
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+Subsequently, we evaluated whether there are significant differences in the area under the receiver operating characteristic curve (AUROC) across the algorithms through another ANOVA test. Table \ref{table:table_2} displays these results, demonstrating a highly significant difference in AUROC values across the different algorithms (F-value: \hyperlink{C0a}{$1.4\ 10^{3}$}, P-value: $<$ \hyperlink{C0b}{$10^{-6}$}). In this case, the hybrid algorithm achieved the highest mean AUROC, indicating its superior performance in distinguishing doublets from singlets compared to the other algorithms.
+
+% This latex table was generated from: `table_2.pkl`
+\begin{table}[h]
+\caption{\protect\hyperlink{file-table-2-pkl}{ANOVA results comparing Area Under Receiver Operating Characteristic (AUROC) across algorithms}}
+\label{table:table_2}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrll}
+\toprule
+ & F-value & P-value & Best Algorithm \\
+\midrule
+\textbf{AUROC} & \raisebox{2ex}{\hypertarget{C0a}{}}$1.4\ 10^{3}$ & $<$\raisebox{2ex}{\hypertarget{C0b}{}}$10^{-6}$ & hybrid \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{AUROC}: Area Under Receiver Operating Characteristics Curve
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+Finally, to understand the differences in true negative rates (TNR) among the algorithms, a non-parametric Kruskal-Wallis test was conducted given the non-normality of TNR data. Table \ref{table:table_3} summarizes the results, which show a statistically significant difference in TNR among the algorithms (H-value: \hyperlink{D0a}{929}, P-value: $<$ \hyperlink{D0b}{$10^{-6}$}). The highest average TNR was shown by Scrublet, confirming its consistent performance across both AUPRC and TNR metrics.
+
+% This latex table was generated from: `table_3.pkl`
+\begin{table}[h]
+\caption{\protect\hyperlink{file-table-3-pkl}{Kruskal-Wallis results comparing True Negative Rate (TNR) across algorithms}}
+\label{table:table_3}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrll}
+\toprule
+ & H-value & P-value & Best Algorithm \\
+\midrule
+\textbf{TNR} & \raisebox{2ex}{\hypertarget{D0a}{}}929 & $<$\raisebox{2ex}{\hypertarget{D0b}{}}$10^{-6}$ & Scrublet \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{TNR}: True Negative Rate
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+Taken together, these results suggest that Scrublet consistently provides the best performance in terms of AUPRC and TNR, while the hybrid algorithm excels in AUROC. These findings underscore the importance of selecting the appropriate doublet detection algorithm based on the specific requirements of an scRNA-seq study, as the performance varies significantly across different metrics.
+
+\section*{Discussion}
+
+In this study, we evaluated the performance of four prominent doublet detection algorithms—DoubletFinder, hybrid, scDblFinder, and Scrublet—across multiple scRNA-seq datasets with varying doublet contents, using key performance metrics such as the area under the precision-recall curve (AUPRC), the area under the receiver operating characteristic curve (AUROC), and the true negative rate (TNR). The elimination of doublets in scRNA-seq data is critical for accurate downstream analysis and biological interpretation \cite{Xi2020BenchmarkingCD, Bais2019scdsCA, Choudhary2021ComparisonAE}. Previous research has pointed out the diverse performance and distinct advantages of various doublet detection algorithms under different experimental settings \cite{Xi2020BenchmarkingCD, Shainer2021ChoiceOA}.
+
+Our methodology involved the merging and preprocessing of scRNA-seq datasets, followed by descriptive and inferential analyses to compare the performance of the selected algorithms. Descriptive statistics revealed that Scrublet achieved the highest AUPRC and TNR, while the hybrid algorithm excelled in AUROC. ANOVA and Kruskal-Wallis tests confirmed significant differences in AUPRC, AUROC, and TNR across the evaluated algorithms, validating Scrublet's superiority in identifying true doublets and true negatives, and the hybrid algorithm's strength in overall doublet discrimination.
+
+Compared to previous studies, our findings align with those by McGinnis et al. who reported the efficacy of DoubletFinder, particularly in gene expression-based doublet identification \cite{McGinnis2018DoubletFinderDD}. Similarly, Germain et al.'s assessment of scDblFinder corroborates our observation of its varied performance across datasets \cite{Germain2021DoubletII}. Our analysis extends these findings by providing a comprehensive comparative evaluation using consistent metrics across diverse datasets, thereby offering a broader perspective on the relative performance of these algorithms.
+
+Despite the insights gained, our study is not without limitations. Firstly, our comparative analysis was confined to three performance metrics—AUPRC, AUROC, and TNR. Other important considerations, such as computational efficiency and scalability, were beyond the scope of this study but warrant future investigation. Secondly, the non-uniformity in cumulative doublet rates across different scRNA-seq datasets might influence algorithmic performance, which necessitates caution in the generalization of our results. Moreover, our methodology excluded rows with missing values, which could potentially omit relevant data points and introduce bias.
+
+In conclusion, our study highlights the significance of selecting appropriate doublet detection algorithms tailored to specific metrics of interest. Scrublet consistently demonstrated superior performance in AUPRC and TNR, while the hybrid algorithm showed the highest AUROC, underscoring distinct algorithmic strengths based on the evaluation criteria. These findings are pivotal for enhancing the reliability of scRNA-seq data analysis by guiding the selection of the most suitable doublet detection tools. Future research should focus on expanding the evaluation criteria to include computational efficiency and scalability, as well as exploring the impact of different scRNA-seq preprocessing pipelines on doublet detection performance to achieve a holistic understanding of these algorithms’ capabilities.
+
+\section*{Methods}
+
+\subsection*{Data Source}
+For the evaluation of doublet detection algorithms, we utilized data derived from different single-cell RNA sequencing (scRNA-seq) datasets, each containing varying levels of doublet content. Specifically, the data comprised metrics calculated from four doublet detection algorithms: DoubletFinder, hybrid, scDblFinder, and Scrublet. The key datasets included one file capturing the area under the precision-recall curve (AUPRC), the area under the receiver operating characteristic curve (AUROC), and the true negative rate (TNR); and another file specifically formatted to facilitate the analysis of TNR in relation to the expected and actual true doublet rates.
+
+\subsection*{Data Preprocessing}
+To ensure robust comparative analysis, we merged the two data sources based on common sample and dataset identifiers, ensuring alignment of the features across both files. Rows containing any missing values were excluded from the dataset to remove incomplete observations that could bias the results. Additionally, categorical variables representing the doublet detection conditions were encoded into numerical format to facilitate subsequent statistical analyses.
+
+\subsection*{Data Analysis}
+The analysis began with a summary of descriptive statistics, where we calculated the mean and standard deviation for AUPRC, AUROC, and TNR, stratified by the doublet detection algorithm. This provided an initial overview of algorithm performance across different metrics. For inferential analysis, we applied ANOVA to compare the means of AUPRC and AUROC across the four detection algorithms. This statistical test assessed whether any significant differences existed in the performance metrics. For TNR, we utilized the Kruskal-Wallis test, a non-parametric alternative to ANOVA, suitable for handling data that may not follow a normal distribution. The results identified the best-performing algorithm for each metric based on the highest mean values observed. To consolidate findings, we also documented the total number of observations and saved the results for further interpretation.\subsection*{Code Availability}
+
+Custom code used to perform the data preprocessing and analysis, as well as the raw code outputs, are provided in Supplementary Methods.
+
+
+\bibliographystyle{unsrt}
+\bibliography{citations}
+
+
+\clearpage
+\appendix
+
+\section{Data Description} \label{sec:data_description} Here is the data description, as provided by the user:
+
+\begin{codeoutput}
+\#\# General Description
+(*@\raisebox{2ex}{\hypertarget{S}{}}@*)The dataset includes results from various doublet detection algorithms applied to multiple scRNA-seq datasets with different doublet content and algorithm parameters. While scRNA-seq aims to measure the transcriptomes of individual cells, doublets can occur when two cells are captured as one. The purpose of doublet detection algorithms is to accurately identify these doublets so they can be removed for downstream analysis. The four algorithms evaluated are DoubletFinder, hybrid, scDblFinder, and Scrublet. Key performance metrics for these algorithms include the area under the precision-recall curve (AUPRC), the area under the receiver operating characteristic curve (AUROC), and the true negative rate (TNR).
+\#\# Data Files
+The dataset consists of 2 data files:
+
+\#\#\# File 1: "barcodedNonBarcoded\_AUPRC\_AUROC\_TNR.csv"
+(*@\raisebox{2ex}{\hypertarget{T}{}}@*)The CSV file contains a dataset with each row representing a result and each column representing a feature. The columns in the dataset are as follows:
+
+"": Index number
+"X": Index number
+"dataset": The scRNA-seq dataset from which the data originated
+"sample": The specific sample within the corresponding scRNA-seq dataset from which the data originated
+"condition": The doublet detection algorithm used to generate the AUPRC, AUROC, and TNR data (options include DoubletFinder, hybrid, scDblFinder, or Scrublet)
+"auprc": Area under the precision-recall curve
+"auroc": Area under the receiver operating characteristic curve
+"dbl\_act": Actual true doublet rate of the dataset
+"isBarcoded": Indicates whether barcoding technology was used in the dataset
+"TNR": True negative rate
+
+
+Here are the first few lines of the file:
+```output
+"","X","dataset","sample","condition","auprc","auroc","dbl\_act","isBarcoded","TNR"
+"1",1,"Jain et al.","1\_DMSO\_A","DoubletFinder",0.178563957295622,0.706881063600431,0.08,"Barcoded",0.931927975406236
+"2",2,"Jain et al.","2\_DMSO\_B","DoubletFinder",0.202027089060359,0.721426428678566,0.08,"Barcoded",0.933136676499508
+"3",3,"Jain et al.","3\_LSD1i\_A","DoubletFinder",0.187261326956338,0.660830700566672,0.08,"Barcoded",0.927109974424553
+
+```
+
+\#\#\# File 2: "TNR\_plotted\_formatted.csv"
+(*@\raisebox{2ex}{\hypertarget{U}{}}@*)The CSV file contains a dataset with each row representing a result and each column representing a feature. The columns in the dataset are as follows:
+
+"": Index number
+"X": Index number
+"condition": The doublet detection algorithm used to generate the AUPRC, AUROC, and TNR data (options include DoubletFinder, hybrid, scDblFinder, or Scrublet)
+"dataset": The scRNA-seq dataset from which the data originated
+"sample": The specific sample within the corresponding scRNA-seq dataset
+"TNR": True negative rate
+"dbl\_exp": Expected true doublet rate from (*@\raisebox{2ex}{\hypertarget{U0a}{}}@*)10X Genomics
+"dbl\_act": Actual true doublet rate from (*@\raisebox{2ex}{\hypertarget{U1a}{}}@*)10X Genomics
+
+
+Here are the first few lines of the file:
+```output
+"","X","condition","dataset","sample","TNR","dbl\_exp","dbl\_act"
+"1",1,"DoubletFinder","Jain et al.","1\_DMSO\_A",0.931488801054018,0.05,0.08
+"2",2,"DoubletFinder","Jain et al.","1\_DMSO\_A",0.936758893280632,0.08,0.08
+"3",3,"DoubletFinder","Jain et al.","1\_DMSO\_A",0.928853754940711,0.1,0.08
+
+```
+
+
+\end{codeoutput}
+
+\section{Data Exploration}
+\subsection{{Code}}
+The Data Exploration was carried out using the following custom code:
+
+\begin{python}
+
+import pandas as pd
+
+def summarize_data(file_paths, output_file):
+    summary = []
+
+    for file_path in file_paths:
+        # Load the dataset
+        data = pd.read_csv(file_path)
+        
+        summary.append(f"# Summary of {file_path}\n")
+        
+        # Data Size
+        summary.append("# Data Size\n")
+        summary.append(f"Number of Rows: {data.shape[0]}\n")
+        summary.append(f"Number of Columns: {data.shape[1]}\n")
+        summary.append("\n")
+        
+        # Summary Statistics
+        summary.append("# Summary Statistics\n")
+        summary.append(data.describe().to_string())
+        summary.append("\n\n")
+        
+        # Categorical Variables
+        summary.append("# Categorical Variables\n")
+        categorical_cols = data.select_dtypes(include=['object']).columns
+        if len(categorical_cols) > 0:
+            for col in categorical_cols:
+                summary.append(f"Column: {col}\n")
+                most_common_val = data[col].mode()[0]
+                summary.append(f"Most Common Value: {most_common_val}\n")
+                summary.append("\n")
+        else:
+            summary.append("# Not Applicable\n")
+        summary.append("\n")
+
+        # Missing Values
+        summary.append("# Missing Values\n")
+        missing_values = data.isnull().sum()
+        for col, count in missing_values.items():
+            summary.append(f"{col}: {count}\n")
+        
+        # Check for any special numeric values that stand for unknown/undefined
+        special_numeric = data.isin([-1, 9999]).sum()
+        if special_numeric.any():
+            summary.append("\n# Special Numeric Values Indicating Unknown/Undefined\n")
+            for col, count in special_numeric.items():
+                if count > 0:
+                    summary.append(f"{col}: {count}\n")
+        summary.append("\n")
+
+    # Write the summary to the output file
+    with open(output_file, "w") as f:
+        f.writelines(summary)
+
+# File paths
+files = ["barcodedNonBarcoded_AUPRC_AUROC_TNR.csv", "TNR_plotted_formatted.csv"]
+(*@\raisebox{2ex}{\hypertarget{code-Data Exploration-data-exploration-txt}{}}@*)output_file = "data_exploration.txt"
+
+# Summarize data for both files
+summarize_data(files, output_file)
+
+\end{python}
+
+\subsection{Code Description}
+
+The provided code conducts a comprehensive exploration of two CSV datasets comprising results from various doublet detection algorithms applied to single-cell RNA sequencing (scRNA-seq). Doublet detection is crucial in scRNA-seq analysis because doublets—instances where two cells are captured together—can distort the interpretation of cellular transcriptomic data. The main function, \texttt{summarize\_data}, processes each dataset and generates a structured summary, facilitating downstream analyses.
+
+The code begins by evaluating each dataset's size, reporting the total number of rows and columns. This information is essential for understanding the overall scale of the datasets and their complexity. Next, the function generates summary statistics for numeric columns, including count, mean, standard deviation, minimum, and maximum values. These metrics not only provide insights into the distributions and ranges of various performance measures, such as the Area Under the Precision-Recall Curve (AUPRC) and Area Under the Receiver Operating Characteristic Curve (AUROC), but also help in identifying any anomalies and assessing the quality of the data.
+
+The code then identifies and summarizes categorical variables, calculating the most common value (mode) for each. This analysis sheds light on the dominant experimental conditions or algorithmic performances across the different scRNA-seq datasets.
+
+Additionally, the presence of missing values in each dataset is assessed, with a count of NaN (not a number) entries recorded for each column. Understanding the extent of missing data is critical, as it can lead to potential biases and a reduction in statistical power, which may influence the validity of conclusions drawn from the analyses. The code also checks for any special numeric values—commonly used to signify unknown or undefined data—and quantifies their occurrences.
+
+The summary outputs, encompassing dataset size, summary statistics, categorical variable insights, missing values, and any special numeric values, are compiled and written to a text file named \texttt{data\_exploration.txt}. The structured output includes clearly demarcated sections with headings, which facilitate easy navigation through the generated report. For instance, sections named "\# Data Size" report the number of rows and columns, while "\# Summary Statistics" details the computed metrics. Utilizing a consistent naming convention for output files, such as "data\_exploration.txt," aids in organizing results for multiple analyses, particularly in larger projects. This organized structure ultimately enhances the utility of the summary for researchers undertaking further experimentation or interpretation efforts.
+
+\subsection{Code Output}\hypertarget{file-data-exploration-txt}{}
+
+\subsubsection*{\hyperlink{code-Data Exploration-data-exploration-txt}{data\_exploration.txt}}
+
+\begin{codeoutput}
+\# Summary of barcodedNonBarcoded\_AUPRC\_AUROC\_TNR.csv
+\# Data Size
+Number of Rows: 396
+Number of Columns: 10
+
+\# Summary Statistics
+       Unnamed: 0     X   auprc  auroc  dbl\_act    TNR
+count         396   396     396    396      348    396
+mean        198.5 198.5  0.2987 0.7499     0.08 0.9419
+std         114.5 114.5  0.1562 0.1556 1.39e-17 0.0128
+min             1     1 0.05269 0.2352     0.08 0.9154
+25\%         99.75 99.75  0.1836 0.7042     0.08 0.9334
+50\%         198.5 198.5  0.3011 0.8044     0.08 0.9422
+75\%         297.2 297.2  0.3838 0.8495     0.08 0.9501
+max           396   396  0.9705 0.9961     0.08 0.9923
+
+\# Categorical Variables
+Column: dataset
+Most Common Value: LARRY
+
+Column: sample
+Most Common Value: 1-1uMPLX
+
+Column: condition
+Most Common Value: DoubletFinder
+
+Column: isBarcoded
+Most Common Value: Barcoded
+
+
+\# Missing Values
+Unnamed: 0: 0
+X: 0
+dataset: 0
+sample: 48
+condition: 0
+auprc: 0
+auroc: 0
+dbl\_act: 48
+isBarcoded: 0
+TNR: 0
+
+\# Summary of TNR\_plotted\_formatted.csv
+\# Data Size
+Number of Rows: 2088
+Number of Columns: 8
+
+\# Summary Statistics
+       Unnamed: 0     X     TNR  dbl\_exp   dbl\_act
+count        2088  2088    2088     2088      2088
+mean         1044  1150  0.9409   0.1383      0.08
+std         602.9 672.5 0.01202  0.06964 1.388e-17
+min             1     1  0.9148     0.05      0.08
+25\%         522.8 582.8  0.9333     0.08      0.08
+50\%          1044  1164  0.9415    0.125      0.08
+75\%          1566  1746  0.9494      0.2      0.08
+max          2088  2328  0.9772     0.25      0.08
+
+\# Categorical Variables
+Column: condition
+Most Common Value: DoubletFinder
+
+Column: dataset
+Most Common Value: LARRY
+
+Column: sample
+Most Common Value: 1-1uMPLX
+
+
+\# Missing Values
+Unnamed: 0: 0
+X: 0
+condition: 0
+dataset: 0
+sample: 0
+TNR: 0
+dbl\_exp: 0
+dbl\_act: 0
+\end{codeoutput}
+
+\section{Data Analysis}
+\subsection{{Code}}
+The Data Analysis was carried out using the following custom code:
+
+\begin{python}
+
+# IMPORT
+import pandas as pd
+import numpy as np
+import pickle
+from scipy.stats import f_oneway, kruskal
+from sklearn.preprocessing import LabelEncoder
+
+# LOAD DATA
+file1 = pd.read_csv('barcodedNonBarcoded_AUPRC_AUROC_TNR.csv')
+file2 = pd.read_csv('TNR_plotted_formatted.csv')
+
+# DATASET PREPARATIONS
+df = pd.merge(file1, file2, on=['sample', 'dataset', 'condition'], how='inner')
+df = df.dropna()
+
+# DESCRIPTIVE STATISTICS
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-0-pkl}{}}@*)## Table 0: "Descriptive statistics of AUPRC, AUROC, and TNR stratified by condition"
+desc_stat = df.groupby('condition')[['auprc', 'auroc', 'TNR_x', 'dbl_act_x', 'dbl_exp']].mean()
+desc_stat.columns = ['Mean AUPRC', 'Mean AUROC', 'Mean TNR', 'Mean dbl_act', 'Mean dbl_exp']
+desc_stat_std = df.groupby('condition')[['auprc', 'auroc', 'TNR_x', 'dbl_act_x', 'dbl_exp']].std()
+desc_stat_std.columns = ['STD AUPRC', 'STD AUROC', 'STD TNR', 'STD dbl_act', 'STD dbl_exp']
+df0 = pd.concat([desc_stat, desc_stat_std], axis=1)
+df0.to_pickle('table_0.pkl')
+
+# PREPROCESSING
+labelencoder = LabelEncoder()
+df['condition_code'] = labelencoder.fit_transform(df['condition'])
+
+# ANALYSIS
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-1-pkl}{}}@*)## Table 1: "ANOVA results comparing AUPRC across algorithms"
+auprc_results = f_oneway(df['auprc'][df['condition'] == 'DoubletFinder'],
+                         df['auprc'][df['condition'] == 'hybrid'],
+                         df['auprc'][df['condition'] == 'scDblFinder'],
+                         df['auprc'][df['condition'] == 'Scrublet'])
+df1 = pd.DataFrame({'F-value': [auprc_results.statistic], 'P-value': [auprc_results.pvalue]}, index=['AUPRC'])
+df1['Best Algorithm'] = desc_stat['Mean AUPRC'].idxmax()
+df1.to_pickle('table_1.pkl')
+
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-2-pkl}{}}@*)## Table 2: "ANOVA results comparing AUROC across algorithms"
+auroc_results = f_oneway(df['auroc'][df['condition'] == 'DoubletFinder'],
+                         df['auroc'][df['condition'] == 'hybrid'],
+                         df['auroc'][df['condition'] == 'scDblFinder'],
+                         df['auroc'][df['condition'] == 'Scrublet'])
+df2 = pd.DataFrame({'F-value': [auroc_results.statistic], 'P-value': [auroc_results.pvalue]}, index=['AUROC'])
+df2['Best Algorithm'] = desc_stat['Mean AUROC'].idxmax()
+df2.to_pickle('table_2.pkl')
+
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-3-pkl}{}}@*)## Table 3: "Kruskal-Wallis results comparing TNR across algorithms"
+tnr_results = kruskal(df['TNR_x'][df['condition'] == 'DoubletFinder'],
+                      df['TNR_x'][df['condition'] == 'hybrid'],
+                      df['TNR_x'][df['condition'] == 'scDblFinder'],
+                      df['TNR_x'][df['condition'] == 'Scrublet'])
+df3 = pd.DataFrame({'H-value': [tnr_results.statistic], 'P-value': [tnr_results.pvalue]}, index=['TNR'])
+df3['Best Algorithm'] = desc_stat['Mean TNR'].idxmax()
+df3.to_pickle('table_3.pkl')
+
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-additional-results-pkl}{}}@*)# SAVE ADDITIONAL RESULTS
+additional_results = {
+    'Total number of observations': df.shape[0]
+}
+
+with open('additional_results.pkl', 'wb') as f:
+    pickle.dump(additional_results, f)
+
+\end{python}
+
+\subsection{Code Description}
+
+The provided code performs a comprehensive analysis of doublet detection performance in single-cell RNA sequencing (scRNA-seq) datasets using four algorithms: DoubletFinder, hybrid, scDblFinder, and Scrublet. The analysis process can be summarized as follows:
+
+\paragraph{Data Integration and Preprocessing}
+The two provided CSV files—\texttt{barcodedNonBarcoded\_AUPRC\_AUROC\_TNR.csv} and \texttt{TNR\_plotted\_formatted.csv}—are read into Pandas dataframes and subsequently merged based on common columns including \texttt{sample}, \texttt{dataset}, and \texttt{condition}. This integration step is crucial for obtaining a comprehensive dataset for downstream analysis. Following the merge, rows containing missing values are dropped, and categorical labels for the \texttt{condition} (algorithm) column are encoded into numeric format for ease of statistical computations.
+
+\paragraph{Descriptive Statistics}
+Descriptive statistics are calculated to summarize the performance of the doublet detection algorithms. These statistics include the mean and standard deviation of the Area Under the Precision-Recall Curve (AUPRC), Area Under the Receiver Operating Characteristic Curve (AUROC), True Negative Rate (TNR), as well as the actual and expected true doublet rates. The results are grouped by the \texttt{condition} column (algorithm) and stored in a Pandas dataframe which is then saved into a file \texttt{table\_0.pkl}.
+
+\paragraph{Statistical Analysis}
+Three distinct statistical tests are conducted to compare the performance of the algorithms:
+
+\subparagraph{AUPRC Analysis}
+An Analysis of Variance (ANOVA) test is performed to compare the AUPRC across the four algorithms. This test assesses whether there are any statistically significant differences in the mean AUPRC values.
+
+\subparagraph{AUROC Analysis}
+Similarly, an ANOVA is conducted to compare the AUROC values across the algorithms. This test evaluates if differences in the mean AUROC values are statistically significant.
+
+\subparagraph{TNR Analysis}
+A Kruskal-Wallis H test, a non-parametric equivalent of ANOVA, is applied to compare the TNR across the algorithms. This test is particularly useful for datasets that do not meet the assumptions required for ANOVA.
+
+For each of these tests, the F-value (for ANOVAs) or H-value (for Kruskal-Wallis) and the corresponding p-value are computed and stored in separate dataframes. Additionally, the algorithm with the highest mean value for each metric (AUPRC, AUROC, TNR) is identified and recorded. These results are saved into files \texttt{table\_1.pkl}, \texttt{table\_2.pkl}, and \texttt{table\_3.pkl} respectively.
+
+\paragraph{Additional Information}
+An additional file \texttt{additional\_results.pkl} is generated, which contains the total number of observations in the processed dataset. This provides context for the statistical power of the analyses performed.
+
+\subsection{Code Output}\hypertarget{file-table-0-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-table-0-pkl}{table\_0.pkl}}
+
+\begin{codeoutput}
+               Mean AUPRC  Mean AUROC  Mean TNR  Mean dbl\_act  Mean dbl\_exp  STD AUPRC  STD AUROC  STD TNR  STD dbl\_act  STD dbl\_exp
+condition                                                                                                                           
+DoubletFinder      0.3368      0.8066     0.944          0.08        0.1383     0.1079    0.05711 0.008325            0      0.06969
+Scrublet           0.3439      0.8145     0.949          0.08        0.1383     0.1201    0.06042 0.008747            0      0.06969
+hybrid             0.3399      0.8492     0.943          0.08        0.1383    0.09282    0.05157 0.007075            0      0.06969
+scDblFinder        0.1273      0.5262    0.9278          0.08        0.1383     0.1072     0.1542  0.01029            0      0.06969
+\end{codeoutput}\hypertarget{file-table-1-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-table-1-pkl}{table\_1.pkl}}
+
+\begin{codeoutput}
+       F-value    P-value Best Algorithm
+AUPRC    513.3  1.03e-249       Scrublet
+\end{codeoutput}\hypertarget{file-table-2-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-table-2-pkl}{table\_2.pkl}}
+
+\begin{codeoutput}
+       F-value P-value Best Algorithm
+AUROC     1404       0         hybrid
+\end{codeoutput}\hypertarget{file-table-3-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-table-3-pkl}{table\_3.pkl}}
+
+\begin{codeoutput}
+     H-value    P-value Best Algorithm
+TNR      929  4.64e-201       Scrublet
+\end{codeoutput}\hypertarget{file-additional-results-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-additional-results-pkl}{additional\_results.pkl}}
+
+\begin{codeoutput}
+{
+    'Total number of observations': (*@\raisebox{2ex}{\hypertarget{R0a}{}}@*)2088,
+}
+\end{codeoutput}
+
+\section{LaTeX Table Design}
+\subsection{{Code}}
+The LaTeX Table Design was carried out using the following custom code:
+
+\begin{python}
+
+# IMPORT
+import pandas as pd
+from my_utils import to_latex_with_note, is_str_in_df, split_mapping, AbbrToNameDef
+from typing import Optional, Dict, Any, Tuple 
+
+# PREPARATION FOR ALL TABLES
+shared_mapping: AbbrToNameDef = {
+    'Mean AUPRC': ('Avg. AUPRC', 'Average Area Under Precision-Recall Curve'),
+    'Mean AUROC': ('Avg. AUROC', 'Average Area Under Receiver Operating Characteristics Curve'),
+    'Mean TNR': ('Avg. TNR', 'Average True Negative rate'),
+    'STD AUPRC': ('StdDev AUPRC', 'Standard Deviation of AUPRC'),
+    'STD AUROC': ('StdDev AUROC', 'Standard Deviation of AUROC'),
+    'STD TNR': ('StdDev TNR', 'Standard Deviation of TNR'),
+    'Mean dbl_act': ('Avg. Act. Doublet Rate', 'Average actual doublet rate'),
+    'Mean dbl_exp': ('Avg. Exp. Doublet Rate', 'Average expected doublet rate'),
+    'STD dbl_act': ('StdDev Act. Doublet Rate', 'Standard Deviation of the actual doublet rate'),
+    'STD dbl_exp': ('StdDev Exp. Doublet Rate', 'Standard Deviation of the expected doublet rate'),
+    'condition': (None, 'Condition Applied: DoubletFinder, hybrid, scDblFinder or Scrublet')
+}
+
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-0-tex}{}}@*)# TABLE 0:
+df0 = pd.read_pickle('table_0.pkl')
+
+# TRANSPOSE THE DATASET
+df0 = df0.T
+
+# RENAME ROWS AND COLUMNS
+mapping0 = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df0, k)) 
+mapping0 |= {
+    'condition': ('Condition', None),
+    'DoubletFinder': ('DbltFndr', 'Doublet Finder Algorithm'),
+    'Scrublet': ('Scrblt', 'Scrublet Algorithm'),
+    'hybrid': ('hyb', 'Hybrid Algorithm'),
+    'scDblFinder': ('scDBlFndr', 'scDblFinder Algorithm'),
+}
+abbrs_to_names0, legend0 = split_mapping(mapping0)
+df0 = df0.rename(columns=abbrs_to_names0, index=abbrs_to_names0)
+
+# SAVE AS LATEX:
+to_latex_with_note(
+    df0, 'table_0.tex',
+    caption='Descriptive statistics of performance metrics stratified by condition', 
+    label='table:table_0',
+    note=None,
+    legend=legend0)
+
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-1-tex}{}}@*)# TABLE 1:
+df1 = pd.read_pickle('table_1.pkl')
+
+# RENAME ROWS AND COLUMNS
+mapping1 = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df1, k)) 
+mapping1 |= {'AUPRC': ('AUPRC', 'Area Under Precision-Recall Curve')}
+
+abbrs_to_names1, legend1 = split_mapping(mapping1)
+df1 = df1.rename(columns=abbrs_to_names1, index=abbrs_to_names1)
+
+# SAVE AS LATEX:
+to_latex_with_note(
+    df1, 'table_1.tex',
+    caption='ANOVA results comparing Area Under Precision-Recall Curve (AUPRC) across algorithms', 
+    label='table:table_1',
+    note=None,
+    legend=legend1)
+
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-2-tex}{}}@*)# TABLE 2:
+df2 = pd.read_pickle('table_2.pkl')
+
+# RENAME ROWS AND COLUMNS
+mapping2 = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df2, k)) 
+mapping2 |= {'AUROC': ('AUROC', 'Area Under Receiver Operating Characteristics Curve')}
+
+abbrs_to_names2, legend2 = split_mapping(mapping2)
+df2 = df2.rename(columns=abbrs_to_names2, index=abbrs_to_names2)
+
+# SAVE AS LATEX:
+to_latex_with_note(
+    df2, 'table_2.tex',
+    caption='ANOVA results comparing Area Under Receiver Operating Characteristic (AUROC) across algorithms', 
+    label='table:table_2',
+    note=None,
+    legend=legend2)
+
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-3-tex}{}}@*)# TABLE 3:
+df3 = pd.read_pickle('table_3.pkl')
+
+# RENAME ROWS AND COLUMNS
+mapping3 = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df3, k)) 
+mapping3 |= {'TNR': ('TNR', 'True Negative Rate')}
+
+abbrs_to_names3, legend3 = split_mapping(mapping3)
+df3 = df3.rename(columns=abbrs_to_names3, index=abbrs_to_names3)
+
+# SAVE AS LATEX:
+to_latex_with_note(
+    df3, 'table_3.tex',
+    caption='Kruskal-Wallis results comparing True Negative Rate (TNR) across algorithms', 
+    label='table:table_3',
+    note=None,
+    legend=legend3)
+
+\end{python}
+
+\subsection{Provided Code}
+The code above is using the following provided functions:
+
+\begin{python}
+def to_latex_with_note(df, filename: str, caption: str, label: str, note: str = None, legend: Dict[str, str] = None, **kwargs):
+    """
+    Converts a DataFrame to a LaTeX table with optional note and legend added below the table.
+
+    Parameters:
+    - df, filename, caption, label: as in `df.to_latex`.
+    - note (optional): Additional note below the table.
+    - legend (optional): Dictionary mapping abbreviations to full names.
+    - **kwargs: Additional arguments for `df.to_latex`.
+    """
+
+def is_str_in_df(df: pd.DataFrame, s: str):
+    return any(s in level for level in getattr(df.index, 'levels', [df.index]) + getattr(df.columns, 'levels', [df.columns]))
+
+AbbrToNameDef = Dict[Any, Tuple[Optional[str], Optional[str]]]
+
+def split_mapping(abbrs_to_names_and_definitions: AbbrToNameDef):
+    abbrs_to_names = {abbr: name for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if name is not None}
+    names_to_definitions = {name or abbr: definition for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if definition is not None}
+    return abbrs_to_names, names_to_definitions
+
+\end{python}
+
+
+
+\subsection{Code Output}
+
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-0-tex}{table\_0.tex}}
+
+\begin{codeoutput}
+\% This latex table was generated from: `table\_0.pkl`
+\begin{table}[h]
+\caption{Descriptive statistics of performance metrics stratified by condition}
+\label{table:table\_0}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{\%
+\begin{tabular}{lrrrr}
+\toprule
+condition \& DbltFndr \& Scrblt \& hyb \& scDBlFndr \\
+\midrule
+\textbf{Avg. AUPRC} \& 0.337 \& 0.344 \& 0.34 \& 0.127 \\
+\textbf{Avg. AUROC} \& 0.807 \& 0.815 \& 0.849 \& 0.526 \\
+\textbf{Avg. TNR} \& 0.944 \& 0.949 \& 0.943 \& 0.928 \\
+\textbf{Avg. Act. Doublet Rate} \& 0.08 \& 0.08 \& 0.08 \& 0.08 \\
+\textbf{Avg. Exp. Doublet Rate} \& 0.138 \& 0.138 \& 0.138 \& 0.138 \\
+\textbf{StdDev AUPRC} \& 0.108 \& 0.12 \& 0.0928 \& 0.107 \\
+\textbf{StdDev AUROC} \& 0.0571 \& 0.0604 \& 0.0516 \& 0.154 \\
+\textbf{StdDev TNR} \& 0.00832 \& 0.00875 \& 0.00707 \& 0.0103 \\
+\textbf{StdDev Act. Doublet Rate} \& 0 \& 0 \& 0 \& 0 \\
+\textbf{StdDev Exp. Doublet Rate} \& 0.0697 \& 0.0697 \& 0.0697 \& 0.0697 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{Avg. AUPRC}: Average Area Under Precision-Recall Curve
+\item \textbf{Avg. AUROC}: Average Area Under Receiver Operating Characteristics Curve
+\item \textbf{Avg. TNR}: Average True Negative rate
+\item \textbf{StdDev AUPRC}: Standard Deviation of AUPRC
+\item \textbf{StdDev AUROC}: Standard Deviation of AUROC
+\item \textbf{StdDev TNR}: Standard Deviation of TNR
+\item \textbf{Avg. Act. Doublet Rate}: Average actual doublet rate
+\item \textbf{Avg. Exp. Doublet Rate}: Average expected doublet rate
+\item \textbf{StdDev Act. Doublet Rate}: Standard Deviation of the actual doublet rate
+\item \textbf{StdDev Exp. Doublet Rate}: Standard Deviation of the expected doublet rate
+\item \textbf{DbltFndr}: Doublet Finder Algorithm
+\item \textbf{Scrblt}: Scrublet Algorithm
+\item \textbf{hyb}: Hybrid Algorithm
+\item \textbf{scDBlFndr}: scDblFinder Algorithm
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+\end{codeoutput}
+
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-1-tex}{table\_1.tex}}
+
+\begin{codeoutput}
+\% This latex table was generated from: `table\_1.pkl`
+\begin{table}[h]
+\caption{ANOVA results comparing Area Under Precision-Recall Curve (AUPRC) across algorithms}
+\label{table:table\_1}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{\%
+\begin{tabular}{lrll}
+\toprule
+ \& F-value \& P-value \& Best Algorithm \\
+\midrule
+\textbf{AUPRC} \& 513 \& \$$<$\$1e-06 \& Scrublet \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{AUPRC}: Area Under Precision-Recall Curve
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+\end{codeoutput}
+
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-2-tex}{table\_2.tex}}
+
+\begin{codeoutput}
+\% This latex table was generated from: `table\_2.pkl`
+\begin{table}[h]
+\caption{ANOVA results comparing Area Under Receiver Operating Characteristic (AUROC) across algorithms}
+\label{table:table\_2}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{\%
+\begin{tabular}{lrll}
+\toprule
+ \& F-value \& P-value \& Best Algorithm \\
+\midrule
+\textbf{AUROC} \& 1.4e+03 \& \$$<$\$1e-06 \& hybrid \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{AUROC}: Area Under Receiver Operating Characteristics Curve
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+\end{codeoutput}
+
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-3-tex}{table\_3.tex}}
+
+\begin{codeoutput}
+\% This latex table was generated from: `table\_3.pkl`
+\begin{table}[h]
+\caption{Kruskal-Wallis results comparing True Negative Rate (TNR) across algorithms}
+\label{table:table\_3}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{\%
+\begin{tabular}{lrll}
+\toprule
+ \& H-value \& P-value \& Best Algorithm \\
+\midrule
+\textbf{TNR} \& 929 \& \$$<$\$1e-06 \& Scrublet \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{TNR}: True Negative Rate
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+\end{codeoutput}
+
+\end{document}

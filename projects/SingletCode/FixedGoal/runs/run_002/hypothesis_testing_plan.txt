@@ -1,0 +1,28 @@
+## Statistical considerations:
+### Missing data points:
+Several variables, such as "dbl_act" in barcodedNonBarcoded_AUPRC_AUROC_TNR.csv, contain missing values. We will handle this by employing list-wise deletion, which will exclude rows with missing values in the relevant columns during the analysis.
+### Confounding variables:
+The dataset contains categorical variables such as "dataset" and "condition". Both of these should be considered as potential confounders affecting AUPRC, AUROC, and TNR. We will control for these variables in our analyses by including them in our statistical models.
+### Dependencies between data points:
+Observations may not be independent due to the repeated measures within scRNA-seq datasets. We will utilize mixed-effects models to account for potential clustering and dependencies in the data when appropriate.
+### Multiple comparisons:
+We will test multiple hypotheses regarding the performance of the four doublet detection algorithms. To control the family-wise error rate, we will apply a Bonferroni correction to adjust p-values resulting from the ANOVA and associated post-hoc tests.
+### Imbalanced data:
+The number of observations for each algorithm may differ, potentially affecting results. We will use robust statistical methods that accommodate unequal sample sizes, such as bootstrapping, to ensure the validity of our analyses.
+
+## Hypotheses:
+### Hypothesis:
+The AUPRC of DoubletFinder differs from hybrid, scDblFinder, and Scrublet
+### Test:
+One-way ANOVA to compare AUPRC values across the four algorithms while controlling for both 'dataset' and 'condition' as potential confounders.
+
+### Hypothesis:
+The AUROC of DoubletFinder is higher than that of other algorithms
+### Test:
+Post-hoc analysis following the ANOVA using Tukey's HSD test to examine pairwise comparisons for AUROC, while adjusting for multiple comparisons arising from the initial ANOVA.
+
+### Hypothesis:
+The True Negative Rate (TNR) varies between the different doublet detection algorithms
+### Test:
+Kruskal-Wallis test to compare distributions of TNR across the four algorithms, controlling for 'dataset' and 'condition'.
+

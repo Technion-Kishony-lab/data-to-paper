@@ -1,0 +1,1 @@
+The research goal is to evaluate and compare the performance of four doublet detection algorithms across various scRNA-seq datasets, as indicated in the "dataset" column, using three metrics: AUPRC, AUROC, and TNR.
