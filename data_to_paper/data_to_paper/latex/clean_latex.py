@@ -43,6 +43,8 @@ NON_UTF8_CHARS = {
     '≤': r'$\leq$',
     '≥': r'$\geq$',
     '±': r'+-',
+    '“': r'"',
+    '”': r'"',
 }
 
 assert all(len(c) == 1 for c in CHARS.keys())
