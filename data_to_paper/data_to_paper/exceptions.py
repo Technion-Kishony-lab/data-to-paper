@@ -32,7 +32,7 @@ class TerminateException(data_to_paperException):
     def __str__(self):
         if self.reason is None:
             return f"{type(self).__name__}"
-        return f"{type(self).__name__}: {self.reason}"
+        return f"{type(self).__name__}:\n{self.reason}"
 
 
 @dataclass

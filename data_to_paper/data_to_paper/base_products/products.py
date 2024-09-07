@@ -43,7 +43,8 @@ def _convert_args_or_kwargs_to_args(args_or_kwargs: ArgsOrKwargs) -> Tuple[str]:
 class Products:
     """
     Contains the different outcomes of the process.
-    These outcomes are gradually populated, where in each step we get a new product based on previous products.
+    These outcomes are gradually populated, where in each stage we get a new product based on previous products
+    from prior stages.
     """
 
     _fields_to_unified_product_generators: Dict[str, UnifiedProductGenerator] = None

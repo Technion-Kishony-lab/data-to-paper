@@ -154,3 +154,17 @@ def escape_html(text: str) -> str:
     """
     return text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;'). \
         replace('"', '&quot;').replace("'", '&#39;')
+
+
+def add_header_and_footer_lines(header: str, text: str, width: int = 30, line: str = '-'):
+    """
+    Return:
+    <-       width      ->
+
+    ------- HEADER -------
+    text
+    ----------------------
+    """
+    header_line = f' {header} '.center(width, line)
+    footer_line = line * width
+    return f'{header_line}\n{text}\n{footer_line}'

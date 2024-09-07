@@ -15,6 +15,8 @@ from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.code_and_output_files.output_file_requirements import BaseContentOutputFileRequirement, \
     OutputFileRequirements
 
+from data_to_paper.interactive.app_interactor import _raise_if_reset
+
 from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue, RunIssues
 from data_to_paper.run_gpt_code.code_runner_wrapper import CodeRunnerWrapper
 from data_to_paper.run_gpt_code.code_utils import FailedExtractingBlock, IncompleteBlockFailedExtractingBlock
@@ -27,7 +29,6 @@ from data_to_paper.run_gpt_code.code_runner import CodeRunner
 from data_to_paper.run_gpt_code.extract_and_check_code import get_issue_for_use_of_a_forbidden_function, CodeExtractor
 
 from .base_products_conversers import BackgroundProductsConverser
-from .converser import _raise_if_reset
 
 
 def _get_description_of_run_error(error: Exception):

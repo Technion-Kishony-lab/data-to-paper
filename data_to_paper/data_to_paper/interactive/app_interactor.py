@@ -1,6 +1,7 @@
 import time
 from contextlib import contextmanager
 from dataclasses import dataclass, field
+from functools import wraps
 from typing import Optional, Dict, Union, Iterable, Tuple
 
 from data_to_paper.env import REQUEST_CONTINUE_IN_PLAYBACK, FAKE_REQUEST_HUMAN_RESPONSE_ON_PLAYBACK
@@ -9,6 +10,8 @@ from data_to_paper.utils import format_text_with_code_blocks
 from data_to_paper.utils.replacer import format_value, StrOrReplacer
 from data_to_paper.utils.highlighted_text import demote_html_headers
 from data_to_paper.utils.mutable import Mutable
+
+from data_to_paper.exceptions import ResetStepException
 
 from data_to_paper.conversation.stage import Stage
 
@@ -29,10 +32,30 @@ def _skip_if_no_app(func):
     return wrapper
 
 
+def _raise_if_reset(func):
+    """
+    Add this decorator to any method where we need to check if the user has clicked a reset button.
+    Only need to apply to methods that takes a while to run.
+    """
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        self._check_and_reset()
+        result = func(self, *args, **kwargs)
+        self._check_and_reset()
+        return result
+
+    return wrapper
+
+
 @dataclass
 class AppInteractor:
 
     app: Optional[BaseApp] = field(default_factory=get_app)
+
+    def _check_and_reset(self):
+        stage_to_reset_to = self._app_get_stage_to_reset_to()
+        if stage_to_reset_to:
+            raise ResetStepException(stage_to_reset_to)
 
     @_skip_if_no_app
     def _app_clear_panels(self, panel_name: Union[PanelNames, Iterable[PanelNames]] = PanelNames):

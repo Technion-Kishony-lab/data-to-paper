@@ -102,8 +102,7 @@ def _get_literature_searchs() -> Dict[str, LiteratureSearch]:
 @dataclass
 class ScientificProducts(Products):
     """
-    Contains the different scientific outcomes of the research.
-    These outcomes are gradually populated, where in each step we get a new product based on previous products.
+    All products of the scientific process.
     """
     data_file_descriptions: DataFileDescriptions = field(default_factory=DataFileDescriptions)
     codes_and_outputs: Dict[str, CodeAndOutput] = field(default_factory=dict)

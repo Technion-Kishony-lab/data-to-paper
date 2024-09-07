@@ -169,6 +169,10 @@ def _move_latex_and_pdf_to_output_directory(file_stem: str, output_directory: st
 
     def move_if_exists(file_name):
         if os.path.exists(file_name):
+            # delete older file if exists (this happen when we reset from the compilation step to earlier step)
+            file_path = os.path.join(output_directory, file_name)
+            if os.path.exists(file_path):
+                os.remove(file_path)
             shutil.move(file_name, output_directory)
 
     if output_directory is not None:

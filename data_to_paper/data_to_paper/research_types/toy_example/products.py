@@ -11,8 +11,7 @@ from .stage import DemoStages
 @dataclass
 class DemoProducts(Products):
     """
-    Contains the different scientific outcomes of the research.
-    These outcomes are gradually populated, where in each step we get a new product based on previous products.
+    All the products generated in the demo.
     """
     data_file_descriptions: DataFileDescriptions = field(default_factory=DataFileDescriptions)
     research_goal: Optional[str] = None

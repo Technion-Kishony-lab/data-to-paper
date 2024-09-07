@@ -1,37 +1,20 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from functools import wraps
 
 from typing import Optional, Any, Union
 
 from data_to_paper import Message
-from data_to_paper.exceptions import ResetStepException
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
 from data_to_paper.env import TEXT_WIDTH
 from data_to_paper.conversation import ConversationManager, GeneralMessageDesignation
 from data_to_paper.interactive import PanelNames
-from data_to_paper.interactive.app_interactor import AppInteractor
+from data_to_paper.interactive.app_interactor import AppInteractor, _raise_if_reset
 from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils.copier import Copier
 from data_to_paper.utils.replacer import StrOrReplacer, format_value
 from data_to_paper.utils.print_to_file import print_and_log_red, print_and_log_magenta
 from data_to_paper.base_cast import Agent
-
-
-def _raise_if_reset(func):
-    """
-    Add this decorator to any method where we need to check if the user has clicked a reset button.
-    Only need to apply to methods that takes a while to run.
-    """
-    @wraps(func)
-    def wrapper(self, *args, **kwargs):
-        self._check_and_reset()
-        result = func(self, *args, **kwargs)
-        self._check_and_reset()
-        return result
-
-    return wrapper
 
 
 @dataclass
@@ -94,11 +77,6 @@ class Converser(Copier, AppInteractor):
     @property
     def conversation(self):
         return self.conversation_manager.conversation
-
-    def _check_and_reset(self):
-        stage_to_reset_to = self._app_get_stage_to_reset_to()
-        if stage_to_reset_to:
-            raise ResetStepException(stage_to_reset_to)
 
     def _print_conversation_header(self):
         print_and_log_magenta('==== Starting conversation ' + '=' * (TEXT_WIDTH - 27))

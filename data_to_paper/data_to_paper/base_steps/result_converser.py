@@ -464,7 +464,7 @@ class ResultConverser(Converser):
 
     def _get_valid_result(self) -> Union[Product, Any]:
         if not self._has_valid_result:
-            raise FailedCreatingProductException()
+            raise FailedCreatingProductException('Failed to create a valid result.')
         return self.valid_result
 
     def _post_run(self):

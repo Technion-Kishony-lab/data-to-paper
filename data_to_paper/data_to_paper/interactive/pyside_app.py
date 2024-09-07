@@ -559,10 +559,9 @@ class PysideApp(QMainWindow, BaseApp):
     def advance_stage(self, stage: Union[Stage, int, bool]):
         if isinstance(stage, Stage):
             stage = list(self._get_stages()).index(stage)
-        elif stage is True:
+        elif stage is True:  # completed
             stage = len(self._get_stages())
-            self.step_panel.disable_refresh_of_all_steps()
-        elif stage is False:
+        elif stage is False:  # error
             stage = -1
         self.worker.worker_advance_stage_int(stage)
 
