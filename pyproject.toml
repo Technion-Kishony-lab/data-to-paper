@@ -4,10 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "data_to_paper"
-version = "0.1.0"
+version = "1.0.0"
 description = "data-to-paper"
 authors = [
-    { name = "Kishony lab, Technion Israel Institute of Technology", email = "rkishony@technion.ac.il" }
+    { name = "Kishony lab, Technion Israel Institute of Technology", email = "rkishony@technion.ac.il" },
+    { name = "RoyKishony", email = "rkishony@technion.ac.il"},
+    { name = "TalIfargan", email = "talifargan@campus.technion.ac.il" },
+    { name = "LukasHafner", email = "lukashafner@campus.technion.ac.il"},
 ]
 readme = "README.md"
 license = { file = "LICENSE" }
