@@ -905,10 +905,10 @@ class FigureCompilationDfContentChecker(CompilationDfContentChecker):
         """
         Axis parameters are returned and stored in intermediate_results.
         """
+        directory = self.output_folder if self.output_folder is not None else Path.cwd()
+        filepath = directory / f'{self.filename}.png'
         axis_parameters, exception = \
-            run_create_fig_for_df_to_figure_and_get_axis_parameters(self.df,
-                                                                    self.output_folder / f'{self.filename}.png',
-                                                                    **self.kwargs_for_plot)
+            run_create_fig_for_df_to_figure_and_get_axis_parameters(self.df, filepath, **self.kwargs_for_plot)
         if exception is not None:
             self._append_issue(
                 issue=f'Failed to create the figure. Got:\n{exception}',

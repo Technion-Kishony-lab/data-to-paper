@@ -99,13 +99,13 @@ class BaseDataFramePickleContentOutputFileRequirement(PickleContentOutputFileReq
         issues.extend(self._check_df(content))
         return issues
 
-    def _check_df(self, content):
+    def _check_df(self, content) -> List[RunIssue]:
         return []
 
 
 @dataclass(frozen=True)
 class DataFramePickleContentOutputFileRequirement(BaseDataFramePickleContentOutputFileRequirement):
-    def _check_df(self, content):
+    def _check_df(self, content) -> List[RunIssue]:
         return check_analysis_df(content, output_folder=self.output_folder)
 
     def _get_content_and_header_for_final_appendix(

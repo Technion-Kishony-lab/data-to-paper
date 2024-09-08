@@ -5,6 +5,8 @@ import pytest
 from pandas import DataFrame
 
 from data_to_paper.code_and_output_files.file_view_params import ViewPurpose
+from data_to_paper.research_types.hypothesis_testing.check_df_to_funcs.df_checker import check_analysis_df, \
+    check_displayitem_df
 from data_to_paper.research_types.hypothesis_testing.coding.analysis.coding import \
     DataFramePickleContentOutputFileRequirement
 from data_to_paper.research_types.hypothesis_testing.coding.analysis.my_utils import \
@@ -41,8 +43,10 @@ def _simulate_analysis(tmpdir, df, is_figure=False):
                                       caption='caption1')
             else:
                 analysis_df_to_latex(df, 'df_tbl', caption='caption1')
-        assert ic.issues == []
-        return pd.read_pickle('df_tbl.pkl')
+        assert not ic.issues
+        df = pd.read_pickle('df_tbl.pkl')
+        assert not check_analysis_df(df)
+        return df
 
 
 def _simulate_displayitems(tmpdir, df: DataFrame, is_figure=False):
@@ -57,7 +61,9 @@ def _simulate_displayitems(tmpdir, df: DataFrame, is_figure=False):
                 displayitems_df_to_latex(df, 'df_tbl_formatted',
                                          caption='caption2', glossary={'coef': 'coefficient'})
         assert ic.issues == []
-        return pd.read_pickle('df_tbl_formatted.pkl')
+        df = pd.read_pickle('df_tbl_formatted.pkl')
+        assert not check_displayitem_df(df)
+        return df
 
 
 def _simulate_df_to_latex_analysis_and_displayitems(tmpdir, df, is_figure=False):

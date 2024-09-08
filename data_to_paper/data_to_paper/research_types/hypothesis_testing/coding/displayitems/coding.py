@@ -43,7 +43,7 @@ class DataframePreventAssignmentToAttrs(PreventAssignmentToAttrs):
 class TexDisplayitemContentOutputFileRequirement(BaseDataFramePickleContentOutputFileRequirement):
     hypertarget_prefixes: Optional[Tuple[str]] = HypertargetPrefix.LATEX_TABLES.value
 
-    def _check_df(self, content):
+    def _check_df(self, content) -> List[RunIssue]:
         return check_displayitem_df(content, output_folder=self.output_folder)
 
     def _convert_view_purpose_to_pvalue_on_str(self, view_purpose: ViewPurpose) -> OnStr:
