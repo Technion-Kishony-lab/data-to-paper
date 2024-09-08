@@ -13,9 +13,9 @@ def check_tool_installed(tool):
 
 
 def check_dependencies():
-    print("Checking for required tools...")
-    check_tool_installed('pdflatex')
-    check_tool_installed('pandoc')
+    pdflatex_installed = check_tool_installed('pdflatex')
+    pandoc_installed = check_tool_installed('pandoc')
+    return pdflatex_installed and pandoc_installed
 
 
 def main():
