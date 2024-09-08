@@ -17,7 +17,7 @@ def compare_files(file1: Path, file2: Path):
 def test_toy_example(tmpdir):
     output_directory = Path(tmpdir)
     # copy openai_responses.txt from correct_output_directory to output_directory
-    os.system(f'cp {correct_output_directory / "openai_responses.txt"} {output_directory}')
+    os.system(f'cp {correct_output_directory / "response_recordings.json"} {output_directory}')
     set_project_and_run(ToyStepsRunner, project_directory, output_directory)
     files = ['paper.tex']
     for file in files:

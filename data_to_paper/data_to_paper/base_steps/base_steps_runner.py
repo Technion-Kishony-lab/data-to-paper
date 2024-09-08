@@ -37,7 +37,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
     A base class for running a series of steps whose Products gradually accumulate towards a high level goal.
     """
     ACTIONS_FILENAME = 'conversation_actions.pkl'
-    OPENAI_RESPONSES_FILENAME = 'openai_responses.txt'
+    OPENAI_RESPONSES_FILENAME = 'response_recordings.json'
     CROSSREF_RESPONSES_FILENAME = 'crossref_responses.bin'
     SEMANTIC_SCHOLAR_RESPONSES_FILENAME = 'semantic_scholar_responses.bin'
     CODE_RUNNER_CACHE_FILENAME = 'code_runner_cache.pkl'
