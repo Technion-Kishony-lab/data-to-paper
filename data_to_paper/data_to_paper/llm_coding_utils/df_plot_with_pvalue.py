@@ -228,12 +228,12 @@ def df_plot_with_pvalue(df: DataFrame, x: Optional[DfColumnTyping] = None, y: Co
                         raise ValueError(f'P-values must be between 0 and 1, but found `{p_val}`.')
                     errs = yerr[col_index, :, row_index]
                     if kind == 'bar' and y < 0:
-                        y_plt = y - errs[0]
+                        y_plt = y - errs[0] - (max_y - min_y) * 0.01
                         va = 'top'
                     else:
-                        y_plt = y + errs[1]
+                        y_plt = y + errs[1] + (max_y - min_y) * 0.01
                         va = 'baseline'
-                    text = ax.text(x, y_plt, PValueToStars(p_val).convert_to_stars(), ha='center', va=va, fontsize=10)
+                    text = ax.text(x, y_plt, PValueToStars(p_val).convert_to_stars(), ha='center', va=va, fontsize=7)
                     bbox = text.get_window_extent()
                     inv = ax.transData.inverted()
                     bbox_data = inv.transform_bbox(bbox)
