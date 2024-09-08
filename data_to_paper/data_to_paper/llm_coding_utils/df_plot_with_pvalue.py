@@ -201,7 +201,7 @@ def df_plot_with_pvalue(df: DataFrame, x: Optional[DfColumnTyping] = None, y: Co
                 custom_colors= ["#555599", '#55aa55', '#994444', "#aaaa22", "#55aaaa",'#994499']
             else:
                 custom_colors = [color['color'] for color in plt.rcParams['axes.prop_cycle']]
-            ax = df.plot(x=x, y=y, kind=kind, ax=ax, xerr=xerr,  color=custom_colors, edgecolor="black" ,yerr=yerr, **kwargs)
+            ax = df.plot(x=x, y=y, kind=kind, ax=ax, xerr=xerr,  color=custom_colors, edgecolor="black", linewidth=1, yerr=yerr, **kwargs)
         except Exception as e:
             msg = f'Error calling df.plot(x={describe_value(x)}, y={describe_value(y)}, kind={describe_value(kind)}, ' \
                   f'xerr={describe_value(xerr)}, yerr={describe_value(yerr)}, **{describe_value(kwargs)}):\n' \
