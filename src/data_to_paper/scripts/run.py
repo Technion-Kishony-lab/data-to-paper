@@ -87,9 +87,6 @@ RUN_PARAMETERS = {
 
 
 def run():
-    if not check_dependencies():
-        return
-
     parser = argparse.ArgumentParser()
 
     parser.add_argument('project', type=str, nargs='?', default=None)
@@ -103,6 +100,10 @@ def run():
     research_type = args.research_type
 
     run_name = run_name or DEFAULT_RUN_NAME
+
+    if not any(arg in sys.argv for arg in ('-h', '--help')):
+        if not check_dependencies():
+            return
 
     if project:
         if project not in RUN_PARAMETERS:
