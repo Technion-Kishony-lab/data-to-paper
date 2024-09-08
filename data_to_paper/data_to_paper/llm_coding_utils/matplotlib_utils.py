@@ -56,12 +56,14 @@ def replace_singleton_legend_with_axis_label(ax: plt.Axes, kind: str) -> Optiona
     import warnings
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        legend = ax.legend()
+        legend = ax.legend(handlelength=1, handleheight=1, handletextpad=0.5, borderpad=.75)
 
     legend_keys = [text.get_text() for text in legend.get_texts()]
     is_singleton = len(legend_keys) == 1
     if not is_singleton:
         legend.set_bbox_to_anchor((1.05, 1))
+        for text in legend.get_texts():
+            text.set_fontsize(9)
         return
     singleton_legend_key = legend_keys[0]
     if kind == 'barh':
