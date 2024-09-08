@@ -63,6 +63,8 @@ NON_UTF8_CHARS = {
     '∆': r'$\Delta$',
     '∇': r'$\nabla$',
     '∂': r'$\partial$',
+    '“': r'"',
+    '”': r'"',
 }
 
 assert all(len(c) == 1 for c in CHARS.keys())
