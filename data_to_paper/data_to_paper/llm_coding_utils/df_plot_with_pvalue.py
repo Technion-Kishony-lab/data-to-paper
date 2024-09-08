@@ -197,7 +197,9 @@ def df_plot_with_pvalue(df: DataFrame, x: Optional[DfColumnTyping] = None, y: Co
     with mpl.rc_context(rc=RC_PARAMS):
         try:
             y_columns = y if isinstance(y, list) else [y]  # Convert to a list if it's a single column
-            if len(y_columns) < 6:
+            if len(y_columns) <2:
+                custom_colors= ["#555599"]
+            elif len(y_columns) < 6:
                 custom_colors= ["#555599", '#55aa55', '#994444', "#aaaa22", "#55aaaa",'#994499']
             else:
                 custom_colors = [color['color'] for color in plt.rcParams['axes.prop_cycle']]
