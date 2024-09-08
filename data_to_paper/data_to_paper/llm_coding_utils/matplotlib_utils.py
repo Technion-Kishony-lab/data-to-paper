@@ -56,7 +56,7 @@ def replace_singleton_legend_with_axis_label(ax: plt.Axes, kind: str) -> Optiona
     import warnings
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        legend = ax.legend(handlelength=0.75, handleheight=0.75, handletextpad=0.5, borderpad=.25,  borderaxespad=0., framealpha=0, bbox_to_anchor=(1.05, 0.5), loc='center left', bbox_transform=ax.transAxes)
+        legend = ax.legend(handlelength=0.75, handleheight=0.75, handletextpad=0.5, borderpad=.25,  borderaxespad=0., labelspacing=0.3, framealpha=0, bbox_to_anchor=(1.05, 0.5), loc='center left', bbox_transform=ax.transAxes)
 
     legend_keys = [text.get_text() for text in legend.get_texts()]
     is_singleton = len(legend_keys) == 1
@@ -86,11 +86,11 @@ def add_grid_line_at_base_if_needed(ax: plt.Axes, h_or_v: str):
     if 'h' in h_or_v:
         base_value = 1 if ax.get_yscale() == 'log' else 0
         if ax.get_ylim()[0] < base_value < ax.get_ylim()[1]:
-            ax.axhline(base_value, color='black', linewidth=0.8, linestyle='--')
+            ax.axhline(base_value, color='black', linewidth=1, linestyle='--')
     if 'v' in h_or_v:
         base_value = 1 if ax.get_xscale() == 'log' else 0
         if ax.get_xlim()[0] < base_value < ax.get_xlim()[1]:
-            ax.axvline(base_value, color='black', linewidth=0.8, linestyle='--')
+            ax.axvline(base_value, color='black', linewidth=1, linestyle='--')
 
 
 def rotate_xticklabels_if_not_numeric(ax: plt.Axes):
