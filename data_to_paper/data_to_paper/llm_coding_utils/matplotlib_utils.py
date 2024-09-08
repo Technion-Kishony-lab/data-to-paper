@@ -86,11 +86,11 @@ def add_grid_line_at_base_if_needed(ax: plt.Axes, h_or_v: str):
     if 'h' in h_or_v:
         base_value = 1 if ax.get_yscale() == 'log' else 0
         if ax.get_ylim()[0] < base_value < ax.get_ylim()[1]:
-            ax.axhline(base_value, color='grey', linewidth=0.8, linestyle='--')
+            ax.axhline(base_value, color='black', linewidth=0.8, linestyle='--')
     if 'v' in h_or_v:
         base_value = 1 if ax.get_xscale() == 'log' else 0
         if ax.get_xlim()[0] < base_value < ax.get_xlim()[1]:
-            ax.axvline(base_value, color='grey', linewidth=0.8, linestyle='--')
+            ax.axvline(base_value, color='black', linewidth=0.8, linestyle='--')
 
 
 def rotate_xticklabels_if_not_numeric(ax: plt.Axes):
