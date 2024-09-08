@@ -110,7 +110,7 @@ def run_create_fig_for_df_to_figure_and_get_axis_parameters(df: pd.DataFrame, fi
 def create_fig_for_df_to_figure_and_get_axis_parameters(df: pd.DataFrame, filepath: Optional[Path] = None,
                                                         **kwargs) -> AxisParameters:
     configure_matplotlib()
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(dpi=400)
     fig.set_size_inches(*FIG_SIZE_INCHES)
     df = convert_p_values_to_floats(df.copy())
 
