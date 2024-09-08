@@ -103,8 +103,9 @@ def _get_errors(df: pd.DataFrame, columns: ColumnChoiceWithPairs, arg_name: str,
             if scalars_only is False:
                 err = dedent_triple_quote_str(f"""
                     either:
-                        - a single string referring to a single column with two-value tuples of the ci (low, high)
-                        - a tuple of two strings referring to two columns with scalar values (the low and high ci)
+                        - a single string referring to a single column containing two-value tuples (ci_low, ci_high)
+                        - a tuple of two strings referring to two columns containing scalar values for \t
+                    the low and high values.
                     But column `{column}` contains scalar values.
                     """)
             if scalars_only is None:

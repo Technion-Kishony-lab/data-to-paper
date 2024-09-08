@@ -105,9 +105,6 @@ class BaseTableCodeProductsGPT(BaseScientificCodeProductsGPT):
             """
         ''')
 
-    allowed_plot_kinds: NiceList[str] = field(
-        default_factory=lambda: NiceList(ALLOWED_PLOT_KINDS, wrap_with="'", separator=', '))
-
     df_to_figure_extra_vars: str = dedent_triple_quote_str('''
         xlabel: str = None, ylabel: str = None,
         note: str = None, glossary: Dict[Any, str] = None,
@@ -170,3 +167,9 @@ class BaseTableCodeProductsGPT(BaseScientificCodeProductsGPT):
                 y_p_value=['adjusted_coef_pval', 'unadjusted_coef_pval'])
             """
         ''')
+
+    @property
+    def allowed_plot_kinds(self) -> str:
+        if len(ALLOWED_PLOT_KINDS) == 1:
+            return f'only {ALLOWED_PLOT_KINDS[0]} is allowed'
+        return str(NiceList(ALLOWED_PLOT_KINDS, wrap_with="'", separator=', ', last_separator=' or '))

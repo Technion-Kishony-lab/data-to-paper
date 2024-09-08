@@ -367,13 +367,16 @@ class DataAnalysisCodeProductsGPT(BaseTableCodeProductsGPT):
         Then, save the dataframe and create LaTeX:
         df_to_latex(df_desc_stat, 'df_desc_stat', caption=caption)
 
-        - For descriptive statistics figure, for example a distribution of variable(s):
-        `## Figure df_param_dist:`
-        `caption = "Distribution of ..."`
-        Write here the code to create `df_param_dist` of relevant parameters.
-        Then, save the dataframe and create figure:
-        `df_to_figure(df_param_dist, 'df_param_dist', kind='hist', y=['height', 'weight', ...], caption=caption)`
-        As suitable, you can also directly use dfs of original data for creating figure.
+        - For descriptive statistics figure:
+        `## Figure df_desc_stat:`
+        `caption = "Descriptive statistics of ..."`
+        `df_desc_stat = ...`
+        `df_desc_stat['ci_low'] = df_desc_stat['mean'] - 1.96 * df_desc_stat['std'] / np.sqrt(df_desc_stat['count'])`
+        `df_desc_stat['ci_high'] = ...`
+        `df_to_figure(df_desc_stat, 'df_desc_stat', kind='bar', y=['mean'], y_ci=[('ci_low', 'ci_high')])`
+        
+        Note: Showing variables of different units in the same figure is not a good practice. \t
+        Use a table instead.
 
         `# PREPROCESSING` 
         Perform any preprocessing steps needed to prepare the data for the analysis.
@@ -439,7 +442,8 @@ class DataAnalysisCodeProductsGPT(BaseTableCodeProductsGPT):
         Write here code to analyze the data and create a dataframe `df_tag` for the figure.
         `df_to_figure(df_tag, 'df_tag', caption=caption, kind='bar', 
         y=['height_avg', 'weight_avg', ...], 
-        y_ci=['height_ci', 'weight_ci', ...], 
+        y_ci=['height_ci', 'weight_ci', ...],  \t
+        # or y_ci=[('height_ci_low', 'height_ci_high'), ('weight_ci_low', 'weight_ci_high'), ...]
         y_p_value=['height_pval', 'weight_pval', ...])`
 
         etc, up to 3-4 display items in total.
