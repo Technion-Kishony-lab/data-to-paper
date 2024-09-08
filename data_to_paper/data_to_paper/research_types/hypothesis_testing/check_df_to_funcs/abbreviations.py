@@ -31,6 +31,10 @@ def is_unknown_abbreviation(name: str) -> bool:
     if len(name) <= 2:
         return True
 
+    # if contains underscore, treat as abbreviation
+    if '_' in name:
+        return True
+
     for abbreviation in KNOWN_ABBREVIATIONS:
         if abbreviation.endswith('.'):
             pattern = r'\b' + re.escape(abbreviation)

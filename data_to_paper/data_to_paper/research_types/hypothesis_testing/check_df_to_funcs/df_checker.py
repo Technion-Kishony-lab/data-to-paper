@@ -1148,7 +1148,7 @@ class AnnotationDfChecker(BaseContentDfChecker):
     stop_after_first_issue: bool = False
 
     UN_ALLOWED_CHARS = [
-        ('_', 'underscore'),
+        # ('_', 'underscore'),
         ('^', 'caret'),
         ('{', 'curly brace'),
         ('}', 'curly brace')
