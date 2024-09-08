@@ -5,17 +5,18 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "data_to_paper"
 version = "1.0.0"
-description = "data-to-paper"
+description = "data-to-paper: Backward-traceable AI-driven scientific research"
 authors = [
-    { name = "Kishony lab, Technion Israel Institute of Technology", email = "rkishony@technion.ac.il" },
-    { name = "RoyKishony", email = "rkishony@technion.ac.il"},
-    { name = "TalIfargan", email = "talifargan@campus.technion.ac.il" },
-    { name = "LukasHafner", email = "lukashafner@campus.technion.ac.il"},
+    { name = "Kishony lab, Technion Israel Institute of Technology"},
+    { name = "Roy Kishony", email = "rkishony@technion.ac.il"},
+    { name = "Tal Ifargan", email = "talifargan@campus.technion.ac.il"},
+    { name = "Lukas Hafner", email = "lukashafner@campus.technion.ac.il"},
 ]
 readme = "README.md"
 license = { file = "LICENSE" }
+keywords = ["data-to-paper", "research", "AI-driven-research", "backward-traceable", "ai", "agents",
+    "autonomous-agents", "scientific-research", "interactive-machine-learning", "llm"]
 classifiers = [
-    'Framework :: Jupyter',
     'Intended Audience :: Education',
     'Intended Audience :: Science/Research',
     'Intended Audience :: Healthcare Industry',
@@ -27,25 +28,31 @@ classifiers = [
     'Operating System :: OS Independent',
 ]
 dependencies = [
-    "colorama",
-    "openai",
-    "regex",
-    "tiktoken",
-    "pygments",
-    "requests",
-    "unidecode",
-    "PyMuPDF",
-    "py-spy",
-    "ansi2html",
-    "PySide6",
-    "numpy",
-    "pandas",
-    "statsmodels",
-    "scipy",
-    "scikit-learn",
-    "networkx",
+    "colorama==0.4.6",
+    "openai==0.27.8",
+    "regex==2023.6.3",
+    "tiktoken==0.4.0",
+    "pygments~=2.15.1",
+    "requests~=2.31.0",
+    "unidecode~=1.3.6",
+    "PyMuPDF~=1.23.20",
+    "py-spy~=0.3.14",
+    "ansi2html~=1.8.0",
+    "PySide6==6.5.2",
+    "pytest~=7.4.0",
+    "numpy~=1.25.1",
+    "pandas==2.0.3",
+    "Jinja2~=3.1.4",
+    "statsmodels~=0.14.0",
+    "scipy~=1.11.1",
+    "scikit-learn~=1.3.0",
+    "networkx~=3.2.1",
+    "matplotlib~=3.9.0"
 ]
 requires-python = ">=3.9"
+
+[project.urls]
+Repository = "https://github.com/Technion-Kishony-lab/data-to-paper"
 
 [project.optional-dependencies]
 dev = [
