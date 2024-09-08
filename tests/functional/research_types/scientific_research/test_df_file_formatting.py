@@ -3,8 +3,10 @@ from copy import copy
 import pandas as pd
 import pytest
 from pandas import DataFrame
+from pathlib import Path
 
 from data_to_paper.code_and_output_files.file_view_params import ViewPurpose
+from data_to_paper.latex.latex_doc import LatexDocument
 from data_to_paper.research_types.hypothesis_testing.coding.analysis.coding import \
     DataFramePickleContentOutputFileRequirement
 from data_to_paper.research_types.hypothesis_testing.coding.displayitems.coding import \
@@ -27,6 +29,15 @@ def df_tbl_0():
         'CI': [(0.09, 0.11), (0.19123456, 0.21), (0.29, 0.31)],
         'P-value': [PValue(0.001), PValue(2e-8), PValue(0.003)],
     }, index=['app', 'ban', 'ora'])  # apples, bananas, oranges
+
+
+@pytest.fixture()
+def df_with_underscores_in_caption():
+    return pd.DataFrame({
+        'coefficient': [0.1, 0.205, 0.3],
+        'CI': [(0.09, 0.11), (0.19123456, 0.21), (0.29, 0.31)],
+        'P-value': [PValue(0.001), PValue(2e-8), PValue(0.003)],
+    }, index=['bananas_potatoes', 'bananas_tomatoes', 'bananas_tornadoes'])
 
 
 def _simulate_analysis(df, is_figure=False) -> InfoDataFrameWithSaveObjFuncCall:
@@ -104,6 +115,7 @@ def _check_df_to_str(df, requirement, view_purpose, expected):
         print(s)
         for expected_line in expected:
             assert expected_line in s
+        return s
 
 
 @pytest.mark.parametrize('is_figure, view_purpose, expected', [
@@ -171,3 +183,19 @@ def test_view_df_to_latex_displayitems(df_tbl_0, is_figure, view_purpose, expect
     df_tbl_1, df_tbl_2 = _simulate_df_to_latex_analysis_and_displayitems(df_tbl_0, is_figure)
     requirement = TexDisplayitemContentOutputFileRequirement('df_*.pkl')
     _check_df_to_str(df_tbl_2, requirement, view_purpose, expected)
+
+
+PDF_FOLDER = Path(__file__).parent / 'pdfs'
+
+
+def test_view_df_to_latex_displayitems_with_underscores_in_caption(df_with_underscores_in_caption):
+    print('\n')
+    print('df_with_underscores_in_caption', ViewPurpose.FINAL_INLINE)
+    df_tbl_1, df_tbl_2 = _simulate_df_to_latex_analysis_and_displayitems(df_with_underscores_in_caption)
+    requirement = TexDisplayitemContentOutputFileRequirement('df_*.pkl')
+    expected = [r'\textbf{bananas\_potatoes}']
+    latex = _check_df_to_str(df_tbl_2, requirement, ViewPurpose.FINAL_INLINE, expected)
+
+    # output_directory = PDF_FOLDER  # To get the pdf file
+    output_directory = None  # Just test compilation. Do not save the pdf.
+    LatexDocument().compile_table(latex, output_directory=output_directory, file_stem='df_tbl_formatted')
