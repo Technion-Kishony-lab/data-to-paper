@@ -1,30 +1,56 @@
-## Backward-traceable AI-driven Research
+## Backward-traceable AI-driven Research & AI-human Copiloting Interface for Science
 
+
+<b>*data-to-paper*</b> is a framework that systematically navigates the power of AI through a <b>complete end-to-end 
+scientific research</b>, starting from <b>raw data</b> and concluding with <b>transparent, backward-traceable, 
+human-verifiable scientific papers</b>, which set **a new standard for transparency and traceability** for the coming era of AI-driven science ([example](https://t.co/iz44TDZZHb)).
+
+While *data-to-paper* can run autonomously in autopilot :robot:, it is also an **interface for human users to intervene in the AI-driven research process** in copiloting mode.
+
+
+A **Copiloting GUI** allows the user to:
+
+:rocket: oversee the **full end-to-end process** 
 <picture>
-<img src="https://github.com/Technion-Kishony-lab/data-to-paper/blob/main/data_to_paper_icon.gif" width="350" align="right">
+<img src="https://github.com/Technion-Kishony-lab/data-to-paper/blob/main/data_to_paper_icon.gif" width="450" align="right">
 </picture>
 
-*data-to-paper* is a framework that systematically navigates the power of AI through a complete end-to-end 
-scientific research, starting from raw data and concluding with comprehensive, transparent, backward-traceable, 
-human-verifiable scientific papers ([example](https://t.co/iz44TDZZHb)).
+:film_projector: **replay prior runs**
 
-*Implementation.* Towards this goal, *data-to-paper* systematically guides interacting 
-LLM and rule-based agents through the conventional scientific path, from annotated data, through creating 
-research hypotheses, conducting literature search, writing and debugging data analysis code, 
-interpreting the results, and ultimately the step-by-step writing of a complete research paper.
-Tracking information flow through these steps, the process creates transparent and highly-traceable manuscripts, 
-where results, methodology and data are programmatically linked ([demo](https://youtu.be/HUkJcMXd9x0)).
+:mag: look at **intermediate research products**
 
+:rewind: **reset the process** to prior steps
+
+:world_map: change **Mission prompts**
+
+:robot: **on-demand AI-review** at any given step
+
+:compass: guide the LLMs through **review comments**
+
+:heavy_dollar_sign:	track **API costs**
+
+See below for a demo of our interface:
+
+https://github.com/Technion-Kishony-lab/data-to-paper/assets/65530510/4c10c06d-d7e9-4d7c-b9d4-7dbe904d15de
+
+### Motivation
 The *data-to-paper* framework is created as a research project to understand the 
 capacities and limitations of LLM-driven scientific research, and to develop ways of harnessing LLM to accelerate 
 research while maintaining, and even enhancing, key scientific values, such as transparency, traceability and verifiability, 
 and while allowing scientist to oversee and direct the process
 (see also: [living guidelines](https://www.nature.com/articles/d41586-023-03266-1)).
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
+### Implementation
+Towards this goal, *data-to-paper* systematically guides <b>interacting 
+LLM and rule-based agentsthrough the conventional scientific path</b>, from annotated data, through creating 
+research hypotheses, conducting literature search, writing and debugging data analysis code, 
+interpreting the results, and ultimately the step-by-step writing of a complete research paper.
+Tracking information flow through these steps, the process creates transparent and highly-traceable manuscripts, 
+where results, methodology and data are programmatically linked ([demo](https://youtu.be/HUkJcMXd9x0)).
 
 https://github.com/Technion-Kishony-lab/data-to-paper/assets/31969897/0f3acf7a-a775-43bd-a79c-6877f780f2d4
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
 
 ### Reference
 The **data-to-paper** framework is described in the following pre-print:
@@ -58,12 +84,6 @@ See [INSTALL.md](INSTALL.md) for installation instructions.
 or to reproduce example projects (`data-to-paper/projects`) 
 4. Click "Start" to start the run, with human overseeing and feedback.
 5. At the end of the process, a pdf of the manuscript will be created in the project folder.
-
-### GUI app demo
-
-
-https://github.com/Technion-Kishony-lab/data-to-paper/assets/65530510/4c10c06d-d7e9-4d7c-b9d4-7dbe904d15de
-
 
 ### Examples
 
@@ -101,7 +121,7 @@ Try out: `python run.py ML_medium`
 Try out: `python run.py ML_hard`
 
 ### Contributing
-We invite people to try out **data-to-paper** with their own data and are eager for feedback and suggestions.
+We invite people to try out **data-to-paper** with their own data and are eager **for feedback and suggestions**.
 It is currently designed for relatively simple research goals and simple datasets, where 
 we want to raise and test a statistical hypothesis.
 
@@ -143,4 +163,3 @@ Here are some other cool multi-agent related projects:
 - [MetaGPT](https://github.com/geekan/MetaGPT)
 
 And also this curated list of [awesome-agents](https://github.com/kyrolabs/awesome-agents).
-
