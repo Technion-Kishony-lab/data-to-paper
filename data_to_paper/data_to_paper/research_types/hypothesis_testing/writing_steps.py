@@ -483,8 +483,10 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
     general_result_instructions: str = dedent_triple_quote_str("""\n
         Use the following guidelines when writing the Results:
 
-        * Include 3-4 paragraphs, each focusing on one of the displayitems:
-        You should typically have a separate paragraph describing each of the Tables/Figures. \t
+        * Include 3-4 paragraphs, each typically focusing on one of the analysis and the resulting displayitems:
+        You should typically have a separate paragraph describing each of the Tables/Figures.  \t
+        If two or more display items are based on the same analysis (typically a table and a figure), \t
+        they should be discussed in the same paragraph. \t
         In each such paragraph, indicate the motivation/question for the analysis, the methodology, \t
         and only then describe the results. \t
         You should describe what we see and learn from each Table/Figure. \t
