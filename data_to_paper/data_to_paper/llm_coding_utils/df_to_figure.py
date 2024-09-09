@@ -153,7 +153,7 @@ def get_figure_and_caption_as_latex(filename: str, caption: str, label: str) -> 
     return latex.strip()
 
 
-def get_figure_and_caption_as_html(filepath: Union[str, Path], caption: str, width: int = None):
+def get_figure_and_caption_as_html(filepath: Union[str, Path], caption: str, width: int = 750):
     """
     Save a figure with a caption and label.
     """
