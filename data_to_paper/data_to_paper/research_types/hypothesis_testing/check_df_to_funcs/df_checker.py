@@ -38,7 +38,6 @@ from data_to_paper.llm_coding_utils.matplotlib_utils import AxisParameters
 from data_to_paper.run_gpt_code.base_run_contexts import RegisteredRunContext
 from data_to_paper.run_gpt_code.overrides.dataframes.df_with_attrs import ListInfoDataFrame, \
     get_call_info_from_list_info_df
-from data_to_paper.run_gpt_code.run_contexts import ProvideData
 
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.check_type import raise_on_wrong_func_argument_types, WrongTypeException
@@ -142,6 +141,7 @@ class BaseDfChecker(BaseChecker):
     kwargs: dict = field(default_factory=dict)
 
     output_folder: Optional[Path] = None  # where compiled figures and tables are saved
+    compilation_func: Optional[Callable] = None
 
     DEFAULT_CATEGORY: ClassVar[str] = None
     DEFAULT_CODE_PROBLEM: ClassVar[CodeProblem] = None
@@ -935,18 +935,10 @@ class TableCompilationDfContentChecker(CompilationDfContentChecker):
         return df_to_latex(self.df.T, self.filename, index=index, header=header, **kwargs)
 
     def check_compilation_and_get_width(self):
-        try:
-            compilation_func = ProvideData.get_item('compile_to_pdf_func')
-        except RuntimeError:
-            compilation_func = None
-
         with RegisteredRunContext.temporarily_disable_all():
             with OnStrPValue(OnStr.SMALLER_THAN):
                 latex = df_to_latex(self.df, self.filename, **self.kwargs)
-            if compilation_func is None:
-                e = 0.
-            else:
-                e = compilation_func(latex, self.filename)
+            e = self.compilation_func(latex, self.filename)
 
         # save the width of the table:
         self.intermediate_results['width'] = e
@@ -973,7 +965,7 @@ class TableCompilationDfContentChecker(CompilationDfContentChecker):
             with OnStrPValue(OnStr.SMALLER_THAN):
                 latex_transpose = self._df_to_latex_transpose()
             with RegisteredRunContext.temporarily_disable_all():
-                e_transpose = compilation_func(latex_transpose, self.filename + '_transpose')
+                e_transpose = self.compilation_func(latex_transpose, self.filename + '_transpose')
             if isinstance(e_transpose, float) and e_transpose < 1.1:
                 transpose_message = '- Alternatively, consider completely transposing the table. Use `df = df.T`.'
             else:

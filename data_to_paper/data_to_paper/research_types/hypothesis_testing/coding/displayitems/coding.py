@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from functools import partial
-from typing import Iterable, Any, Type, Tuple, Optional, Dict, Collection, List
+from typing import Iterable, Any, Type, Tuple, Optional, Dict, Collection, List, Callable
 
 from data_to_paper.base_steps import DebuggerConverser, CheckLatexCompilation
 from data_to_paper.base_steps.request_code import CodeReviewPrompt
@@ -17,7 +17,6 @@ from data_to_paper.research_types.hypothesis_testing.scientific_products import 
 from data_to_paper.run_gpt_code.attr_replacers import PreventAssignmentToAttrs, PreventCalling, AttrReplacer
 from data_to_paper.run_gpt_code.code_runner import CodeRunner
 from data_to_paper.run_gpt_code.overrides.pvalue import PValue, OnStr, OnStrPValue
-from data_to_paper.run_gpt_code.run_contexts import ProvideData
 from data_to_paper.run_gpt_code.run_issues import RunIssue, CodeProblem
 from data_to_paper.utils import dedent_triple_quote_str
 
@@ -42,9 +41,11 @@ class DataframePreventAssignmentToAttrs(PreventAssignmentToAttrs):
 @dataclass(frozen=True)
 class TexDisplayitemContentOutputFileRequirement(BaseDataFramePickleContentOutputFileRequirement):
     hypertarget_prefixes: Optional[Tuple[str]] = HypertargetPrefix.LATEX_TABLES.value
+    compilation_func: Optional[Callable] = None
 
     def _check_df(self, content) -> List[RunIssue]:
-        return check_displayitem_df(content, output_folder=self.output_folder)
+        return check_displayitem_df(content, output_folder=self.output_folder,
+                                    compilation_func=self.compilation_func)
 
     def _convert_view_purpose_to_pvalue_on_str(self, view_purpose: ViewPurpose) -> OnStr:
         return OnStr.SMALLER_THAN
@@ -153,8 +154,10 @@ class CreateDisplayitemsCodeProductsGPT(BaseTableCodeProductsGPT, CheckLatexComp
 
     def _create_output_file_requirements(self) -> OutputFileRequirements:
         return OutputFileRequirements([
-            TexDisplayitemContentOutputFileRequirement('df_*_formatted.pkl', minimal_count=1,
-                                                       output_folder=self.output_directory),
+            TexDisplayitemContentOutputFileRequirement(
+                'df_*_formatted.pkl', minimal_count=1,
+                output_folder=self.output_directory,
+                compilation_func=partial(self._get_static_latex_compilation_func(), is_table=True))
         ])
 
     provided_code: str = dedent_triple_quote_str('''
@@ -300,8 +303,5 @@ class CreateDisplayitemsCodeProductsGPT(BaseTableCodeProductsGPT, CheckLatexComp
             'PValueMessage': AttrReplacer(
                 obj_import_str=PValue, attr='error_message_on_forbidden_func',
                 wrapper="Calling `{func_name}` on a PValue object is forbidden."
-            ),
-            'ProvideData': ProvideData(
-                data={'compile_to_pdf_func': partial(self._get_static_latex_compilation_func(), is_table=True)}
             ),
         }
