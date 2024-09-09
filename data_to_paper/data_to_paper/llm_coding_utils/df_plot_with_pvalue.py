@@ -175,6 +175,14 @@ def _check_matching_column_choice(primary_name, optional_name, primary: ColumnCh
                          f'\n\n{example_plotting}')
 
 
+def _get_custom_colors(num_colors: int):
+    if num_colors < 2:
+        return ["#555599"]
+    elif num_colors < 9:
+        return ["#555599", '#55aa55', '#994444', "#aaaa22", "#55aaaa", '#994499', "#5599ee", "#ee9955", "#99ee55"]
+    return [color['color'] for color in plt.rcParams['axes.prop_cycle']]
+
+
 @raise_on_wrong_func_argument_types_decorator
 def df_plot_with_pvalue(df: DataFrame, x: Optional[DfColumnTyping] = None, y: ColumnChoice = None,
                         kind: str = 'bar', ax: Optional[plt.Axes] = None,
@@ -194,16 +202,15 @@ def df_plot_with_pvalue(df: DataFrame, x: Optional[DfColumnTyping] = None, y: Co
     _check_matching_column_choice('y', 'y_ci', y, y_ci)
     xerr = _convert_err_and_ci_to_err(df, x, 'x', xerr, None)
     yerr = _convert_err_and_ci_to_err(df, y, 'y', yerr, y_ci)
+
+    kwargs = kwargs.copy()
+    num_y_cols = len(y) if isinstance(y, list) else 1
+    kwargs['color'] = kwargs.get('color', _get_custom_colors(num_y_cols))
+    kwargs['edgecolor'] = kwargs.get('edgecolor', 'black')
+    kwargs['linewidth'] = kwargs.get('linewidth', 1)
     with mpl.rc_context(rc=RC_PARAMS):
         try:
-            y_columns = y if isinstance(y, list) else [y]  # Convert to a list if it's a single column
-            if len(y_columns) <2:
-                custom_colors= ["#555599"]
-            elif len(y_columns) < 9:
-                custom_colors= ["#555599", '#55aa55', '#994444', "#aaaa22", "#55aaaa",'#994499', "#5599ee", "#ee9955", "#99ee55" ]
-            else:
-                custom_colors = [color['color'] for color in plt.rcParams['axes.prop_cycle']]
-            ax = df.plot(x=x, y=y, kind=kind, ax=ax, xerr=xerr,  color=custom_colors, edgecolor="black", linewidth=1, yerr=yerr, **kwargs)
+            ax = df.plot(x=x, y=y, kind=kind, ax=ax, xerr=xerr, yerr=yerr, **kwargs)
         except Exception as e:
             msg = f'Error calling df.plot(x={describe_value(x)}, y={describe_value(y)}, kind={describe_value(kind)}, ' \
                   f'xerr={describe_value(xerr)}, yerr={describe_value(yerr)}, **{describe_value(kwargs)}):\n' \
