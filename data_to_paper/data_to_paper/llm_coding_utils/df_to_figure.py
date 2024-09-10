@@ -111,7 +111,12 @@ def create_fig_for_df_to_figure_and_get_axis_parameters(df: pd.DataFrame, filepa
                                                         **kwargs) -> AxisParameters:
     configure_matplotlib()
     fig, ax = plt.subplots(dpi=FIG_DPI.val)
-    fig.set_size_inches(*FIG_SIZE_INCHES)
+    try:
+        max_length = float(df['x'].astype(str).apply(len).max())
+        labelspace=max_length*0.075
+    except:
+        labelspace=0
+    fig.set_size_inches((FIG_SIZE_INCHES[0], FIG_SIZE_INCHES[1]+labelspace))
     df = convert_p_values_to_floats(df.copy())
 
     # Replace underscores with spaces in the column names.

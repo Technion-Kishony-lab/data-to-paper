@@ -4,7 +4,7 @@ from typing import Union
 
 from data_to_paper.utils.mutable import Mutable
 
-FIG_SIZE_INCHES = (7.5, 4)
+FIG_SIZE_INCHES = (7.5, 2.5)
 FIG_DPI = Mutable(400)
 
 ALLOWED_PLOT_KINDS = ['bar']  # TODO: Add support for more plot kinds

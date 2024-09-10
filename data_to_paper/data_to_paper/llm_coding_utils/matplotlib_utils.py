@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Tuple, Optional, Dict, List, Union
 
 from matplotlib import pyplot as plt
-
+from .consts import FIG_SIZE_INCHES
 
 def get_xy_coordinates_of_df_plot(df, x=None, y=None, kind='line') -> Dict[int, Dict[int, Tuple[float, float]]]:
     """
@@ -57,12 +57,12 @@ def replace_singleton_legend_with_axis_label(ax: plt.Axes, kind: str) -> Optiona
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         legend = ax.legend(handlelength=0.75, handleheight=0.75, handletextpad=0.5, borderpad=.25,  borderaxespad=0., labelspacing=0.3, framealpha=0, bbox_to_anchor=(1.05, 0.5), loc='center left', bbox_transform=ax.transAxes)
-
+    RelativeFigHeigth=FIG_SIZE_INCHES[1]/ax.figure.get_size_inches()[1]
     legend_keys = [text.get_text() for text in legend.get_texts()]
     is_singleton = len(legend_keys) == 1
     if not is_singleton:
         legend.set_bbox_to_anchor((1.05, 0.5))
-        ax.set_position([.1, 0.4, 0.5, 0.5]) # shift plot to left to accomodate for label
+        ax.set_position([0.1, 0.1+0.8*(1-RelativeFigHeigth), 0.5, 0.8*(RelativeFigHeigth)]) # shift plot to left to accomodate for label
         for text in legend.get_texts():
             text.set_fontsize(9)
         return
@@ -76,7 +76,7 @@ def replace_singleton_legend_with_axis_label(ax: plt.Axes, kind: str) -> Optiona
         if ax.get_ylabel() == '':
             ax.set_ylabel(singleton_legend_key)
     legend.remove()
-    ax.set_position([.25, 0.4, 0.5, 0.5]) # center plot
+    ax.set_position([.25, 0.1+0.8*(1-RelativeFigHeigth), 0.5, 0.8*RelativeFigHeigth]) # center plot
     return singleton_legend_key
 
 
