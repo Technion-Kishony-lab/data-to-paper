@@ -22,7 +22,6 @@ RC_PARAMS = {
     'figure.figsize': [10, 6],
     'font.size': 14,
     'savefig.dpi': 300,
-    'savefig.bbox': 'tight',
     'savefig.facecolor': 'white',
     'axes.facecolor': 'white'
 }

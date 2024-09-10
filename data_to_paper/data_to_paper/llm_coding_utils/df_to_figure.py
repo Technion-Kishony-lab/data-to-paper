@@ -121,7 +121,7 @@ def create_fig_for_df_to_figure_and_get_axis_parameters(df: pd.DataFrame, filepa
     df_plot_with_pvalue(df, ax=ax, **kwargs)
 
     # Adjusts subplot parameters to give the plot more room
-    fig.tight_layout()
+    #fig.tight_layout()
 
     if filepath:
         fig.savefig(filepath)
@@ -145,7 +145,7 @@ def get_figure_and_caption_as_latex(filename: str, caption: str, label: str) -> 
     latex = f"""
 \\begin{{figure}}[htbp]
 \\centering
-\\includegraphics[width=0.8\\textwidth]{{{filename}}}
+\\includegraphics[width=1\\textwidth]{{{filename}}}
 \\caption{{{caption}}}
 \\label{{{label}}}
 \\end{{figure}}

@@ -62,6 +62,7 @@ def replace_singleton_legend_with_axis_label(ax: plt.Axes, kind: str) -> Optiona
     is_singleton = len(legend_keys) == 1
     if not is_singleton:
         legend.set_bbox_to_anchor((1.05, 0.5))
+        ax.set_position([.1, 0.4, 0.5, 0.5]) # shift plot to left to accomodate for label
         for text in legend.get_texts():
             text.set_fontsize(9)
         return
@@ -75,6 +76,7 @@ def replace_singleton_legend_with_axis_label(ax: plt.Axes, kind: str) -> Optiona
         if ax.get_ylabel() == '':
             ax.set_ylabel(singleton_legend_key)
     legend.remove()
+    ax.set_position([.25, 0.4, 0.5, 0.5]) # center plot
     return singleton_legend_key
 
 
@@ -105,7 +107,7 @@ def rotate_xticklabels_if_not_numeric(ax: plt.Axes):
             label.set_horizontalalignment('right')
             label.set_rotation_mode('anchor')
             label.set_wrap(True)
-        ax.figure.tight_layout()  # Adjusts subplot parameters to give the plot more room
+        #ax.figure.tight_layout()  # Adjusts subplot parameters to give the plot more room
 
 
 @dataclass(frozen=True)
