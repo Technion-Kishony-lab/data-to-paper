@@ -16,7 +16,7 @@ from .df_plot_with_pvalue import df_plot_with_pvalue, get_description_of_plot_cr
 from .matplotlib_utils import get_axis_parameters, AxisParameters
 from .note_and_legend import convert_note_and_glossary_to_html, convert_note_and_glossary_to_latex_figure_caption
 from .utils import convert_to_latex_comment, convert_filename_to_label
-from .consts import ALLOWED_PLOT_KINDS, FIG_SIZE_INCHES
+from .consts import ALLOWED_PLOT_KINDS, FIG_SIZE_INCHES, FIG_DPI
 
 
 @raise_on_wrong_func_argument_types_decorator
@@ -110,7 +110,7 @@ def run_create_fig_for_df_to_figure_and_get_axis_parameters(df: pd.DataFrame, fi
 def create_fig_for_df_to_figure_and_get_axis_parameters(df: pd.DataFrame, filepath: Optional[Path] = None,
                                                         **kwargs) -> AxisParameters:
     configure_matplotlib()
-    fig, ax = plt.subplots(dpi=400)
+    fig, ax = plt.subplots(dpi=FIG_DPI.val)
     fig.set_size_inches(*FIG_SIZE_INCHES)
     df = convert_p_values_to_floats(df.copy())
 
