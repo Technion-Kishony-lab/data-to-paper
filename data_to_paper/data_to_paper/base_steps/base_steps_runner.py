@@ -186,6 +186,8 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
             try:
                 next_stage = self._run_stage(stage)
             except ResetStepException as e:
+                if e.stage is None:
+                    break  # Terminate the run
                 print_and_log(f'Resetting to stage {e.stage.name}')
                 next_stage = e.stage
                 self.reset_to_stage(next_stage)
@@ -209,6 +211,8 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         """
         Just wait and raise a ResetStepException if the user hit the reset-to-step buttons.
         """
+        if not self.app:
+            raise ResetStepException(None)
         time.sleep(0.1)
 
     def _wait_for_reset(self):
