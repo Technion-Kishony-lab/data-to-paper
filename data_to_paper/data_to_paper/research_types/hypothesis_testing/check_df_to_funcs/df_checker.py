@@ -660,8 +660,9 @@ class TableDfContentChecker(DfContentChecker):
                       f'For example, the value {example_value} appears in the following cells:\n'
                       f'{duplicated_value_positions}.',
                 instructions=dedent_triple_quote_str("""
-                    This is likely a mistake and is surely confusing to the reader.
-                    Please revise the code so that the df does not repeat the same values in multiple cells.
+                    Is this perhaps a mistake, please revise the code so that the df does not repeat the same values \t
+                    in multiple cells.
+                    Otherwise, please just add a comment in the codee explaining why the same value might be repeated.
                     """),
                 forgive_after=1,
             )
@@ -904,8 +905,9 @@ class FigureCompilationDfContentChecker(CompilationDfContentChecker):
         """
         Axis parameters are returned and stored in intermediate_results.
         """
-        directory = self.output_folder if self.output_folder is not None else Path.cwd()
-        filepath = directory / f'{self.filename}.png'
+        if self.output_folder is None:
+            return
+        filepath = self.output_folder / f'{self.filename}.png'
         axis_parameters, exception = \
             run_create_fig_for_df_to_figure_and_get_axis_parameters(self.df, filepath, **self.kwargs_for_plot)
         if exception is not None:
