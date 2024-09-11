@@ -400,6 +400,12 @@ class DebuggerConverser(BackgroundProductsConverser):
             comment=comment,
         )
 
+    def _remove_issues_exceeding_max_count(self, issues: List[RunIssue]):
+        for issue in issues:
+            if issue.forgive_after is not None and \
+                    self.issues_to_counts.get(issue, 0) >= issue.forgive_after:
+                issues.remove(issue)
+
     def _respond_to_issues(self, issues: Union[None, RunIssue, List[RunIssue], RunIssues],
                            code_and_output: Optional[CodeAndOutput] = None,
                            is_bumped: bool = False
@@ -440,14 +446,6 @@ class DebuggerConverser(BackgroundProductsConverser):
             issues = [issues]
         if not isinstance(issues, RunIssues):
             issues = RunIssues(issues)
-
-        # remove issues exceeding the max allowed
-        for issue in issues:
-            if issue.forgive_after is not None and \
-                    self.issues_to_counts.get(issue, 0) >= issue.forgive_after:
-                issues.remove(issue)
-        if not issues:
-            return code_and_output
 
         # Get Problem
         problem = issues.get_most_severe_problem()
@@ -585,7 +583,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         output_issues = []
         output_issues.extend(issues)
         output_issues.extend(self._get_issues_for_created_output_files(code_and_output, contexts))
-
+        self._remove_issues_exceeding_max_count(output_issues)
         if output_issues:
             # if the code ran, but output was incorrect, we delete any created files:
             code_and_output.created_files.delete_all_created_files(self.data_folder)

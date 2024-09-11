@@ -1035,7 +1035,7 @@ class SecondContentChecker(BaseContentDfChecker):
     UNWANTED_LABELS = ['intercept']
 
     def _is_label_unwanted(self, label):
-        if type(label)=="str":
+        if isinstance(label, str):
             return any(label.lower() in unwanted_label for unwanted_label in self.UNWANTED_LABELS)
 
     def check_for_unwanted_labels_in_x_or_y(self):
