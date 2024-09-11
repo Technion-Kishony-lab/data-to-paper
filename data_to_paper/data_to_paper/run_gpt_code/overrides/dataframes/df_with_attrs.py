@@ -1,5 +1,7 @@
 import pandas as pd
 
+from typing import Any, Dict, NamedTuple, Tuple, Callable, Optional
+
 
 class InfoDataFrame(pd.DataFrame):
     """
@@ -40,35 +42,68 @@ class InfoDataFrame(pd.DataFrame):
         return df
 
 
-class ListInfoDataFrame(InfoDataFrame):
+class FuncCallParams(NamedTuple):
+    """
+    Stores a func call.
+    """
+    func: Callable
+    args: Tuple[Any, ...] = ()
+    kwargs: Dict[str, Any] = {}
 
+    def call(self, **extra_kwargs):
+        return self.func(*self.args, **self.kwargs, **extra_kwargs)
+
+    @property
+    def func_name(self):
+        return self.func.__name__
+
+
+
+class SaveObjFuncCallParams(FuncCallParams):
+    """
+    Stores a func call that saves an obj to a file
+    """
     @classmethod
-    def from_prior_df(cls, df, extra_info=None):
-        if isinstance(df, cls):
-            prior_extra_info = df.extra_info
-        else:
-            prior_extra_info = []
-        return cls(df, extra_info=prior_extra_info + [extra_info])
+    def from_(cls, func, obj, filename, *args, **kwargs):
+        return cls(func=func, args=(obj, filename) + args, kwargs=kwargs)
+
+    @property
+    def obj(self):
+        return self.args[0]
+
+    @property
+    def filename(self):
+        return self.args[1]
+
+    @property
+    def extra_args(self):
+        return self.args[2:]
 
 
-def save_as_list_info_df(func_name, df, filename, kwargs=None):
+class InfoDataFrameWithSaveObjFuncCall(InfoDataFrame):
+    """
+    Custom DataFrame class where extra_info is a FuncCallParams
+    """
+    def __init__(self, *args, extra_info: SaveObjFuncCallParams = None, **kwargs):
+        super().__init__(*args, extra_info=extra_info, **kwargs)
+
+    def get_func_call(self) -> SaveObjFuncCallParams:
+        return self.extra_info
+
+    def get_prior_filename(self) -> Optional[str]:
+        prior_df = self.extra_info.obj
+        if not isinstance(prior_df, InfoDataFrameWithSaveObjFuncCall):
+            return None
+        return prior_df.get_func_call().filename
+
+
+def save_as_func_call_df(func, df, filename, kwargs=None) -> InfoDataFrameWithSaveObjFuncCall:
     """
     save df to pickle with the func
     """
-    kwargs = {} if kwargs is None else kwargs
-    df = ListInfoDataFrame.from_prior_df(df, (func_name, df, filename, kwargs))
-    pickle_filename = filename + '.pkl'
-    df.to_pickle(pickle_filename)
-
-
-def get_call_info_from_list_info_df(list_info_df: ListInfoDataFrame):
-    from data_to_paper.llm_coding_utils import df_to_latex, df_to_figure
-    func_name, df, filename, kwargs = list_info_df.extra_info[-1]
-    assert df.equals(list_info_df)
-    if func_name == 'df_to_latex':
-        func = df_to_latex
-    elif func_name == 'df_to_figure':
-        func = df_to_figure
-    else:
-        raise ValueError(f'Unknown function name: {func_name}')
-    return func, (list_info_df, filename), kwargs
+    kwargs = kwargs if kwargs is not None else {}
+    df = InfoDataFrameWithSaveObjFuncCall(df, extra_info=SaveObjFuncCallParams.from_(func, df, filename, **kwargs))
+    if filename:
+        pickle_filename = filename + '.pkl'
+        df.to_pickle(pickle_filename)
+    return df

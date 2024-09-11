@@ -8,4 +8,4 @@ def displayitems_df_to_figure(df: pd.DataFrame, filename: str, **kwargs):
     Same as analysis_df_to_figure, but for displayitems.
     See docstring of analysis_df_to_figure for more information.
     """
-    analysis_df_to_figure(df, filename, **kwargs)
+    return analysis_df_to_figure(df, filename, **kwargs)

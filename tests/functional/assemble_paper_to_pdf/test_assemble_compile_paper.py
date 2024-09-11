@@ -6,6 +6,7 @@ from pathlib import Path
 from pytest import fixture
 
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
+from data_to_paper.llm_coding_utils import df_to_latex, df_to_figure
 from data_to_paper.research_types.hypothesis_testing.coding.analysis.coding import \
     DataFramePickleContentOutputFileRequirement
 from data_to_paper.research_types.hypothesis_testing.coding.displayitems.coding import \
@@ -13,7 +14,8 @@ from data_to_paper.research_types.hypothesis_testing.coding.displayitems.coding 
 from data_to_paper.research_types.hypothesis_testing.produce_pdf_step import ProduceScientificPaperPDFWithAppendix
 from data_to_paper.research_types.hypothesis_testing.scientific_products import ScientificProducts
 from data_to_paper.code_and_output_files.output_file_requirements import OutputFileRequirementsToFileToContent
-from data_to_paper.run_gpt_code.overrides.dataframes.df_with_attrs import ListInfoDataFrame
+from data_to_paper.run_gpt_code.overrides.dataframes.df_with_attrs import InfoDataFrameWithSaveObjFuncCall, \
+    SaveObjFuncCallParams
 from data_to_paper.run_gpt_code.overrides.pvalue import PValue
 from data_to_paper.servers.crossref import CrossrefCitation
 
@@ -76,29 +78,26 @@ def df_to_latex(...):
 @fixture()
 def code_and_outputs():
     df_desc_stat_0 = pd.DataFrame({'apl': [1, 2], 'ban': [4, 5]}, index=['mean', 'std'])
-    df_desc_stat_1 = ListInfoDataFrame.from_prior_df(
+    df_desc_stat_1 = InfoDataFrameWithSaveObjFuncCall(
         df_desc_stat_0,
-        extra_info=('df_to_latex', df_desc_stat_0, 'df_desc_stat', dict())
-    )
+        extra_info=SaveObjFuncCallParams.from_(df_to_latex, df_desc_stat_0, 'df_desc_stat'))
     df_desc_stat_1r = copy(df_desc_stat_1)
     df_desc_stat_1r.columns = ['apple', 'banana']
-    df_desc_stat_2 = ListInfoDataFrame.from_prior_df(
+    df_desc_stat_2 = InfoDataFrameWithSaveObjFuncCall(
         df_desc_stat_1r,
-        extra_info=('df_to_latex', df_desc_stat_1r, 'df_desc_stat_formatted', {'caption': 'Caption', 'note': 'Note'})
-    )
+        extra_info=SaveObjFuncCallParams.from_(df_to_latex, df_desc_stat_1r, 'df_desc_stat_formatted',
+                                               caption='Caption', note='Note'))
 
     df_coefs_0 = pd.DataFrame({'coef': [1.23456789, 2.1], 'p': [PValue(0.0001), PValue(0.001)]}, index=['a', 'b'])
-    df_coefs_1 = ListInfoDataFrame.from_prior_df(
+    df_coefs_1 = InfoDataFrameWithSaveObjFuncCall(
         df_coefs_0,
-        extra_info=('df_to_figure', df_coefs_0, 'df_coefs', {'y': 'coef', 'y_pvalue': 'p'})
-    )
+        extra_info=SaveObjFuncCallParams.from_(df_to_figure, df_coefs_0, 'df_coefs', y='coef', y_pvalue='p'))
     df_coefs_1r = copy(df_coefs_1)
     df_coefs_1r.index = ['apple', 'banana']
-    df_coefs_2 = ListInfoDataFrame.from_prior_df(
+    df_coefs_2 = InfoDataFrameWithSaveObjFuncCall(
         df_coefs_1r,
-        extra_info=('df_to_figure', df_coefs_1r, 'df_coefs_formatted',
-                    {'y': 'coef', 'y_pvalue': 'p', 'caption': 'Caption', 'note': 'Note'})
-    )
+        extra_info=SaveObjFuncCallParams.from_(df_to_figure, df_coefs_1r, 'df_coefs_formatted',
+                                               y='coef', y_pvalue='p', caption='Caption', note='Note'))
     analysis_code_and_output = CodeAndOutput(
         name='Data Analysis',
         code=analysis_code,

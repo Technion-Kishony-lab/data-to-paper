@@ -5,24 +5,19 @@ import pytest
 from pandas import DataFrame
 
 from data_to_paper.code_and_output_files.file_view_params import ViewPurpose
-from data_to_paper.research_types.hypothesis_testing.check_df_to_funcs.df_checker import check_analysis_df, \
-    check_displayitem_df
 from data_to_paper.research_types.hypothesis_testing.coding.analysis.coding import \
     DataFramePickleContentOutputFileRequirement
-from data_to_paper.research_types.hypothesis_testing.coding.analysis.my_utils import \
-    df_to_latex as analysis_df_to_latex
-from data_to_paper.research_types.hypothesis_testing.coding.analysis.my_utils import \
-    df_to_figure as analysis_df_to_figure
 from data_to_paper.research_types.hypothesis_testing.coding.displayitems.coding import \
     TexDisplayitemContentOutputFileRequirement
-from data_to_paper.research_types.hypothesis_testing.coding.displayitems.my_utils import \
-    df_to_latex as displayitems_df_to_latex
-from data_to_paper.research_types.hypothesis_testing.coding.displayitems.my_utils import \
-    df_to_figure as displayitems_df_to_figure
-from data_to_paper.run_gpt_code.overrides.dataframes.df_with_attrs import ListInfoDataFrame
+from data_to_paper.run_gpt_code.overrides.dataframes.df_with_attrs import InfoDataFrameWithSaveObjFuncCall
 from data_to_paper.run_gpt_code.overrides.pvalue import PValue
-from data_to_paper.run_gpt_code.run_contexts import IssueCollector
-from data_to_paper.utils.file_utils import run_in_directory
+from tests.functional.research_types.scientific_research.utils import simulate_save_load
+from data_to_paper.research_types.hypothesis_testing.coding.analysis.my_utils.df_to_figure import analysis_df_to_figure
+from data_to_paper.research_types.hypothesis_testing.coding.analysis.my_utils.df_to_latex import analysis_df_to_latex
+from data_to_paper.research_types.hypothesis_testing.coding.displayitems.my_utils.df_to_figure import \
+    displayitems_df_to_figure
+from data_to_paper.research_types.hypothesis_testing.coding.displayitems.my_utils.df_to_latex import \
+    displayitems_df_to_latex
 
 
 @pytest.fixture()
@@ -34,41 +29,32 @@ def df_tbl_0():
     }, index=['app', 'ban', 'ora'])  # apples, bananas, oranges
 
 
-def _simulate_analysis(tmpdir, df, is_figure=False):
-    with run_in_directory(tmpdir):
-        with IssueCollector() as ic:
-            if is_figure:
-                analysis_df_to_figure(df, 'df_tbl', kind='bar',
-                                      y='coef', y_ci='CI', y_p_value='P-value',
-                                      caption='caption1')
-            else:
-                analysis_df_to_latex(df, 'df_tbl', caption='caption1')
-        assert not ic.issues
-        df = pd.read_pickle('df_tbl.pkl')
-        assert not check_analysis_df(df)
-        return df
+def _simulate_analysis(df, is_figure=False) -> InfoDataFrameWithSaveObjFuncCall:
+    if is_figure:
+        return simulate_save_load(
+            analysis_df_to_figure, df, 'df_tbl',
+            kind='bar', y='coef', y_ci='CI', y_p_value='P-value', caption='caption1')
+    else:
+        return simulate_save_load(
+            analysis_df_to_latex, df, 'df_tbl', caption='caption1')
 
 
-def _simulate_displayitems(tmpdir, df: DataFrame, is_figure=False):
-    with run_in_directory(tmpdir):
-        with IssueCollector() as ic:
-            df.rename(index={'ban': 'bananas', 'app': 'apples', 'ora': 'oranges'}, inplace=True)
-            if is_figure:
-                displayitems_df_to_figure(df, 'df_tbl_formatted', kind='bar',
-                                          y='coef', y_ci='CI', y_p_value='P-value',
-                                          caption='caption2', glossary={'coef': 'coefficient'})
-            else:
-                displayitems_df_to_latex(df, 'df_tbl_formatted',
-                                         caption='caption2', glossary={'coef': 'coefficient'})
-        assert ic.issues == []
-        df = pd.read_pickle('df_tbl_formatted.pkl')
-        assert not check_displayitem_df(df)
-        return df
+def _simulate_displayitems(df: DataFrame, is_figure=False) -> InfoDataFrameWithSaveObjFuncCall:
+    df.rename(index={'ban': 'bananas', 'app': 'apples', 'ora': 'oranges'}, inplace=True)
+    if is_figure:
+        return simulate_save_load(
+            displayitems_df_to_figure, df, 'df_tbl_formatted',
+            kind='bar', y='coef', y_ci='CI', y_p_value='P-value', caption='caption2', glossary={'coef': 'coefficient'})
+    else:
+        return simulate_save_load(
+            displayitems_df_to_latex, df, 'df_tbl_formatted',
+            caption='caption2', glossary={'coef': 'coefficient'})
 
 
-def _simulate_df_to_latex_analysis_and_displayitems(tmpdir, df, is_figure=False):
-    df_tbl_1 = _simulate_analysis(tmpdir, df, is_figure)
-    df_tbl_2 = _simulate_displayitems(tmpdir, copy(df_tbl_1), is_figure)
+def _simulate_df_to_latex_analysis_and_displayitems(df, is_figure=False
+                                                    ) -> (InfoDataFrameWithSaveObjFuncCall, InfoDataFrameWithSaveObjFuncCall):
+    df_tbl_1 = _simulate_analysis(df, is_figure)
+    df_tbl_2 = _simulate_displayitems(copy(df_tbl_1), is_figure)
     return df_tbl_1, df_tbl_2
 
 
@@ -76,14 +62,13 @@ def _simulate_df_to_latex_analysis_and_displayitems(tmpdir, df, is_figure=False)
     (False, 'df_to_latex', {'caption': 'caption1'}),
     (True, 'df_to_figure', {'caption': 'caption1', 'kind': 'bar', 'y': 'coef', 'y_ci': 'CI', 'y_p_value': 'P-value'}),
 ])
-def test_info_of_df_to_latex_analysis(tmpdir, df_tbl_0, is_figure, expected_func, expected_kwargs):
-    df_tbl_1 = _simulate_analysis(tmpdir, df_tbl_0, is_figure)
-    assert isinstance(df_tbl_1, ListInfoDataFrame)
+def test_info_of_df_to_latex_analysis(df_tbl_0, is_figure, expected_func, expected_kwargs):
+    df_tbl_1 = _simulate_analysis(df_tbl_0, is_figure)
+    assert isinstance(df_tbl_1, InfoDataFrameWithSaveObjFuncCall)
     assert df_tbl_0.equals(df_tbl_1)
-    info = df_tbl_1.extra_info
-    assert len(info) == 1
-    func, df, label, kwargs = info[0]
-    assert func == expected_func
+    func_call = df_tbl_1.get_func_call()
+    func_name, df, label, kwargs = func_call.func_name, func_call.obj, func_call.filename, func_call.kwargs
+    assert func_name == expected_func
     assert df.equals(df_tbl_0)
     assert label == 'df_tbl'
     assert kwargs == expected_kwargs
@@ -94,19 +79,17 @@ def test_info_of_df_to_latex_analysis(tmpdir, df_tbl_0, is_figure, expected_func
     (True, 'df_to_figure', {'caption': 'caption2', 'kind': 'bar', 'y': 'coef', 'y_ci': 'CI', 'y_p_value': 'P-value',
                             'glossary': {'coef': 'coefficient'}}),
 ])
-def test_info_of_df_to_latex_displayitem(tmpdir, df_tbl_0, is_figure, expected_func, expected_kwargs):
-    df_tbl_1, df_tbl_2 = _simulate_df_to_latex_analysis_and_displayitems(tmpdir, df_tbl_0, is_figure)
+def test_info_of_df_to_latex_displayitem(df_tbl_0, is_figure, expected_func, expected_kwargs):
+    df_tbl_1, df_tbl_2 = _simulate_df_to_latex_analysis_and_displayitems(df_tbl_0, is_figure)
 
-    assert isinstance(df_tbl_2, ListInfoDataFrame)
+    assert isinstance(df_tbl_2, InfoDataFrameWithSaveObjFuncCall)
     assert df_tbl_0.values.tolist() == df_tbl_2.values.tolist()
-    info = df_tbl_2.extra_info
-    assert len(info) == 2
+    func_call = df_tbl_2.get_func_call()
 
-    func, df, label, kwargs = info[1]
-    assert func == expected_func
-    assert df.values.tolist() == df_tbl_1.values.tolist()
-    assert label == 'df_tbl_formatted'
-    assert kwargs == expected_kwargs
+    assert func_call.func_name == expected_func
+    assert func_call.obj.values.tolist() == df_tbl_1.values.tolist()
+    assert func_call.filename == 'df_tbl_formatted'
+    assert func_call.kwargs == expected_kwargs
 
 
 def _check_df_to_str(df, requirement, view_purpose, expected):
@@ -137,10 +120,10 @@ def _check_df_to_str(df, requirement, view_purpose, expected):
     (True, ViewPurpose.FINAL_APPENDIX, ['ban 0.205  (0.1912, 0.21)   2e-08']),
     # (True, ViewPurpose.FINAL_INLINE, ValueError),
 ])
-def test_view_df_to_latex_analysis(tmpdir, df_tbl_0, is_figure, view_purpose, expected):
+def test_view_df_to_latex_analysis(df_tbl_0, is_figure, view_purpose, expected):
     print('\n')
     print(is_figure, view_purpose)
-    df_tbl_1, df_tbl_2 = _simulate_df_to_latex_analysis_and_displayitems(tmpdir, df_tbl_0, is_figure)
+    df_tbl_1, df_tbl_2 = _simulate_df_to_latex_analysis_and_displayitems(df_tbl_0, is_figure)
     requirement = DataFramePickleContentOutputFileRequirement('df_*.pkl')
     _check_df_to_str(df_tbl_1, requirement, view_purpose, expected)
 
@@ -181,9 +164,9 @@ def test_view_df_to_latex_analysis(tmpdir, df_tbl_0, is_figure, view_purpose, ex
       'ns p $>$= 0.01', '% "bananas",0.205,(0.1912, 0.21),<1e-06',
       "% df.plot(kind='bar', y='coef')"]),
 ])
-def test_view_df_to_latex_displayitems(tmpdir, df_tbl_0, is_figure, view_purpose, expected):
+def test_view_df_to_latex_displayitems(df_tbl_0, is_figure, view_purpose, expected):
     print('\n')
     print(is_figure, view_purpose)
-    df_tbl_1, df_tbl_2 = _simulate_df_to_latex_analysis_and_displayitems(tmpdir, df_tbl_0, is_figure)
+    df_tbl_1, df_tbl_2 = _simulate_df_to_latex_analysis_and_displayitems(df_tbl_0, is_figure)
     requirement = TexDisplayitemContentOutputFileRequirement('df_*.pkl')
     _check_df_to_str(df_tbl_2, requirement, view_purpose, expected)

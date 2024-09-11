@@ -16,8 +16,7 @@ from data_to_paper.research_types.hypothesis_testing.cast import ScientificAgent
 from data_to_paper.research_types.hypothesis_testing.check_df_to_funcs.df_checker import check_analysis_df
 from data_to_paper.research_types.hypothesis_testing.env import get_max_rows_and_columns
 from data_to_paper.run_gpt_code.code_runner import CodeRunner
-from data_to_paper.run_gpt_code.overrides.dataframes.df_with_attrs import ListInfoDataFrame, \
-    get_call_info_from_list_info_df
+from data_to_paper.run_gpt_code.overrides.dataframes.df_with_attrs import InfoDataFrameWithSaveObjFuncCall
 from data_to_paper.research_types.hypothesis_testing.coding.analysis.utils import get_pickle_dump_attr_replacer
 from data_to_paper.research_types.hypothesis_testing.coding.base_code_conversers import BaseTableCodeProductsGPT
 from data_to_paper.research_types.hypothesis_testing.coding.utils import create_pandas_and_stats_contexts
@@ -36,28 +35,23 @@ class BaseDataFramePickleContentOutputFileRequirement(PickleContentOutputFileReq
     referenceable_text_cls: type = LabeledNumericReferenceableText
     output_folder: Optional[Path] = None  # where the figures will be saved
 
-    def _get_func_args_kwargs(self, content: ListInfoDataFrame) -> Tuple:
-        return get_call_info_from_list_info_df(content)
+    def _is_figure(self, content: InfoDataFrameWithSaveObjFuncCall) -> bool:
+        return content.get_func_call().func == df_to_figure
 
-    def _is_figure(self, content: Any) -> bool:
-        func, args, kwargs = self._get_func_args_kwargs(content)
-        return func == df_to_figure
-
-    def _plot_kind(self, content: Any) -> Optional[str]:
+    def _plot_kind(self, content: InfoDataFrameWithSaveObjFuncCall) -> Optional[str]:
         if not self._is_figure(content):
             return None
-        func, args, kwargs = self._get_func_args_kwargs(content)
-        return kwargs.get('kind', 'bar')
+        return content.get_func_call().kwargs.get('kind')
 
     def _get_content_and_header_for_product(
-            self, content: Any, filename: str = None, num_file: int = 0, level: int = 3,
+            self, content: InfoDataFrameWithSaveObjFuncCall, filename: str = None, num_file: int = 0, level: int = 3,
             view_purpose: ViewPurpose = ViewPurpose.PRODUCT):
-        func_name = self._get_func_args_kwargs(content)[0].__name__
+        func_name = content.get_func_call().func_name
         content, header = super()._get_content_and_header_for_product(content, filename, num_file, level, view_purpose)
         header += f' (with {func_name})'
         return content, header
 
-    def _convert_content_to_labeled_text(self, content: Any, filename: str = None, num_file: int = 0,
+    def _convert_content_to_labeled_text(self, content: InfoDataFrameWithSaveObjFuncCall, filename: str = None, num_file: int = 0,
                                          view_purpose: ViewPurpose = None) -> str:
         with OnStrPValue(self._convert_view_purpose_to_pvalue_on_str(view_purpose)):
             return describe_df(
@@ -67,31 +61,23 @@ class BaseDataFramePickleContentOutputFileRequirement(PickleContentOutputFileReq
                                                                       to_show=True))
 
     def _get_content_and_header_for_app_html(
-            self, content: Any, filename: str = None, num_file: int = 0, level: int = 3,
+            self, content: InfoDataFrameWithSaveObjFuncCall, filename: str = None, num_file: int = 0, level: int = 3,
             view_purpose: ViewPurpose = ViewPurpose.APP_HTML):
-        func, args, kwargs = self._get_func_args_kwargs(content)
+        func_call = content.get_func_call()
         with OnStrPValue(self._convert_view_purpose_to_pvalue_on_str(view_purpose)):
-            html = func(*args, **kwargs, is_html=True, figure_folder=self.output_folder)
+            html = func_call.call(is_html=True, figure_folder=self.output_folder)
         return html, f'<h{level}>{filename}</h{level}>'
 
-    def get_code_line_str_for_file(self, filename: str, content: Optional[ListInfoDataFrame] = None) -> Optional[str]:
-        func, args, kwargs = self._get_func_args_kwargs(content)
-        label = args[1]
+    def get_code_line_str_for_file(self, filename: str, content: InfoDataFrameWithSaveObjFuncCall) -> Optional[str]:
+        func_call = content.get_func_call()
+        func = func_call.func
         table_or_figure = 'Table' if func == df_to_latex else 'Figure'
-        return f'## {table_or_figure} {label}:'
+        return f'## {table_or_figure} {func_call.filename}:'
 
-    def _get_source_file(self, filename: str, content: ListInfoDataFrame) -> Optional[str]:
-        filenames = [filename for _, _, filename, _ in content.extra_info]
-        if len(filenames) <= 1:
-            return None
-        filename = filenames[-2]
-        filename += '.pkl'
-        return filename
-
-    def get_hyperlink_label_for_file_header(self, filename: str, content: Optional[Any] = None) -> Optional[str]:
-        source_file = self._get_source_file(filename, content)
+    def get_hyperlink_label_for_file_header(self, filename: str, content: InfoDataFrameWithSaveObjFuncCall) -> Optional[str]:
+        source_file = content.get_prior_filename()
         if source_file:
-            return convert_str_to_latex_label(source_file, prefix='file')
+            return convert_str_to_latex_label(source_file + '.pkl', prefix='file')
         return super().get_hyperlink_label_for_file_header(filename, content)
 
     def get_issues_for_output_file_content(self, filename: str, content: Any) -> List[RunIssue]:
@@ -99,17 +85,17 @@ class BaseDataFramePickleContentOutputFileRequirement(PickleContentOutputFileReq
         issues.extend(self._check_df(content))
         return issues
 
-    def _check_df(self, content) -> List[RunIssue]:
+    def _check_df(self, content: InfoDataFrameWithSaveObjFuncCall) -> List[RunIssue]:
         return []
 
 
 @dataclass(frozen=True)
 class DataFramePickleContentOutputFileRequirement(BaseDataFramePickleContentOutputFileRequirement):
-    def _check_df(self, content) -> List[RunIssue]:
+    def _check_df(self, content: InfoDataFrameWithSaveObjFuncCall) -> List[RunIssue]:
         return check_analysis_df(content, output_folder=self.output_folder)
 
     def _get_content_and_header_for_final_appendix(
-            self, content: Any, filename: str = None, num_file: int = 0, level: int = 3,
+            self, content: InfoDataFrameWithSaveObjFuncCall, filename: str = None, num_file: int = 0, level: int = 3,
             view_purpose: ViewPurpose = ViewPurpose.FINAL_APPENDIX):
         with OnStrPValue(OnStr.WITH_ZERO):
             content = df_to_string_with_format_value(content)
@@ -123,7 +109,7 @@ class DictPickleContentOutputFileRequirement(PickleContentOutputFileRequirement)
         content = NiceDict(content, format_numerics_and_iterables=format_numerics_and_iterables)
         return super()._convert_content_to_labeled_text(content, filename, num_file, view_purpose)
 
-    def get_code_line_str_for_file(self, filename: str, content: Optional[Any] = None) -> Optional[str]:
+    def get_code_line_str_for_file(self, filename: str, content: Any) -> Optional[str]:
         return '# SAVE ADDITIONAL RESULTS'
 
 

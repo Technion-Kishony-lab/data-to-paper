@@ -78,7 +78,7 @@ class OutputFileRequirement:
 
     """Linking"""
 
-    def get_code_line_str_for_file(self, filename: str, content: Optional[Any] = None) -> Optional[str]:
+    def get_code_line_str_for_file(self, filename: str, content: Any) -> Optional[str]:
         """
         Return a string which can be found in the line where we should go to when we want to see the code
         that created the file.
@@ -91,7 +91,7 @@ class OutputFileRequirement:
         """
         return convert_str_to_latex_label(filename, prefix='code')
 
-    def get_hyperlink_label_for_file_header(self, filename: str, content: Optional[Any] = None) -> Optional[str]:
+    def get_hyperlink_label_for_file_header(self, filename: str, content: Any) -> Optional[str]:
         """
         Return a hypertarget label to go to when we click the file header.
         None to not create a hyperlink.

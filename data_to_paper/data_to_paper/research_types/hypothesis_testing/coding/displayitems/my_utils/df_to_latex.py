@@ -8,4 +8,4 @@ def displayitems_df_to_latex(df: pd.DataFrame, filename: str, **kwargs):
     Same as analysis_df_to_latex, but for displayitems.
     See docstring of analysis_df_to_latex for more information.
     """
-    analysis_df_to_latex(df, filename, **kwargs)
+    return analysis_df_to_latex(df, filename, **kwargs)

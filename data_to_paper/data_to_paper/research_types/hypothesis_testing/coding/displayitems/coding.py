@@ -16,6 +16,7 @@ from data_to_paper.research_types.hypothesis_testing.coding.utils import create_
 from data_to_paper.research_types.hypothesis_testing.scientific_products import HypertargetPrefix, ScientificProducts
 from data_to_paper.run_gpt_code.attr_replacers import PreventAssignmentToAttrs, PreventCalling, AttrReplacer
 from data_to_paper.run_gpt_code.code_runner import CodeRunner
+from data_to_paper.run_gpt_code.overrides.dataframes.df_with_attrs import InfoDataFrameWithSaveObjFuncCall
 from data_to_paper.run_gpt_code.overrides.pvalue import PValue, OnStr, OnStrPValue
 from data_to_paper.run_gpt_code.run_issues import RunIssue, CodeProblem
 from data_to_paper.utils import dedent_triple_quote_str
@@ -43,14 +44,14 @@ class TexDisplayitemContentOutputFileRequirement(BaseDataFramePickleContentOutpu
     hypertarget_prefixes: Optional[Tuple[str]] = HypertargetPrefix.LATEX_TABLES.value
     compilation_func: Optional[Callable] = None
 
-    def _check_df(self, content) -> List[RunIssue]:
+    def _check_df(self, content: InfoDataFrameWithSaveObjFuncCall) -> List[RunIssue]:
         return check_displayitem_df(content, output_folder=self.output_folder,
                                     compilation_func=self.compilation_func)
 
     def _convert_view_purpose_to_pvalue_on_str(self, view_purpose: ViewPurpose) -> OnStr:
         return OnStr.SMALLER_THAN
 
-    def _get_hyper_target_format(self, content: Any, filename: str = None, num_file: int = 0,
+    def _get_hyper_target_format(self, content: InfoDataFrameWithSaveObjFuncCall, filename: str = None, num_file: int = 0,
                                  view_purpose: ViewPurpose = None) -> HypertargetFormat:
         if self._is_figure(content):
             if view_purpose == ViewPurpose.FINAL_INLINE:
@@ -68,18 +69,18 @@ class TexDisplayitemContentOutputFileRequirement(BaseDataFramePickleContentOutpu
     def _get_block_label(self, filename: str, num_file: int, view_purpose: ViewPurpose) -> str:
         return 'latex'
 
-    def _convert_content_to_labeled_text(self, content: Any, filename: str = None, num_file: int = 0,
-                                         view_purpose: ViewPurpose = None) -> str:
-        func, args, kwargs = self._get_func_args_kwargs(content)
+    def _convert_content_to_labeled_text(self, content: InfoDataFrameWithSaveObjFuncCall, filename: str = None,
+                                         num_file: int = 0, view_purpose: ViewPurpose = None) -> str:
+        func, args, kwargs = content.get_func_call()
         pvalue_on_str = self._convert_view_purpose_to_pvalue_on_str(view_purpose)
         if view_purpose == ViewPurpose.FINAL_INLINE:
             caption = kwargs.get('caption', '')
             caption_lines = caption.split('\n')
             first_line = caption_lines[0]
-            filename = self._get_source_file(filename, content) or filename
+            filename = content.get_prior_filename()
             first_line = r"\protect" + ReferencedValue(
                 value=first_line,
-                label=convert_str_to_latex_label(filename, prefix='file'),
+                label=convert_str_to_latex_label(filename + '.pkl', prefix='file'),
                 is_target=False).to_str(HypertargetFormat(position=HypertargetPosition.WRAP))
             caption_lines[0] = first_line
             kwargs = kwargs.copy()
@@ -89,7 +90,7 @@ class TexDisplayitemContentOutputFileRequirement(BaseDataFramePickleContentOutpu
             return func(*args, **kwargs, should_format=True)
 
     def _get_content_and_header_for_final_inline(
-            self, content: Any, filename: str = None, num_file: int = 0, level: int = 3,
+            self, content: InfoDataFrameWithSaveObjFuncCall, filename: str = None, num_file: int = 0, level: int = 3,
             view_purpose: ViewPurpose = ViewPurpose.FINAL_INLINE):
         text, header_refs = self.get_formatted_text_and_header_references(content, filename, num_file, view_purpose)
         return text, f'% {filename}\n' + '\n'.join(header_ref.to_str() for header_ref in header_refs)

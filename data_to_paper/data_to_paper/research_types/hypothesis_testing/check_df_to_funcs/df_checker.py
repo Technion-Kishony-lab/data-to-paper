@@ -36,8 +36,7 @@ from data_to_paper.llm_coding_utils.consts import DF_ALLOWED_COLUMN_TYPES
 from data_to_paper.llm_coding_utils.df_to_figure import run_create_fig_for_df_to_figure_and_get_axis_parameters
 from data_to_paper.llm_coding_utils.matplotlib_utils import AxisParameters
 from data_to_paper.run_gpt_code.base_run_contexts import RegisteredRunContext
-from data_to_paper.run_gpt_code.overrides.dataframes.df_with_attrs import ListInfoDataFrame, \
-    get_call_info_from_list_info_df
+from data_to_paper.run_gpt_code.overrides.dataframes.df_with_attrs import InfoDataFrameWithSaveObjFuncCall
 
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.check_type import raise_on_wrong_func_argument_types, WrongTypeException
@@ -1355,27 +1354,18 @@ class ContinuityDfChecker(BaseContentDfChecker):
     DEFAULT_CATEGORY = 'File continuity'
 
     def check_for_file_continuity(self):
-        if not isinstance(self.df, ListInfoDataFrame):
-            self._append_issue(
-                issue=f"You can only use the loaded `df` object (you can change the loaded df, but not replace it)",
-            )
-            return
-        if not isinstance(self.df, ListInfoDataFrame):
-            extra_info = None
-        else:
-            extra_info = self.df.extra_info
-        if extra_info is None or len(extra_info) < 2:
+        prior_filename = self.df.get_prior_filename()
+        if prior_filename is None:
             self._append_issue(
                 issue="The df should be created from a previous df (not from scratch).\n"
                       "Only use inplace operations on the df loaded from the previous step.",
             )
             return
-        previous_filename = extra_info[-2][2]
-        should_be_filename = previous_filename + '_formatted'
+        should_be_filename = prior_filename + '_formatted'
         if self.filename != should_be_filename:
             self._append_issue(
                 issue=dedent_triple_quote_str(f"""
-                    The file name of the loaded df was "{previous_filename}".
+                    The file name of the loaded df was "{prior_filename}".
                     The current file name should be "{should_be_filename}" (instead of "{self.filename}").
                     """),
             )
@@ -1388,15 +1378,16 @@ class ContinuityDfChecker(BaseContentDfChecker):
 """ RUN CHECKERS """
 
 
-def create_and_run_chain_checker_from_list_info_df(checkers: List[Type[BaseContentDfChecker]], df, **k
+def create_and_run_chain_checker_from_list_info_df(checkers: List[Type[BaseContentDfChecker]],
+                                                   df: InfoDataFrameWithSaveObjFuncCall, **k
                                                    ) -> Tuple[RunIssues, Dict[str, Any]]:
-    func, args, kwargs = get_call_info_from_list_info_df(df)
-    assert len(args) == 2, "args should have df and filename"
-    df, filename = args
+    func_call = df.get_func_call()
+    func, args, kwargs = func_call
+    filename = func_call.filename
     return create_and_run_chain_checker(checkers, df=df, func=func, filename=filename, kwargs=kwargs, **k)
 
 
-def check_df_to_figure_analysis(df: ListInfoDataFrame, **k) -> RunIssues:
+def check_df_to_figure_analysis(df: InfoDataFrameWithSaveObjFuncCall, **k) -> RunIssues:
     checkers = [
         FigureSyntaxDfChecker,
         FigureDfContentChecker,
@@ -1405,7 +1396,7 @@ def check_df_to_figure_analysis(df: ListInfoDataFrame, **k) -> RunIssues:
     return create_and_run_chain_checker_from_list_info_df(checkers, df=df, **k)[0]
 
 
-def check_df_to_latex_analysis(df: ListInfoDataFrame, **k) -> RunIssues:
+def check_df_to_latex_analysis(df: InfoDataFrameWithSaveObjFuncCall, **k) -> RunIssues:
     checkers = [
         TableSyntaxDfChecker,
         TableDfContentChecker,
@@ -1413,7 +1404,7 @@ def check_df_to_latex_analysis(df: ListInfoDataFrame, **k) -> RunIssues:
     return create_and_run_chain_checker_from_list_info_df(checkers, df=df, **k)[0]
 
 
-def check_df_to_figure_displayitems(df: ListInfoDataFrame, **k) -> RunIssues:
+def check_df_to_figure_displayitems(df: InfoDataFrameWithSaveObjFuncCall, **k) -> RunIssues:
     checkers = [
         FigureSyntaxDfChecker,
         FigureDfContentChecker,
@@ -1425,7 +1416,7 @@ def check_df_to_figure_displayitems(df: ListInfoDataFrame, **k) -> RunIssues:
     return create_and_run_chain_checker_from_list_info_df(checkers, df=df, **k)[0]
 
 
-def check_df_to_latex_displayitems(df: ListInfoDataFrame, **k) -> RunIssues:
+def check_df_to_latex_displayitems(df: InfoDataFrameWithSaveObjFuncCall, **k) -> RunIssues:
     checkers = [
         TableSyntaxDfChecker,
         TableDfContentChecker,
@@ -1437,8 +1428,8 @@ def check_df_to_latex_displayitems(df: ListInfoDataFrame, **k) -> RunIssues:
     return create_and_run_chain_checker_from_list_info_df(checkers, df=df, **k)[0]
 
 
-def check_analysis_df(df: ListInfoDataFrame, **k) -> RunIssues:
-    func, args, kwargs = get_call_info_from_list_info_df(df)
+def check_analysis_df(df: InfoDataFrameWithSaveObjFuncCall, **k) -> RunIssues:
+    func, args, kwargs = df.get_func_call()
     if func == df_to_figure:
         return check_df_to_figure_analysis(df, **k)
     elif func == df_to_latex:
@@ -1447,8 +1438,8 @@ def check_analysis_df(df: ListInfoDataFrame, **k) -> RunIssues:
         raise ValueError(f"func should be either df_to_figure or df_to_latex, not {func}")
 
 
-def check_displayitem_df(df: ListInfoDataFrame, **k) -> RunIssues:
-    func, args, kwargs = get_call_info_from_list_info_df(df)
+def check_displayitem_df(df: InfoDataFrameWithSaveObjFuncCall, **k) -> RunIssues:
+    func = df.get_func_call().func
     if func == df_to_figure:
         return check_df_to_figure_displayitems(df, **k)
     elif func == df_to_latex:

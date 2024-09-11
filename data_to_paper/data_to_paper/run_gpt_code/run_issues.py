@@ -125,6 +125,9 @@ class RunIssues(List[RunIssue]):
         issues = [issue.formatted() for issue in self._get_issues(most_severe_only)]
         comments = ListBasedSet()
 
+        if not issues:
+            return 'All OK', '', []
+
         s = ''
         if len(issues) > 1:
             s += 'There are some issues that need to be corrected:\n\n'
