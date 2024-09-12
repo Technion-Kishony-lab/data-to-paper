@@ -1,39 +1,38 @@
-## Backward-traceable AI-driven Research & AI-human Copiloting Interface for Science
+## Backward-traceable AI-driven Research
 
 
 <b>*data-to-paper*</b> is a framework that systematically navigates the power of AI through a <b>complete end-to-end 
 scientific research</b>, starting from <b>raw data</b> and concluding with <b>transparent, backward-traceable, 
-human-verifiable scientific papers</b>, which set **a new standard for transparency and traceability** for the coming era of AI-driven science ([example](https://t.co/iz44TDZZHb)).
+human-verifiable scientific papers</b>. The platform sets **a new standard for transparency and traceability** for the era of AI-driven science ([example](https://t.co/iz44TDZZHb)).
 
-While *data-to-paper* can run autonomously in autopilot :robot:, it is also an **interface for human users to intervene in the AI-driven research process** in copiloting mode.
+[![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
 
+### Key features
+* **"Data-chained" manuscripts**. The process creates transparent and verifiable manuscripts, where numeric values can be click-traced all the way back to the code lines that created them.
+* **Autopilot or Copilot.** While the platform can run autonomously, it also provides a *AI-Human Copiloting GUI*, allowing human users to:
 
-A **Copiloting GUI** allows the user to:
+:compass: Oversee, Inspect and Guide the research
 
-:rocket: oversee the **full end-to-end process** 
+:dart: Set research goals, or let the AI autonomously raise and test hypotheses
+
+:robot: *Request* on-demand AI-reviews
+
+:rewind: *Rewind* the process to prior steps
+
+:film_projector: Record and replay runs
+
+:heavy_dollar_sign:	*Track* API costs
+
+* **Coding guardrails.** Standard statistical packages are overridden with multiple guardrails to minimize common LLM coding errors.
+
 <picture>
 <img src="https://github.com/Technion-Kishony-lab/data-to-paper/blob/main/data_to_paper_icon.gif" width="450" align="right">
 </picture>
 
-:film_projector: **replay prior runs**
-
-:mag: look at **intermediate research products**
-
-:rewind: **reset the process** to prior steps
-
-:world_map: change **Mission prompts**
-
-:robot: **on-demand AI-review** at any given step
-
-:compass: guide the LLMs through **review comments**
-
-:heavy_dollar_sign:	track **API costs**
-
-See below for a demo of our interface:
 
 https://github.com/Technion-Kishony-lab/data-to-paper/assets/65530510/4c10c06d-d7e9-4d7c-b9d4-7dbe904d15de
 
-### Motivation
+### Motivation: Building a new standard for Transparent, Traceable, and Verifiable AI-driven Research
 The *data-to-paper* framework is created as a research project to understand the 
 capacities and limitations of LLM-driven scientific research, and to develop ways of harnessing LLM to accelerate 
 research while maintaining, and even enhancing, key scientific values, such as transparency, traceability and verifiability, 
@@ -41,8 +40,8 @@ and while allowing scientist to oversee and direct the process
 (see also: [living guidelines](https://www.nature.com/articles/d41586-023-03266-1)).
 
 ### Implementation
-Towards this goal, *data-to-paper* systematically guides <b>interacting 
-LLM and rule-based agentsthrough the conventional scientific path</b>, from annotated data, through creating 
+Towards this goal, *data-to-paper* systematically guides **interacting 
+LLM and rule-based agents** through the conventional scientific path, from annotated data, through creating 
 research hypotheses, conducting literature search, writing and debugging data analysis code, 
 interpreting the results, and ultimately the step-by-step writing of a complete research paper.
 Tracking information flow through these steps, the process creates transparent and highly-traceable manuscripts, 
@@ -50,28 +49,12 @@ where results, methodology and data are programmatically linked ([demo](https://
 
 https://github.com/Technion-Kishony-lab/data-to-paper/assets/31969897/0f3acf7a-a775-43bd-a79c-6877f780f2d4
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
-
 ### Reference
 The **data-to-paper** framework is described in the following pre-print:
  - Tal Ifargan, Lukas Hafner, Maor Kern, Ori Alcalay and Roy Kishony, 
 "Autonomous LLM-driven research from data to human-verifiable research papers", 
 [arXiv:2404.17605](https://arxiv.org/abs/2404.17605)
 
-### Key features
-* **Data-chained manuscripts**. The process creates transparent and verifiable manuscripts, where results, 
-methodology and data are programmatically linked 
-(all numeric values can be click-traced back to the code lines that created them).
-* **Field agnostic**. We strive to make the framework as general as possible, so that it can be used across different 
-fields of research.
-* **Open-goal or fixed-goal research.** *data-to-paper* can be used to autonomously raise and test 
-a hypothesis, or to test a specific pre-defined user-provided hypothesis.
-* **Coding guardrails.** Standard statistical packages are overridden with multiple guardrails to minimize
-common LLM coding errors.
-* **Human-in-the-loop.** A GUI app allows the user to oversee the process, and to intervene 
-at each research step.
-* **Record & Replay**. The entire process is recorded, including all LLM responses, Human feedback, and 
-literature search retrievals, allowing for transparent replay.
 
 ### Installation
 See [INSTALL.md](INSTALL.md) for installation instructions.
