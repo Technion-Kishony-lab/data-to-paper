@@ -30,8 +30,6 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 
-from celery.worker.consumer.mingle import exception
-
 from data_to_paper.env import DEBUG_MODE
 from data_to_paper.latex.exceptions import BaseLatexProblemInCompilation
 from data_to_paper.latex.latex_doc import LatexDocument
@@ -106,10 +104,6 @@ class BaseChecker:
     def run_checks(self) -> Tuple[RunIssues, Dict[str, Any]]:
         self._run_checks()
         return self.issues, self.intermediate_results
-
-    @property
-    def any_issues(self) -> bool:
-        return bool(self.issues)
 
     CHOICE_OF_CHECKS: ClassVar[Optional[Dict[Callable, bool]]] = None
 
@@ -389,7 +383,7 @@ class FigureSyntaxDfChecker(SyntaxDfChecker):
         """
         Check if the plot kind is one of the allowed plot kinds.
         """
-        if self.kind is None:
+        if 'kind' not in self.kwargs:
             self._append_issue(
                 issue=f'Plot `kind` is not specified.',
                 instructions=f'Please explicitly specify the `kind` argument. available options are:\n'
@@ -416,30 +410,28 @@ class FigureSyntaxDfChecker(SyntaxDfChecker):
                 instructions='Instead, directly indicate the confidence intervals using the `y_ci` argument.',
             )
 
-    def check_that_specified_columns_exist(self):
-        """
-        Check if the columns specified in the `y` and `yerr` arguments exist in the df.
-        """
-        base_arg_names = ['', 'err', '_ci', '_p_value']
-        for xy in ['x', 'y']:
-            args = self.get_xy_err_ci_p_value(xy, as_list=True, flatten=True)
-            arg_names = [xy + arg_name for arg_name in base_arg_names]
-            for arg, arg_name in zip(args, arg_names):
-                if arg is None:
-                    continue
-                un_specified_columns = [col for col in arg if col not in self.df.columns]
-                if un_specified_columns:
-                    self._append_issue(
-                        issue=f'The columns {un_specified_columns} specified in the `{arg_name}` argument do not exist '
-                              f'in the df.',
-                        instructions=f'Available columns are: {self.df.columns}.',
-                    )
+    def check_x_p_value_arg(self):
+        if self.x_p_value:
+            self._append_issue(
+                issue='The `x_p_value` argument is not supported.',
+                instructions='Please use the `y_p_value` argument instead.',
+            )
+
+    def check_y_p_value_arg(self):
+        # This check i obsolete, because of `check_x_p_value_arg`.
+        if self.x_p_value is not None and self.y_p_value is not None:
+            self._append_issue(
+                issue='Both `x_p_value` and `y_p_value` are set.',
+                instructions='Please use only one of them.',
+            )
+            return
 
     CHOICE_OF_CHECKS = SyntaxDfChecker.CHOICE_OF_CHECKS | {
         check_kind_arg: True,
         check_y_arg: True,
         check_yerr_arg: True,
-        check_that_specified_columns_exist: True,
+        check_x_p_value_arg: True,
+        check_y_p_value_arg: True,
     }
 
 
@@ -490,6 +482,29 @@ class DfContentChecker(BaseContentDfChecker):
         y, yerr, y_ci, y_p_value = self.get_xy_err_ci_p_value('y', as_list=True, flatten=True)
         x, xerr, x_ci, x_p_value = self.get_xy_err_ci_p_value('x', as_list=True, flatten=True)
         return self.df[y + yerr + y_ci + y_p_value + x + xerr + x_ci + x_p_value]
+
+    def check_df_headers_type(self):
+        for column_or_index in ['columns', 'index']:
+            headers = getattr(self.df, column_or_index)
+
+            # Check if the headers are a multi-index and if it is allowed:
+            if not self.ALLOW_MULTI_INDEX_FOR_COLUMN_AND_INDEX[column_or_index] and isinstance(headers, pd.MultiIndex):
+                self._append_issue(
+                    category=self.INDEX_COLUMN_CATEGORY,
+                    issue=f"Your dataframe has a multi-index for the {column_or_index}.",
+                    instructions=f"Please make sure the df has a single-level {column_or_index}.",
+                )
+                continue
+
+            # Check if the headers are of the allowed types:
+            allowed_types = self.ALLOWED_COLUMN_AND_INDEX_TYPES[column_or_index]
+            unsupported_header_types = self._get_unsupported_df_header_types(headers, allowed_types)
+            if unsupported_header_types:
+                self._append_issue(
+                    category=self.INDEX_COLUMN_CATEGORY,
+                    issue=f"Your df has {column_or_index} headers of unsupported types: {unsupported_header_types}.",
+                    instructions=f"The df {column_or_index} headers should be {allowed_types}.",
+                )
 
     def _check_if_df_within_df(self) -> bool:
         for value in self.df.values.flatten():
@@ -557,29 +572,6 @@ class DfContentChecker(BaseContentDfChecker):
 
         return ListBasedSet(type(header) for header in headers if not isinstance(header, allowed_types))
 
-    def check_df_headers_type(self):
-        for column_or_index in ['columns', 'index']:
-            headers = getattr(self.df, column_or_index)
-
-            # Check if the headers are a multi-index and if it is allowed:
-            if not self.ALLOW_MULTI_INDEX_FOR_COLUMN_AND_INDEX[column_or_index] and isinstance(headers, pd.MultiIndex):
-                self._append_issue(
-                    category=self.INDEX_COLUMN_CATEGORY,
-                    issue=f"Your dataframe has a multi-index for the {column_or_index}.",
-                    instructions=f"Please make sure the df has a single-level {column_or_index}.",
-                )
-                continue
-
-            # Check if the headers are of the allowed types:
-            allowed_types = self.ALLOWED_COLUMN_AND_INDEX_TYPES[column_or_index]
-            unsupported_header_types = self._get_unsupported_df_header_types(headers, allowed_types)
-            if unsupported_header_types:
-                self._append_issue(
-                    category=self.INDEX_COLUMN_CATEGORY,
-                    issue=f"Your df has {column_or_index} headers of unsupported types: {unsupported_header_types}.",
-                    instructions=f"The df {column_or_index} headers should be {allowed_types}.",
-                )
-
     @staticmethod
     def _is_index_a_range(index, max_allowed_range: int = 2):
         num_rows = len(index)
@@ -588,9 +580,9 @@ class DfContentChecker(BaseContentDfChecker):
             and num_rows > max_allowed_range
 
     CHOICE_OF_CHECKS = BaseDfChecker.CHOICE_OF_CHECKS | {
+        check_df_headers_type: True,
         check_df_for_nan_values: True,
         check_df_value_types: True,
-        check_df_headers_type: True,
     }
 
 
@@ -737,6 +729,25 @@ class FigureDfContentChecker(DfContentChecker):
     DEFAULT_CATEGORY = 'Checking figure'
     P_VALUE_CATEGORY = 'Plotting P-values'
 
+    def check_that_specified_columns_exist(self):
+        """
+        Check if the columns specified in the `y` and `yerr` arguments exist in the df.
+        """
+        base_arg_names = ['', 'err', '_ci', '_p_value']
+        for xy in ['x', 'y']:
+            args = self.get_xy_err_ci_p_value(xy, as_list=True, flatten=True)
+            arg_names = [xy + arg_name for arg_name in base_arg_names]
+            for arg, arg_name in zip(args, arg_names):
+                if arg is None:
+                    continue
+                un_specified_columns = [col for col in arg if col not in self.df.columns]
+                if un_specified_columns:
+                    self._append_issue(
+                        issue=f'The columns {un_specified_columns} specified in the `{arg_name}` argument do not exist '
+                              f'in the df.',
+                        instructions=f'Available columns are: {self.df.columns}.',
+                    )
+
     def check_df_size(self):
         """
         Check if the df has too many columns or rows
@@ -777,42 +788,26 @@ class FigureDfContentChecker(DfContentChecker):
                     instructions='All columns specified by the `y` argument must have numeric values.',
                 )
 
-    def check_for_p_values_in_figure(self):
-        """
-        If the df has p-values, they must be plotted using the argument `x_p_value` or `y_p_value`.
-        """
-        if self.x_p_value:
-            self._append_issue(
-                category=self.P_VALUE_CATEGORY,
-                issue='The `x_p_value` argument is not supported.',
-                instructions='Please use the `y_p_value` argument instead.',
-            )
-            return
-        if self.y_p_value is None:
-            return
+    def _get_columns_containing_p_values(self):
+        return [col for col in self.df.columns if is_containing_p_value(self.df[col])]
 
-        p_value_columns = [col for col in self.df.columns if is_containing_p_value(self.df[col])]
+    def _get_columns_with_p_values_only(self):
+        return [col for col in self.df.columns if is_only_p_values(self.df[col])]
 
+    def check_for_mixing_p_values(self):
         # check that the columns with p-values only contain p-values:
-        not_pure_p_values = [col for col in p_value_columns if not is_only_p_values(self.df[col])]
+        containing_p_values = self._get_columns_containing_p_values()
+        not_pure_p_values = [col for col in containing_p_values if col not in self._get_columns_with_p_values_only()]
         if not_pure_p_values:
             self._append_issue(
                 category=self.P_VALUE_CATEGORY,
                 issue=f'The df has columns {not_pure_p_values}, which contain p-values and non-p-values.',
                 instructions='Please make sure that the columns with p-values only contain p-values.',
             )
-            return
 
-        if self.x_p_value is not None and self.y_p_value is not None:
-            self._append_issue(
-                category=self.P_VALUE_CATEGORY,
-                issue='Both `x_p_value` and `y_p_value` are set.',
-                instructions='Please use only one of them.',
-            )
-            return
-
+    def check_that_y_p_value_are_p_values(self):
+        p_value_columns = self._get_columns_with_p_values_only()
         y, yerr, y_ci, y_p_value = self.get_xy_err_ci_p_value('y', as_list=True)
-
         chosen_columns_are_not_p_values = [col for col in y_p_value if col not in p_value_columns]
         if chosen_columns_are_not_p_values:
             self._append_issue(
@@ -821,13 +816,16 @@ class FigureDfContentChecker(DfContentChecker):
                 instructions='Please make sure that the columns with p-values only contain p-values.',
             )
 
+    def check_all_p_values_are_in_y_p_value(self):
+        p_value_columns = self._get_columns_with_p_values_only()
+        y, yerr, y_ci, y_p_value = self.get_xy_err_ci_p_value('y', as_list=True)
         p_value_columns_not_in_y_p_value = [col for col in p_value_columns if col not in y_p_value]
         if p_value_columns_not_in_y_p_value:
             self._append_issue(
                 category=self.P_VALUE_CATEGORY,
                 issue=f'The columns {p_value_columns_not_in_y_p_value} contain p-values but are not in y_p_value.',
                 instructions='Please include all the columns with p-values in y_p_value argument, or remove them '
-                             'from the df.',
+                             'from the df before plotting.',
                 forgive_after=1,
             )
 
@@ -867,11 +865,17 @@ class FigureDfContentChecker(DfContentChecker):
                 instructions='Consider another kind of plot, like a bar plot (kind="bar").',
             )
 
-    CHOICE_OF_CHECKS = DfContentChecker.CHOICE_OF_CHECKS | {
+    CHOICE_OF_CHECKS = {
+        DfContentChecker.check_df_headers_type: True,
+        check_that_specified_columns_exist: True,
+        DfContentChecker.check_df_for_nan_values: True,
+        DfContentChecker.check_df_value_types: True,
         check_for_max_number_of_bars: True,
         check_df_size: True,
         check_that_y_values_are_numeric: True,
-        check_for_p_values_in_figure: True,
+        check_for_mixing_p_values: True,
+        check_that_y_p_value_are_p_values: True,
+        check_all_p_values_are_in_y_p_value: True,  # TODO: maybe disable this check
         check_that_y_values_are_diverse: True,
         check_for_numeric_x_for_line_and_scatter: True,
     }

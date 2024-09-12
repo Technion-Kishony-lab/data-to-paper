@@ -11,6 +11,7 @@ from data_to_paper.research_types.hypothesis_testing.coding.displayitems.my_util
     displayitems_df_to_figure
 from data_to_paper.research_types.hypothesis_testing.coding.displayitems.my_utils.df_to_latex import \
     displayitems_df_to_latex
+from data_to_paper.run_gpt_code.overrides.pvalue import PValue, OnStrPValue, OnStr
 from tests.functional.research_types.scientific_research.utils import simulate_save_load
 
 
@@ -119,7 +120,8 @@ class MyType:
 
 def _check_issues(df, check_func, expected_words_in_issues, **k):
     issues = check_func(df, **k)
-    print(f'\n\nFor data frame:\n{df}\nIssues:\n{issues.get_message_and_comment()[0]}\n')
+    with PValue.BEHAVE_NORMALLY.temporary_set(True):
+        print(f'\n\nFor data frame:\n{df}\nIssues:\n{issues.get_message_and_comment()[0]}\n')
     assert len(issues) == len(expected_words_in_issues)
     for issue, expected_words in zip(issues, expected_words_in_issues):
         if isinstance(expected_words, str):
@@ -131,6 +133,10 @@ def _check_issues(df, check_func, expected_words_in_issues, **k):
 @pytest.mark.parametrize('df, kwargs, expected_words_in_issues', [
     (DF({'a': [1, 3, 2, 7, 8, 4]}, index=['a', 'b', 'c', 'd', 'e', 'f']),
      dict(), []),
+    (DF({'a': [1, 3, 2, 7, 8, 4]}, index=['a', 'b', 'c', 'd', 'e', 'f']),
+     dict(columns=['a']), ['Do not use the `columns`']),
+    (DF({'a': [1, 3, 2, 7, 8, 4]}, index=['a', 'b', 'c', 'd', 'e', 'f']),
+     dict(index=False), ['index=False']),
     (DF({'a': [DF({'b': [1, 2, 3]})]}),
      dict(), ['Something wierd in your dataframe']),
     (DF({'a': [[1, 2], {'k': 7}]}),
@@ -156,10 +162,30 @@ def test_analysis_df_to_latex_checks(df, kwargs, expected_words_in_issues):
 @pytest.mark.parametrize('df, kwargs, expected_words_in_issues', [
     (DF({'a': [1, 3, 2, 7, 8, 4]}),
      dict(y='a', kind='bar'), []),
+    (DF({'a': [1, 3, 2, 7, 8, 4]}),
+     dict(y='a', ), ['explicitly specify the `kind` argument']),
+    (DF({'a': [1, 3, 2, 7, 8, 4]}),
+     dict(y='a', kind='not_allowed'), ['Plot kind "not_allowed" is not supported']),
+    (DF({'a': [1, 3, 2, 7, 8, 4]}),
+     dict(kind='bar'), ['No y values are specified']),
+    (DF({'a': [1, 3, 2, 7, 8, 4]}),
+     dict(y='a', kind='bar', yerr='a'), ['`yerr`']),
+    (DF({'a': [1, 3, 2, 7, 8, 4]}),
+     dict(y='a', kind='bar', x_p_value='a'), ['`x_p_value`']),
+    (DF({'a': [1, 3, 2, 7, 8, 4]}),
+     dict(y='b', kind='bar'), [('do not exist', "'b'")]),
+    (DF({('a', 'b'): [1, 3, 2, 7, 8, 4]}),
+     dict(y='b', kind='bar'), ['multi-index']),
     (DF({'a': np.linspace(0, 6, 100)}),
      dict(y='a', kind='bar'), ['100 bars']),
     (DF({'a': ['kuk', 'kuki']}),
      dict(y='a', kind='bar'), ['not numeric']),
+    (DF({'a': [1, 3, 2, 7, 8, 4], 'p': [0.1, 0.2, 0.3, 0.4, PValue(0.5), 0.6]}),
+     dict(y='a', y_p_value='p', kind='bar'), [('contain p-values and non-p-values', "'p'")]),
+    (DF({'a': [1, 3, 2, 7, 8, 4], 'p': [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]}),
+     dict(y='a', y_p_value='p', kind='bar'), [('not p-values', "'p'")]),
+    (DF({'a': [1, 3], 'p': [PValue(0.1), PValue(0.2)]}),
+     dict(y='a', y_p_value=None, kind='bar'), [('are not in y_p_value', "'p'")]),
 ])
 def test_analysis_df_to_figure_checks(df, kwargs, expected_words_in_issues):
     df = simulate_save_load(analysis_df_to_figure, df, 'df_tag', **kwargs)
@@ -172,6 +198,10 @@ def test_analysis_df_to_figure_checks(df, kwargs, expected_words_in_issues):
      dict(caption='Caption'), []),
     (DF({'Apple': [1, 3, 2, 7]}, index=['1', '2', '3', '4']),
      dict(), ['caption']),
+    (DF({'Apple and very long list of unneeded words that just makes the table way way way too wide so that we get '
+         'to see the comment': [1, 3, 2, 7]},
+        index=['1', '2', '3', '4']),
+     dict(), [('too wide', 'Apple and very long')]),
 ])
 def test_displayitems_df_to_latex_checks(df, kwargs, expected_words_in_issues):
     df = simulate_save_load(analysis_df_to_latex, df, 'df_tag', **kwargs)
