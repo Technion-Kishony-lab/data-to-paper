@@ -2,7 +2,8 @@ from dataclasses import dataclass
 from typing import Tuple, Optional, Dict, List, Union
 
 from matplotlib import pyplot as plt
-from .consts import FIG_SIZE_INCHES
+from matplotlib.transforms import BboxBase
+
 
 def get_xy_coordinates_of_df_plot(df, x=None, y=None, kind='line') -> Dict[int, Dict[int, Tuple[float, float]]]:
     """
@@ -59,14 +60,11 @@ def replace_singleton_legend_with_axis_label(ax: plt.Axes, kind: str) -> Optiona
         legend = ax.legend(handlelength=0.75, handleheight=0.75, handletextpad=0.5, borderpad=.25,  borderaxespad=0.,
                            labelspacing=0.3, framealpha=0, bbox_to_anchor=(1.05, 0.5), loc='center left',
                            bbox_transform=ax.transAxes)
-    RelativeFigHeigth=FIG_SIZE_INCHES[1]/ax.figure.get_size_inches()[1]
+    for text in legend.get_texts():
+        text.set_fontsize(9)
     legend_keys = [text.get_text() for text in legend.get_texts()]
     is_singleton = len(legend_keys) == 1
     if not is_singleton:
-        legend.set_bbox_to_anchor((1.05, 0.5))
-        ax.set_position([0.1, 0.15+0.8*(1-RelativeFigHeigth), 0.5, 0.8*(RelativeFigHeigth)]) # shift plot to left to accomodate for label
-        for text in legend.get_texts():
-            text.set_fontsize(9)
         return
     singleton_legend_key = legend_keys[0]
     if kind == 'barh':
@@ -78,7 +76,6 @@ def replace_singleton_legend_with_axis_label(ax: plt.Axes, kind: str) -> Optiona
         if ax.get_ylabel() == '':
             ax.set_ylabel(singleton_legend_key)
     legend.remove()
-    ax.set_position([.25, 0.15+0.8*(1-RelativeFigHeigth), 0.5, 0.8*RelativeFigHeigth]) # center plot
     return singleton_legend_key
 
 
@@ -103,13 +100,13 @@ def rotate_xticklabels_if_not_numeric(ax: plt.Axes):
     Rotate the x-tick labels if they are not numeric.
     """
     x_numeric, _ = are_axes_numeric(ax)
-    if not x_numeric:
-        for label in ax.get_xticklabels():
+    for label in ax.get_xticklabels():
+        if not x_numeric:
             label.set_rotation(45)
             label.set_horizontalalignment('right')
             label.set_rotation_mode('anchor')
-            label.set_wrap(True)
-        #ax.figure.tight_layout()  # Adjusts subplot parameters to give the plot more room
+        else:
+            label.set_rotation(0)
 
 
 @dataclass(frozen=True)
@@ -156,3 +153,47 @@ def get_axis_parameters(ax: plt.Axes) -> AxisParameters:
         xticklabels=ax.get_xticklabels(),
         yticklabels=ax.get_yticklabels(),
     )
+
+
+def fit_fig_to_axes(fig, margin_pixels: int = 10, fit_height: bool = True, fit_width: bool = True):
+    """
+    Adjusts the figure size to snappily fit the axes, while keeping the axes physical size constant.
+    fig: The figure to adjust.
+    margin_pixels: The margin in pixels to add around the axes.
+    fit_height: Whether to fit the height of the figure to the axes.
+    fit_width: Whether to fit the width of the figure to the axes.
+    """
+    axs = fig.axes
+    fig_width, fig_height = fig.get_size_inches()
+
+    # get a tight bounding box around all axes
+    renderer = fig.canvas.get_renderer()
+    bbox_tight_all_pixels = BboxBase.union([ax.get_tightbbox(renderer) for ax in axs])
+
+    bbox_tight_all = bbox_tight_all_pixels.padded(margin_pixels).transformed(fig.transFigure.inverted())
+
+    # calculate the new figure size
+    if fit_width:
+        fig_width = bbox_tight_all.width * fig_width
+    if fit_height:
+        fig_height = bbox_tight_all.height * fig_height
+
+    # set the new figure size
+    fig.set_size_inches(fig_width, fig_height)
+
+    # adjust the position of all axes to match the new figure size
+    for ax in fig.axes:
+        bbox = ax.get_position()
+        if fit_width:
+            left = (bbox.x0 - bbox_tight_all.x0) / bbox_tight_all.width
+            width = bbox.width / bbox_tight_all.width
+        else:
+            left = bbox.x0
+            width = bbox.width
+        if fit_height:
+            bottom = (bbox.y0 - bbox_tight_all.y0) / bbox_tight_all.height
+            height = bbox.height / bbox_tight_all.height
+        else:
+            bottom = bbox.y0
+            height = bbox.height
+        ax.set_position([left, bottom, width, height])

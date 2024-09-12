@@ -13,10 +13,10 @@ from data_to_paper.utils.multi_process import run_func_in_separate_process
 from data_to_paper.run_gpt_code.config import configure_matplotlib
 
 from .df_plot_with_pvalue import df_plot_with_pvalue, get_description_of_plot_creation
-from .matplotlib_utils import get_axis_parameters, AxisParameters
+from .matplotlib_utils import get_axis_parameters, AxisParameters, fit_fig_to_axes
 from .note_and_legend import convert_note_and_glossary_to_html, convert_note_and_glossary_to_latex_figure_caption
 from .utils import convert_to_latex_comment, convert_filename_to_label
-from .consts import ALLOWED_PLOT_KINDS, FIG_SIZE_INCHES, FIG_DPI
+from .consts import ALLOWED_PLOT_KINDS, FIG_SIZE_INCHES, AXES_SIZE_INCHES, FIG_DPI
 
 
 @raise_on_wrong_func_argument_types_decorator
@@ -110,19 +110,12 @@ def run_create_fig_for_df_to_figure_and_get_axis_parameters(df: pd.DataFrame, fi
 def create_fig_for_df_to_figure_and_get_axis_parameters(df: pd.DataFrame, filepath: Optional[Path] = None,
                                                         **kwargs) -> AxisParameters:
     configure_matplotlib()
-    fig, ax = plt.subplots(dpi=FIG_DPI.val)
-    try:
-        if "x" in kwargs: # Test if x has been passed as variable for the plot
-            max_length = float(df[kwargs['x']].astype(str).apply(len).max())
-            labelspace=max_length*0.06# add space for the label
-        else:
-            labelspace = 0.25
-        if "xlabel" in kwargs:
-            labelspace = labelspace + 0.06
-    except:
 
-        labelspace=0.25
-    fig.set_size_inches((FIG_SIZE_INCHES[0], FIG_SIZE_INCHES[1]+labelspace)) #adapt figure size
+    # The figure size in inches is not consequential, because we use fit_fig_to_axes
+    fig = plt.figure(figsize=FIG_SIZE_INCHES, dpi=FIG_DPI.val)
+
+    ax = fig.add_axes((0.1, 0.1, AXES_SIZE_INCHES[0]/FIG_SIZE_INCHES[0], AXES_SIZE_INCHES[1]/FIG_SIZE_INCHES[1]))
+
     df = convert_p_values_to_floats(df.copy())
 
     # Replace underscores with spaces in the column names.
@@ -132,7 +125,7 @@ def create_fig_for_df_to_figure_and_get_axis_parameters(df: pd.DataFrame, filepa
     df_plot_with_pvalue(df, ax=ax, **kwargs)
 
     # Adjusts subplot parameters to give the plot more room
-    #fig.tight_layout()
+    fit_fig_to_axes(fig, fit_width=True, fit_height=True, margin_pixels=10)
 
     if filepath:
         fig.savefig(filepath)
@@ -156,7 +149,7 @@ def get_figure_and_caption_as_latex(filename: str, caption: str, label: str) -> 
     latex = f"""
 \\begin{{figure}}[htbp]
 \\centering
-\\includegraphics[width=1\\textwidth]{{{filename}}}
+\\includegraphics{{{filename}}}
 \\caption{{{caption}}}
 \\label{{{label}}}
 \\end{{figure}}

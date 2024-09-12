@@ -19,9 +19,6 @@ from .matplotlib_utils import get_xy_coordinates_of_df_plot, \
 from ..run_gpt_code.overrides.dataframes.utils import df_to_html_with_value_format
 
 RC_PARAMS = {
-    'figure.figsize': [10, 6],
-    'font.size': 14,
-    'savefig.dpi': 300,
     'savefig.facecolor': 'white',
     'axes.facecolor': 'white'
 }
@@ -207,6 +204,7 @@ def df_plot_with_pvalue(df: DataFrame, x: Optional[DfColumnTyping] = None, y: Co
     kwargs['color'] = kwargs.get('color', _get_custom_colors(num_y_cols))
     kwargs['edgecolor'] = kwargs.get('edgecolor', 'black')
     kwargs['linewidth'] = kwargs.get('linewidth', 1)
+    kwargs['fontsize'] = kwargs.get('fontsize', 9)
     with mpl.rc_context(rc=RC_PARAMS):
         try:
             ax = df.plot(x=x, y=y, kind=kind, ax=ax, xerr=xerr, yerr=yerr, **kwargs)
@@ -217,7 +215,6 @@ def df_plot_with_pvalue(df: DataFrame, x: Optional[DfColumnTyping] = None, y: Co
             raise ValueError(msg)
         coords = get_xy_coordinates_of_df_plot(df, x=x, y=y, kind=kind)
         replace_singleton_legend_with_axis_label(ax, kind)
-        rotate_xticklabels_if_not_numeric(ax)
 
         if y_p_value:
             y_p_values = _get_errors(df, y_p_value, 'y_p_value', scalars_only=True,
@@ -251,7 +248,7 @@ def df_plot_with_pvalue(df: DataFrame, x: Optional[DfColumnTyping] = None, y: Co
             add_grid_line_at_base_if_needed(ax, 'h')
         if kind == 'barh':
             add_grid_line_at_base_if_needed(ax, 'v')
-    rotate_xticklabels_if_not_numeric(ax)
+        rotate_xticklabels_if_not_numeric(ax)
 
     return ax
 
