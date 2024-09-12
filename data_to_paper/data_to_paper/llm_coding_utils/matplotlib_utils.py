@@ -57,7 +57,7 @@ def replace_singleton_legend_with_axis_label(ax: plt.Axes, kind: str) -> Optiona
     import warnings
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        legend = ax.legend(handlelength=0.75, handleheight=0.75, handletextpad=0.5, borderpad=.25,  borderaxespad=0.,
+        legend = ax.legend(handlelength=0.75, handleheight=0.75, handletextpad=0.5, borderpad=.25, borderaxespad=0.,
                            labelspacing=0.3, framealpha=0, bbox_to_anchor=(1.05, 0.5), loc='center left',
                            bbox_transform=ax.transAxes)
     for text in legend.get_texts():

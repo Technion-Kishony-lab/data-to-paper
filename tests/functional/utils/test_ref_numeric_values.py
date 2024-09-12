@@ -1,6 +1,5 @@
 import pytest
 
-from data_to_paper.code_and_output_files.file_view_params import ViewPurpose
 from data_to_paper.code_and_output_files.ref_numeric_values import \
     ReferencedValue, find_hyperlinks, find_numeric_values, HypertargetFormat, HypertargetPosition
 from data_to_paper.code_and_output_files.referencable_text import NumericReferenceableText, \

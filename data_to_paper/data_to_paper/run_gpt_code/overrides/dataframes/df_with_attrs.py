@@ -58,7 +58,6 @@ class FuncCallParams(NamedTuple):
         return self.func.__name__
 
 
-
 class SaveObjFuncCallParams(FuncCallParams):
     """
     Stores a func call that saves an obj to a file

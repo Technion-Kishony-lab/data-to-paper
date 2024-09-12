@@ -114,7 +114,7 @@ def create_fig_for_df_to_figure_and_get_axis_parameters(df: pd.DataFrame, filepa
     # The figure size in inches is not consequential, because we use fit_fig_to_axes
     fig = plt.figure(figsize=FIG_SIZE_INCHES, dpi=FIG_DPI.val)
 
-    ax = fig.add_axes((0.1, 0.1, AXES_SIZE_INCHES[0]/FIG_SIZE_INCHES[0], AXES_SIZE_INCHES[1]/FIG_SIZE_INCHES[1]))
+    ax = fig.add_axes((0.1, 0.1, AXES_SIZE_INCHES[0] / FIG_SIZE_INCHES[0], AXES_SIZE_INCHES[1] / FIG_SIZE_INCHES[1]))
 
     df = convert_p_values_to_floats(df.copy())
 

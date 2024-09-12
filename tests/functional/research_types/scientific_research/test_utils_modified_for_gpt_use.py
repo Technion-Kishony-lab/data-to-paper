@@ -1,5 +1,4 @@
 import pandas as pd
-import pytest
 from pytest import fixture
 
 from data_to_paper.research_types.hypothesis_testing.check_df_to_funcs.df_checker import DfContentChecker, \

@@ -83,7 +83,7 @@ def test_statsmodels_label_pvalues(func):
         model = func(y, X)
         results = model.fit()
         pval = results.pvalues[0]
-        p_values = results.pvalues.values
+        # p_values = results.pvalues.values
         with OnStrPValue(OnStr.DEBUG):
             print(pval)
         assert is_p_value(pval)

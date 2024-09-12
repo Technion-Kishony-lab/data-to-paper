@@ -1,8 +1,4 @@
-from pathlib import Path
-
-from data_to_paper.latex.latex_doc import LatexDocument
 from data_to_paper.llm_coding_utils import df_to_figure
-from data_to_paper.utils.file_utils import run_in_temp_directory, run_in_directory
 
 
 def test_plot_with_caption_and_label(test_data):
@@ -21,11 +17,11 @@ def test_plot_with_note_and_glossary(test_data):
 
 def test_plot_with_all_options(test_data):
     latex = df_to_figure(test_data, filename='test', caption='Full options', note='Note here',
-                 glossary={'x': 'X values', 'y': 'Y values'}, xlabel='X Axis', ylabel='Y Axis', y='y', yerr='y_err',
-                 y_p_value='y_p_value')
+                         glossary={'x': 'X values', 'y': 'Y values'}, xlabel='X Axis', ylabel='Y Axis', y='y',
+                         yerr='y_err', y_p_value='y_p_value')
     assert "df.plot(xlabel='X Axis', ylabel='Y Axis', y='y', yerr='y_err')" in latex
     assert '*** p $<$ 0.0001' in latex
-    assert '\caption{Full options' in latex
+    assert r'\caption{Full options' in latex
     assert 'Note here' in latex
 
 

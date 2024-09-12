@@ -30,7 +30,7 @@ def test_validate_value_type(value, type_, expected):
         assert e.value.message == expected
 
 
-@pytest.mark.parametrize('s, d, l, o, msg', [
+@pytest.mark.parametrize("s_, d_, l_, o_, msg", [
     ('abc', {'a': 1}, ['a', 'b'], None, None),
     ('abc', {'a': 1}, ['a', 'b'], 'ok', None),
     ('abc', {'a': 1}, ['a', 1], 'ok', "list"),
@@ -38,12 +38,12 @@ def test_validate_value_type(value, type_, expected):
     (73, {'a': 1}, ['a', 'b'], 'ok', "str"),
     ('abc', {'a': 1}, ['a', 'b'], 3, "str, NoneType"),
 ])
-def test_raise_on_wrong_variable_types(s, d, l, o, msg):
-    def func(s: str, d: Dict[str, int], l: List[str], o: Optional[str]):
+def test_raise_on_wrong_variable_types(s_, d_, l_, o_, msg):
+    def func(s: str, d: Dict[str, int], l: List[str], o: Optional[str]):  # noqa
         pass
     if msg is None:
-        raise_on_wrong_func_argument_types(func, s, d, l=l, o=o)
+        raise_on_wrong_func_argument_types(func, s_, d_, l=l_, o=o_)
     else:
         with pytest.raises(WrongTypeException) as e:
-            raise_on_wrong_func_argument_types(func, s, d, l=l, o=o)
+            raise_on_wrong_func_argument_types(func, s_, d_, l=l_, o=o_)
         assert msg in e.value.message

@@ -2,8 +2,6 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from functools import partial
-
 from data_to_paper.research_types.hypothesis_testing.check_df_to_funcs.df_checker import BaseChecker, \
     create_and_run_chain_checker, SyntaxDfChecker, check_analysis_df, check_displayitem_df
 from data_to_paper.research_types.hypothesis_testing.coding.analysis.my_utils.df_to_figure import analysis_df_to_figure
@@ -112,6 +110,8 @@ def test_SyntaxDfChecker_no_label(label):
 
 
 DF = pd.DataFrame
+
+
 class MyType:
     pass
 

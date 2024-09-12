@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-from unittest import mock
 
 import pytest
 from pytest import fixture

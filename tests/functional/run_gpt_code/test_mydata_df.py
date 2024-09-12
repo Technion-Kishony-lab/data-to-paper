@@ -16,7 +16,7 @@ def test_extra_info_df(tmpdir):
 
     with open('custom_df.pickle', 'rb') as file:
         loaded_df = pickle.load(file)
-    assert type(loaded_df) == InfoDataFrame
+    assert type(loaded_df) is InfoDataFrame
     assert loaded_df.extra_info == (7, 'ok')
 
 
@@ -27,7 +27,7 @@ def test_extra_info_df_with_pd_to_pickle(tmpdir):
     df.to_pickle('custom_df_pd.pickle')
 
     loaded_df = pd.read_pickle('custom_df_pd.pickle')
-    assert type(loaded_df) == InfoDataFrame
+    assert type(loaded_df) is InfoDataFrame
     assert loaded_df.extra_info == (7, 'ok')
 
 
@@ -38,7 +38,7 @@ def test_extra_info_df_with_pd_to_pickle_under_track_df_context(tmpdir):
     with TrackDataFrames():
         df.to_pickle('custom_df_pd.pickle')
         loaded_df = pd.read_pickle('custom_df_pd.pickle')
-    assert type(loaded_df) == InfoDataFrame
+    assert type(loaded_df) is InfoDataFrame
     assert loaded_df.extra_info == (7, 'ok')
 
 
@@ -50,4 +50,4 @@ def test_extra_info_df_transpose(tmpdir):
     df = df.T
     assert df.index.tolist() == ['a']
     assert df.extra_info == (7, 'ok')
-    assert type(df) == InfoDataFrame
+    assert type(df) is InfoDataFrame

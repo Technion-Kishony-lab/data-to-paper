@@ -51,8 +51,8 @@ def _simulate_displayitems(df: DataFrame, is_figure=False) -> InfoDataFrameWithS
             caption='caption2', glossary={'coef': 'coefficient'})
 
 
-def _simulate_df_to_latex_analysis_and_displayitems(df, is_figure=False
-                                                    ) -> (InfoDataFrameWithSaveObjFuncCall, InfoDataFrameWithSaveObjFuncCall):
+def _simulate_df_to_latex_analysis_and_displayitems(
+        df, is_figure=False) -> (InfoDataFrameWithSaveObjFuncCall, InfoDataFrameWithSaveObjFuncCall):
     df_tbl_1 = _simulate_analysis(df, is_figure)
     df_tbl_2 = _simulate_displayitems(copy(df_tbl_1), is_figure)
     return df_tbl_1, df_tbl_2
@@ -153,7 +153,8 @@ def test_view_df_to_latex_analysis(df_tbl_0, is_figure, view_purpose, expected):
     (True, ViewPurpose.HYPERTARGET_PRODUCT,
      ["```latex\n", r"\begin{figure}",
       "{df_tbl_formatted.png}", "% df.plot(kind='bar', y='coef')",
-      r'% "bananas",\hypertarget{C1a}{0.205},(\hypertarget{C1b}{0.1912}, \hypertarget{C1c}{0.21}),<\hypertarget{C1d}{1e-06}']),
+      r'% "bananas",\hypertarget{C1a}{0.205},(\hypertarget{C1b}{0.1912}, '
+      r'\hypertarget{C1c}{0.21}),<\hypertarget{C1d}{1e-06}']),
     (True, ViewPurpose.APP_HTML,
      ['* p &lt; 0.01', '<td>&lt;1e-06</td>']),
     (True, ViewPurpose.FINAL_APPENDIX,

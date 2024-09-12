@@ -51,8 +51,8 @@ class TexDisplayitemContentOutputFileRequirement(BaseDataFramePickleContentOutpu
     def _convert_view_purpose_to_pvalue_on_str(self, view_purpose: ViewPurpose) -> OnStr:
         return OnStr.SMALLER_THAN
 
-    def _get_hyper_target_format(self, content: InfoDataFrameWithSaveObjFuncCall, filename: str = None, num_file: int = 0,
-                                 view_purpose: ViewPurpose = None) -> HypertargetFormat:
+    def _get_hyper_target_format(self, content: InfoDataFrameWithSaveObjFuncCall, filename: str = None,
+                                 num_file: int = 0, view_purpose: ViewPurpose = None) -> HypertargetFormat:
         if self._is_figure(content):
             if view_purpose == ViewPurpose.FINAL_INLINE:
                 return HypertargetFormat()

@@ -127,12 +127,14 @@ def code_and_outputs():
         'data_to_latex': displayitems_code_and_output,
     }
 
+
 results = r"""
 \section{Results}
 In Table \ref{table:df-desc-stat-formatted} we see that \hyperlink{A0b}{4} + \hyperlink{A1b}{5} 
 is \num{\hyperlink{A0b}{4} + \hyperlink{A1b}{5}, "the sum of two numbers"}.
 In Figure \ref{figure:df-coefs-formatted}, we see that the coefficient for apples is \hyperlink{B0a}{1.235}.
 """
+
 
 @fixture()
 def products(code_and_outputs):
@@ -186,7 +188,7 @@ def test_paper_assembler_compiler_gpt(tmpdir, products):
 
     # latex sup mat point to their source file:
     assert r'\subsubsection*{\hyperlink{file-df-coefs-pkl}{df\_coefs\_formatted.pkl}}' in latex_paper
-    assert r'\end{codeoutput}' +'\n' + '\hypertarget{file-df-coefs-pkl}{}' in latex_paper
+    assert r'\end{codeoutput}' + '\n' + r'\hypertarget{file-df-coefs-pkl}{}' in latex_paper
 
     # output of data analysis step point to code line:
     assert r'\subsubsection*{\hyperlink{code-df-desc-stat-pkl}{df\_desc\_stat.pkl}}' in latex_paper

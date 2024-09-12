@@ -51,8 +51,8 @@ class BaseDataFramePickleContentOutputFileRequirement(PickleContentOutputFileReq
         header += f' (with {func_name})'
         return content, header
 
-    def _convert_content_to_labeled_text(self, content: InfoDataFrameWithSaveObjFuncCall, filename: str = None, num_file: int = 0,
-                                         view_purpose: ViewPurpose = None) -> str:
+    def _convert_content_to_labeled_text(self, content: InfoDataFrameWithSaveObjFuncCall, filename: str = None,
+                                         num_file: int = 0, view_purpose: ViewPurpose = None) -> str:
         with OnStrPValue(self._convert_view_purpose_to_pvalue_on_str(view_purpose)):
             return describe_df(
                 content, should_format=True,
@@ -74,7 +74,8 @@ class BaseDataFramePickleContentOutputFileRequirement(PickleContentOutputFileReq
         table_or_figure = 'Table' if func == df_to_latex else 'Figure'
         return f'## {table_or_figure} {func_call.filename}:'
 
-    def get_hyperlink_label_for_file_header(self, filename: str, content: InfoDataFrameWithSaveObjFuncCall) -> Optional[str]:
+    def get_hyperlink_label_for_file_header(self, filename: str,
+                                            content: InfoDataFrameWithSaveObjFuncCall) -> Optional[str]:
         source_file = content.get_prior_filename()
         if source_file:
             return convert_str_to_latex_label(source_file + '.pkl', prefix='file')
@@ -360,7 +361,7 @@ class DataAnalysisCodeProductsGPT(BaseTableCodeProductsGPT):
         `df_desc_stat['ci_low'] = df_desc_stat['mean'] - 1.96 * df_desc_stat['std'] / np.sqrt(df_desc_stat['count'])`
         `df_desc_stat['ci_high'] = ...`
         `df_to_figure(df_desc_stat, 'df_desc_stat', kind='bar', y=['mean'], y_ci=[('ci_low', 'ci_high')])`
-        
+
         Note: Showing variables of different units in the same figure is not a good practice. \t
         Use a table instead.
 

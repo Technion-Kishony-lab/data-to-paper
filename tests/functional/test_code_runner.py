@@ -155,13 +155,14 @@ timeout_sec = 3
 
 # TODO: works ok for some of the long run cases, but not for all (see disabled cases below)
 
+
 @pytest.mark.parametrize("code, result, is_internal", [
-                         # (code_multi_process_gipc, []),
-                         (code_multi_process_threading, [(6, 'p.join()')], True),
-                         # (code_multi_process_multiprocessing, []),
-                         # (code_multi_process_sklearn, [('14', 'grid_search.fit(X, y)')]),
-                         (code_multi_process_sklearn, [], False),
-                         (code_same_process, [(3, 'time.sleep(40)')], True),
+    # (code_multi_process_gipc, []),
+    (code_multi_process_threading, [(6, 'p.join()')], True),
+    # (code_multi_process_multiprocessing, []),
+    # (code_multi_process_sklearn, [('14', 'grid_search.fit(X, y)')]),
+    (code_multi_process_sklearn, [], False),
+    (code_same_process, [(3, 'time.sleep(40)')], True),
 ])
 def test_run_code_timeout_multiprocessing(code, result, is_internal):
     """
