@@ -49,7 +49,7 @@ def _pickle_dump_with_checks(obj, file, *args, original_func=None, context_manag
         )
 
     with PValue.BEHAVE_NORMALLY.temporary_set(True):
-        original_func(obj, file)
+        return original_func(obj, file)
 
 
 def get_pickle_dump_attr_replacer():
