@@ -1,33 +1,40 @@
 ## Backward-traceable AI-driven Research
 
+<picture>
+<img src="https://github.com/Technion-Kishony-lab/data-to-paper/blob/main/data_to_paper_icon.gif" width="450" align="right">
+</picture>
 
-<b>*data-to-paper*</b> is a framework that systematically navigates the power of AI through a <b>complete end-to-end 
-scientific research</b>, starting from <b>raw data</b> and concluding with <b>transparent, backward-traceable, 
-human-verifiable scientific papers</b>. The platform sets **a new standard for transparency and traceability** for the era of AI-driven science ([example](https://t.co/iz44TDZZHb)).
+**data-to-paper** is an automation framework that systematically navigates the power of AI through a **complete 
+end-to-end 
+scientific research**, starting from *raw data* alone and concluding with *transparent, backward-traceable, 
+human-verifiable scientific papers* ([example](https://t.co/iz44TDZZHb)).
+
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
 
 ### Key features
-* **"Data-chained" manuscripts**. The process creates transparent and verifiable manuscripts, where numeric values can be click-traced all the way back to the code lines that created them.
-* **Autopilot or Copilot.** While the platform can run autonomously, it also provides a *AI-Human Copiloting GUI*, allowing human users to:
+* **End-to-end research.** The process navigates through the entire scientific path, 
+from data exploration, literature search and hypothesis generation, 
+through code writing and preparation of figures and tables, to results interpretation, and manuscript writing.
+* **"Data-chained" manuscripts**. The process creates transparent and verifiable manuscripts,
+where any numeric values can be click-traced all the way back to the code lines that created them
+([demo](https://youtu.be/HUkJcMXd9x0)).
+* **Autopilot or Copilot.** The platform can run autonomously (autopilot), or can be guided 
+via the *AI-Human Copiloting App*, allowing users to:
 
-:compass: Oversee, Inspect and Guide the research
+  :compass: Oversee, Inspect and Guide the research
 
-:dart: Set research goals, or let the AI autonomously raise and test hypotheses
+  :dart: Set research goals, or let the AI autonomously raise and test hypotheses
 
-:robot: *Request* on-demand AI-reviews
+  :robot: Provide review, or invoke on-demand AI-reviews
 
-:rewind: *Rewind* the process to prior steps
+  :rewind: Rewind the process to prior steps
 
-:film_projector: Record and replay runs
+  :film_projector: Record and replay runs
 
-:heavy_dollar_sign:	*Track* API costs
-
-* **Coding guardrails.** Standard statistical packages are overridden with multiple guardrails to minimize common LLM coding errors.
-
-<picture>
-<img src="https://github.com/Technion-Kishony-lab/data-to-paper/blob/main/data_to_paper_icon.gif" width="450" align="right">
-</picture>
+  :heavy_dollar_sign:	Track API costs
+* **Coding guardrails.** Standard statistical packages are overridden with multiple guardrails 
+to minimize common LLM coding errors.
 
 
 https://github.com/Technion-Kishony-lab/data-to-paper/assets/65530510/4c10c06d-d7e9-4d7c-b9d4-7dbe904d15de
