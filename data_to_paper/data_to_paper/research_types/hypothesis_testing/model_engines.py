@@ -5,7 +5,7 @@ TYPE_OF_MODELS = 'closed'
 if TYPE_OF_MODELS == 'closed':
     ModelEngine.DEFAULT = ModelEngine.GPT4o
     CLASSES_TO_MODEL_ENGINES = {
-        "DataExplorationCodeProductsGPT": ModelEngine.GPT4o,
+        "DataExplorationCodeProductsGPT": ModelEngine.GPT4,
         "BaseCreateTablesCodeProductsGPT": ModelEngine.GPT4,
         "GetMostSimilarCitations": ModelEngine.GPT4o,
         "IsGoalOK": ModelEngine.GPT4o,
