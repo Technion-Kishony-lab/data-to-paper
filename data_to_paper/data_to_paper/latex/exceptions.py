@@ -152,21 +152,3 @@ class NonLatexCitations(data_to_paperException, ValueError):
         return f'The following citations are not written using latex \\cite{{}} command:\n' \
                f'{self.non_latex_citations}\n\n' \
                f'Please use latex \\cite{{}} command to write citations.\n'
-
-
-@dataclass
-class TooWideTableOrText(LatexProblemInCompilation):
-    """
-    Raised when the latex content contains a table or text that is too wide (Overfull hbox).
-    """
-    problem_starting_term: str = r'Overfull \hbox '
-
-    @property
-    def overflow_in_pts(self):
-        return float(re.search(r'Overfull \\hbox \((.*?)pt too wide\)', self.pdflatex_output).group(1))
-
-    def __str__(self):
-        return super().__str__() + \
-            'The table is too wide to fit within the text width.\n' \
-            'Try to shorten the text, or drop unnecessary columns, ' \
-            'or consider whether completely transposing the table might be better.\n'

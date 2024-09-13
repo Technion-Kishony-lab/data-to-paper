@@ -3,6 +3,7 @@ from typing import Type
 
 from data_to_paper.base_steps.base_steps_runner import DataStepRunner
 from data_to_paper.conversation.stage import Stage
+from data_to_paper.latex.latex_doc import LatexDocument
 
 from .app_startup import ToyStartDialog
 from .cast import DemoAgent
@@ -20,6 +21,9 @@ class ToyStepsRunner(DataStepRunner):
         research_goal=None
     )
     APP_STARTUP_CLS = ToyStartDialog
+
+    latex_document: LatexDocument = field(default_factory=LatexDocument)
+
     name = 'Toy Example Research'
     stages: Type[Stage] = DemoStages
     cast = DemoAgent

@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from data_to_paper.latex.latex_doc import LatexDocument
 from data_to_paper.research_types.hypothesis_testing.check_df_to_funcs.df_checker import BaseChecker, \
     create_and_run_chain_checker, SyntaxDfChecker, check_analysis_df, check_displayitem_df
 from data_to_paper.research_types.hypothesis_testing.coding.analysis.my_utils.df_to_figure import analysis_df_to_figure
@@ -175,8 +176,7 @@ def test_analysis_df_to_figure_checks(df, kwargs, expected_words_in_issues):
 def test_displayitems_df_to_latex_checks(df, kwargs, expected_words_in_issues):
     df = simulate_save_load(analysis_df_to_latex, df, 'df_tag', **kwargs)
     df = simulate_save_load(displayitems_df_to_latex, df, 'df_tag_formatted', **kwargs)
-    _check_issues(df, check_displayitem_df, expected_words_in_issues,
-                  compilation_func=lambda _, __: 0.4)
+    _check_issues(df, check_displayitem_df, expected_words_in_issues, latex_document=LatexDocument())
 # TODO: add more tests. see TableSecondContentChecker, TableCompilationDfContentChecker,
 #  AnnotationDfChecker,
 

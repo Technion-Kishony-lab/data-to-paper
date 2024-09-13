@@ -38,7 +38,7 @@ from .base_products_conversers import \
 from .request_quoted_text import BaseProductsQuotedReviewGPT
 
 # Requesting LaTeX formatted text (with optional gpt-review):
-from .request_latex import LatexReviewBackgroundProductsConverser, CheckLatexCompilation
+from .request_latex import LatexReviewBackgroundProductsConverser
 
 # Requesting Python values (with optional gpt-review):
 from .request_python_value import PythonValueReviewBackgroundProductsConverser

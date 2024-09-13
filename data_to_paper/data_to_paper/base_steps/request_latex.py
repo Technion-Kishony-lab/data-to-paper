@@ -1,18 +1,15 @@
 import re
 from dataclasses import dataclass, field
-from functools import partial
-from pathlib import Path
-from typing import Optional, List, Tuple, Union, Iterable, Dict
 
-from data_to_paper.env import SAVE_INTERMEDIATE_LATEX, WRITING_MODEL_ENGINE
+from typing import Optional, List, Tuple
+
+from data_to_paper.env import WRITING_MODEL_ENGINE
 
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.utils.text_formatting import wrap_as_block
-from data_to_paper.utils.file_utils import get_non_existing_file_name
 from data_to_paper.latex import FailedToExtractLatexContent, extract_latex_section_from_response
-from data_to_paper.latex.exceptions import UnwantedCommandsUsedInLatex, TooWideTableOrText, \
-    BaseLatexProblemInCompilation
+from data_to_paper.latex.exceptions import UnwantedCommandsUsedInLatex, BaseLatexProblemInCompilation
 from data_to_paper.run_gpt_code.code_utils import extract_content_of_triple_quote_block, FailedExtractingBlock, \
     IncompleteBlockFailedExtractingBlock, NoBlocksFailedExtractingBlock
 from data_to_paper.utils.citataion_utils import find_citation_ids
@@ -25,7 +22,6 @@ from data_to_paper.servers.model_engine import ModelEngine
 
 from .base_products_conversers import ReviewBackgroundProductsConverser
 from .result_converser import Rewind
-from ..utils.numerics import is_lower_eq
 
 
 def is_similar_bibtex_ids(incorrect_id: str, correct_id: str) -> bool:
@@ -50,72 +46,13 @@ def remove_citations_from_section(section: str) -> str:
 
 
 @dataclass
-class CheckLatexCompilation:
-
-    tolerance_for_too_wide_in_pts: Optional[float] = None  # If None, do not raise on too wide.
-    latex_document: Optional[LatexDocument] = field(default_factory=LatexDocument)
-
-    @staticmethod
-    def _static_check_latex_compilation(content: Optional[Union[str, Iterable[str], Dict[Optional[str], str]]],
-                                        section_name: Optional[str] = None,
-                                        output_directory: Optional[Union[str, Path]] = None,
-                                        conversation_name: Optional[str] = None,
-                                        latex_document: Optional[LatexDocument] = None,
-                                        tolerance_for_too_wide_in_pts: Optional[float] = None,
-                                        is_table: bool = False,
-                                        should_save: bool = True,
-                                        ) -> Optional[Union[float, BaseLatexProblemInCompilation]]:
-        if SAVE_INTERMEDIATE_LATEX and should_save and output_directory is not None:
-            if section_name is None:
-                file_stem = f'{conversation_name}'
-            else:
-                file_stem = f'{section_name}_{conversation_name}'
-            file_stem = file_stem.replace(" ", "")
-            file_path = get_non_existing_file_name(output_directory / f'{file_stem}.pdf')
-            file_stem, output_directory = file_path.stem, file_path.parent
-        else:
-            file_stem, output_directory = 'test', None
-
-        try:
-            if is_table:
-                return latex_document.compile_table(content, file_stem=file_stem, output_directory=output_directory)
-            latex_document.get_document(content, file_stem=file_stem, output_directory=output_directory,
-                                        format_cite=False)
-        except TooWideTableOrText as e:
-            if not is_lower_eq(e.overflow_in_pts, tolerance_for_too_wide_in_pts):
-                return e
-        except BaseLatexProblemInCompilation as e:
-            return e
-
-    def _get_static_latex_compilation_func(self):
-        return partial(self._static_check_latex_compilation,
-                       output_directory=self.output_directory,
-                       conversation_name=self.conversation_name,
-                       latex_document=self.latex_document,
-                       tolerance_for_too_wide_in_pts=self.tolerance_for_too_wide_in_pts)
-
-    def _check_latex_compilation(self, content: Optional[Union[str, Iterable[str], Dict[Optional[str], str]]],
-                                 section_name: Optional[str] = None,
-                                 is_table: bool = False,
-                                 should_save: bool = True,
-                                 ) -> Optional[Union[float, BaseLatexProblemInCompilation]]:
-        """
-        Check that the latex compiles.
-        Return a BaseLatexProblemInCompilation if it does not.
-
-        For tables, set is_table=True: do not raise on too wide, and return the table width as fraction of textwidth.
-        """
-        return self._get_static_latex_compilation_func()(
-            content=content, section_name=section_name, is_table=is_table, should_save=should_save)
-
-
-@dataclass
-class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgroundProductsConverser):
+class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
     """
     A base class for agents requesting the LLM to write one or more latex sections.
     Option for removing citations from the section.
     Option for reviewing the sections (set max_review_turns > 0).
     """
+    latex_document: LatexDocument = field(default_factory=LatexDocument)
     model_engine: ModelEngine = WRITING_MODEL_ENGINE
     should_remove_citations_from_section: bool = True
 
@@ -321,15 +258,13 @@ class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgr
             extracted_text[i] = self._check_and_refine_section(extracted_text[i], self.section_names[i])
 
         # check the latex compilation
-        exception = self._check_latex_compilation(
-            {section_name: section for section_name, section in zip(self.section_names, extracted_text)})
-
-        # store the result if there are no exceptions, forgiving TooWideTableOrText:
-        if exception is None or isinstance(exception, TooWideTableOrText):
-            self._update_valid_result(extracted_text)
-
-        # raise the compilation errors
-        if exception is not None:
+        try:
+            _, _, width = self.latex_document.compile_document(
+                {section_name: section for section_name, section in zip(self.section_names, extracted_text)})
+        except BaseLatexProblemInCompilation as e:
             self._raise_self_response_error(
                 title='# LaTex compilation error',
-                error_message=str(exception))
+                error_message=str(e))
+
+        # store the result if there are no exceptions:
+        self._update_valid_result(extracted_text)

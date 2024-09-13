@@ -1,7 +1,8 @@
 from dataclasses import dataclass, field
 from typing import Type
 
-from data_to_paper.base_steps import DirectorProductGPT, CheckLatexCompilation, DataStepRunner
+from data_to_paper.base_steps import DirectorProductGPT, DataStepRunner
+from data_to_paper.latex.latex_doc import LatexDocument
 
 from .app_startup import HypothesisTestingStartDialog
 from .cast import ScientificAgent
@@ -36,7 +37,7 @@ SECTIONS_TO_WRITING_CLASS = [
 
 
 @dataclass
-class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
+class HypothesisTestingStepsRunner(DataStepRunner):
     PROJECT_PARAMETERS_FILENAME = 'data-to-paper-hypothesis-testing.json'
     DEFAULT_PROJECT_PARAMETERS = DataStepRunner.DEFAULT_PROJECT_PARAMETERS | dict(
         research_goal=None,
@@ -48,6 +49,8 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
         excluded_citation_titles=[],
         max_goal_refinement_iterations=3,
     )
+
+    latex_document: LatexDocument = field(default_factory=LatexDocument)
 
     APP_STARTUP_CLS = HypothesisTestingStartDialog
     name = 'Hypothesis Testing Research'
@@ -63,7 +66,6 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
         super()._pre_run_preparations()
         self.paper_producer = ProduceScientificPaperPDFWithAppendix.from_(
             self,
-            latex_document=self.latex_document,
             output_filename='paper.pdf',
             paper_section_names=PAPER_SECTIONS_NAMES,
             figures_folder=self.output_directory,
@@ -182,7 +184,6 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
         RequestCodeProducts.from_(
             self,
             code_step='data_analysis',
-            latex_document=self.latex_document,
             code_writing_class=DataAnalysisCodeProductsGPT,
             explain_code_class=RequestCodeExplanation,
             explain_created_files_class=None,

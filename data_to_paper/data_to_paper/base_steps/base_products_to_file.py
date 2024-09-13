@@ -6,7 +6,6 @@ from .base_products_conversers import ProductsHandler
 
 @dataclass
 class BaseFileProducer(ProductsHandler):
-    COPY_ATTRIBUTES = {'output_filename'}
 
     output_filename: str = None
 

@@ -1,12 +1,14 @@
 import re
 from dataclasses import dataclass, field
 from functools import partial
-from typing import List, Optional, Dict, Union, Iterable, Collection
+from typing import List, Optional, Dict, Union, Iterable, Collection, Tuple
 
 from pathlib import Path
 
+from data_to_paper.env import SAVE_INTERMEDIATE_LATEX
 from data_to_paper.latex import save_latex_and_compile_to_pdf
 from data_to_paper.latex.clean_latex import process_latex_text_and_math
+from data_to_paper.latex.exceptions import BaseLatexProblemInCompilation
 from data_to_paper.latex.latex_to_pdf import evaluate_latex_num_command
 
 from data_to_paper.servers.custom_types import Citation
@@ -193,25 +195,9 @@ class LatexDocument:
                      abstract: Optional[str] = None,
                      appendix: Optional[str] = None,
                      author: Optional[str] = None,
-                     references: Collection[Citation] = None,
-                     format_cite: bool = True,
+                     with_references: bool = False,
                      add_before_document: Optional[str] = None,
-                     figures_folder: Optional[Path] = None,
-                     file_stem: str = None,
-                     output_directory: Optional[str] = None,
-                     raise_on_too_wide: bool = True,
-                     ) -> (str, str):
-        """
-        Return the latex document as a string.
-
-        If `file_stem` is given, save the document to a file and compile it to pdf.
-
-        If `output_directory` is given, save the document to that directory.
-
-        If `output_directory` is None:
-            compile to pdf but do not save (checking for compilation errors).
-            `LatexCompilationError` is raised if there are errors.
-        """
+                     ) -> str:
 
         if isinstance(content, dict):
             if 'title' in content:
@@ -277,7 +263,7 @@ class LatexDocument:
         s += self._style_section(all_sections)
 
         # References:
-        if references:
+        if with_references:
             s += CITATION_TEMPLATE + '\n'
 
         # Appendix:
@@ -288,13 +274,48 @@ class LatexDocument:
         # End document:
         s += r'\end{document}' + '\n'
 
-        # Save and compile:
-        pdf_output = save_latex_and_compile_to_pdf(s, file_stem=file_stem, output_directory=output_directory,
-                                                   references=references, raise_on_too_wide=raise_on_too_wide,
-                                                   format_cite=format_cite, figures_folder=figures_folder)
-        return s, pdf_output
+        return s
 
-    def compile_table(self, latex_table: str, file_stem: str = None, output_directory: Optional[str] = None) -> float:
+    def compile_document(self,
+                     content: Optional[Union[str, Iterable[str], Dict[Optional[str], str]]] = None,
+                     title: Optional[str] = None,
+                     abstract: Optional[str] = None,
+                     appendix: Optional[str] = None,
+                     author: Optional[str] = None,
+                     references: Collection[Citation] = None,
+                     format_cite: bool = True,
+                     add_before_document: Optional[str] = None,
+                     figures_folder: Optional[Path] = None,
+                     file_stem: str = 'test',
+                     output_directory: Optional[str] = None,
+                     ) -> (str, str, Optional[float]):
+        """
+        Return the latex document as a string.
+
+        If `file_stem` is given, save the document to a file and compile it to pdf.
+
+        If `output_directory` is given, save the document to that directory.
+
+        If `output_directory` is None:
+            compile to pdf but do not save (checking for compilation errors)
+
+        Returns:
+            - The latex content.
+            - The pdf compilation output.
+            - The overflow width of the table, if any.
+
+        `LatexCompilationError` is raised if there are errors.
+        """
+
+        latex = self.get_document(content=content, title=title, abstract=abstract, appendix=appendix, author=author,
+                                  with_references=bool(references), add_before_document=add_before_document)
+        pdf_output, over_width_pts = save_latex_and_compile_to_pdf(latex, file_stem=file_stem,
+                                                                   output_directory=output_directory,
+                                                                   references=references,
+                                                                   format_cite=format_cite, figures_folder=figures_folder)
+        return latex, pdf_output, over_width_pts
+
+    def compile_table(self, latex_table: str, file_stem: str = 'test', output_directory: Optional[str] = None) -> float:
         """
         Compile a latex table to pdf and return the width of the tabular part of the table,
         expressed as fraction of the page margin width.
@@ -317,13 +338,9 @@ class LatexDocument:
             \typeout{Page margin width: \the\textwidth}
             """).replace('<tabular>', get_tabular_block(latex_table)).replace('<table>', latex_table)
 
-        _, pdf_output = self.get_document(content=lrbox_table,
-                                          file_stem=file_stem,
-                                          output_directory=output_directory,
-                                          raise_on_too_wide=False,
-                                          format_cite=False,
-                                          )
+        _, pdf_output, over_width_pts = self.compile_document(
+            content=lrbox_table, format_cite=False, file_stem=file_stem, output_directory=output_directory)
 
         table_width = re.findall(pattern=r'Table width: (\d+\.\d+)pt', string=pdf_output)[0]
-        marging_width = re.findall(pattern=r'Page margin width: (\d+\.\d+)pt', string=pdf_output)[0]
-        return float(table_width) / float(marging_width)
+        margin_width = re.findall(pattern=r'Page margin width: (\d+\.\d+)pt', string=pdf_output)[0]
+        return float(table_width) / float(margin_width)

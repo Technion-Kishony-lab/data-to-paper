@@ -30,7 +30,11 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 
+from celery.worker.consumer.mingle import exception
+
 from data_to_paper.env import DEBUG_MODE
+from data_to_paper.latex.exceptions import BaseLatexProblemInCompilation
+from data_to_paper.latex.latex_doc import LatexDocument
 from data_to_paper.llm_coding_utils import df_to_latex, df_to_figure, ALLOWED_PLOT_KINDS, DF_ALLOWED_VALUE_TYPES
 from data_to_paper.llm_coding_utils.consts import DF_ALLOWED_COLUMN_TYPES
 from data_to_paper.llm_coding_utils.df_to_figure import run_create_fig_for_df_to_figure_and_get_axis_parameters
@@ -140,7 +144,7 @@ class BaseDfChecker(BaseChecker):
     kwargs: dict = field(default_factory=dict)
 
     output_folder: Optional[Path] = None  # where compiled figures and tables are saved
-    compilation_func: Optional[Callable] = None
+    latex_document: Optional[LatexDocument] = None
 
     DEFAULT_CATEGORY: ClassVar[str] = None
     DEFAULT_CODE_PROBLEM: ClassVar[CodeProblem] = None
@@ -879,6 +883,7 @@ class FigureDfContentChecker(DfContentChecker):
 @dataclass
 class CompilationDfContentChecker(BaseContentDfChecker):
     intermediate_results: Dict[str, Any] = field(default_factory=lambda: {'width': None})
+    tolerance_for_too_wide_in_pts: Optional[float] = 25.  # If None, do not raise on too wide.
     DEFAULT_CATEGORY = 'Table/Figure compilation failure'
 
     def check_creating_latex_and_html(self):
@@ -936,15 +941,20 @@ class TableCompilationDfContentChecker(CompilationDfContentChecker):
         return df_to_latex(self.df.T, self.filename, index=index, header=header, **kwargs)
 
     def check_compilation_and_get_width(self):
+        exception = None
         with RegisteredRunContext.temporarily_disable_all():
             with OnStrPValue(OnStr.SMALLER_THAN):
                 latex = df_to_latex(self.df, self.filename, **self.kwargs)
-            e = self.compilation_func(latex, self.filename)
+            try:
+                width = self.latex_document.compile_table(latex)
+            except BaseLatexProblemInCompilation as e:
+                exception = e
+                width = None
 
         # save the width of the table:
-        self.intermediate_results['width'] = e
+        self.intermediate_results['width'] = width
 
-        if not isinstance(e, float):
+        if exception:
             self._append_issue(
                 category='Table pdflatex compilation failure',
                 issue=dedent_triple_quote_str("""
@@ -958,16 +968,21 @@ class TableCompilationDfContentChecker(CompilationDfContentChecker):
 
                     {error}
 
-                    """).format(filename=self.filename, table=latex, error=e),
+                    """).format(filename=self.filename, table=latex, error=exception),
             )
-        elif e > 1.3:
+        elif width > 1.3:
             # table is too wide
             # Try to compile the transposed table:
             with OnStrPValue(OnStr.SMALLER_THAN):
                 latex_transpose = self._df_to_latex_transpose()
+            e_transpose = None
             with RegisteredRunContext.temporarily_disable_all():
-                e_transpose = self.compilation_func(latex_transpose, self.filename + '_transpose')
-            if isinstance(e_transpose, float) and e_transpose < 1.1:
+                try:
+                    width_transpose = self.latex_document.compile_table(latex_transpose)
+                except BaseLatexProblemInCompilation as e:
+                    e_transpose = e
+                    width_transpose = None
+            if not e_transpose and width_transpose < 1.1:
                 transpose_message = '- Alternatively, consider completely transposing the table. Use `df = df.T`.'
             else:
                 transpose_message = ''

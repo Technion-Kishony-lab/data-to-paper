@@ -1,8 +1,7 @@
 from dataclasses import dataclass
-from functools import partial
-from typing import Iterable, Any, Type, Tuple, Optional, Dict, Collection, List, Callable
+from typing import Iterable, Any, Type, Tuple, Optional, Dict, Collection, List
 
-from data_to_paper.base_steps import DebuggerConverser, CheckLatexCompilation
+from data_to_paper.base_steps import DebuggerConverser
 from data_to_paper.base_steps.request_code import CodeReviewPrompt
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.code_and_output_files.file_view_params import ViewPurpose
@@ -10,6 +9,7 @@ from data_to_paper.code_and_output_files.output_file_requirements import OutputF
 from data_to_paper.code_and_output_files.ref_numeric_values import HypertargetFormat, HypertargetPosition, \
     ReferencedValue
 from data_to_paper.code_and_output_files.referencable_text import convert_str_to_latex_label
+from data_to_paper.latex.latex_doc import LatexDocument
 from data_to_paper.research_types.hypothesis_testing.cast import ScientificAgent
 from data_to_paper.research_types.hypothesis_testing.coding.base_code_conversers import BaseTableCodeProductsGPT
 from data_to_paper.research_types.hypothesis_testing.coding.utils import create_pandas_and_stats_contexts
@@ -42,11 +42,10 @@ class DataframePreventAssignmentToAttrs(PreventAssignmentToAttrs):
 @dataclass(frozen=True)
 class TexDisplayitemContentOutputFileRequirement(BaseDataFramePickleContentOutputFileRequirement):
     hypertarget_prefixes: Optional[Tuple[str]] = HypertargetPrefix.LATEX_TABLES.value
-    compilation_func: Optional[Callable] = None
+    latex_document: Optional[LatexDocument] = None
 
     def _check_df(self, content: InfoDataFrameWithSaveObjFuncCall) -> List[RunIssue]:
-        return check_displayitem_df(content, output_folder=self.output_folder,
-                                    compilation_func=self.compilation_func)
+        return check_displayitem_df(content, output_folder=self.output_folder, latex_document=self.latex_document)
 
     def _convert_view_purpose_to_pvalue_on_str(self, view_purpose: ViewPurpose) -> OnStr:
         return OnStr.SMALLER_THAN
@@ -132,9 +131,10 @@ class DisplayitemsDebuggerConverser(DataAnalysisDebuggerConverser):
 
 
 @dataclass
-class CreateDisplayitemsCodeProductsGPT(BaseTableCodeProductsGPT, CheckLatexCompilation):
+class CreateDisplayitemsCodeProductsGPT(BaseTableCodeProductsGPT):
+    COPY_ATTRIBUTES = ('latex_document', )
+    latex_document: LatexDocument = None
     code_step: str = 'data_to_latex'
-    tolerance_for_too_wide_in_pts: Optional[float] = 25.
     debugger_cls: Type[DebuggerConverser] = DisplayitemsDebuggerConverser
     code_runner_cls: Type[CodeRunner] = UtilsCodeRunner
     headers_required_in_code: Tuple[str, ...] = (
@@ -158,7 +158,7 @@ class CreateDisplayitemsCodeProductsGPT(BaseTableCodeProductsGPT, CheckLatexComp
             TexDisplayitemContentOutputFileRequirement(
                 'df_*_formatted.pkl', minimal_count=1,
                 output_folder=self.output_directory,
-                compilation_func=partial(self._get_static_latex_compilation_func(), is_table=True))
+                latex_document=self.latex_document)
         ])
 
     provided_code: str = dedent_triple_quote_str('''

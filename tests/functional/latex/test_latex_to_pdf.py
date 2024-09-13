@@ -175,4 +175,4 @@ def test_evaluate_latex_expression(latex, expected):
     latex, num_dict = evaluate_latex_num_command(latex)
     assert latex == expected[0]
     assert num_dict == expected[1]
-    LatexDocument().get_document(latex, file_stem='test')
+    LatexDocument().compile_document(latex, file_stem='test')

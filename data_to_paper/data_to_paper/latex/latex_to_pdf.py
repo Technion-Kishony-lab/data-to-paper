@@ -1,4 +1,5 @@
 import os
+import re
 import shutil
 import subprocess
 import fitz  # PyMuPDF
@@ -13,7 +14,7 @@ from data_to_paper.utils.file_utils import run_in_temp_directory
 from data_to_paper.code_and_output_files.ref_numeric_values import replace_hyperlinks_with_values
 from data_to_paper.utils.text_extractors import extract_all_external_brackets
 
-from .exceptions import LatexCompilationError, TooWideTableOrText, LatexNumCommandFormulaEvalError, \
+from .exceptions import LatexCompilationError, LatexNumCommandFormulaEvalError, \
     LatexNestedNumCommandError, LatexNumCommandNoExplanation, PlainNumberLatexNumCommandError
 
 BIB_FILENAME: str = 'citations.bib'
@@ -110,10 +111,17 @@ def add_watermark_to_pdf(pdf_path: str, watermark_path: str, output_path: str = 
     pdf_doc.save(output_path, incremental=True, encryption=0)
 
 
+def _get_over_width_pts(pdflatex_output: str) -> Optional[float]:
+    match = re.search(pattern=r'Overfull \\hbox \((.*?)pt too wide\)', string=pdflatex_output)
+    if match:
+        return float(match.group(1))
+    return None
+
+
 def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_directory: Optional[str] = None,
                                   references: Collection[Citation] = None, format_cite: bool = True,
                                   figures_folder: Optional[Path] = None,
-                                  raise_on_too_wide: bool = True) -> str:
+                                  ) -> Tuple[str, Optional[float]]:
     references = references or set()
     should_compile_with_bib = len(references) > 0
     latex_file_name = file_stem + '.tex'
@@ -156,12 +164,8 @@ def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_dir
         add_watermark_to_pdf(file_stem + '.pdf', WATERMARK_PATH)
 
         _move_latex_and_pdf_to_output_directory(file_stem, output_directory, latex_file_name)
-
-        if r'Overfull \hbox' in pdflatex_output and raise_on_too_wide:
-            raise TooWideTableOrText(latex_content=latex_content,
-                                     pdflatex_output=pdflatex_output)
-
-        return pdflatex_output
+        over_width_pts = _get_over_width_pts(pdflatex_output)
+        return pdflatex_output, over_width_pts
 
 
 def _move_latex_and_pdf_to_output_directory(file_stem: str, output_directory: str = None, latex_file_name: str = None):
