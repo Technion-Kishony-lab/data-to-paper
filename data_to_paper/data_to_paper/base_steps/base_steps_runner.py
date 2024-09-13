@@ -133,8 +133,9 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         Advance the stage.
         """
         self.current_stage = stage
-        if isinstance(stage, Stage) or Stage is True:
+        if isinstance(stage, Stage) or stage is True:
             self._app_advance_stage(stage=stage)
+        if isinstance(stage, Stage):
             self._add_cost_to_stage(stage=stage)
             if stage not in self.stages_to_conversations_lens:
                 self.stages_to_conversations_lens[stage] = len(self.actions_and_conversations.conversations)
