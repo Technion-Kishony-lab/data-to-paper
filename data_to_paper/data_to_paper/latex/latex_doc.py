@@ -8,7 +8,6 @@ from pathlib import Path
 from data_to_paper.env import SAVE_INTERMEDIATE_LATEX
 from data_to_paper.latex import save_latex_and_compile_to_pdf
 from data_to_paper.latex.clean_latex import process_latex_text_and_math
-from data_to_paper.latex.exceptions import BaseLatexProblemInCompilation
 from data_to_paper.latex.latex_to_pdf import evaluate_latex_num_command
 
 from data_to_paper.servers.custom_types import Citation
@@ -131,7 +130,7 @@ def get_tabular_block(latex_table: str) -> str:
     return re.search(pattern=r'\\begin{tabular}.*\n(.*)\\end{tabular}', string=latex_table, flags=re.DOTALL).group(0)
 
 
-@dataclass
+@dataclass(frozen=True)
 class LatexDocument:
     """
     A class for creating latex documents and compiling them to pdf.
@@ -143,7 +142,7 @@ class LatexDocument:
     section_heading_fontsize: str = 'Large'
     subsection_heading_fontsize: str = 'normalsize'
     subsubsection_heading_fontsize: str = 'normalsize'
-    initiation_commands: List[str] = field(default_factory=lambda: list(DEFAULT_INITIATION_COMMANDS))
+    initiation_commands: Tuple[str] = DEFAULT_INITIATION_COMMANDS
 
     section_numbering: bool = False
     subsection_numbering: bool = False
@@ -152,7 +151,7 @@ class LatexDocument:
     replace_scientific_exponents: bool = True
 
     author: str = 'data-to-paper'
-    packages: List[str] = field(default_factory=lambda: list(DEFAULT_PACKAGES))
+    packages: Tuple[str] = DEFAULT_PACKAGES
 
     allow_displayitem_tilde: bool = False
 

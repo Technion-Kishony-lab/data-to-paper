@@ -113,6 +113,9 @@ def citations():
 
 file_name = 'test'
 
+def test_latex_document_is_hashable():
+    assert hash(LatexDocument()) is not None
+
 
 def test_latex_to_pdf(tmpdir, latex_content):
     save_latex_and_compile_to_pdf(latex_content, file_name, tmpdir.strpath)
