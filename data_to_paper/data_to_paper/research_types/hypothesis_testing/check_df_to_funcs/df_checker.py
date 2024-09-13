@@ -788,6 +788,17 @@ class FigureDfContentChecker(DfContentChecker):
                     instructions='All columns specified by the `y` argument must have numeric values.',
                 )
 
+    def check_that_x_values_are_numeric(self):
+        x, xerr, x_ci, x_p_value = self.get_xy_err_ci_p_value('x', as_list=True)
+        for column in x:
+            if not pd.api.types.is_numeric_dtype(self.df[column]):
+                self._append_issue(
+                    issue=f'The x-column `{column}` is not numeric.',
+                    instructions='If you are attempting to define non-numerical x labels, '
+                                 'move the column to the index of the df, and set `x=None` in df_to_figure.\n'
+                                 'Otherwise, only use the `x` argument for numeric x values.',
+                )
+
     def _get_columns_containing_p_values(self):
         return [col for col in self.df.columns if is_containing_p_value(self.df[col])]
 
@@ -873,6 +884,7 @@ class FigureDfContentChecker(DfContentChecker):
         check_for_max_number_of_bars: True,
         check_df_size: True,
         check_that_y_values_are_numeric: True,
+        check_that_x_values_are_numeric: True,
         check_for_mixing_p_values: True,
         check_that_y_p_value_are_p_values: True,
         check_all_p_values_are_in_y_p_value: True,  # TODO: maybe disable this check
@@ -1147,8 +1159,7 @@ class SecondFigureContentChecker(SecondContentChecker):
                         self._append_issue(
                             category='Plotting odds ratios',
                             issue=f'The {axis}-axis label contains the term "{term}". Are you plotting odds ratios?\n'
-                                  f'If so, odds ratios are typically shown on a log scale; '
-                                  f'consider using a log scale for the {axis}-axis.',
+                                  f'If so, odds ratios are typically shown on a log scale; ',
                             instructions=f'Consider using a log scale for the {axis}-axis (setting `log{axis}=True`).',
                             forgive_after=1,
                         )
