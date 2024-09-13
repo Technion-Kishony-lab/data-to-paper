@@ -33,7 +33,7 @@ class DualConverserGPT(Converser):
     """
     A base class for agents running two LLM agents.
     """
-    COPY_ATTRIBUTES = Converser.COPY_ATTRIBUTES | {'other_conversation_name'}
+    COPY_ATTRIBUTES = {'other_conversation_name'}
 
     other_system_prompt: str = 'You are a helpful scientist.'
 

@@ -47,7 +47,6 @@ class ProductsHandler(Copier):
 
 @dataclass
 class ProductsConverser(ProductsHandler, ResultConverser):
-    COPY_ATTRIBUTES = ProductsHandler.COPY_ATTRIBUTES | ResultConverser.COPY_ATTRIBUTES
 
     def __post_init__(self):
         ProductsHandler.__post_init__(self)
@@ -177,7 +176,6 @@ class ReviewBackgroundProductsConverser(BackgroundProductsConverser, ReviewDialo
     Base class for conversers that specify prior products and then set a goal for the new product
     to be suggested and reviewed.
     """
-    COPY_ATTRIBUTES = BackgroundProductsConverser.COPY_ATTRIBUTES | ReviewDialogDualConverserGPT.COPY_ATTRIBUTES
     suppress_printing_other_conversation: bool = False
     max_reviewing_rounds: int = 0
     termination_phrase: str = "The {goal_noun} does not require any changes"

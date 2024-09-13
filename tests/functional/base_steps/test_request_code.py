@@ -22,7 +22,7 @@ from tests.functional.base_steps.utils import TestProductsReviewGPT, TestAgent
 class TestDataframeChangingCodeProductsGPT(TestProductsReviewGPT, BaseCodeProductsGPT):
     code_step = 'data_analysis'
     conversation_name: str = None
-    COPY_ATTRIBUTES = BaseCodeProductsGPT.COPY_ATTRIBUTES | {'temp_dir'}
+    COPY_ATTRIBUTES = {'temp_dir'}
     output_file_requirements: OutputFileRequirements = OutputFileRequirements([DataOutputFileRequirement('*.csv')])
     enforce_saving_altered_dataframes: bool = True
     code_review_prompts: Collection[CodeReviewPrompt] = ()
