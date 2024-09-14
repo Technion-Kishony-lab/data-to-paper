@@ -1,40 +1,19 @@
-import os
-from typing import Optional
-
 from pathlib import Path
 
 from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils.mutable import Mutable, Flag
+from data_to_paper.servers.types import APIKey
 from .types import HumanReviewType
 
 BASE_FOLDER = Path(__file__).parent.parent.parent
 
+# Define API keys. See INSTALL.md for instructions.
+OPENAI_API_KEY = APIKey.from_env('OPENAI_API_KEY')
+DEEPINFRA_API_KEY = APIKey.from_env('DEEPINFRA_API_KEY')
+SEMANTIC_SCHOLAR_API_KEY = APIKey.from_env('SEMANTIC_SCHOLAR_API_KEY')
+
+# Supported packages for LLM code:
 SUPPORTED_PACKAGES = ('numpy', 'pandas', 'scipy', 'sklearn')
-
-OPENAI_API_BASE = "https://api.openai.com/v1"
-DEEPINFRA_API_BASE = "https://api.deepinfra.com/v1/openai"
-
-# OpenAI API keys. model=None is the default key.
-LLM_MODELS_TO_API_KEYS_AND_BASE_URL = dict[Optional[ModelEngine], str]({
-    None:
-        (os.environ.get('OPENAI_API_KEY'), OPENAI_API_BASE),
-    ModelEngine.GPT4:
-        (os.environ.get('OPENAI_API_KEY'), OPENAI_API_BASE),
-    ModelEngine.GPT4_TURBO:
-        (os.environ.get('OPENAI_API_KEY'), OPENAI_API_BASE),
-    ModelEngine.GPT4o_MINI:
-        (os.environ.get('OPENAI_API_KEY'), OPENAI_API_BASE),
-    ModelEngine.GPT4o:
-        (os.environ.get('OPENAI_API_KEY'), OPENAI_API_BASE),
-    ModelEngine.LLAMA_2_7b:
-        (os.environ.get('DEEPINFRA_API_KEY'), DEEPINFRA_API_BASE),
-    ModelEngine.LLAMA_2_70b:
-        (os.environ.get('DEEPINFRA_API_KEY'), DEEPINFRA_API_BASE),
-    ModelEngine.CODELLAMA:
-        (os.environ.get('DEEPINFRA_API_KEY'), DEEPINFRA_API_BASE),
-})
-
-SEMANTIC_SCHOLAR_API_KEY = os.environ.get('SEMANTIC_SCHOLAR_API_KEY', None)
 
 CODING_MODEL_ENGINE = ModelEngine.GPT4o
 JSON_MODEL_ENGINE = ModelEngine.GPT4o
