@@ -14,6 +14,7 @@ from data_to_paper.servers.llm_call import count_number_of_tokens_in_message
 from data_to_paper.servers.model_engine import OpenaiCallParameters, ModelEngine
 from data_to_paper.utils import format_text_with_code_blocks, line_count
 from data_to_paper.utils.highlighted_text import colored_text
+from data_to_paper.utils.numerics import is_lower_eq
 from data_to_paper.utils.text_formatting import wrap_as_block
 from data_to_paper.utils.formatted_sections import FormattedSections
 from data_to_paper.utils.text_extractors import get_dot_dot_dot_text
@@ -258,7 +259,8 @@ class CodeMessage(Message):
         """
         if self.extracted_code and not is_incomplete_block and self.previous_code:
             diff = self.get_code_diff()
-            if MINIMAL_COMPACTION_TO_SHOW_CODE_DIFF < line_count(self.extracted_code) - line_count(diff):
+            if not is_lower_eq(line_count(self.extracted_code) - line_count(diff),
+                               MINIMAL_COMPACTION_TO_SHOW_CODE_DIFF):
                 # if the code diff is substantially shorter than the code, we replace the code with the diff:
                 content = content.replace(
                     self.extracted_code,
