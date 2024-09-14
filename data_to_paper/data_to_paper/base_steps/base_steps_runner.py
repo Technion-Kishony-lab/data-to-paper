@@ -86,11 +86,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         ## Run Terminated
         Run terminated prematurely during the **{prior_stage}** stage.
 
-        ---
-        ```error
         {exception}
-        ```
-        ---
 
         {close_or_continue_message}
         """)
@@ -104,7 +100,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         ```
         ---
 
-        Please report the exception traceback from the console as a github issue.
+        Please report the exception traceback from the console as a GitHub issue.
 
         {close_or_continue_message}        
         """)
@@ -194,11 +190,9 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
                 print_and_log(f'Resetting to stage {e.stage.name}')
                 next_stage = e.stage
                 self.reset_to_stage(next_stage)
-            except TerminateException as e:
-                self._current_exception = e
-                next_stage = False  # Failure stage
             except Exception as e:
-                traceback.print_exc()
+                if not isinstance(e, TerminateException):
+                    traceback.print_exc()
                 self._current_exception = e
                 next_stage = False  # Failure stage
             if next_stage is None:  # Default next stage

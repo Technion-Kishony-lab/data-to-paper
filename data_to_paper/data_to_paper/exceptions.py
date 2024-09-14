@@ -1,4 +1,4 @@
-from abc import abstractmethod, ABCMeta
+from abc import abstractmethod, ABCMeta, ABC
 from dataclasses import dataclass, is_dataclass, fields
 from typing import Optional
 
@@ -23,17 +23,11 @@ class data_to_paperException(Exception, metaclass=ABCMeta):
             return super().__reduce__()
 
 
-@dataclass(frozen=True)
-class TerminateException(data_to_paperException):
+class TerminateException(data_to_paperException, metaclass=ABCMeta):
     """
     Base class for all exceptions that terminate data-to-paper run.
     """
-    reason: str = None
-
-    def __str__(self):
-        if self.reason is None:
-            return f"{type(self).__name__}"
-        return f"{type(self).__name__}:\n{self.reason}"
+    pass
 
 
 @dataclass
