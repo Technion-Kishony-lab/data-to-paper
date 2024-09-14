@@ -1,8 +1,11 @@
 import os
 
+import numpy as np
 import pytest
 
 from pathlib import Path
+
+from matplotlib import pyplot as plt
 
 from data_to_paper.llm_coding_utils.df_to_figure import create_fig_for_df_to_figure_and_get_axis_parameters
 from data_to_paper.utils.file_utils import run_in_directory
@@ -25,15 +28,17 @@ def name_of_test(request, tmpdir):
         yield testname
 
     # check if the figures are the same:
-    correct_fig = CORRECT_FIGURES_FOLDER / (testname + '.png')
-    modified_fig = MODIFIED_FIGURES_FOLDER / (testname + '.png')
-    assert correct_fig.exists(), f"Correct figure {testname} does not exist."
-    assert modified_fig.exists(), f"Figure {testname} was not created."
-    if correct_fig.read_bytes() != modified_fig.read_bytes():
+    correct_fig_path = CORRECT_FIGURES_FOLDER / (testname + '.png')
+    modified_fig_path = MODIFIED_FIGURES_FOLDER / (testname + '.png')
+    assert correct_fig_path.exists(), f"Correct figure {testname} does not exist."
+    assert modified_fig_path.exists(), f"Figure {testname} was not created."
+    correct_fig = plt.imread(correct_fig_path)
+    modified_fig = plt.imread(modified_fig_path)
+    if not np.array_equal(correct_fig, modified_fig):
         assert False, \
              f"Figures are different. If the new figure is correct, move it to correct_figures folder."
     # delete the modified figure if it is the same as the correct one
-    os.remove(modified_fig)
+    os.remove(modified_fig_path)
 
 
 def test_single_series(name_of_test, test_data):
