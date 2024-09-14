@@ -48,10 +48,6 @@ class TooManyTokensInMessageError(Exception):
                f'Maximum number of tokens for {self.model_engine}: {self.model_engine.max_tokens}.'
 
 
-class UserAbort(TerminateException):
-    pass
-
-
 @dataclass
 class LLMResponse(SerializableValue):
     """
@@ -86,24 +82,6 @@ class OpenaiServerCaller(OrderedKeyToListServerCaller):
     def _add_api_cost(self, cost: float):
         if self.api_cost_callback is not None:
             self.api_cost_callback(cost)
-
-    @staticmethod
-    def _check_before_spending_money(messages: List[Message], model_engine: ModelEngine):
-        while True:
-            user_choice = input(dedent_triple_quote_str("""
-            Please carefully check that you are willing to proceed with this LLM API call.
-            We suggest reading the current ongoing conversation and especially the last USER message \t
-            to understand the instructions we are sending to the LLM.
-            If you are willing to proceed, please type Y, otherwise type N.
-            Note: if you choose N, the program will immediately abort.
-            """))
-
-            if user_choice.lower() == 'n':
-                raise UserAbort(reason="User chose to abort the program.")
-            elif user_choice.lower() == 'y':
-                break
-            else:
-                print_and_log_red('Invalid input. Please choose Y/N.', should_log=False)
 
     @staticmethod
     def _get_cost_of_api_call(content: str, messages: List[Message], model_engine: ModelEngine
@@ -149,9 +127,6 @@ class OpenaiServerCaller(OrderedKeyToListServerCaller):
         if not isinstance(model_engine, ModelEngine):
             # human action:
             return model_engine(messages, **kwargs)
-        if CHOSEN_APP == 'console' or CHOSEN_APP == None:  # noqa (Mutable)
-            # OpenaiServerCaller._check_before_spending_money(messages, model_engine)
-            pass
         print_and_log_red('Calling the LLM-API for real.', should_log=False)
 
         api_key, api_base_url = LLM_MODELS_TO_API_KEYS_AND_BASE_URL[model_engine] \
