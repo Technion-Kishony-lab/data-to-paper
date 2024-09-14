@@ -62,12 +62,6 @@ class ServerCaller(ABC):
         """
         raise NotImplementedError()
 
-    def _get_server_response_without_raising(self, *args, **kwargs):
-        try:
-            return self._get_server_response(*args, **kwargs)
-        except Exception as e:
-            return e
-
     @staticmethod
     def _post_process_response(response, args, kwargs):
         """
@@ -113,14 +107,14 @@ class ServerCaller(ABC):
         returns the raw response from the server, allows recording and replaying.
         """
         if not self.is_playing_or_recording:
-            return self._get_server_response_without_raising(*args, **kwargs)
+            return self._get_server_response(*args, **kwargs)
         response = self._get_response_from_records(args, kwargs)
         if response is not None and CHOSEN_APP is not None:
             time.sleep(DELAY_SERVER_CACHE_RETRIEVAL.val)
         if response is None:
             if not self.record_more_if_needed:
                 raise NoMoreResponsesToMockError()
-            response = self._get_server_response_without_raising(*args, **kwargs)
+            response = self._get_server_response(*args, **kwargs)
             self._add_response_to_new_records(args, kwargs, response)
             if self.should_save:
                 self.save_records()
