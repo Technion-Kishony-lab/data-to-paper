@@ -3,20 +3,42 @@ from __future__ import annotations
 import inspect
 from dataclasses import dataclass
 from functools import wraps
-from typing import Iterable, Any, get_args, get_origin, Union
+from typing import Iterable, Any, get_args, get_origin, Union, List, Tuple
 
 from data_to_paper.exceptions import data_to_paperException
 
 
 @dataclass
-class WrongTypeException(data_to_paperException):
+class WrongTypeException(data_to_paperException, TypeError):
     """
     Raised when a value is of the wrong type.
     """
-    message: str = ''
+    descriptions: Tuple[str, ...] = ()
+    must_be: Union[type, str, Iterable[type]] = None
+    found: Union[type, str] = None
+
+    def get_found_description(self) -> str:
+        if isinstance(self.found, type):
+            return f'`{name_of_type(self.found)}`'
+        return self.found
+
+    def get_must_be_description(self) -> str:
+        if isinstance(self.must_be, type):
+            return f'of type `{name_of_type(self.must_be)}`'
+        if isinstance(self.must_be, str):
+            return self.must_be
+        if isinstance(self.must_be, Iterable):
+            return f"of one of the types: {', '.join([name_of_type(t) for t in self.must_be])}"
+        raise NotImplementedError(f"must_be: {self.must_be}")
+
+    @property
+    def found_type(self) -> type:
+        return type(self.found)
 
     def __str__(self):
-        return self.message
+        within = ''.join([' within the ' + d for d in self.descriptions])
+        return (f"object{within} must be {self.get_must_be_description()} "
+                f"(but found {self.get_found_description()})")
 
 
 def name_of_type(type_: type) -> str:
@@ -26,43 +48,39 @@ def name_of_type(type_: type) -> str:
     return str(type_).replace('typing.', '').replace("<class '", '').replace("'>", '')
 
 
-def check_all_of_type(elements: Iterable, type_: type, description: str = ''):
+def check_all_of_type(elements: Iterable, type_: type, descriptions: Tuple[str, ...] = ()):
     """
     Check if all elements are of a certain type.
     """
     for e in elements:
-        validate_value_type(e, type_, description)
+        validate_value_type(e, type_, descriptions)
 
 
-def check_all_of_types(elements: Iterable, types_: Iterable[type], description: str = ''):
+def check_all_of_types(elements: Iterable, types_: Iterable[type], descriptions: Tuple[str, ...] = ()):
     """
     Check if all elements are of their matching types.
     """
     for e, type_ in zip(elements, types_):
-        validate_value_type(e, type_, description)
+        validate_value_type(e, type_, descriptions)
 
 
-def check_of_any_of_types(element: Any, types_: Iterable[type], description: str = ''):
+def check_of_any_of_types(element: Any, types_: Iterable[type], descriptions: Tuple[str, ...] = ()):
     """
     Check if the element is of any of the types.
     """
     for type_ in types_:
         try:
-            validate_value_type(element, type_, description)
+            validate_value_type(element, type_, descriptions)
             return
         except WrongTypeException:
             pass
-    raise WrongTypeException(
-        f'object{description} must be of one of the types: {", ".join([name_of_type(t) for t in types_])} '
-        f'(but found `{name_of_type(type(element))}`)')
+    raise WrongTypeException(descriptions=descriptions, must_be=types_, found=type(element))
 
 
-def validate_value_type(value: Any, type_: type, description: str = ''):
+def validate_value_type(value: Any, type_: type, descriptions: Tuple[str, ...] = ()):
     """
-    Validate that the response is given in the correct format. if not raise TypeError.
+    Validate that the response is given in the correct format. if not raise WrongTypeException.
     """
-    if description:
-        description = ' ' + description
     origin_type = get_origin(type_)
     if origin_type is None:
         origin_type = type_
@@ -71,27 +89,32 @@ def validate_value_type(value: Any, type_: type, description: str = ''):
     child_types = get_args(type_)
 
     if origin_type is Union:
-        check_of_any_of_types(value, child_types, description)
+        check_of_any_of_types(value, child_types, descriptions)
         return
 
     if origin_type.__name__ == '_empty':
         return
 
     if not isinstance(value, origin_type):
-        raise WrongTypeException(f'object{description} must be of type `{name_of_type(origin_type)}` '
-                                 f'(but found `{name_of_type(type(value))}`)')
+        raise WrongTypeException(descriptions=descriptions, must_be=origin_type, found=type(value))
 
     if not child_types:
         return
     if isinstance(value, dict):
-        check_all_of_type(value.keys(), child_types[0], f'within the dict keys{description}')
-        check_all_of_type(value.values(), child_types[1], f'within the dict values{description}')
+        check_all_of_type(value.keys(), child_types[0], ('dict keys', ) + descriptions)
+        check_all_of_type(value.values(), child_types[1], ('dict values', ) + descriptions)
     elif isinstance(value, (list, set)) and len(child_types) == 1:
-        check_all_of_type(value, child_types[0], f'within the {name_of_type(type(value))}{description}')
-    elif isinstance(value, tuple) and len(child_types) == len(value):
-        check_all_of_types(value, child_types, f'within the tuple{description}')
+        check_all_of_type(value, child_types[0], (name_of_type(type(value)), ) + descriptions)
+    elif isinstance(value, tuple):
+        if len(child_types) == 2 and child_types[1] is Ellipsis:
+            check_all_of_type(value, child_types[0], ('tuple', ) + descriptions)
+        elif len(child_types) == len(value):
+            check_all_of_types(value, child_types, ('tuple', ) + descriptions)
+        else:
+            raise WrongTypeException(descriptions=descriptions, must_be=f'a tuple of length {len(child_types)}',
+                                     found=f'a tuple of length {len(value)}')
     elif isinstance(value, Iterable):
-        check_all_of_type(value, child_types[0], f'within the iterable{description}')
+        check_all_of_type(value, child_types[0], ('iterable', ) + descriptions)
     else:
         raise NotImplementedError(f'format_type: {type(value)} is not implemented')
 
@@ -108,11 +131,11 @@ def raise_on_wrong_func_argument_types(func, *args, **kwargs):
     for name, value in bound.arguments.items():
         type_ = sig.parameters[name].annotation
         try:
-            validate_value_type(value, type_, f'argument `{name}`')
+            validate_value_type(value, type_, (f'argument `{name}`', ))
         except WrongTypeException as e:
             msgs.append(str(e))
     if msgs:
-        raise WrongTypeException('\n'.join(msgs))
+        raise TypeError('\n'.join(msgs))
 
 
 def raise_on_wrong_func_argument_types_decorator(func):

@@ -41,7 +41,7 @@ from data_to_paper.run_gpt_code.base_run_contexts import RegisteredRunContext
 from data_to_paper.run_gpt_code.overrides.dataframes.df_with_attrs import InfoDataFrameWithSaveObjFuncCall
 
 from data_to_paper.utils import dedent_triple_quote_str
-from data_to_paper.utils.check_type import raise_on_wrong_func_argument_types, WrongTypeException
+from data_to_paper.utils.check_type import raise_on_wrong_func_argument_types
 from data_to_paper.utils.dataframe import extract_df_row_labels, extract_df_column_labels, extract_df_axes_labels
 from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.utils.numerics import is_lower_eq
@@ -318,7 +318,7 @@ class SyntaxDfChecker(BaseDfChecker):
     def check_argument_types(self):
         try:
             raise_on_wrong_func_argument_types(df_to_latex, self.df, self.filename, **self.kwargs)
-        except WrongTypeException as e:
+        except TypeError as e:
             self._append_issue(issue=str(e))
             return True  # No more checks. Further checks may create errors.
 

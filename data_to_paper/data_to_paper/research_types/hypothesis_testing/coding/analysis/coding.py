@@ -113,6 +113,10 @@ class DictPickleContentOutputFileRequirement(PickleContentOutputFileRequirement)
     def get_code_line_str_for_file(self, filename: str, content: Any) -> Optional[str]:
         return '# SAVE ADDITIONAL RESULTS'
 
+    def get_issues_for_output_file_content(self, filename: str, content: Any) -> List[RunIssue]:
+        # all checks are done in _pickle_dump_with_checks
+        return super().get_issues_for_output_file_content(filename, content)
+
 
 class StaticChecks(ModifyAndCheckCodeExtractor):
     class_and_from_formula: Tuple[str, str] = (

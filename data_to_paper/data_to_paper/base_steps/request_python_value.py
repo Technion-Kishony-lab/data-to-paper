@@ -134,7 +134,7 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
         except WrongTypeException as e:
             self._raise_self_response_error(
                 title='# Incorrect response type',
-                error_message=e.message)
+                error_message=str(e))
         return response_value
 
     def _check_response_value(self, response_value: Any) -> Any:
