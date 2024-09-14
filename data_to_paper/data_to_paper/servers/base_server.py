@@ -45,8 +45,8 @@ class ServerCaller(ABC):
     def all_records(self) -> Union[list, dict]:
         raise NotImplementedError()
 
-    @staticmethod
-    def _get_server_response(*args, **kwargs):
+    @classmethod
+    def _get_server_response(cls, *args, **kwargs):
         """
         actual call to the server.
         this method should only return raw responses that can be serialized to json, without losing type information.

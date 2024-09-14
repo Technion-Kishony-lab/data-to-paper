@@ -162,8 +162,8 @@ class CrossrefServerCaller(ParameterizedQueryServerCaller):
                 raise ValueError(f"Value {value} for key {key} is not valid")
         return citation
 
-    @staticmethod
-    def _get_server_response(query, rows=4) -> List[dict]:
+    @classmethod
+    def _get_server_response(cls, query, rows=4) -> List[dict]:
         """
         Get the response from the crossref server as a list of CrossrefCitation objects.
         """

@@ -125,8 +125,8 @@ class SemanticScholarPaperServerCaller(ParameterizedQueryServerCaller):
     name = "Semantic Scholar"
     file_extension = "_semanticscholar_paper.bin"
 
-    @staticmethod
-    def _get_server_response(query, rows=25) -> List[dict]:
+    @classmethod
+    def _get_server_response(cls, query, rows=25) -> List[dict]:
         """
         Get the response from the semantic scholar server as a list of dict citation objects.
         """
@@ -231,8 +231,8 @@ class SemanticScholarEmbeddingServerCaller(ParameterizedQueryServerCaller):
 
     file_extension = "_semanticscholar_embedding.bin"
 
-    @staticmethod
-    def _get_server_response(paper: Dict[str, str]) -> np.ndarray:
+    @classmethod
+    def _get_server_response(cls, paper: Dict[str, str]) -> np.ndarray:
         """
         Send the paper to the SPECTER Semantic Scholar API and get the embedding.
         """

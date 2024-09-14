@@ -140,7 +140,8 @@ class OpenaiServerCaller(OrderedKeyToListServerCaller):
             self._log_api_usage_cost(action.value, args[0], kwargs['model_engine'])
         return action
 
-    def _get_server_response(self, messages: List[Message], model_engine: Union[ModelEngine, Callable], **kwargs
+    @classmethod
+    def _get_server_response(cls, messages: List[Message], model_engine: Union[ModelEngine, Callable], **kwargs
                              ) -> Union[LLMResponse, HumanAction, Exception]:
         """
         Connect with openai to get response to conversation.

@@ -9,24 +9,24 @@ from data_to_paper.servers.base_server import ListServerCaller, ParameterizedQue
 
 
 class TestListServerCaller(ListServerCaller):
-    @staticmethod
-    def _get_server_response(response: Union[str, Exception] = 'response'):
+    @classmethod
+    def _get_server_response(cls, response: Union[str, Exception] = 'response'):
         if isinstance(response, Exception):
             raise response
         return response
 
 
 class TestParameterizedQueryServerCaller(ParameterizedQueryServerCaller):
-    @staticmethod
-    def _get_server_response(response: Union[str, Exception] = 'response'):
+    @classmethod
+    def _get_server_response(cls, response: Union[str, Exception] = 'response'):
         if isinstance(response, Exception):
             raise response
         return response
 
 
 class TestOrderedKeyToListServerCaller(OrderedKeyToListServerCaller):
-    @staticmethod
-    def _get_server_response(key: str, response: Union[str, Exception] = 'response'):
+    @classmethod
+    def _get_server_response(cls, key: str, response: Union[str, Exception] = 'response'):
         if isinstance(response, Exception):
             raise response
         return response
