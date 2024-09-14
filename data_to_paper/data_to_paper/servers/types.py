@@ -3,11 +3,11 @@ from __future__ import annotations
 import os
 from abc import ABCMeta
 from dataclasses import dataclass
-from typing import NamedTuple, Union
+from typing import Union
 
 from requests import Response
 
-from data_to_paper.exceptions import data_to_paperException, TerminateException
+from data_to_paper.exceptions import TerminateException
 from data_to_paper.utils.text_formatting import dedent_triple_quote_str
 
 

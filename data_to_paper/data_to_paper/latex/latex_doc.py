@@ -1,11 +1,10 @@
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from functools import partial
-from typing import List, Optional, Dict, Union, Iterable, Collection, Tuple
+from typing import Optional, Dict, Union, Iterable, Collection, Tuple
 
 from pathlib import Path
 
-from data_to_paper.env import SAVE_INTERMEDIATE_LATEX
 from data_to_paper.latex import save_latex_and_compile_to_pdf
 from data_to_paper.latex.clean_latex import process_latex_text_and_math
 from data_to_paper.latex.latex_to_pdf import evaluate_latex_num_command
@@ -276,18 +275,18 @@ class LatexDocument:
         return s
 
     def compile_document(self,
-                     content: Optional[Union[str, Iterable[str], Dict[Optional[str], str]]] = None,
-                     title: Optional[str] = None,
-                     abstract: Optional[str] = None,
-                     appendix: Optional[str] = None,
-                     author: Optional[str] = None,
-                     references: Collection[Citation] = None,
-                     format_cite: bool = True,
-                     add_before_document: Optional[str] = None,
-                     figures_folder: Optional[Path] = None,
-                     file_stem: str = 'test',
-                     output_directory: Optional[str] = None,
-                     ) -> (str, str, Optional[float]):
+                         content: Optional[Union[str, Iterable[str], Dict[Optional[str], str]]] = None,
+                         title: Optional[str] = None,
+                         abstract: Optional[str] = None,
+                         appendix: Optional[str] = None,
+                         author: Optional[str] = None,
+                         references: Collection[Citation] = None,
+                         format_cite: bool = True,
+                         add_before_document: Optional[str] = None,
+                         figures_folder: Optional[Path] = None,
+                         file_stem: str = 'test',
+                         output_directory: Optional[str] = None,
+                         ) -> (str, str, Optional[float]):
         """
         Return the latex document as a string.
 
@@ -311,7 +310,8 @@ class LatexDocument:
         pdf_output, over_width_pts = save_latex_and_compile_to_pdf(latex, file_stem=file_stem,
                                                                    output_directory=output_directory,
                                                                    references=references,
-                                                                   format_cite=format_cite, figures_folder=figures_folder)
+                                                                   format_cite=format_cite,
+                                                                   figures_folder=figures_folder)
         return latex, pdf_output, over_width_pts
 
     def compile_table(self, latex_table: str, file_stem: str = 'test', output_directory: Optional[str] = None) -> float:

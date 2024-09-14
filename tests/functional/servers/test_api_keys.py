@@ -10,6 +10,7 @@ def test_semantic_scholar_server_caller_get_server_response():
 def test_openai_server_caller_get_server_response():
     check_llm_servers_connection()
 
+
 def test_semantic_scholar_server_caller_get_server_response_ith_wrong_api_key():
     from data_to_paper.env import SEMANTIC_SCHOLAR_API_KEY
     original_key = SEMANTIC_SCHOLAR_API_KEY.key

@@ -11,7 +11,7 @@ from data_to_paper.research_types.hypothesis_testing.coding.displayitems.my_util
     displayitems_df_to_figure
 from data_to_paper.research_types.hypothesis_testing.coding.displayitems.my_utils.df_to_latex import \
     displayitems_df_to_latex
-from data_to_paper.run_gpt_code.overrides.pvalue import PValue, OnStrPValue, OnStr
+from data_to_paper.run_gpt_code.overrides.pvalue import PValue
 from tests.functional.research_types.scientific_research.utils import simulate_save_load
 
 

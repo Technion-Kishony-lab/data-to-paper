@@ -3,7 +3,7 @@ from __future__ import annotations
 import inspect
 from dataclasses import dataclass
 from functools import wraps
-from typing import Iterable, Any, get_args, get_origin, Union, List, Tuple
+from typing import Iterable, Any, get_args, get_origin, Union, Tuple
 
 from data_to_paper.exceptions import data_to_paperException
 

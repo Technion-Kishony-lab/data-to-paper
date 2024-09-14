@@ -1,4 +1,4 @@
-from abc import abstractmethod, ABCMeta, ABC
+from abc import abstractmethod, ABCMeta
 from dataclasses import dataclass, is_dataclass, fields
 from typing import Optional
 

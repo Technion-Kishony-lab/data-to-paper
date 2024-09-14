@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING
 import openai
 import tiktoken
 
-from data_to_paper.exceptions import TerminateException
 from data_to_paper.interactive import HumanAction, BaseApp
 from data_to_paper.env import CHOSEN_APP, FAKE_REQUEST_HUMAN_RESPONSE_ON_PLAYBACK, SHOW_LLM_CONTEXT
 from data_to_paper.utils.print_to_file import print_and_log_red

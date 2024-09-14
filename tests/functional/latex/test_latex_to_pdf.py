@@ -113,6 +113,7 @@ def citations():
 
 file_name = 'test'
 
+
 def test_latex_document_is_hashable():
     assert hash(LatexDocument()) is not None
 

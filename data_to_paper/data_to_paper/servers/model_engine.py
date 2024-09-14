@@ -107,6 +107,7 @@ MODEL_ENGINES_ALLOWING_JSON_MODE = {ModelEngine.GPT4o_MINI, ModelEngine.GPT4o}
 OPENAI_API_BASE = "https://api.openai.com/v1"
 DEEPINFRA_API_BASE = "https://api.deepinfra.com/v1/openai"
 
+
 def _get_api_key_and_server_name_and_base_url(model_engine: ModelEngine) -> Tuple[APIKey, str, str]:
     from data_to_paper.env import OPENAI_API_KEY, DEEPINFRA_API_KEY
     open_ai_key_and_base_url = (OPENAI_API_KEY, OPENAI_API_BASE, "OpenAI")
