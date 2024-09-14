@@ -17,7 +17,8 @@ from data_to_paper.utils.file_utils import clear_directory
 from data_to_paper.utils.print_to_file import print_and_log, console_log_file_context
 from data_to_paper.servers.llm_call import OPENAI_SERVER_CALLER, OpenaiServerCaller
 from data_to_paper.servers.crossref import CROSSREF_SERVER_CALLER
-from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER
+from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER, \
+    SEMANTIC_SCHOLAR_EMBEDDING_SERVER_CALLER
 from data_to_paper.conversation.stage import Stage
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
 from data_to_paper.exceptions import TerminateException, ResetStepException
@@ -40,6 +41,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
     OPENAI_RESPONSES_FILENAME = 'response_recordings.json'
     CROSSREF_RESPONSES_FILENAME = 'crossref_responses.bin'
     SEMANTIC_SCHOLAR_RESPONSES_FILENAME = 'semantic_scholar_responses.bin'
+    SEMANTIC_SCHOLAR_EMBEDDING_RESPONSES_FILENAME = 'semantic_scholar_embedding_responses.bin'
     CODE_RUNNER_CACHE_FILENAME = 'code_runner_cache.pkl'
     API_USAGE_COST_FILENAME = 'api_usage_cost.json'
 
@@ -285,6 +287,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
                     self.OPENAI_RESPONSES_FILENAME,
                     self.CROSSREF_RESPONSES_FILENAME,
                     self.SEMANTIC_SCHOLAR_RESPONSES_FILENAME,
+                    self.SEMANTIC_SCHOLAR_EMBEDDING_RESPONSES_FILENAME,
                     self.API_USAGE_COST_FILENAME,
                 ]]
 
@@ -322,6 +325,8 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
             self._get_path_in_output_directory(self.CODE_RUNNER_CACHE_FILENAME))
         @SEMANTIC_SCHOLAR_SERVER_CALLER.record_or_replay(
             self._get_path_in_output_directory(self.SEMANTIC_SCHOLAR_RESPONSES_FILENAME))
+        @SEMANTIC_SCHOLAR_EMBEDDING_SERVER_CALLER.record_or_replay(
+            self._get_path_in_output_directory(self.SEMANTIC_SCHOLAR_EMBEDDING_RESPONSES_FILENAME))
         @OPENAI_SERVER_CALLER.record_or_replay(
             self._get_path_in_output_directory(self.OPENAI_RESPONSES_FILENAME))
         @CROSSREF_SERVER_CALLER.record_or_replay(

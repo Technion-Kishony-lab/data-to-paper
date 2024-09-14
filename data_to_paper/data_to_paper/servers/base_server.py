@@ -15,8 +15,17 @@ class NoMoreResponsesToMockError(Exception):
     pass
 
 
+def recursively_convert_lists_and_dicts_to_tuples(obj):
+    if isinstance(obj, (list, tuple)):
+        return tuple(recursively_convert_lists_and_dicts_to_tuples(item) for item in obj)
+    if isinstance(obj, dict):
+        return tuple((recursively_convert_lists_and_dicts_to_tuples(key),
+                      recursively_convert_lists_and_dicts_to_tuples(value)) for key, value in obj.items())
+    return obj
+
+
 def convert_args_kwargs_to_tuple(args, kwargs):
-    return args, tuple(sorted(kwargs.items()))
+    return recursively_convert_lists_and_dicts_to_tuples((args, kwargs))
 
 
 class ServerCaller(ABC):
