@@ -135,7 +135,8 @@ def raise_on_wrong_func_argument_types(func, *args, **kwargs):
         except WrongTypeException as e:
             msgs.append(str(e))
     if msgs:
-        raise TypeError('\n'.join(msgs))
+        all_msgs = '\n'.join(msgs)
+        raise TypeError(f"Error in arguments of {func.__name__}:\n{all_msgs}")
 
 
 def raise_on_wrong_func_argument_types_decorator(func):

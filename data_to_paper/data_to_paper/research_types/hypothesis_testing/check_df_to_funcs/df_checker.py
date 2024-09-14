@@ -41,7 +41,7 @@ from data_to_paper.run_gpt_code.base_run_contexts import RegisteredRunContext
 from data_to_paper.run_gpt_code.overrides.dataframes.df_with_attrs import InfoDataFrameWithSaveObjFuncCall
 
 from data_to_paper.utils import dedent_triple_quote_str
-from data_to_paper.utils.check_type import raise_on_wrong_func_argument_types
+from data_to_paper.utils.check_type import raise_on_wrong_func_argument_types, name_of_type
 from data_to_paper.utils.dataframe import extract_df_row_labels, extract_df_column_labels, extract_df_axes_labels
 from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.utils.numerics import is_lower_eq
@@ -498,12 +498,16 @@ class DfContentChecker(BaseContentDfChecker):
 
             # Check if the headers are of the allowed types:
             allowed_types = self.ALLOWED_COLUMN_AND_INDEX_TYPES[column_or_index]
-            unsupported_header_types = self._get_unsupported_df_header_types(headers, allowed_types)
-            if unsupported_header_types:
+            unsupported_headers = self._get_df_headers_of_unsupported_types(headers, allowed_types)
+            if unsupported_headers:
+                nice_list = NiceList((f"`{repr(header)}`  (type `{name_of_type(type(header))}` is not allowed)"
+                                      for header in unsupported_headers), separator='\n')
+                nice_allowed_types = [name_of_type(allowed_type) for allowed_type in allowed_types]
                 self._append_issue(
                     category=self.INDEX_COLUMN_CATEGORY,
-                    issue=f"Your df has {column_or_index} headers of unsupported types: {unsupported_header_types}.",
-                    instructions=f"The df {column_or_index} headers should be {allowed_types}.",
+                    issue=f"Your df has {column_or_index} headers of unsupported types:\n{nice_list}.",
+                    instructions=f"The df {column_or_index} headers should be only of these types: "
+                                 f"{nice_allowed_types}.",
                 )
 
     def _check_if_df_within_df(self) -> bool:
@@ -562,15 +566,14 @@ class DfContentChecker(BaseContentDfChecker):
             )
 
     @staticmethod
-    def _get_unsupported_df_header_types(headers: Union[pd.MultiIndex, pd.Index], allowed_types: Tuple[Type]
-                                         ) -> ListBasedSet[Any]:
+    def _get_df_headers_of_unsupported_types(headers: Union[pd.MultiIndex, pd.Index], allowed_types: Tuple[Type]
+                                             ) -> List[Any]:
         """
         Find any headers of the dataframe are int, str, or bool.
         """
         if isinstance(headers, pd.MultiIndex):
             headers = [label for level in range(headers.nlevels) for label in headers.get_level_values(level)]
-
-        return ListBasedSet(type(header) for header in headers if not isinstance(header, allowed_types))
+        return [header for header in headers if not isinstance(header, allowed_types)]
 
     @staticmethod
     def _is_index_a_range(index, max_allowed_range: int = 2):
@@ -1224,7 +1227,7 @@ class AnnotationDfChecker(BaseContentDfChecker):
                     )
         return any_issues  # we don't want additional issues if working on the underscores
 
-    def check_for_abbreviations_not_in_glossary(self):
+    def check_glossary(self):
         if self.is_figure:
             axes_labels = list(self.get_y_labels()) + list(self.get_x_labels())
         else:
@@ -1233,57 +1236,51 @@ class AnnotationDfChecker(BaseContentDfChecker):
         abbr_labels = [label for label in axes_labels if is_unknown_abbreviation(label)]
         glossary = self.glossary or {}
         un_mentioned_abbr_labels = sorted([label for label in abbr_labels if label not in glossary])
-        if un_mentioned_abbr_labels:
-            instructions = dedent_triple_quote_str(f"""
-                Please revise the code making sure all abbreviated labels (of both column and rows!) are explained \t
-                in the glossary.
-                Add the missing abbreviations and their explanations as keys and values in the `glossary` \t
-                argument of `df_to_latex` or `df_to_figure`.
-                """)
-            if self.is_narrow:
-                instructions += dedent_triple_quote_str(f"""
-                    Alternatively, since the {self.table_or_figure} is not too wide, you can also replace the \t
-                    abbreviated labels with their full names in the dataframe itself.
-                    """)
+        glossary_keys_not_in_df = sorted([label for label in glossary if label not in axes_labels])
+
+        if un_mentioned_abbr_labels or glossary_keys_not_in_df:
+            glossary_msg = f"The `glossary` argument of `{self.func_name}` for '{self.filename}' "
             if self.glossary:
-                issue = dedent_triple_quote_str(f"""
-                    The `glossary` argument of `{self.func_name}` includes only the following keys:
-                    {list(self.glossary.keys())}
-                    We need to add also the following abbreviated row/column labels:
-                    {un_mentioned_abbr_labels}
+                glossary_msg += f"includes the following keys:\n{list(self.glossary.keys())}\n\n"
+            else:
+                glossary_msg += "is not provided.\n\n"
+            axes_labels_msg = f'The corresponding df includes the following labels:\n{axes_labels}\n\n'
+            if glossary_keys_not_in_df:
+                glossary_keys_not_in_df_msg = dedent_triple_quote_str(f"""
+                    **Provided glossary keys not matching any of the df labels:**
+                    The glossary includes the following keys that are not in the df:
+                    {glossary_keys_not_in_df}
+                    The glossary keys should be a subset of the df labels.
+                    Please remove/replace these stranded keys. \t
+                    (or, alternatively, rename the relevant df labels to match these stranded glossary keys).
                     """)
             else:
-                issue = dedent_triple_quote_str(f"""
-                    The {self.table_or_figure} needs a glossary explaining the following abbreviated labels:
+                glossary_keys_not_in_df_msg = ""
+
+            if un_mentioned_abbr_labels:
+                un_mentioned_abbr_labels_msg = dedent_triple_quote_str(f"""\n
+                    **Abbreviated df labels that are not mentioned in the glossary:**
+                    The df includes the following abbreviated labels that are not defined in the glossary:
                     {un_mentioned_abbr_labels}
+                    Please add these missing abbreviated labels to the `glossary`.
                     """)
+                if self.is_narrow:
+                    un_mentioned_abbr_labels_msg += dedent_triple_quote_str(f"""
+                        Alternatively, since the {self.table_or_figure} is not too wide, you can also replace \t
+                        these undefined abbreviated labels with their full names in the dataframe itself.
+                        """)
+            else:
+                un_mentioned_abbr_labels_msg = ""
+
             self._append_issue(
                 category='Displayitem glossary',
-                issue=issue,
-                instructions=instructions,
-            )
-
-    def check_for_glossary_labels_not_in_df(self):
-        if not self.glossary:
-            return
-        all_labels = extract_df_axes_labels(self.df, with_title=True, string_only=True)
-        un_mentioned_labels = [label for label in self.glossary if label not in all_labels and label != 'Significance']
-        if un_mentioned_labels:
-            self._append_issue(
-                category='Displayitem glossary',
-                issue=f'The glossary of the {self.func_name} includes the following labels that are not in the df:\n'
-                      f'{un_mentioned_labels}\n'
-                      f'Here are the available df row and column labels:\n{all_labels}',
-                instructions=dedent_triple_quote_str("""
-                    The glossary keys should be a subset of the df labels.
-
-                    Please revise the code changing either the glossary keys, or the df labels, accordingly.
-
-                    As a reminder: you can also use the `note` argument to add information that is related to the
-                    displayitem as a whole, rather than to a specific label.
+                issue=f'{glossary_msg}{axes_labels_msg}{glossary_keys_not_in_df_msg}{un_mentioned_abbr_labels_msg}',
+                instructions=dedent_triple_quote_str(f"""\n\n
+                    As a reminder: you can also use the `note` argument to add \t
+                    information that is related to the f"{self.table_or_figure} as a whole, \t
+                    rather than to a specific label.
                     """)
             )
-
     def _create_displayitem_caption_label_issue(self, issue: str):
         self._append_issue(
             category='Problem with displayitem caption',
@@ -1335,8 +1332,7 @@ class AnnotationDfChecker(BaseContentDfChecker):
 
     CHOICE_OF_CHECKS = BaseContentDfChecker.CHOICE_OF_CHECKS | {
         check_for_unallowed_characters_in_labels: True,
-        check_for_abbreviations_not_in_glossary: True,
-        check_for_glossary_labels_not_in_df: True,
+        check_glossary: True,
         check_note: True,
         check_caption: True,
         check_note_is_different_than_caption: True,
