@@ -241,6 +241,7 @@ class SemanticScholarEmbeddingServerCaller(ParameterizedQueryServerCaller):
         if not all(key in paper for key in ["paper_id", "title", "abstract"]):
             raise ValueError("Paper must have 'paper_id', 'title' and 'abstract' attributes.")
 
+        print_and_log_red(f'GETTING SEMANTIC SCHOLAR EMBEDDING FOR: "{paper["title"]}"', should_log=False)
         response = requests.post(EMBEDDING_URL, json=[paper])
 
         if response.status_code != 200:

@@ -53,3 +53,6 @@ You need to define the following environment variables in your system:
 
 To set up the keys on your system, see 
 [openai instructions](https://help.openai.com/en/articles/5112595-best-practices-for-api-key-safety)
+
+To test if the keys are set up correctly, run
+`python data_to_paper/data_to_paper/scripts/check_api_keys.py`
