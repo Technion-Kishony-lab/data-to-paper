@@ -70,18 +70,6 @@ The **data-to-paper** framework is described in the following pre-print:
 [arXiv:2404.17605](https://arxiv.org/abs/2404.17605)
 
 
-### Installation
-See [INSTALL.md](INSTALL.md) for installation instructions.
-
-### How to run
-1. Install data-to-paper ([INSTALL](INSTALL.md)).
-2. Run data-to-paper:
-      `python data_to_paper/data_to_paper/scripts/run.py`
-3. This will open a startup dialog that will allow you to specify your own project, 
-or to reproduce example projects (`data-to-paper/projects`) 
-4. Click "Start" to start the run, with human overseeing and feedback.
-5. At the end of the process, a pdf of the manuscript will be created in the project folder.
-
 ### Examples
 
 We ran **data-to-paper** on the following test cases:
@@ -90,32 +78,48 @@ We ran **data-to-paper** on the following test cases:
 CDC’s Behavioral Risk Factor Surveillance System (BRFSS) 2015 annual dataset 
   ([Kaggle](https://www.kaggle.com/datasets/alexteboul/diabetes-health-indicators-dataset)). Here is an [example Paper](https://github.com/rkishony/data-to-paper-supplementary/blob/main/Supplementary%20Data-chained%20Manuscripts/Supplementary%20Data-chained%20Manuscript%20A.pdf) created by data-to paper.
 
-Try out: `python run.py diabetes`
+Try out: 
+```shell
+data-to-paper diabetes
+```
 
 
 * **Social Network (open goal).** A directed graph of Twitter interactions among the 117th Congress members
   ([Fink et al](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10493874/)). Here is an [example Paper](https://github.com/rkishony/data-to-paper-supplementary/blob/main/Supplementary%20Data-chained%20Manuscripts/Supplementary%20Data-chained%20Manuscript%20B.pdf) created by data-to paper.
 
-Try out: `python run.py social_network`
-
+Try out:
+```shell
+data-to-paper social_network
+```
 
 * **Treatment Policy (fixed-goal).** A dataset on treatment and outcomes of non-vigorous infants admitted to the Neonatal Intensive Care Unit (NICU), before and after a change to treatment guidelines was implemented
   ([Saint-Fleur et al](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0289945)). Here is an [example Paper](https://github.com/rkishony/data-to-paper-supplementary/blob/main/Supplementary%20Data-chained%20Manuscripts/Supplementary%20Data-chained%20Manuscript%20C.pdf) created by data-to paper.
 
-Try out: `python run.py npr_nicu`
-
+Try out: 
+```shell
+data-to-paper npr_nicu
+```
 * **Treatment Optimization (fixed-goal).** A dataset of pediatric patients, which received mechanical ventilation after undergoing surgery, including an x-ray-based determination of the optimal tracheal tube intubation depth and a set of personalized patient attributes to be used in machine learning and formula-based models to predict this optimal depth
   ([Shim et al](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0257069)). Here is an [example Paper](https://github.com/rkishony/data-to-paper-supplementary/blob/main/Supplementary%20Data-chained%20Manuscripts/Supplementary%20Data-chained%20Manuscript%20D.pdf) created by data-to paper.
 
 We defined three levels of difficulty for the research question for this paper.  
 1. **easy**: Compare two ML methods for predicting optimal intubation depth  
-Try out: `python run.py ML_easy`  
+Try out: 
+```shell
+data-to-paper ML_easy
+```  
   
 2. **medium**: Compare one ML method and one formula-based method for predicting optimal intubation depth  
-Try out: `python run.py ML_medium`  
+Try out: 
+```shell
+data-to-paper ML_medium
+```  
  
 3. **hard**: Compare 4 ML methods with 3 formula-based methods for predicting optimal intubation depth  
-Try out: `python run.py ML_hard`
+Try out:
+```shell
+data-to-paper ML_hard
+```
 
 ### Contributing
 We invite people to try out **data-to-paper** with their own data and are eager **for feedback and suggestions**.
