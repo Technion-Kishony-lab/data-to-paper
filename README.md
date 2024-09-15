@@ -6,11 +6,11 @@
 
 **data-to-paper** is an automation framework that systematically navigates interacting AI agents through a **complete 
 end-to-end scientific research**, starting from *raw data* alone and concluding with *transparent, backward-traceable, 
-human-verifiable scientific papers* 
-([Example paper](
-https://raw.githubusercontent.com/Technion-Kishony-lab/data-to-paper/feature/figures2/ExampleManuscriptFigures.pdf)).
+human-verifiable scientific papers* <a href="https://raw.githubusercontent.com/Technion-Kishony-lab/data-to-paper/feature/figures2/ExampleManuscriptFigures.pdf" target="_blank">(Example paper)</a>.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
+
+### Try it out yourself
 
 ```commandline
 pip install data-to-paper
@@ -76,7 +76,7 @@ We ran **data-to-paper** on the following test cases:
 
 * **Health Indicators (open goal).** A clean unweighted subset of 
 CDC’s Behavioral Risk Factor Surveillance System (BRFSS) 2015 annual dataset 
-  ([Kaggle](https://www.kaggle.com/datasets/alexteboul/diabetes-health-indicators-dataset)). Here is an [example Paper](https://github.com/rkishony/data-to-paper-supplementary/blob/main/Supplementary%20Data-chained%20Manuscripts/Supplementary%20Data-chained%20Manuscript%20A.pdf) created by data-to paper.
+  ([Kaggle](https://www.kaggle.com/datasets/alexteboul/diabetes-health-indicators-dataset)). Here is an [example Paper](https://github.com/rkishony/data-to-paper-supplementary/blob/3704b0508192ff1f68b33be2ef282249f10f1254/Supplementary%20Data-chained%20Manuscripts/Supplementary%20Data-chained%20Manuscript%20A.pdf) created by data-to paper.
 
 Try out: 
 ```shell
@@ -85,7 +85,7 @@ data-to-paper diabetes
 
 
 * **Social Network (open goal).** A directed graph of Twitter interactions among the 117th Congress members
-  ([Fink et al](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10493874/)). Here is an [example Paper](https://github.com/rkishony/data-to-paper-supplementary/blob/main/Supplementary%20Data-chained%20Manuscripts/Supplementary%20Data-chained%20Manuscript%20B.pdf) created by data-to paper.
+  ([Fink et al](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10493874/)). Here is an [example Paper](https://github.com/rkishony/data-to-paper-supplementary/blob/3704b0508192ff1f68b33be2ef282249f10f1254/Supplementary%20Data-chained%20Manuscripts/Supplementary%20Data-chained%20Manuscript%20B.pdf) created by data-to paper.
 
 Try out:
 ```shell
@@ -93,14 +93,14 @@ data-to-paper social_network
 ```
 
 * **Treatment Policy (fixed-goal).** A dataset on treatment and outcomes of non-vigorous infants admitted to the Neonatal Intensive Care Unit (NICU), before and after a change to treatment guidelines was implemented
-  ([Saint-Fleur et al](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0289945)). Here is an [example Paper](https://github.com/rkishony/data-to-paper-supplementary/blob/main/Supplementary%20Data-chained%20Manuscripts/Supplementary%20Data-chained%20Manuscript%20C.pdf) created by data-to paper.
+  ([Saint-Fleur et al](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0289945)). Here is an [example Paper](https://github.com/rkishony/data-to-paper-supplementary/blob/3704b0508192ff1f68b33be2ef282249f10f1254/Supplementary%20Data-chained%20Manuscripts/Supplementary%20Data-chained%20Manuscript%20C.pdf) created by data-to paper.
 
 Try out: 
 ```shell
 data-to-paper npr_nicu
 ```
 * **Treatment Optimization (fixed-goal).** A dataset of pediatric patients, which received mechanical ventilation after undergoing surgery, including an x-ray-based determination of the optimal tracheal tube intubation depth and a set of personalized patient attributes to be used in machine learning and formula-based models to predict this optimal depth
-  ([Shim et al](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0257069)). Here is an [example Paper](https://github.com/rkishony/data-to-paper-supplementary/blob/main/Supplementary%20Data-chained%20Manuscripts/Supplementary%20Data-chained%20Manuscript%20D.pdf) created by data-to paper.
+  ([Shim et al](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0257069)). Here is an [example Paper](https://github.com/rkishony/data-to-paper-supplementary/blob/3704b0508192ff1f68b33be2ef282249f10f1254/Supplementary%20Data-chained%20Manuscripts/Supplementary%20Data-chained%20Manuscript%20D.pdf) created by data-to paper.
 
 We defined three levels of difficulty for the research question for this paper.  
 1. **easy**: Compare two ML methods for predicting optimal intubation depth  
