@@ -50,7 +50,6 @@ import sys
 from data_to_paper.base_steps.run_all_steps import set_project_and_run
 from data_to_paper.research_types.hypothesis_testing.steps_runner import HypothesisTestingStepsRunner
 from data_to_paper.research_types.toy_example.steps_runner import ToyStepsRunner
-from data_to_paper.scripts.check_dependencies import check_dependencies
 
 # setup the QT_QPA_PLATFORM environment variable to 'xcb' if the system is Linux
 if sys.platform == 'linux':
@@ -100,10 +99,6 @@ def run():
     research_type = args.research_type
 
     run_name = run_name or DEFAULT_RUN_NAME
-
-    if not any(arg in sys.argv for arg in ('-h', '--help')):
-        if not check_dependencies():
-            return
 
     if project:
         if project not in RUN_PARAMETERS:
