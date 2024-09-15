@@ -172,8 +172,7 @@ class TrackDataFrames(RunContext):
     def _on_change(self, df, series_operation: DataframeOperation):
         if self._prevent_recording_changes:
             return
-        if isinstance(series_operation, ChangeSeriesDataframeOperation) and \
-                self._is_called_from_user_script(5):
+        if isinstance(series_operation, ChangeSeriesDataframeOperation) and self._is_called_from_user_script(5):
             if self.allow_dataframes_to_change_existing_series is False \
                     or (self.allow_dataframes_to_change_existing_series is None and df.file_path is not None):
                 self.issues.append(DataFrameSeriesChange.from_current_tb(changed_series=series_operation.series_name))

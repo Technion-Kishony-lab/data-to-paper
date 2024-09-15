@@ -255,8 +255,8 @@ class TrackPValueCreationFuncs(RunContext):
     package_names: Iterable[str] = ()
     pvalue_creating_funcs: List[str] = field(default_factory=list)
 
-    def _add_pvalue_creating_func(self, func_name: str):
-        if self._is_enabled and self._is_called_from_user_script(4):
+    def _add_pvalue_creating_func(self, func_name: str, offset: int = 3):
+        if self._is_enabled and self._is_called_from_user_script(offset=offset + 1):
             self.pvalue_creating_funcs.append(func_name)
 
 

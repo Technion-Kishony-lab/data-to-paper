@@ -21,7 +21,7 @@ def is_filename_gpt_code(filename: str) -> bool:
     filename = os.path.basename(filename)
     # TODO: this is a hack. Need to define the file of the gpt script dynamically.
     return filename == module_filename \
-        or str(folder).endswith('data_to_paper/scripts')
+        or str(folder).replace('\\', '/').endswith('data_to_paper/scripts')
 
 
 def is_filename_test(filename: str) -> bool:
@@ -44,18 +44,6 @@ def is_called_from_user_script(offset: int = 3) -> bool:
     if IS_CHECKING:
         return False
     with IS_CHECKING.temporary_set(True):
-        tb = traceback.extract_stack()
+        tb = traceback.extract_stack()  # this can lead to import and invoke recursion (thereby IS_CHECKING))
         filename = tb[-offset].filename
         return is_filename_gpt_code(filename) or is_filename_test(filename)
-
-
-def is_called_from_data_to_paper(offset: int = 3) -> bool:
-    """
-    Check if the code is called from data_to_paper.
-    """
-    if IS_CHECKING:
-        return False
-    with IS_CHECKING.temporary_set(True):
-        tb = traceback.extract_stack()
-        filename = tb[-offset].filename
-        return BASE_FOLDER.name in filename or is_filename_test(filename)

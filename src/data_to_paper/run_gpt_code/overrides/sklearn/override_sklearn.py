@@ -28,7 +28,7 @@ class SklearnFitOverride(SystematicMethodReplacerContext):
         @functools.wraps(original_func)
         def wrapped(obj, *args, **kwargs):
             result = original_func(obj, *args, **kwargs)
-            if self._is_called_from_data_to_paper():
+            if self._is_called_from_user_script():
                 if hasattr(obj, '_prior_fit_results') and obj._prior_fit_results is result:
                     raise RunIssue.from_current_tb(
                         category='Sklearn: good practices',

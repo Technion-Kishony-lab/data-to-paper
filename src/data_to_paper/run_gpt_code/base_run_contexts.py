@@ -67,14 +67,6 @@ class RunContext(DisableableContext):
         """
         return is_called_from_user_script(offset=offset + 1)
 
-    def _is_called_from_data_to_paper(self, offset: int = 3) -> bool:
-        """
-        Check if the code is called from data_to_paper.
-        """
-        # TODO: not clear if we want called from data_to_paper or called from user script
-        # return is_called_from_data_to_paper(offset=offset + 1)
-        return is_called_from_user_script(offset=offset + 1)
-
 
 @dataclass
 class RegisteredRunContext(RunContext):

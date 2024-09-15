@@ -172,7 +172,7 @@ class AttrReplacer(OverrideImportedObjContext):
             return self._get_wrapper()
 
         def wrapped_wrapper(*args, **kwargs):
-            if not self._is_enabled or not self._is_called_from_data_to_paper():
+            if not self._is_enabled or not self._is_called_from_user_script():
                 return self._original(*args, **kwargs)
             if self.send_context_to_wrapper:
                 kwargs['context_manager'] = self

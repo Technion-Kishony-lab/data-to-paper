@@ -123,7 +123,7 @@ class StatsmodelsFitPValueOverride(SystematicMethodReplacerContext, TrackPValueC
         @functools.wraps(original_func)
         def wrapped(obj, *args, **kwargs):
             result = original_func(obj, *args, **kwargs)
-            if self._is_called_from_data_to_paper():
+            if self._is_called_from_user_script():
                 if hasattr(obj, '_prior_fit_results') and obj._prior_fit_results is result:
                     #  TODO: Can likely be removed.
                     # This behavior happen on sklean.
@@ -246,9 +246,6 @@ class StatsmodelsMulticompPValueOverride(AttrReplacer, TrackPValueCreationFuncs)
     package_names: Iterable[str] = ('statsmodels', )
     obj_import_str: str = 'statsmodels.sandbox.stats.multicomp.TukeyHSDResults'
     attr: str = '__init__'
-
-    def _is_called_from_data_to_paper(self, offset: int = 3) -> bool:
-        return True
 
     def _get_wrapped_wrapper(self):
 
