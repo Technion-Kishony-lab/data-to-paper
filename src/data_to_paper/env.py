@@ -5,9 +5,7 @@ from data_to_paper.utils.mutable import Mutable, Flag
 from data_to_paper.servers.types import APIKey
 from data_to_paper.types import HumanReviewType
 
-
-""" FOLDERS """
-BASE_FOLDER = Path(__file__).parent.parent.parent
+BASE_FOLDER = Path(__file__).parent
 FOLDER_FOR_RUN = Path(__file__).parent / 'temp_run'
 
 """ API KEYS """
