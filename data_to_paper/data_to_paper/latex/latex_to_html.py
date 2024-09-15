@@ -2,6 +2,7 @@ import os
 import re
 import subprocess
 
+from data_to_paper.exceptions import MissingInstallationError
 from data_to_paper.latex.clean_latex import process_latex_text_and_math
 from data_to_paper.utils.file_utils import run_in_temp_directory
 from data_to_paper.utils.text_formatting import escape_html
@@ -22,9 +23,13 @@ def convert_latex_to_html(latex: str) -> str:
     try:
         subprocess.run(['pandoc', '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
     except FileNotFoundError:
-        raise FileNotFoundError("Pandoc is not installed. Please install Pandoc to use this feature.")
+        raise MissingInstallationError(package_name="Pandoc", instructions="See: https://pandoc.org/installing.html")
+    except subprocess.CalledProcessError:
+        # issue a warning:
+        print("Warning: Pandoc error. Proceeding with raw LaTeX.")
+        return escape_html(latex)
 
-    is_title = re.search(r'\\title{(.+?)}', latex)
+    is_title = re.search(pattern=r'\\title{(.+?)}', string=latex)
     dir_path = os.path.dirname(os.path.realpath(__file__))
     tex_file = 'temp.tex'
     command = [

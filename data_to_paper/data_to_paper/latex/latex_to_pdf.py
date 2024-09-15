@@ -9,6 +9,7 @@ from typing import Optional, Collection, Tuple, Dict
 
 from pathlib import Path
 
+from data_to_paper.exceptions import MissingInstallationError
 from data_to_paper.servers.custom_types import Citation
 from data_to_paper.utils.file_utils import run_in_temp_directory
 from data_to_paper.code_and_output_files.ref_numeric_values import replace_hyperlinks_with_values
@@ -19,6 +20,64 @@ from .exceptions import LatexCompilationError, LatexNumCommandFormulaEvalError, 
 
 BIB_FILENAME: str = 'citations.bib'
 WATERMARK_PATH: str = os.path.join(os.path.dirname(__file__), 'watermark.pdf')
+
+PDFLATEX_INSTALLATION_INSTRUCTIONS = """
+Installations instructions for pdflatex:
+
+* **On Ubuntu**:
+```
+sudo apt-get update && \
+sudo apt-get install -y --no-install-recommends \
+texlive-latex-base \
+texlive-latex-extra \
+texlive-fonts-recommended
+```
+
+* **On MacOS**:
+- Ensure you have Homebrew installed (see https://brew.sh).
+- Install MacTeX with the following command:
+```
+brew install --cask mactex-no-gui
+```
+- After installation, you may need to add the TeX binaries to your PATH!
+
+* **On Windows**:
+- Download and install MiKTeX from https://miktex.org/download.
+- During installation, select 'Yes' when asked to install missing packages on-the-fly.
+- After installation, you may need to add the TeX binaries to your PATH!
+ """
+
+
+def check_pdflatex_is_installed() -> Optional[bool]:
+    """
+    Check that pdflatex is installed.
+    True if installed, False if not.
+    None if check failed.
+    """
+    try:
+        subprocess.run(['pdflatex', '--version'], check=True, stdout=subprocess.DEVNULL,
+                       stderr=subprocess.DEVNULL)
+    except FileNotFoundError:
+        return False
+    except subprocess.CalledProcessError:
+        return None
+    return True
+
+
+def check_that_pdflatex_packages_is_installed(package: str) -> Optional[bool]:
+    """
+    Check that the packages used in the latex document are installed.
+    True if installed, False if not.
+    None if check failed.
+    """
+    try:
+        subprocess.run(['kpsewhich', package + '.sty'], check=True, stdout=subprocess.DEVNULL,
+                       stderr=subprocess.DEVNULL)
+    except FileNotFoundError:
+        return None
+    except subprocess.CalledProcessError:
+        return False
+    return True
 
 
 def is_string_plain_number(string: str) -> bool:
@@ -144,6 +203,8 @@ def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_dir
         try:
             pdflatex_output = subprocess.run(pdflatex_params,
                                              check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        except FileNotFoundError:
+            raise MissingInstallationError(package_name="pdflatex", instructions=PDFLATEX_INSTALLATION_INSTRUCTIONS)
         except subprocess.CalledProcessError as e:
             _move_latex_and_pdf_to_output_directory(file_stem, output_directory, latex_file_name)
             raise LatexCompilationError(latex_content=latex_content,
@@ -154,7 +215,10 @@ def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_dir
         if format_cite:
             try:
                 if should_compile_with_bib:
-                    subprocess.run(['bibtex', file_stem], check=True)
+                    try:
+                        subprocess.run(['bibtex', file_stem], check=True)
+                    except FileNotFoundError:
+                        raise MissingInstallationError(package_name="bibtex", instructions=PDFLATEX_INSTALLATION_INSTRUCTIONS)
                 subprocess.run(pdflatex_params, check=True)
                 subprocess.run(pdflatex_params, check=True)
             except subprocess.CalledProcessError:

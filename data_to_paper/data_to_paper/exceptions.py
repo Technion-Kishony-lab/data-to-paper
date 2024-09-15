@@ -31,6 +31,21 @@ class TerminateException(data_to_paperException, metaclass=ABCMeta):
 
 
 @dataclass
+class MissingInstallationError(TerminateException):
+    """
+    An exception to indicate a missing installation.
+    """
+    package_name: str
+    instructions: Optional[str] = None
+
+    def __str__(self):
+        s = f"{self.package_name} is not installed. Please install it."
+        if self.instructions:
+            s += f"\n\n{self.instructions}"
+        return s
+
+
+@dataclass
 class ResetStepException(Exception):
     """
     An exception to reset the step.
