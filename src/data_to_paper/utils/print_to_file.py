@@ -8,9 +8,11 @@ from pathlib import Path
 
 from .console_log_to_html import convert_console_log_to_html
 from .highlighted_text import colored_text
-from .mutable import Mutable
+from .mutable import Mutable, Flag
 
 CONSOLE_LOG_FILE = Mutable(None)
+
+IS_LOGGING_ENABLED = Flag(True)
 
 
 @contextmanager
@@ -34,6 +36,8 @@ def console_log_file_context(file_path: Path):
 
 def print_and_log(text_in_bw: str, text_in_color: Optional[str] = None, color: Optional[str] = None,
                   should_log: bool = True, **kwargs):
+    if not IS_LOGGING_ENABLED:
+        return
     if color is not None:
         assert text_in_color is None
         text_in_color = colored_text(text_in_bw, color)

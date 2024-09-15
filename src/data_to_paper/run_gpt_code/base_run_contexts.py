@@ -5,7 +5,7 @@ from contextlib import contextmanager, ExitStack
 from dataclasses import dataclass
 from typing import List, Type, TypeVar, Optional, Iterable, Union, Dict
 
-from .user_script_name import is_called_from_user_script, is_called_from_data_to_paper
+from .user_script_name import is_called_from_user_script
 from .run_issues import RunIssues
 
 T = TypeVar('T', bound='SingletonRegisteredRunContext')

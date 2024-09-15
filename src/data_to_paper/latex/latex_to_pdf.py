@@ -48,7 +48,7 @@ brew install --cask mactex-no-gui
  """
 
 
-def check_pdflatex_is_installed() -> Optional[bool]:
+def is_pdflatex_installed() -> Optional[bool]:
     """
     Check that pdflatex is installed.
     True if installed, False if not.
@@ -64,7 +64,7 @@ def check_pdflatex_is_installed() -> Optional[bool]:
     return True
 
 
-def check_that_pdflatex_packages_is_installed(package: str) -> Optional[bool]:
+def is_pdflatex_package_installed(package: str) -> Optional[bool]:
     """
     Check that the packages used in the latex document are installed.
     True if installed, False if not.

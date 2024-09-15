@@ -5,7 +5,21 @@ import subprocess
 from data_to_paper.exceptions import MissingInstallationError
 from data_to_paper.latex.clean_latex import process_latex_text_and_math
 from data_to_paper.utils.file_utils import run_in_temp_directory
+from data_to_paper.utils.resource_checking import resource_checking
 from data_to_paper.utils.text_formatting import escape_html
+
+
+@resource_checking("Checking Pandoc installation")
+def check_pandoc_is_installed():
+    # This will raise MissingInstallationError:
+    raise_if_pandoc_is_not_installed()
+
+
+def raise_if_pandoc_is_not_installed():
+    try:
+        subprocess.run(['pandoc', '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+    except FileNotFoundError:
+        raise MissingInstallationError(package_name="Pandoc", instructions="See: https://pandoc.org/installing.html")
 
 
 def convert_latex_to_html(latex: str) -> str:
@@ -18,16 +32,7 @@ def convert_latex_to_html(latex: str) -> str:
     Returns:
     - str: The converted HTML text.
     """
-
-    # check if pandoc is installed
-    try:
-        subprocess.run(['pandoc', '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
-    except FileNotFoundError:
-        raise MissingInstallationError(package_name="Pandoc", instructions="See: https://pandoc.org/installing.html")
-    except subprocess.CalledProcessError:
-        # issue a warning:
-        print("Warning: Pandoc error. Proceeding with raw LaTeX.")
-        return escape_html(latex)
+    raise_if_pandoc_is_not_installed()
 
     is_title = re.search(pattern=r'\\title{(.+?)}', string=latex)
     dir_path = os.path.dirname(os.path.realpath(__file__))

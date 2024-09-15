@@ -9,8 +9,8 @@ from pathlib import Path
 from data_to_paper.exceptions import MissingInstallationError
 from data_to_paper.latex import save_latex_and_compile_to_pdf
 from data_to_paper.latex.clean_latex import process_latex_text_and_math
-from data_to_paper.latex.latex_to_pdf import evaluate_latex_num_command, check_that_pdflatex_packages_is_installed, \
-    check_pdflatex_is_installed, PDFLATEX_INSTALLATION_INSTRUCTIONS
+from data_to_paper.latex.latex_to_pdf import evaluate_latex_num_command, is_pdflatex_package_installed, \
+    is_pdflatex_installed, PDFLATEX_INSTALLATION_INSTRUCTIONS
 
 from data_to_paper.servers.custom_types import Citation
 from data_to_paper.utils import dedent_triple_quote_str
@@ -281,7 +281,7 @@ class LatexDocument:
         """
         Check that pdflatex is installed.
         """
-        if not check_pdflatex_is_installed():
+        if not is_pdflatex_installed():
             raise MissingInstallationError(package_name='pdflatex', instructions=PDFLATEX_INSTALLATION_INSTRUCTIONS)
 
     @property
@@ -294,7 +294,7 @@ class LatexDocument:
         """
         missing_packages = []
         for package_name in self.package_names:
-            is_installed = check_that_pdflatex_packages_is_installed(package_name)
+            is_installed = is_pdflatex_package_installed(package_name)
             if is_installed is None:
                 print('Warning: failed checking if package is installed.')
                 return
