@@ -190,24 +190,25 @@ class CreateDisplayitemsCodeProductsGPT(BaseTableCodeProductsGPT):
         {provided_code}
         ```
 
-        For each df_*.pkl file, your code should:
+        Your code should define `all_mapping: AbbrToNameDef`, which maps any original \t
+        column and row names that are abbreviated or not self-explanatory to an optional new name, \t
+        and an optional definition.
+
+        Then, for each df_*.pkl file, your code should:
 
         * Rename column and row names: You should provide a new name to any column or row label that is abbreviated \t
         or technical, or that is otherwise not self-explanatory.
 
-        * Provide glossary definitions: You should provide a full definition for any name (or new name) \t
-        in the df that satisfies any of the following: 
+        * Provide glossary definitions: You should provide a full definition for any original name \t
+        (or modified new name) in the df that satisfies any of the following: 
         - Remains abbreviated, or not self-explanatory, even after renaming.
         - Is an ordinal/categorical variable that requires clarification of the meaning of each of its possible values.
-        - Contains unclear notation, like '*' or ':'
+        - Contains unclear notation, like '*' or ':', '_'.
         - Represents a numeric variable that has units, that need to be specified.        
 
         To avoid re-naming mistakes, you should define for each df a dictionary, \t
-        `mapping: AbbrToNameDef`, which maps any original \t
-        column and row names that are abbreviated or not self-explanatory to an optional new name, \t
-        and an optional definition.
-        If different df share several common labels, then you can build a `shared_mapping`, \t
-        from which you can extract the relevant labels for each table/figure.
+        `mapping: AbbrToNameDef`, derived from `all_mapping`, that contains only the labels that are in the df \t
+        (use the `is_str_in_df` function). 
 
         Overall, the code must have the following structure (### are my instructions, not part of the code):
 
@@ -217,19 +218,30 @@ class CreateDisplayitemsCodeProductsGPT(BaseTableCodeProductsGPT):
         from my_utils import df_to_latex, df_to_figure, is_str_in_df, split_mapping, AbbrToNameDef
 
         # PREPARATION FOR ALL TABLES AND FIGURES
-        ### As applicable, define a shared mapping for labels that are common to all df. For example:
-        shared_mapping: AbbrToNameDef = {
+        ### Define mapping for all df labels that need to be renamed and/or glossary defined. For example:
+        all_mapping: AbbrToNameDef = {
+            # Rename and provide glossary definitions for any abbreviated or not self-explanatory labels:
             'AvgAge': ('Avg. Age', 'Average age, years'),
             'BT': ('Body Temperature', '1: Normal, 2: High, 3: Very High'),
-            'W': ('Weight', 'Participant weight, kg'),
+
+            # Explain and add units:
+            'Weight': ('Weight', 'Participant weight, kg'),
+
+            # Provide a full definition for any label that is not self-explanatory:
             'MRSA': ('MRSA', 'Infected with Methicillin-resistant Staphylococcus aureus, 1: Yes, 0: No'),
+
+            # If the table is too wide, provide a shorter label:
+            'Too Long Label': ('Short Label', 'Definition of the short label'),
+
+            # Etc.
             ...: (..., ...),
         }
-        ### This is of course just an example. 
+        ### These are of course just examples. 
         ### Consult with the "{data_file_descriptions}" and the "{codes:data_analysis}" 
         ### for choosing the actual labels and their proper scientific names and definitions.
 
-        ## Process df_tag:  ### tag is a placeholder for the actual name of the df created by the {codes:data_analysis}
+        ## Process df_tag:  
+        ### `tag` is a placeholder for the actual name of the df created by the {codes:data_analysis}
         df_tag = pd.read_pickle('df_tag.pkl')
 
         # Format values:
@@ -239,8 +251,10 @@ class CreateDisplayitemsCodeProductsGPT(BaseTableCodeProductsGPT):
 
         # Rename rows and columns:
         ### Rename any abbreviated or not self-explanatory df labels to scientifically-suitable names.
-        ### Use the `shared_mapping` if applicable. For example:
-        mapping = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df_mrsa_age, k)) 
+        ### Get from the `all_mapping` the labels that are in the focal df:
+        mapping = dict((k, v) for k, v in all_mapping.items() if is_str_in_df(df_mrsa_age, k))
+        ### If needed, add/change df-specific `mapping` \t
+        (typically, `mapping` should be a subset of `all_mapping`, so this step might not be needed). 
         mapping |= {
             'PV': ('P-value', None),
             'CI': ('CI', '95% Confidence Interval'),

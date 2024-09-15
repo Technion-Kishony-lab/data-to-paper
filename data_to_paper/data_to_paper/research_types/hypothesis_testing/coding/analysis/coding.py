@@ -306,8 +306,10 @@ class DataAnalysisCodeProductsGPT(BaseTableCodeProductsGPT):
 
     df_to_latex_extra_vars: str = ''
     df_to_latex_extra_vars_explain: str = ''
-    df_to_figure_extra_vars: str = ''
-    df_to_figure_extra_vars_explain: str = ''
+    df_to_figure_extra_latex_vars: str = ''
+    df_to_figure_extra_latex_vars_explain: str = ''
+    df_to_figure_extra_plot_vars: str = ''
+    df_to_figure_extra_plot_vars_explain: str = ''
 
     mission_prompt: str = dedent_triple_quote_str("""
         Write a complete Python code to analyze the data according to our \t

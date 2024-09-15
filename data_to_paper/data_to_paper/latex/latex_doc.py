@@ -1,5 +1,5 @@
 import re
-import subprocess
+
 from dataclasses import dataclass
 from functools import partial
 from typing import Optional, Dict, Union, Iterable, Collection, Tuple
@@ -297,7 +297,7 @@ class LatexDocument:
             is_installed = check_that_pdflatex_packages_is_installed(package_name)
             if is_installed is None:
                 print('Warning: failed checking if package is installed.')
-                return # skip the check
+                return
             elif not is_installed:
                 missing_packages.append(package_name)
         if missing_packages:

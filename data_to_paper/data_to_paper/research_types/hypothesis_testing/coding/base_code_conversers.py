@@ -89,8 +89,8 @@ class BaseTableCodeProductsGPT(BaseScientificCodeProductsGPT):
         ''', indent=8)
 
     df_to_latex_extra_vars_explain: str = dedent_triple_quote_str('''
-        `note` (str): Note to be added below the table caption.
-        `glossary` (Dict[Any, str]): Glossary for the table.
+        `note`: Note to be added below the table caption.
+        `glossary`: Glossary for the table.
         ''', indent=4)
 
     df_to_latex_doc: str = dedent_triple_quote_str('''
@@ -105,39 +105,48 @@ class BaseTableCodeProductsGPT(BaseScientificCodeProductsGPT):
             """
         ''')
 
-    df_to_figure_extra_vars: str = dedent_triple_quote_str('''
-        xlabel: str = None, ylabel: str = None,
+    df_to_figure_extra_latex_vars: str = dedent_triple_quote_str('''
         note: str = None, glossary: Dict[Any, str] = None,
         ''', indent=8)
 
-    df_to_figure_extra_vars_explain: str = dedent_triple_quote_str('''
-        `xlabel` (str): Label for the x-axis.
-        `ylabel` (str): Label for the y-axis.
-        `note` (str): Note to be added below the figure caption.
-        `glossary` (Dict[Any, str]): Glossary for the figure.
+    df_to_figure_extra_plot_vars: str = dedent_triple_quote_str('''
+        xlabel: str = None, ylabel: str = None,
+        ''', indent=8)
+
+    df_to_figure_extra_latex_vars_explain: str = dedent_triple_quote_str('''
+        `note`: Note to be added below the figure caption.
+        `glossary`: Glossary for the figure.
+        ''', indent=4)
+
+    df_to_figure_extra_plot_vars_explain: str = dedent_triple_quote_str('''
+        `xlabel`: Label for the x-axis.
+        `ylabel`: Label for the y-axis.
         ''', indent=4)
 
     df_to_figure_doc: str = dedent_triple_quote_str('''
         def df_to_figure(
                 df, filename: str, caption: str,
+        {df_to_figure_extra_latex_vars}\t
                 x: Optional[str] = None, y: List[str] = None, 
                 kind: str = 'bar',
                 logx: bool = False, logy: bool = False,
                 y_ci: Optional[List[str]] = None,
                 y_p_value: Optional[List[str]] = None,
-        {df_to_figure_extra_vars}\t
+        {df_to_figure_extra_plot_vars}\t
             ):
             """
             Save a DataFrame `df` and create a LaTeX figure.
             Parameters, for LaTex embedding of the figure:
-            `df`, `filename`, `caption`
+            `filename`: Filename for the figure.
+            `caption`: Caption for the figure.
+        {df_to_figure_extra_latex_vars_explain}\t
 
             Parameters for df.plot():
             `x`: Column name for x-axis (index by default).
             `y`: List of m column names for y-axis (m=1 for single plot, m>1 for multiple plots).
             `kind`: {allowed_plot_kinds}.
             `logx` / `logy` (bool): log scale for x/y axis.
-        {df_to_figure_extra_vars_explain}\t
+        {df_to_figure_extra_plot_vars_explain}\t
 
             `y_ci`: Confidence intervals for errorbars. 
                 List of m column names indicating confidence intervals for each y column. 

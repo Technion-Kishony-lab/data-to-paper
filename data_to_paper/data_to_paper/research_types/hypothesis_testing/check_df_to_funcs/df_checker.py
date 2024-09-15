@@ -1227,11 +1227,7 @@ class AnnotationDfChecker(BaseContentDfChecker):
         return any_issues  # we don't want additional issues if working on the underscores
 
     def check_glossary(self):
-        if self.is_figure:
-            axes_labels = list(self.get_y_labels()) + list(self.get_x_labels())
-        else:
-            # this can deal with multi-indexes:
-            axes_labels = extract_df_axes_labels(self.df, with_title=False, string_only=True)
+        axes_labels = extract_df_axes_labels(self.df, with_title=False, string_only=True)
         abbr_labels = [label for label in axes_labels if is_unknown_abbreviation(label)]
         glossary = self.glossary or {}
         un_mentioned_abbr_labels = sorted([label for label in abbr_labels if label not in glossary])

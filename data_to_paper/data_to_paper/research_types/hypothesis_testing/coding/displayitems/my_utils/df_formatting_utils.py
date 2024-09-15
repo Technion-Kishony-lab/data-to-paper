@@ -3,11 +3,11 @@ from typing import Dict, Any, Tuple, Optional
 import pandas as pd
 
 from data_to_paper.utils.check_type import raise_on_wrong_func_argument_types_decorator
+from data_to_paper.utils.dataframe import extract_df_axes_labels
 
 
 def is_str_in_df(df: pd.DataFrame, s: str):
-    return any(s in level for level in getattr(df.index, 'levels', [df.index]) +
-               getattr(df.columns, 'levels', [df.columns]))
+    return s in extract_df_axes_labels(df)
 
 
 AbbrToNameDef = Dict[Any, Tuple[Optional[str], Optional[str]]]

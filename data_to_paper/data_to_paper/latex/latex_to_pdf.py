@@ -218,7 +218,8 @@ def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_dir
                     try:
                         subprocess.run(['bibtex', file_stem], check=True)
                     except FileNotFoundError:
-                        raise MissingInstallationError(package_name="bibtex", instructions=PDFLATEX_INSTALLATION_INSTRUCTIONS)
+                        raise MissingInstallationError(package_name="bibtex",
+                                                       instructions=PDFLATEX_INSTALLATION_INSTRUCTIONS)
                 subprocess.run(pdflatex_params, check=True)
                 subprocess.run(pdflatex_params, check=True)
             except subprocess.CalledProcessError:
