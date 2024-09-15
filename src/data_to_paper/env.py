@@ -7,7 +7,7 @@ from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils.mutable import Mutable, Flag
 from .types import HumanReviewType
 
-BASE_FOLDER = Path(__file__).parent.parent.parent
+BASE_FOLDER = Path(__file__).parent
 
 SUPPORTED_PACKAGES = ('numpy', 'pandas', 'scipy', 'sklearn')
 

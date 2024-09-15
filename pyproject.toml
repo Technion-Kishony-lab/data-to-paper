@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "data_to_paper"
-version = "1.0.1"
+version = "1.0.5"
 description = "data-to-paper: Backward-traceable AI-driven scientific research"
 authors = [
-    { name = "Kishony lab, Technion Israel Institute of Technology"},
-    { name = "Roy Kishony", email = "rkishony@technion.ac.il"},
-    { name = "Tal Ifargan", email = "talifargan@campus.technion.ac.il"},
-    { name = "Lukas Hafner", email = "lukashafner@campus.technion.ac.il"},
+    { name = "Kishony lab, Technion Israel Institute of Technology" },
+    { name = "Roy Kishony", email = "rkishony@technion.ac.il" },
+    { name = "Tal Ifargan", email = "talifargan@campus.technion.ac.il" },
+    { name = "Lukas Hafner", email = "lukashafner@campus.technion.ac.il" },
 ]
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -64,6 +64,9 @@ dev = [
 
 [project.gui-scripts]
 data-to-paper = "data_to_paper.scripts.run:run"
+
+[tool.setuptools]
+include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["src"]
