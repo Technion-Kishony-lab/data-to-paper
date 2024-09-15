@@ -58,4 +58,4 @@ def is_called_from_data_to_paper(offset: int = 3) -> bool:
     with IS_CHECKING.temporary_set(True):
         tb = traceback.extract_stack()
         filename = tb[-offset].filename
-        return BASE_FOLDER.name in filename
+        return BASE_FOLDER.name in filename or is_filename_test(filename)
