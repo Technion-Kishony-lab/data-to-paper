@@ -51,7 +51,6 @@ from data_to_paper.run_gpt_code.overrides.dataframes.utils import df_to_llm_read
 from data_to_paper.run_gpt_code.overrides.pvalue import is_p_value, PValue, is_containing_p_value, is_only_p_values, \
     OnStrPValue, OnStr
 from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue, RunIssues
-from data_to_paper.utils.types import ListBasedSet
 from .abbreviations import is_unknown_abbreviation
 from .utils import is_non_integer_numeric, _find_longest_labels_in_index, \
     _find_longest_labels_in_columns_relative_to_content
@@ -1275,12 +1274,13 @@ class AnnotationDfChecker(BaseContentDfChecker):
             self._append_issue(
                 category='Displayitem glossary',
                 issue=f'{glossary_msg}{axes_labels_msg}{glossary_keys_not_in_df_msg}{un_mentioned_abbr_labels_msg}',
-                instructions=dedent_triple_quote_str(f"""\n\n
+                instructions=dedent_triple_quote_str(f"""\n
                     As a reminder: you can also use the `note` argument to add \t
                     information that is related to the f"{self.table_or_figure} as a whole, \t
                     rather than to a specific label.
                     """)
             )
+
     def _create_displayitem_caption_label_issue(self, issue: str):
         self._append_issue(
             category='Problem with displayitem caption',

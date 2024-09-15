@@ -136,25 +136,42 @@ class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
                                      separator=',\n' + ' ' * 8)
                          for k, v in response_value.items()})
 
+    def _send_html_and_scroll_to_bottom(self, html: str):
+        self._app_send_prompt(PanelNames.FEEDBACK, html, provided_as_html=True, scroll_to_bottom=True)
+
     def get_literature_search(self) -> LiteratureSearch:
         scopes_to_list_of_queries = self.run_and_get_valid_result()
         literature_search = self.literature_search
-        server_name = SEMANTIC_SCHOLAR_SERVER_CALLER.name
-        html = f'<h2>Querying Citations</h2>'
-        html += f'<p>Searching "{server_name}" ' \
-                f'for papers related to our study in the following areas:</p>'
         with self._app_temporarily_set_panel_status(PanelNames.FEEDBACK, 'Querying citations...'):
+            html = '<h1>Literature Search</h1>\n'
+            if self.get_title() is not None and self.get_abstract() is not None:
+                # Requesting embedding vector of our paper
+                html += f'<h2>Getting Embedding Vector</h2>\n'
+                html += f'<p>Requesting "{SEMANTIC_SCHOLAR_EMBEDDING_SERVER_CALLER.name}" ' \
+                        f'for the embedding vector of our draft title and abstract....</p>\n'
+                self._send_html_and_scroll_to_bottom(html)
+                literature_search.embedding_target = \
+                    SEMANTIC_SCHOLAR_EMBEDDING_SERVER_CALLER.get_server_response({
+                        "paper_id": "",
+                        "title": self.get_title(),
+                        "abstract": self.get_abstract()})
+                html += '<p>Embedding vector successfully retrieved.</p>\n' \
+                        '<p>Now we can sort the papers by similarity to our study.</p>\n'
+                self._send_html_and_scroll_to_bottom(html)
+
+            html += f'<h2>Querying Citations</h2>\n'
+            html += f'<p>Searching "{SEMANTIC_SCHOLAR_SERVER_CALLER.name}" ' \
+                    f'for papers related to our study in the following areas:</p>\n'
             for scope, queries in scopes_to_list_of_queries.items():
                 queries_to_citations = {}
-                html += f'<h3>{scope.title()}-related queries:</h3>'
+                html += f'<h3>{scope.title()}-related queries:</h3>\n'
                 for query in queries:
                     citations = SEMANTIC_SCHOLAR_SERVER_CALLER.get_server_response(query,
                                                                                    rows=self.number_of_papers_per_query)
                     num_citations = len(citations)
-                    html += f'<p><b style="color: #1E90FF;">Query:</b> "{query}". '
-                    html += f'<br><b style="color: #1E90FF;">Found:</b> {num_citations} citations.</p>'
-                    self._app_send_prompt(PanelNames.FEEDBACK, html, provided_as_html=True,
-                                          scroll_to_bottom=True)
+                    html += f'<p><b style="color: #1E90FF;">Query:</b> "{query}".\n'
+                    html += f'<br><b style="color: #1E90FF;">Found:</b> {num_citations} citations.</p>\n'
+                    self._send_html_and_scroll_to_bottom(html)
                     self.comment(f'\nQuerying Semantic Scholar. '
                                  f'Found {num_citations} / {self.number_of_papers_per_query} citations. '
                                  f'Query: "{query}".')
@@ -173,14 +190,6 @@ class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
                     queries_to_citations[query] = citations
 
                 literature_search[scope] = queries_to_citations
-
-        # Calculate embedding vector
-        if self.get_title() is not None and self.get_abstract() is not None:
-            literature_search.embedding_target = \
-                SEMANTIC_SCHOLAR_EMBEDDING_SERVER_CALLER.get_server_response({
-                    "paper_id": "",
-                    "title": self.get_title(),
-                    "abstract": self.get_abstract()})
 
         self._app_request_panel_continue(PanelNames.FEEDBACK, sleep_for=PAUSE_AFTER_LITERATURE_SEARCH)
         return literature_search

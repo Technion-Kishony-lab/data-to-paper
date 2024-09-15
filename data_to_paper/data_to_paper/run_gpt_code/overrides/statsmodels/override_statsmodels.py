@@ -36,7 +36,9 @@ def custom_summary2_method(*args, **kwargs):
     raise RunIssue.from_current_tb(
         category="Statsmodels: good practices",
         issue=f"Do not use any methods of the object created by summary2().",
-        instructions=f"Use instead the `tables` attribute of the object returned by summary2().",
+        instructions=f"Use instead the `tables` attribute of the object returned by summary2(), "
+                     f"from which you can extract the numerical values that you need.\n"
+                     f"Do not transform numerical values to strings.",
         code_problem=CodeProblem.RuntimeError,
     )
 
@@ -108,7 +110,9 @@ class StatsmodelsFitPValueOverride(SystematicMethodReplacerContext, TrackPValueC
             raise RunIssue.from_current_tb(
                 category="Statsmodels: good practices",
                 issue=f"Do not use the `summary` function of statsmodels.",
-                instructions=f"Use the `summary2` function instead.",
+                instructions=f"Use the `summary2` function instead, "
+                             f"from which you can extract the numerical values that you need.\n"
+                             f"Do not transform numerical values to strings.",
                 code_problem=CodeProblem.RuntimeError,
             )
 
