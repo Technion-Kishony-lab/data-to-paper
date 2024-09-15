@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Tuple, Optional, Dict, Type
 
-from data_to_paper.base_products import DataFileDescriptions, DataFileDescription
+from data_to_paper.base_products.file_descriptions import DataFileDescriptions, DataFileDescription
 from data_to_paper.base_steps import LatexReviewBackgroundProductsConverser, BackgroundProductsConverser, \
     ReviewBackgroundProductsConverser, PythonDictWithDefinedKeysReviewBackgroundProductsConverser
 from data_to_paper.base_steps.base_products_conversers import ProductsConverser
@@ -35,8 +35,8 @@ class BaseScientificPostCodeProductsHandler(BaseScientificCodeProductsHandler):
         return self.products.codes_and_outputs[self.code_step]
 
     @property
-    def output_filename(self):
-        return self.code_and_output.created_files.get_single_content_file()
+    def created_output_filenames(self):
+        return self.code_and_output.created_files.get_all_created_files()
 
 
 @dataclass
@@ -59,8 +59,9 @@ class RequestCodeExplanation(BaseScientificPostCodeProductsHandler, LatexReviewB
         Do not provide a line-by-line explanation, rather provide a \t
         high-level explanation of the code in a language suitable for a Methods section of a research \t
         paper.
-        Focus on analysis steps. There is no need to explain trivial parts, like reading/writing a file, etc.  
-        {actual_requesting_output_explanation}
+        Structure the explanation according to the steps of the analysis, and explain the purpose of each step, \t
+        and how it was implemented in the code.
+        There is no need to explain trivial parts, like reading/writing a file, etc.  
 
         Your explanation should be written in LaTeX, and should be enclosed within a LaTeX Code Block, like this:
 
@@ -77,13 +78,8 @@ class RequestCodeExplanation(BaseScientificPostCodeProductsHandler, LatexReviewB
         """)
 
     requesting_output_explanation: str = dedent_triple_quote_str("""
-        Also explain what does the code write into the "{output_filename}" file.    
+        Also explain what does the code write into the files(s): {created_output_filenames}.    
         """)
-
-    @property
-    def actual_requesting_output_explanation(self):
-        return self.requesting_output_explanation \
-            if self.code_and_output.created_files.get_single_content_file() else ''
 
     def run_and_get_valid_result(self):
         result = super().run_and_get_valid_result()
@@ -113,7 +109,7 @@ class ExplainCreatedDataframe(BaseScientificPostCodeProductsHandler, BackgroundP
     requesting_explanation_for_a_modified_dataframe: str = dedent_triple_quote_str("""
         Explain the content of all the new or modified columns of "{dataframe_file_name}".
 
-        Return your explanation as a dictionary, where the keys are the column names {columns}, \t 
+        Return your explanation as a dictionary, where the keys are the column names {columns}, \t
         and the values are the strings that explain the content of each column.
 
         All information you think is important should be encoded in this dictionary. 

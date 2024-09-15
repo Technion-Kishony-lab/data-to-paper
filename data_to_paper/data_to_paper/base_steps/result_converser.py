@@ -170,7 +170,7 @@ class ResultConverser(Converser):
     def get_valid_result_as_markdown(self) -> str:
         valid_result = self._get_valid_result()
         if isinstance(valid_result, Product):
-            return valid_result.as_markdown(2)
+            return valid_result.as_formatted_text(2)
         return str(valid_result)
 
     def _upon_conversation_initiation(self):
@@ -464,7 +464,7 @@ class ResultConverser(Converser):
 
     def _get_valid_result(self) -> Union[Product, Any]:
         if not self._has_valid_result:
-            raise FailedCreatingProductException()
+            raise FailedCreatingProductException('Failed to create a valid result.')
         return self.valid_result
 
     def _post_run(self):

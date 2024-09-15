@@ -13,7 +13,7 @@ from data_to_paper.run_gpt_code.overrides.contexts import OverrideStatisticsPack
 from data_to_paper.run_gpt_code.overrides.sklearn.override_sklearn import SklearnFitOverride
 from data_to_paper.run_gpt_code.overrides.statsmodels.override_statsmodels import StatsmodelsFitPValueOverride
 from data_to_paper.run_gpt_code.overrides.scipy.override_scipy import ScipyPValueOverride
-from data_to_paper.run_gpt_code.overrides.pvalue import PValue, is_p_value
+from data_to_paper.run_gpt_code.overrides.pvalue import PValue, is_p_value, OnStrPValue, OnStr
 from statsmodels.formula.api import ols, logit
 
 from data_to_paper.run_gpt_code.run_issues import RunIssue
@@ -54,6 +54,20 @@ def test_fit_results_do_not_allow_summary(data_y_x):
         assert 'Do not use the `summary` function of statsmodels.' in str(e.value)
 
 
+def test_fit_results_allow_ufunc(data_y_x):
+    with OverrideStatisticsPackages():
+        model = logit('y ~ x', data=data_y_x).fit()
+        assert model.summary2().tables[1]['Coef.'].dtype == float
+
+
+def test_prevent_calling_summmary2_as_text(data_y_x):
+    with OverrideStatisticsPackages():
+        model = logit('y ~ x', data=data_y_x).fit()
+        summary2 = model.summary2()
+        with pytest.raises(RunIssue):
+            summary2.as_text()
+
+
 @pytest.mark.parametrize('func', [
     sm.OLS,
     sm.WLS,
@@ -69,6 +83,9 @@ def test_statsmodels_label_pvalues(func):
         model = func(y, X)
         results = model.fit()
         pval = results.pvalues[0]
+        # p_values = results.pvalues.values
+        with OnStrPValue(OnStr.DEBUG):
+            print(pval)
         assert is_p_value(pval)
         assert pval.created_by == func.__name__
         assert context.pvalue_creating_funcs == [func.__name__]
@@ -173,50 +190,44 @@ def test_sklean_raise_on_multiple_fit_calls():
             model.fit(X, y)
 
 
-response_with_two_fit_calls = """
-```
+code_with_two_fit_calls = """
 from sklearn.linear_model import LinearRegression
 import statsmodels.api as sm
 data = sm.datasets.longley.load()
 X = sm.add_constant(data.exog)
 y = data.endog
 model = LinearRegression()
-model.fit(X, y)
-model.fit(X, y)
-```
+model.fit(X, y)  # 1st fit
+model.fit(X, y)  # 2nd fit
 """
 
 
 def test_sklean_raise_on_multiple_fit_calls_in_code_runner():
-    _, _, _, exception = CodeRunner(response=response_with_two_fit_calls,
-                                    additional_contexts={'OverrideStatisticsPackages': OverrideStatisticsPackages()},
-                                    allowed_read_files=None,
-                                    ).run_code_in_separate_process()
+    from data_to_paper.run_gpt_code.code_runner import CodeRunner
+    _, _, _, exception = CodeRunner(
+        additional_contexts={'OverrideStatisticsPackages': OverrideStatisticsPackages()},
+        allowed_open_read_files='all',
+               ).run(code_with_two_fit_calls)
     assert isinstance(exception, RunIssue)
 
 
 code0 = """
-```from statsmodels.formula.api import logit
+from statsmodels.formula.api import logit
 import pandas as pd
 df = pd.DataFrame({'Y': [1, 0, 1, 0, 1, 0, 1, 0, 1, 0],
                    'X': [1, 0, 1, 0, 1, 0, 1, 0, 1, 0],})
 table1_model = logit("interaction ~ Beauty", data=df).fit()
-```
 """
 
 
 def test_run_code_with_none_serializable_exception():
-    runner = CodeRunner(response=code0, allowed_read_files=None)
-    _, _, _, exception = runner.run_code_in_separate_process()
+    _, _, _, exception = CodeRunner(allowed_open_read_files='all').run(code0)
     assert exception.get_type_name() == 'PatsyError'
 
 
 def test_sklean_do_not_raise_on_single_fit_call_in_code_runner():
-    response_with_single_fit_calls = response_with_two_fit_calls.replace('model.fit(X, y)\n```', '```')
-    _, _, _, exception = CodeRunner(response=response_with_single_fit_calls,
-                                    additional_contexts={'OverrideStatisticsPackages': OverrideStatisticsPackages()},
-                                    allowed_read_files=None,
-                                    ).run_code_in_separate_process()
+    code_with_single_fit_calls = code_with_two_fit_calls.replace('model.fit(X, y)  # 2nd fit', '')
+    _, _, _, exception = CodeRunner(allowed_open_read_files='all').run(code_with_single_fit_calls)
     assert exception is None
 
 
@@ -343,11 +354,13 @@ def test_register_unpacking_of_ttest_ind(data_for_ttest):
     with ScipyPValueOverride(prevent_unpacking=None) as override:
         result = scipy_stats.ttest_ind(*data_for_ttest)
         statistic, pvalue = result
-    assert override.unpacking_func_to_fields == {'ttest_ind': ('statistic', 'pvalue')}
+    assert 'ttest_ind' in override.issues[0].issue
+    assert '`statistic`, `pvalue`' in override.issues[0].instructions
 
 
 def test_register_unpacking_of_chi2_contingency(data_chi2_contingency):
     with ScipyPValueOverride(prevent_unpacking=None) as override:
         result = scipy_stats.chi2_contingency(data_chi2_contingency)
         statistic, pvalue, dof, expected_freq = result
-    assert override.unpacking_func_to_fields == {'chi2_contingency': ('statistic', 'pvalue', 'dof', 'expected_freq')}
+    assert 'chi2_contingency' in override.issues[0].issue
+    assert '`statistic`, `pvalue`, `dof`, `expected_freq`' in override.issues[0].instructions

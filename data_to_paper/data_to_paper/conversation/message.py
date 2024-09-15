@@ -7,14 +7,15 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import NamedTuple, Optional, List
 
-from data_to_paper.env import TEXT_WIDTH, MINIMAL_COMPACTION_TO_SHOW_CODE_DIFF, HIDE_INCOMPLETE_CODE
+from data_to_paper.env import TEXT_WIDTH, MINIMAL_COMPACTION_TO_SHOW_CODE_DIFF, HIDE_INCOMPLETE_CODE, SHOW_LLM_CONTEXT
 from data_to_paper.base_cast import Agent
 from data_to_paper.run_gpt_code.code_utils import extract_code_from_text, FailedExtractingBlock
 from data_to_paper.servers.llm_call import count_number_of_tokens_in_message
 from data_to_paper.servers.model_engine import OpenaiCallParameters, ModelEngine
 from data_to_paper.utils import format_text_with_code_blocks, line_count
 from data_to_paper.utils.highlighted_text import colored_text
-from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
+from data_to_paper.utils.numerics import is_lower_eq
+from data_to_paper.utils.text_formatting import wrap_as_block
 from data_to_paper.utils.formatted_sections import FormattedSections
 from data_to_paper.utils.text_extractors import get_dot_dot_dot_text
 
@@ -155,15 +156,15 @@ class Message:
     def _get_triple_quote_formatted_content(self, with_header: bool = True) -> (str, bool):
         content, is_incomplete_code = self.get_content_after_hiding_incomplete_code()
         if self.role == Role.SYSTEM:
-            content = wrap_text_with_triple_quotes(content, 'system')
+            content = wrap_as_block(content, 'system')
         if self.role == Role.COMMENTER:
-            content = wrap_text_with_triple_quotes(content, 'comment')
+            content = wrap_as_block(content, 'comment')
         if self.effective_index_in_conversation is not None:
             index = self.effective_index_in_conversation
         else:
             index = len(self.context) if self.context else None
 
-        if with_header and self.role != Role.COMMENTER and index is not None:
+        if SHOW_LLM_CONTEXT and with_header and self.role != Role.COMMENTER and index is not None:
             llm_parameters = f'{self.openai_call_parameters}' if self.openai_call_parameters else ''
             header = ''
             if self.context:
@@ -172,7 +173,7 @@ class Message:
                     header += f'#{i:>2} {message.get_short_description(model=self.get_llm_model())}\n'
             header += f'\n#{index:>2} {self.get_short_description()}\n' + ' ' * 79 + \
                       f'{llm_parameters}'
-            header = wrap_text_with_triple_quotes(header, 'header')
+            header = wrap_as_block(header, 'header')
             content = header + '\n\n' + content
 
         return content, is_incomplete_code
@@ -258,7 +259,8 @@ class CodeMessage(Message):
         """
         if self.extracted_code and not is_incomplete_block and self.previous_code:
             diff = self.get_code_diff()
-            if MINIMAL_COMPACTION_TO_SHOW_CODE_DIFF < line_count(self.extracted_code) - line_count(diff):
+            if not is_lower_eq(line_count(self.extracted_code) - line_count(diff),
+                               MINIMAL_COMPACTION_TO_SHOW_CODE_DIFF):
                 # if the code diff is substantially shorter than the code, we replace the code with the diff:
                 content = content.replace(
                     self.extracted_code,
@@ -267,18 +269,27 @@ class CodeMessage(Message):
         return content
 
 
+@dataclass
+class JsonMessage(Message):
+    def get_content_after_hiding_incomplete_code(self) -> (str, bool):
+        return wrap_as_block(self.content, 'json'), False
+
+
 def create_message(role: Role, content: str, tag: str = '', agent: Optional[Agent] = None, ignore: bool = False,
                    openai_call_parameters: OpenaiCallParameters = None, context: List[Message] = None,
                    previous_code: str = None, is_code: bool = False,
+                   is_json: bool = False,
                    is_background: bool = False) -> Message:
     kwargs = dict(role=role, content=content, tag=tag, agent=agent, ignore=ignore,
                   openai_call_parameters=openai_call_parameters, context=context,
                   is_background=is_background)
+
     is_code = is_code or previous_code is not None
+    if is_json:
+        return JsonMessage(**kwargs)
     if is_code:
         return CodeMessage(previous_code=previous_code, **kwargs)
-    else:
-        return Message(**kwargs)
+    return Message(**kwargs)
 
 
 def create_message_from_other_message(other_message: Message,

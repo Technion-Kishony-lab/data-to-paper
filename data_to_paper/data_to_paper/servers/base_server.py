@@ -15,8 +15,17 @@ class NoMoreResponsesToMockError(Exception):
     pass
 
 
+def recursively_convert_lists_and_dicts_to_tuples(obj):
+    if isinstance(obj, (list, tuple)):
+        return tuple(recursively_convert_lists_and_dicts_to_tuples(item) for item in obj)
+    if isinstance(obj, dict):
+        return tuple((recursively_convert_lists_and_dicts_to_tuples(key),
+                      recursively_convert_lists_and_dicts_to_tuples(value)) for key, value in obj.items())
+    return obj
+
+
 def convert_args_kwargs_to_tuple(args, kwargs):
-    return args, tuple(sorted(kwargs.items()))
+    return recursively_convert_lists_and_dicts_to_tuples((args, kwargs))
 
 
 class ServerCaller(ABC):
@@ -45,19 +54,13 @@ class ServerCaller(ABC):
     def all_records(self) -> Union[list, dict]:
         raise NotImplementedError()
 
-    @staticmethod
-    def _get_server_response(*args, **kwargs):
+    @classmethod
+    def _get_server_response(cls, *args, **kwargs):
         """
         actual call to the server.
         this method should only return raw responses that can be serialized to json, without losing type information.
         """
         raise NotImplementedError()
-
-    def _get_server_response_without_raising(self, *args, **kwargs):
-        try:
-            return self._get_server_response(*args, **kwargs)
-        except Exception as e:
-            return e
 
     @staticmethod
     def _post_process_response(response, args, kwargs):
@@ -104,14 +107,14 @@ class ServerCaller(ABC):
         returns the raw response from the server, allows recording and replaying.
         """
         if not self.is_playing_or_recording:
-            return self._get_server_response_without_raising(*args, **kwargs)
+            return self._get_server_response(*args, **kwargs)
         response = self._get_response_from_records(args, kwargs)
         if response is not None and CHOSEN_APP is not None:
             time.sleep(DELAY_SERVER_CACHE_RETRIEVAL.val)
         if response is None:
             if not self.record_more_if_needed:
                 raise NoMoreResponsesToMockError()
-            response = self._get_server_response_without_raising(*args, **kwargs)
+            response = self._get_server_response(*args, **kwargs)
             self._add_response_to_new_records(args, kwargs, response)
             if self.should_save:
                 self.save_records()

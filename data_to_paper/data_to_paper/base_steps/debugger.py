@@ -1,49 +1,34 @@
-import importlib
-import re
-
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, List, Tuple, Union, Type, Dict, Any
+from typing import Optional, List, Tuple, Union, Type, Dict, Any, Iterable
 
 import numpy as np
 
-from data_to_paper.env import SUPPORTED_PACKAGES, PRINT_COMMENTS, MAX_EXEC_TIME, PAUSE_AT_RULE_BASED_FEEDBACK
+from data_to_paper.env import SUPPORTED_PACKAGES, DEBUG_MODE, MAX_EXEC_TIME, PAUSE_AT_RULE_BASED_FEEDBACK
 from data_to_paper.utils import dedent_triple_quote_str, line_count
 from data_to_paper.utils.replacer import format_value
 from data_to_paper.utils.print_to_file import print_and_log
-
+from data_to_paper.utils.text_formatting import wrap_as_block
+from data_to_paper.base_cast import Agent
 from data_to_paper.conversation.message_designation import RangeMessageDesignation
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
-from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue, RunIssues
 from data_to_paper.code_and_output_files.output_file_requirements import BaseContentOutputFileRequirement, \
     OutputFileRequirements
-from data_to_paper.run_gpt_code.code_runner import CodeRunner, BaseCodeRunner
+
+from data_to_paper.interactive.app_interactor import _raise_if_reset
+
+from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue, RunIssues
+from data_to_paper.run_gpt_code.code_runner_wrapper import CodeRunnerWrapper
 from data_to_paper.run_gpt_code.code_utils import FailedExtractingBlock, IncompleteBlockFailedExtractingBlock
 from data_to_paper.run_gpt_code.exceptions import FailedRunningCode, UnAllowedFilesCreated, \
     CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule
 from data_to_paper.interactive import PanelNames, Symbols
-
-from data_to_paper.base_cast import Agent
-from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
+from data_to_paper.run_gpt_code.known_mis_imports import KNOWN_MIS_IMPORTS
+from data_to_paper.run_gpt_code.base_run_contexts import RunContext
+from data_to_paper.run_gpt_code.code_runner import CodeRunner
+from data_to_paper.run_gpt_code.extract_and_check_code import get_issue_for_use_of_a_forbidden_function, CodeExtractor
 
 from .base_products_conversers import BackgroundProductsConverser
-from .converser import _raise_if_reset
-
-KNOWN_MIS_IMPORTS = {
-    'Mediation': 'statsmodels.stats.mediation',
-}
-
-
-# assert KNOWN_MIS_IMPORTS:
-def _assert_known_mis_imports():
-    for name, module in KNOWN_MIS_IMPORTS.items():
-        try:
-            importlib.import_module(module, name)
-        except ImportError:
-            raise ImportError(f"Wrong imports in KNOWN_MIS_IMPORTS.\nFailed importing {name} from {module}")
-
-
-_assert_known_mis_imports()
 
 
 def _get_description_of_run_error(error: Exception):
@@ -82,16 +67,12 @@ class DebuggerConverser(BackgroundProductsConverser):
     # output files:
     output_file_requirements: OutputFileRequirements = OutputFileRequirements()
 
-    additional_contexts: Optional[Dict[str, Any]] = None
-
     mission_prompt: str = None
     assistant_agent: Agent = None
     user_agent: Agent = None
 
     supported_packages: Tuple[str, ...] = SUPPORTED_PACKAGES
     headers_required_in_code: Tuple[str, ...] = ()
-    phrases_required_in_code: Tuple[str, ...] = ()
-    un_allowed_phrases: Tuple[str, ...] = ('__name__',)
 
     prompt_to_append_at_end_of_response: str = \
         dedent_triple_quote_str("""
@@ -107,14 +88,15 @@ class DebuggerConverser(BackgroundProductsConverser):
     max_debug_iterations: int = 5
     debug_iteration = 0
     timeout_sec: int = MAX_EXEC_TIME.val
-
+    code_extractor_cls: Type[CodeExtractor] = CodeExtractor
+    code_runner_cls: Type[CodeRunner] = CodeRunner
+    additional_contexts: Dict[str, RunContext] = field(default_factory=dict)
     previous_code: Optional[str] = None
     _requesting_small_change: bool = False  # True when USER ask for modifications of an already existing code
     previous_code_problem: CodeProblem = CodeProblem.NoCode
-    gpt_script_filename: str = 'debugger_gpt'
-    code_runner_cls: Type[BaseCodeRunner] = CodeRunner
     code_and_output_cls: Type[CodeAndOutput] = CodeAndOutput
 
+    issues_to_counts: Dict[RunIssue, int] = field(default_factory=dict)
     """
     PROPERTIES
     """
@@ -131,24 +113,24 @@ class DebuggerConverser(BackgroundProductsConverser):
         return f'Debug iteration {self.debug_iteration}/{self.max_debug_iterations}'
 
     @property
-    def script_filename(self):
-        return f'{self.gpt_script_filename}_{self.debug_iteration}'
-
-    @property
     def description_of_allowed_output_files(self):
         requirements = self.output_file_requirements
         if len(requirements) == 0:
             return 'Your code should not write to any file.'
 
         return 'Your code should only write to these files: {}.'.format(
-            ', '.join(f'"{r.filename}"' for r in requirements)
+            ', '.join(f'"{r.generic_filename}"' for r in requirements)
         )
+
+    def _get_allowed_packages(self, contexts) -> str:
+        import_context = contexts['ModifyImport']
+        return self.supported_packages + import_context.get_custom_imports()
 
     """
     ISSUES
     """
 
-    def _get_issue_for_known_mis_imports(self, error: ImportError) -> Optional[RunIssue]:
+    def _get_issue_for_known_mis_imports(self, error: ImportError, allowed_packages) -> Optional[RunIssue]:
         if not hasattr(error, 'fromlist'):
             return
         if error.fromlist is None:
@@ -167,23 +149,24 @@ class DebuggerConverser(BackgroundProductsConverser):
             category='Importing packages',
             issue=_get_description_of_run_error(error),
             instructions=dedent_triple_quote_str("""
-                Your code should only use these packages: {supported_packages}.
+                Your code should only use these packages: {allowed_packages}.
                 Note that there is a `{var}` in `{known_package}`. Is this perhaps what you needed? 
-                """).format(supported_packages=self.supported_packages, var=var, known_package=KNOWN_MIS_IMPORTS[var]),
+                """).format(allowed_packages=allowed_packages, var=var, known_package=KNOWN_MIS_IMPORTS[var]),
             code_problem=CodeProblem.RuntimeError,
             comment='ImportError detected in gpt code',
         )
 
-    def _get_issue_for_allowed_packages(self, error: ImportError, e: FailedRunningCode = None) -> Optional[RunIssue]:
-        respond_to_known_mis_imports = self._get_issue_for_known_mis_imports(error)
+    def _get_issue_for_allowed_packages(self, error: ImportError, contexts) -> Optional[RunIssue]:
+        allowed_packages = self._get_allowed_packages(contexts)
+        respond_to_known_mis_imports = self._get_issue_for_known_mis_imports(error, allowed_packages)
         if respond_to_known_mis_imports:
             return respond_to_known_mis_imports
         return RunIssue(
             category='Importing packages',
             issue=_get_description_of_run_error(error),
             instructions=dedent_triple_quote_str("""
-                Your code should only use these packages: {supported_packages}.
-                """).format(supported_packages=self.supported_packages),
+                Your code should only use these packages: {allowed_packages}.
+                """).format(allowed_packages=allowed_packages),
             code_problem=CodeProblem.RuntimeError,
             comment='ImportError detected in gpt code',
         )
@@ -202,11 +185,11 @@ class DebuggerConverser(BackgroundProductsConverser):
             comment='FileNotFound detected in code',
         )
 
-    def _get_issue_for_regular_exception_or_warning(self, error: FailedRunningCode,
-                                                    code_runner: BaseCodeRunner) -> RunIssue:
+    def _get_issue_for_regular_exception_or_warning(self, error: FailedRunningCode, num_added_lines: int,
+                                                    ) -> RunIssue:
         return RunIssue(
             category='Runtime exception',
-            issue=_get_description_of_run_error(error.get_traceback_message(code_runner.lines_added_in_front_of_code)),
+            issue=_get_description_of_run_error(error.get_traceback_message(num_added_lines)),
             code_problem=CodeProblem.SyntaxError if isinstance(error, SyntaxError) else CodeProblem.RuntimeError,
             comment='Runtime exception in code',
         )
@@ -223,11 +206,10 @@ class DebuggerConverser(BackgroundProductsConverser):
             comment='Code has timed out',
         )
 
-    def _get_issue_for_incomplete_code_block(self) -> RunIssue:
-        try:
-            self.model_engine = self.model_engine.get_model_with_more_context()
+    def _get_issue_for_incomplete_code_block(self, is_bumped: bool) -> RunIssue:
+        if is_bumped:
             instructions = f"Let's bump you up to {self.model_engine} and REGENERATE!"
-        except ValueError:
+        else:
             instructions = "Please REGENERATE!"
 
         return RunIssue(
@@ -255,24 +237,8 @@ class DebuggerConverser(BackgroundProductsConverser):
     def _get_issue_for_forbidden_functions(self, error: CodeUsesForbiddenFunctions, e: FailedRunningCode = None
                                            ) -> RunIssue:
         func = error.func
-        category = 'Use of un-allowed functions'
-        if func == 'print':
-            return RunIssue(
-                category=category,
-                issue="Your code uses the `print` function.",
-                instructions="Do not use `print` in your code.\n"
-                             "If you print conditional warning messages, please use `assert` or `raise` instead.\n" +
-                             "Otherwise, outputs should only be written to the above described output file(s).\n"
-                             if self.output_file_requirements else "",
-                code_problem=CodeProblem.RuntimeError,
-                comment='Code uses `print`'
-            )
-        return RunIssue(
-            category=category,
-            issue=f"Your code uses the function `{func}`, which is not allowed.",
-            code_problem=CodeProblem.RuntimeError,
-            comment=f'Code uses forbidden function {func}',
-        )
+        return get_issue_for_use_of_a_forbidden_function(func,
+                                                         suggest_print_to_output=bool(self.output_file_requirements))
 
     def _get_issue_for_forbidden_import(self, error: CodeImportForbiddenModule, e: FailedRunningCode) -> RunIssue:
         module = error.module
@@ -283,58 +249,12 @@ class DebuggerConverser(BackgroundProductsConverser):
             code_problem=CodeProblem.RuntimeError,
             comment='Code imports forbidden module')
 
-    def _get_issues_for_static_code_check(self, code: str) -> List[RunIssue]:
-        issues = []
-        required_strings_not_found = [s for s in self.headers_required_in_code if s.lower() not in code.lower()]
-        if len(required_strings_not_found) > 0:
-            issues.append(RunIssue(
-                category='Code structure',
-                issue=dedent_triple_quote_str("""
-                Your code must contain the following sections: 
-                {headers_required_in_code}.
-                But I could not find these headers:
-                {required_strings_not_found}.
-                """).format(
-                    headers_required_in_code=self.headers_required_in_code,
-                    required_strings_not_found=required_strings_not_found,
-                ),
-                instructions='Please rewrite the complete code again with all the required sections.',
-                comment='Required sections not found',
-                code_problem=CodeProblem.StaticCheck,
-            ))
-
-        # check if code uses `print`:
-        if re.search(pattern=r'\bprint\s*\(', string=code):
-            issues.append(self._get_issue_for_forbidden_functions(error=CodeUsesForbiddenFunctions(func='print')))
-
-        # check if code has un-allowed keywords:
-        for phrase in self.un_allowed_phrases:
-            if phrase in code:
-                issues.append(RunIssue(
-                    category='Un-allowed phrases in code',
-                    issue=f"Your code uses `{phrase}`, which is not allowed.",
-                    instructions=f"Please rewrite the complete code again without using `{phrase}`.",
-                    comment=f'Code uses forbidden phrase.',
-                    code_problem=CodeProblem.StaticCheck,
-                ))
-
-        # check if code has all required keywords:
-        for phrase in self.phrases_required_in_code:
-            if phrase not in code:
-                issues.append(RunIssue(
-                    category='Missing/imperfect commands',
-                    issue=f"Your code must explicitly use:\n`{phrase.strip()}`.",
-                    comment=f'Code does not use required phrase.',
-                    code_problem=CodeProblem.StaticCheck,
-                ))
-
-        return issues
-
     def _get_issue_for_forbidden_write(self, error: CodeWriteForbiddenFile, e: FailedRunningCode) -> RunIssue:
         file = error.file
+        file_and_ext = Path(file).name
         return RunIssue(
-            category='Wrong output files',
-            issue=f'Your code writes to the file "{file}" which is not allowed.',
+            category='Write to unallowed files',
+            issue=f'Your code writes to the file "{file_and_ext}" which is not allowed.',
             instructions=self.description_of_allowed_output_files,
             code_problem=CodeProblem.RuntimeError,
             comment='Code writes to forbidden file',
@@ -410,19 +330,48 @@ class DebuggerConverser(BackgroundProductsConverser):
     METHODS FOR RUNNING CODE
     """
 
-    def _get_code_runner(self, response: str) -> BaseCodeRunner:
+    def _bump_to_model_with_more_context(self) -> bool:
+        try:
+            self.model_engine = self.model_engine.get_model_with_more_context()
+            return True
+        except ValueError:
+            return False
+
+    def _get_code_runner_wrapper(self, code: str) -> CodeRunnerWrapper:
+        return CodeRunnerWrapper(
+            code=code,
+            timeout_sec=self.timeout_sec,
+            code_runner=self.get_code_runner(),
+        )
+
+    def _get_code_extractor(self) -> CodeExtractor:
+        code_extractor = self.code_extractor_cls()
+        if self.headers_required_in_code:
+            code_extractor.headers_required_in_code = self.headers_required_in_code
+        return code_extractor
+
+    def get_code_runner(self) -> CodeRunner:
         return self.code_runner_cls(
-            response=response,
-            allowed_read_files=self.data_filenames,
+            allowed_open_read_files=self.data_filenames,
             output_file_requirements=self.output_file_requirements,
-            script_file_path=None,
             run_folder=self.data_folder,
             additional_contexts=self.additional_contexts,
-            timeout_sec=self.timeout_sec,
-            code_and_output_cls=self.code_and_output_cls,
         )
-    # to save the script file:
-    # script_file_path=self.output_directory / self.script_filename if self.output_directory else None
+
+    def _get_code_and_output(self, code: str, result: str, created_files: Iterable[str],
+                             contexts: Dict[str, Any] = None) -> CodeAndOutput:
+        """
+        Return the CodeAndOutput object for the given result and created files.
+        """
+        return self.code_and_output_cls(
+            code=code,
+            result=result,
+            created_files=self.output_file_requirements.convert_to_output_file_requirements_with_content(
+                created_files=created_files, run_folder=self.data_folder),
+            dataframe_operations=contexts['TrackDataFrames'].dataframe_operations
+            if 'TrackDataFrames' in contexts else None,
+            contexts=contexts,
+        )
 
     def _get_response_count(self) -> int:
         """
@@ -447,12 +396,20 @@ class DebuggerConverser(BackgroundProductsConverser):
         self.previous_code = code
 
         self.apply_append_surrogate_message(
-            content=message + '\n' + wrap_text_with_triple_quotes(code, 'python'),
+            content=message + '\n' + wrap_as_block(code, 'python'),
             comment=comment,
         )
 
+    def _remove_issues_exceeding_max_count(self, issues: List[RunIssue]):
+        for issue in issues:
+            if issue.forgive_after is not None and \
+                    self.issues_to_counts.get(issue, 0) >= issue.forgive_after:
+                issues.remove(issue)
+
     def _respond_to_issues(self, issues: Union[None, RunIssue, List[RunIssue], RunIssues],
-                           code_and_output: Optional[CodeAndOutput] = None) -> Optional[CodeAndOutput]:
+                           code_and_output: Optional[CodeAndOutput] = None,
+                           is_bumped: bool = False
+                           ) -> Optional[CodeAndOutput]:
         """
         We post a response to the assistant code, based on the issues.
         We also need to delete (some) of the previous exchange.
@@ -475,15 +432,22 @@ class DebuggerConverser(BackgroundProductsConverser):
         - Regenerate ("regen0", "regen1", "regen2": the original response, the second response, the third response)
         """
         if code_and_output and self.app:
-            self._app_send_prompt(PanelNames.PRODUCT, code_and_output.as_html(), provided_as_html=True)
+            try:
+                code_and_output_as_html = code_and_output.as_html()
+            except Exception:  # noqa
+                pass
+            else:
+                self._app_send_prompt(PanelNames.PRODUCT, code_and_output_as_html, provided_as_html=True)
+
+        # Get issues
         if issues is None:
             return code_and_output
-        # Get Problem
         if isinstance(issues, RunIssue):
             issues = [issues]
         if not isinstance(issues, RunIssues):
             issues = RunIssues(issues)
 
+        # Get Problem
         problem = issues.get_most_severe_problem()
 
         # Get Action
@@ -504,11 +468,16 @@ class DebuggerConverser(BackgroundProductsConverser):
 
         current_stage = self._get_response_count()
         action = plan[problem.get_stage(), current_stage]
+        if problem.get_stage() == 0 and current_stage == 2:
+            assert action == 'regen1'
+            if is_bumped:
+                action = 'regen2'
+
         if '/' in action:
             action1, action2 = action.split('/')
             action = action1 if problem.get_stage() >= self.previous_code_problem.get_stage() else action2
 
-        if PRINT_COMMENTS:
+        if DEBUG_MODE:
             print_and_log(f'=====================\n'
                           f'current_stage={current_stage}\n'
                           f'      problem={problem}\n'
@@ -526,7 +495,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         if action == "repost":
             self._post_code_as_fresh(code_and_output.code, problem, action_stage)
 
-        message, comment = issues.get_message_and_comment(
+        message, comment, posted_issues = issues.get_message_and_comment(
             end_with=format_value(self, self.prompt_to_append_at_end_of_response))
         message += '\n\nREGENERATE' if action == "regenerate" else ''
         with self._app_temporarily_set_panel_status(PanelNames.FEEDBACK):
@@ -539,6 +508,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         if action == "regen":
             # To regenerate, we delete the required pairs of assistant+user messages
             # (including the last message which is the just-posted user response to current issue).
+            posted_issues = []
             self.apply_delete_messages(
                 RangeMessageDesignation.from_(start=(action_stage - current_stage - 1) * 2, end=-1),
                 comment=f'REGENERATE (back to stage {action_stage})',
@@ -546,43 +516,52 @@ class DebuggerConverser(BackgroundProductsConverser):
             self._requesting_small_change = False
         else:
             self._requesting_small_change = issues.do_all_issues_request_small_change()
+        # add posted issues to the counts:
+        for issue in posted_issues:
+            self.issues_to_counts[issue] = self.issues_to_counts.get(issue, 0) + 1
         return None
 
-    @_raise_if_reset()
+    @_raise_if_reset
     def _get_code_and_respond_to_issues(self, response: str) -> Optional[CodeAndOutput]:
         """
         Get a code from the LLM, run it and return code and result.
         If the code fails, notify the LLM and return None.
         """
-        code_runner = self._get_code_runner(response)
-
         # Try to extract the code:
+        code_extractor = self._get_code_extractor()
         try:
-            code = code_runner.get_raw_code()
+            code, num_added_lines = code_extractor.get_modified_code_and_num_added_lines(response)
         except IncompleteBlockFailedExtractingBlock:
-            return self._respond_to_issues(self._get_issue_for_incomplete_code_block())
+            is_bumped = self._bump_to_model_with_more_context()
+            return self._respond_to_issues(self._get_issue_for_incomplete_code_block(is_bumped), is_bumped=is_bumped)
         except FailedExtractingBlock as e:
             return self._respond_to_issues(self._get_issue_for_missing_or_multiple_code_blocks(e))
 
-        code_and_output = code_runner.code_and_output_cls(code=code)
+        code_runner_wrapper = self._get_code_runner_wrapper(code)
+        code_and_output = self.code_and_output_cls(code=code)
         # We were able to extract the code. We now statically check the code before running it.
         static_code_check_issues = []
         if self._requesting_small_change:
             static_code_check_issues.append(
                 self._get_issue_for_new_code_not_being_a_modification_of_old_code(code, self.previous_code))
-        static_code_check_issues.extend(self._get_issues_for_static_code_check(code))
+        static_code_check_issues.extend(code_extractor.get_issues_for_static_code_check(code=code))
 
         if static_code_check_issues:
             return self._respond_to_issues(static_code_check_issues, code_and_output)
 
         # Code passes static checks. We can now run the code.
-        code_and_output, issues, contexts, exception = code_runner.run()
+        result, created_files, multi_context, exception = code_runner_wrapper.run()
+        issues = multi_context.issues
+        contexts = multi_context.contexts
+        code_and_output = self._get_code_and_output(code, result, created_files, contexts)
+
         if exception is not None:
             if isinstance(exception, RunIssue):
                 run_time_issue = exception
+            elif isinstance(exception, ImportError):
+                run_time_issue = self._get_issue_for_allowed_packages(exception.exception, contexts)
             else:
                 exceptions_to_funcs = {
-                    ImportError: self._get_issue_for_allowed_packages,
                     TimeoutError: self._get_issue_for_timeout,
                     UnAllowedFilesCreated: self._get_issue_for_un_allowed_files_created,
                     FileNotFoundError: self._get_issue_for_file_not_found,
@@ -596,7 +575,7 @@ class DebuggerConverser(BackgroundProductsConverser):
                         run_time_issue = func(exception.exception, exception)
                         break
                 else:
-                    run_time_issue = self._get_issue_for_regular_exception_or_warning(exception, code_runner)
+                    run_time_issue = self._get_issue_for_regular_exception_or_warning(exception, num_added_lines)
             return self._respond_to_issues(run_time_issue, code_and_output)
 
         # The code ran without raising exceptions.
@@ -604,7 +583,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         output_issues = []
         output_issues.extend(issues)
         output_issues.extend(self._get_issues_for_created_output_files(code_and_output, contexts))
-
+        self._remove_issues_exceeding_max_count(output_issues)
         if output_issues:
             # if the code ran, but output was incorrect, we delete any created files:
             code_and_output.created_files.delete_all_created_files(self.data_folder)

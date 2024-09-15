@@ -2,15 +2,16 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Optional, Dict, Tuple, Set, List, Union
 
+from data_to_paper.base_products.file_descriptions import DataFileDescriptions, DataFileDescription
 from data_to_paper.base_steps import LiteratureSearch
 from data_to_paper.base_steps.literature_search import LiteratureSearchParams
-from data_to_paper.code_and_output_files.file_view_params import ContentView, ContentViewPurpose
+from data_to_paper.code_and_output_files.file_view_params import ViewPurpose
 from data_to_paper.code_and_output_files.ref_numeric_values import replace_hyperlinks_with_values
-from data_to_paper.code_and_output_files.referencable_text import hypertarget_if_referencable_text
+from data_to_paper.code_and_output_files.referencable_text import hypertarget_if_referencable_text_product
 from data_to_paper.conversation.stage import Stage
 from data_to_paper.latex import extract_latex_section_from_response
 from data_to_paper.latex.latex_to_pdf import evaluate_latex_num_command
-from data_to_paper.latex.tables import add_tables_to_paper_section, get_table_caption
+from data_to_paper.latex.tables import add_displayitems_to_paper_section, get_displayitem_caption
 
 from data_to_paper.research_types.hypothesis_testing.cast import ScientificAgent
 from data_to_paper.research_types.hypothesis_testing.product_types import HypothesisTestingPlanProduct, \
@@ -20,8 +21,7 @@ from data_to_paper.research_types.hypothesis_testing.scientific_stage import Sci
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 
 from data_to_paper.utils.nice_list import NiceList
-from data_to_paper.base_products import DataFileDescriptions, DataFileDescription, Products, \
-    NameDescriptionStageGenerator, ProductGenerator
+from data_to_paper.base_products import Products, NameDescriptionStageGenerator, ProductGenerator
 from data_to_paper.utils.types import ListBasedSet, MemoryDict
 from data_to_paper.servers.custom_types import Citation
 
@@ -29,7 +29,7 @@ CODE_STEPS_TO_STAGES_NAMES_AGENTS: Dict[str, Tuple[Stage, str, ScientificAgent]]
     'data_exploration': (ScientificStage.EXPLORATION, 'Data Exploration', ScientificAgent.DataExplorer),
     # 'data_preprocessing': (ScientificStage.PREPROCESSING, 'Data Preprocessing', ScientificAgent.DataPreprocessor),
     'data_analysis': (ScientificStage.CODE, 'Data Analysis', ScientificAgent.Debugger),
-    'data_to_latex': (ScientificStage.TABLES, 'LaTeX Table Design', ScientificAgent.InterpretationReviewer),
+    'data_to_latex': (ScientificStage.DISPLAYITEMS, 'LaTeX Table Design', ScientificAgent.InterpretationReviewer),
 }
 
 
@@ -102,8 +102,7 @@ def _get_literature_searchs() -> Dict[str, LiteratureSearch]:
 @dataclass
 class ScientificProducts(Products):
     """
-    Contains the different scientific outcomes of the research.
-    These outcomes are gradually populated, where in each step we get a new product based on previous products.
+    All products of the scientific process.
     """
     data_file_descriptions: DataFileDescriptions = field(default_factory=DataFileDescriptions)
     codes_and_outputs: Dict[str, CodeAndOutput] = field(default_factory=dict)
@@ -115,28 +114,28 @@ class ScientificProducts(Products):
     paper_sections_and_optional_citations: Dict[str, Union[str, Tuple[str, Set[Citation]]]] = \
         field(default_factory=MemoryDict)
 
-    def get_created_df_tables(self) -> List[str]:
+    def get_created_dfs(self) -> List[str]:
         return [file for file in self.codes_and_outputs['data_analysis'].created_files.get_created_content_files()
-                if file.startswith('table_')]
+                if file.startswith('tbl_') or file.startswith('fig_')]
 
-    def get_number_of_created_df_tables(self) -> int:
-        return len(self.get_created_df_tables())
+    def get_number_of_created_dfs(self) -> int:
+        return len(self.get_created_dfs())
 
-    def get_latex_tables(self, content_view: ContentView = None) -> Dict[str, List[str]]:
+    def get_latex_displayitems(self, view_purpose: ViewPurpose = ViewPurpose.PRODUCT) -> Dict[str, List[str]]:
         """
         Return the tables.
         """
         return {'results': [
             content for file, content
             in self.codes_and_outputs[
-                'data_to_latex'].created_files.get_created_content_files_to_pretty_contents(content_view).items()
-            if file.endswith('.tex')]}
+                'data_to_latex'].created_files.get_created_content_files_to_pretty_contents(view_purpose).items()
+            if file.endswith('.pkl')]}
 
-    def get_all_latex_tables(self, content_view: ContentView) -> List[str]:
+    def get_all_latex_tables(self, view_purpose: ViewPurpose) -> List[str]:
         """
         Return the tables from all sections.
         """
-        return [table for tables in self.get_latex_tables(content_view).values() for table in tables]
+        return [table for tables in self.get_latex_displayitems(view_purpose).values() for table in tables]
 
     @property
     def all_file_descriptions(self) -> DataFileDescriptions:
@@ -208,13 +207,13 @@ class ScientificProducts(Products):
             citations.update(section_citations)
         return NiceList(citations, separator='\n\n')
 
-    def get_tabled_paper_sections(self, content_view: ContentView) -> Dict[str, str]:
+    def get_tabled_paper_sections(self, view_purpose: ViewPurpose) -> Dict[str, str]:
         """
         Return the paper sections with tables inserted at the right places.
         """
-        latex_tables = self.get_latex_tables(content_view)
-        return {section_name: section if section_name not in latex_tables
-                else add_tables_to_paper_section(section, latex_tables[section_name])
+        latex_displayitems = self.get_latex_displayitems(view_purpose)
+        return {section_name: section if section_name not in latex_displayitems
+                else add_displayitems_to_paper_section(section, latex_displayitems[section_name])
                 for section_name, section in self.get_paper_sections_without_citations().items()}
 
     def get_title(self) -> str:
@@ -242,8 +241,8 @@ class ScientificProducts(Products):
                 'Overall Description of the Dataset',
                 '{}',
                 ScientificStage.DATA,
-                lambda: hypertarget_if_referencable_text(self.data_file_descriptions.general_description,
-                                                         ContentViewPurpose.PRODUCT),
+                lambda: hypertarget_if_referencable_text_product(self.data_file_descriptions.general_description,
+                                                                 ViewPurpose.PRODUCT, level=2),
             ),
 
             'data_file_descriptions': NameDescriptionStageGenerator(
@@ -264,8 +263,8 @@ class ScientificProducts(Products):
                 'Description of the Original Dataset (with hypertargets)',
                 '{}',
                 ScientificStage.DATA,
-                lambda: self.data_file_descriptions.pretty_repr(
-                    num_lines=0, content_view=ContentViewPurpose.HYPERTARGET_PRODUCT),
+                lambda: self.data_file_descriptions.pretty_repr(num_lines=0,
+                                                                view_purpose=ViewPurpose.HYPERTARGET_PRODUCT),
             ),
 
             'all_file_descriptions': NameDescriptionStageGenerator(
@@ -325,11 +324,12 @@ class ScientificProducts(Products):
 
             'outputs:{}': NameDescriptionStageGenerator(
                 'Output of the {code_name} Code',
-                'Here is the Output of our {code_name} code:\n```output\n{output}\n```\n',
+                'Here is the Output of our {code_name} code:\n{output}',
                 lambda code_step: get_code_stage(code_step),
                 lambda code_step: {
-                    'output': self.codes_and_outputs[code_step].created_files.get_single_output(
-                        content_view=ContentViewPurpose.PRODUCT),
+                    'output': self.codes_and_outputs[code_step].created_files.
+                    get_created_content_files_and_contents_as_single_str(view_purpose=ViewPurpose.PRODUCT,
+                                                                         header_level=3),
                     'code_name': self.codes_and_outputs[code_step].name},
             ),
 
@@ -348,8 +348,8 @@ class ScientificProducts(Products):
                 lambda code_step: get_code_stage(code_step),
                 lambda code_step: {
                     'code_name': self.codes_and_outputs[code_step].name,
-                    'code_description': self.get_description("codes:" + code_step),
-                    'output_description': self.get_description("outputs:" + code_step)},
+                    'code_description': self.get_description('codes:' + code_step),
+                    'output_description': self.get_description('outputs:' + code_step)},
             ),
 
             'codes_and_outputs_with_explanations:{}': NameDescriptionStageGenerator(
@@ -361,25 +361,15 @@ class ScientificProducts(Products):
                     'description': self.codes_and_outputs[code_step].to_text(with_header=False)},
             ),
 
-            'created_files:{}': NameDescriptionStageGenerator(
-                'Files Created by the {code_name} Code',
-                'Here are the files created by the {code_name} code:\n\n{created_files}',
-                lambda code_step: get_code_stage(code_step),
-                lambda code_step: {
-                    'created_files': self.codes_and_outputs[code_step].created_files.get_created_data_files(),
-                    'code_name': self.codes_and_outputs[code_step].name},
-            ),
-
             'created_files_content:{}:{}': NameDescriptionStageGenerator(
                 'Content of Files Created by the {code_name} Code',
                 'Here is the content of {which_files} created by the {code_name} code:\n\n{created_files_content}',
                 lambda code_step, filespec: get_code_stage(code_step),
                 lambda code_step, filespec: {
                     'created_files_content':
-                        self.codes_and_outputs[code_step].created_files.get_created_content_files_description(
-                            match_filename=filespec,
-                            content_view=ContentViewPurpose.CODE_REVIEW,
-                        ),
+                        self.codes_and_outputs[
+                            code_step].created_files.get_created_content_files_and_contents_as_single_str(
+                            view_purpose=ViewPurpose.CODE_REVIEW, match_filename=filespec, header_level=3),
                     'which_files': 'all files' if filespec == '*' else f'files "{filespec}"',
                     'code_name': self.codes_and_outputs[code_step].name},
             ),
@@ -434,45 +424,43 @@ class ScientificProducts(Products):
                                       },
             ),
 
-            'latex_tables': NameDescriptionStageGenerator(
-                'Tables of the Paper',
-                'Here are the tables created by our data analysis code '
-                '(a latex representation of the table_?.pkl dataframes):\n\n{}',
-                ScientificStage.TABLES,
-                lambda: None if not self.get_all_latex_tables(ContentViewPurpose.PRODUCT) else
-                '\n\n'.join([f'- "{get_table_caption(table)}":\n\n'
-                             f'```latex\n{table}\n```'
-                             for table in self.get_all_latex_tables(ContentViewPurpose.PRODUCT)]),
+            'latex_displayitems': NameDescriptionStageGenerator(
+                'Displayitems of the Paper',
+                'Here are the displayitems created by our data analysis code '
+                '(figure/table latex representations of the df_?.pkl dataframes):\n\n{}',
+                ScientificStage.DISPLAYITEMS,
+                lambda: None if not self.get_all_latex_tables(ViewPurpose.PRODUCT) else
+                '\n\n'.join([f'- "{get_displayitem_caption(table, first_line_only=True)}":\n\n'
+                             f'{table}'
+                             for table in self.get_all_latex_tables(ViewPurpose.PRODUCT)]),
             ),
 
-            'latex_tables_linked': NameDescriptionStageGenerator(
-                'Tables of the Paper with hypertargets',
-                'Here are the tables created by our data analysis code '
-                '(a latex representation of the table_?.pkl dataframes, with hypertargets):\n\n{}',
-                ScientificStage.TABLES,
-                lambda: None if not self.get_all_latex_tables(ContentViewPurpose.HYPERTARGET_PRODUCT) else
-                '\n\n'.join([f'- "{get_table_caption(table)}":\n\n'
-                             f'```latex\n{table}\n```'
-                             for table in self.get_all_latex_tables(ContentViewPurpose.HYPERTARGET_PRODUCT)]),
+            'latex_displayitems_linked': NameDescriptionStageGenerator(
+                'Displayitems of the Paper with hypertargets',
+                'Here are the displayitems created by our data analysis code '
+                '(figure/table latex representations of the df_?.pkl dataframes, with hypertargets):\n\n{}',
+                ScientificStage.DISPLAYITEMS,
+                lambda: None if not self.get_all_latex_tables(ViewPurpose.HYPERTARGET_PRODUCT) else
+                '\n\n'.join([f'- "{get_displayitem_caption(table, first_line_only=True)}":\n\n'
+                             f'{table}'
+                             for table in self.get_all_latex_tables(ViewPurpose.HYPERTARGET_PRODUCT)]),
             ),
 
             'additional_results': NameDescriptionStageGenerator(
                 'Additional Results (additional_results.pkl)',
-                'Here are some additional numeric values that may be helpful in writing the paper '
-                '(as saved to "additional_results.pkl"):\n\n{}',
+                'Here are some additional numeric values that may be helpful in writing the paper:\n\n{}',
                 ScientificStage.INTERPRETATION,
                 lambda: self.codes_and_outputs[
                     'data_analysis'].created_files.get_created_content_files_to_pretty_contents(
-                    content_view=ContentViewPurpose.PRODUCT)['additional_results.pkl'],
+                    view_purpose=ViewPurpose.PRODUCT, header_level=3)['additional_results.pkl'],
             ),
 
             'additional_results_linked': NameDescriptionStageGenerator(
                 'Additional Results (additional_results.pkl) with hypertargets',
-                'Here are some additional numeric values that may be helpful in writing the paper '
-                '(as saved to "additional_results.pkl"):\n\n{}',
+                'Here are some additional numeric values that may be helpful in writing the paper:\n\n{}',
                 ScientificStage.INTERPRETATION,
                 lambda: self.codes_and_outputs[
                     'data_analysis'].created_files.get_created_content_files_to_pretty_contents(
-                    content_view=ContentViewPurpose.HYPERTARGET_PRODUCT)['additional_results.pkl'],
+                    view_purpose=ViewPurpose.HYPERTARGET_PRODUCT, header_level=3)['additional_results.pkl'],
             ),
         }

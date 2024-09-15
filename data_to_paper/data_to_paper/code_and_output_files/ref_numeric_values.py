@@ -102,7 +102,7 @@ class ReferencedValue:
 
 
 class HypertargetPosition(Enum):
-    NONE = 0  # do noit create hypertargets
+    NONE = 0  # do not create hypertargets
     WRAP = 1  # \hypertarget{target}{value}
     ADJACENT = 2  # \hypertarget{target}{}value
     HEADER = 3  # \hypertarget{target}{} ... value
@@ -118,7 +118,10 @@ class HypertargetFormat:
     escaped: bool = False  # (*@ ... @*)
 
     def __bool__(self):
-        return self.position
+        return bool(self.position)
+
+    def is_hypertarget_position_header(self) -> bool:
+        return self.position == HypertargetPosition.HEADER
 
 
 def find_hyperlinks(text: str, is_targets: bool = False) -> List[ReferencedValue]:

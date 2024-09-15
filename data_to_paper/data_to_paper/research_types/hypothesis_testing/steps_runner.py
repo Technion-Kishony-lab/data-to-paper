@@ -1,14 +1,15 @@
 from dataclasses import dataclass, field
 from typing import Type
 
-from data_to_paper.base_steps import DirectorProductGPT, CheckLatexCompilation, DataStepRunner
+from data_to_paper.base_steps import DirectorProductGPT, DataStepRunner
+from data_to_paper.latex.latex_doc import LatexDocument
 
 from .app_startup import HypothesisTestingStartDialog
 from .cast import ScientificAgent
 from .coding.after_coding import RequestCodeExplanation, RequestCodeProducts
-from .coding.data_analysis import DataAnalysisCodeProductsGPT
-from .coding.data_exploration import DataExplorationCodeProductsGPT
-from .coding.latex_tables import CreateLatexTablesCodeProductsGPT
+from .coding.analysis import DataAnalysisCodeProductsGPT
+from .coding.exploration import DataExplorationCodeProductsGPT
+from .coding.displayitems import CreateDisplayitemsCodeProductsGPT
 from .coding.preprocessing import DataPreprocessingCodeProductsGPT
 from .literature_search import WritingLiteratureSearchReviewGPT, GoalLiteratureSearchReviewGPT
 from .produce_pdf_step import ProduceScientificPaperPDFWithAppendix
@@ -25,10 +26,18 @@ PAPER_SECTIONS_NAMES = ['title', 'abstract', 'introduction', 'results', 'discuss
 SECTIONS_WITH_CITATIONS = ['introduction', 'discussion']
 
 SKIP_STAGE_MESSAGE = 'This stage was skipped because the goal was provided by the user.'
+SECTIONS_TO_WRITING_CLASS = [
+    (('results',), ResultsSectionWriterReviewGPT),
+    (('title', 'abstract'), SecondTitleAbstractSectionWriterReviewGPT),
+    (('methods',), MethodsSectionWriterReviewGPT),
+    (('introduction',), IntroductionSectionWriterReviewGPT),
+    (('discussion',), DiscussionSectionWriterReviewGPT),
+    # (('conclusion',), ConclusionSectionWriterReviewGPT),
+]
 
 
 @dataclass
-class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
+class HypothesisTestingStepsRunner(DataStepRunner):
     PROJECT_PARAMETERS_FILENAME = 'data-to-paper-hypothesis-testing.json'
     DEFAULT_PROJECT_PARAMETERS = DataStepRunner.DEFAULT_PROJECT_PARAMETERS | dict(
         research_goal=None,
@@ -40,6 +49,8 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
         excluded_citation_titles=[],
         max_goal_refinement_iterations=3,
     )
+
+    latex_document: LatexDocument = field(default_factory=LatexDocument)
 
     APP_STARTUP_CLS = HypothesisTestingStartDialog
     name = 'Hypothesis Testing Research'
@@ -55,9 +66,9 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
         super()._pre_run_preparations()
         self.paper_producer = ProduceScientificPaperPDFWithAppendix.from_(
             self,
-            latex_document=self.latex_document,
             output_filename='paper.pdf',
             paper_section_names=PAPER_SECTIONS_NAMES,
+            figures_folder=self.output_directory,
         )
 
         self.stages_to_funcs = {
@@ -68,7 +79,7 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
             ScientificStage.ASSESS_NOVELTY: self._assess_novelty,
             ScientificStage.PLAN: self._hypotheses_testing_plan,
             ScientificStage.CODE: self._data_analysis,
-            ScientificStage.TABLES: self._tables,
+            ScientificStage.DISPLAYITEMS: self._tables,
             ScientificStage.INTERPRETATION: self._interpretation,
             ScientificStage.LITERATURE_REVIEW_WRITING: self._literature_review_writing,
             ScientificStage.WRITING_RESULTS: self._writing_results,
@@ -173,7 +184,6 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
         RequestCodeProducts.from_(
             self,
             code_step='data_analysis',
-            latex_document=self.latex_document,
             code_writing_class=DataAnalysisCodeProductsGPT,
             explain_code_class=RequestCodeExplanation,
             explain_created_files_class=None,
@@ -185,7 +195,7 @@ class HypothesisTestingStepsRunner(DataStepRunner, CheckLatexCompilation):
             self,
             code_step='data_to_latex',
             latex_document=self.latex_document,
-            code_writing_class=CreateLatexTablesCodeProductsGPT,
+            code_writing_class=CreateDisplayitemsCodeProductsGPT,
             explain_code_class=None,
             explain_created_files_class=None,
         ).get_code_and_output_and_descriptions()

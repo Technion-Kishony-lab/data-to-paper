@@ -114,6 +114,10 @@ def citations():
 file_name = 'test'
 
 
+def test_latex_document_is_hashable():
+    assert hash(LatexDocument()) is not None
+
+
 def test_latex_to_pdf(tmpdir, latex_content):
     save_latex_and_compile_to_pdf(latex_content, file_name, tmpdir.strpath)
 
@@ -175,4 +179,4 @@ def test_evaluate_latex_expression(latex, expected):
     latex, num_dict = evaluate_latex_num_command(latex)
     assert latex == expected[0]
     assert num_dict == expected[1]
-    LatexDocument().get_document(latex, file_stem='test')
+    LatexDocument().compile_document(latex, file_stem='test')

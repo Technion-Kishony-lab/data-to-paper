@@ -92,7 +92,7 @@ def format_str_by_direct_replace(text: str, replacements: dict):
     return text
 
 
-def wrap_text_with_triple_quotes(text: str, header: str = '') -> str:
+def wrap_as_block(text: str, header: str = '') -> str:
     """
     Wrap text with triple quotes.
     """
@@ -146,3 +146,25 @@ def short_repr(var):
     except TypeError:
         pass
     return f"<{type(var).__name__}>"
+
+
+def escape_html(text: str) -> str:
+    """
+    Escape HTML special characters in a string.
+    """
+    return text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;'). \
+        replace('"', '&quot;').replace("'", '&#39;')
+
+
+def add_header_and_footer_lines(header: str, text: str, width: int = 30, line: str = '-'):
+    """
+    Return:
+    <-       width      ->
+
+    ------- HEADER -------
+    text
+    ----------------------
+    """
+    header_line = f' {header} '.center(width, line)
+    footer_line = line * width
+    return f'{header_line}\n{text}\n{footer_line}'

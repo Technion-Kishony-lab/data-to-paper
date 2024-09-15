@@ -1,7 +1,8 @@
 import numbers
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Iterable, Optional
+from typing import List, Iterable, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -23,9 +24,23 @@ class OnStr(Enum):
     AS_FLOAT = 1
     SMALLER_THAN = 2  # with P_VALUE_MIN, e.g. "<1e-6"
     LATEX_SMALLER_THAN = 3  # with P_VALUE_MIN, e.g. "$<1e-6$"
-    WITH_EPSILON = 3  # with EPSILON, e.g. "1e-12"
-    WITH_ZERO = 4  # just format. no minimal value
-    DEBUG = 5
+    WITH_EPSILON = 4  # with EPSILON, e.g. "1e-12"
+    WITH_ZERO = 5  # just format. no minimal value
+    DEBUG = 6
+
+    def st_sign(self):
+        if self == OnStr.SMALLER_THAN:
+            return '<'
+        if self == OnStr.LATEX_SMALLER_THAN:
+            return '$<$'
+        return ''
+
+    def minimal_value(self):
+        if self in [OnStr.SMALLER_THAN, OnStr.LATEX_SMALLER_THAN]:
+            return P_VALUE_MIN
+        if self == OnStr.WITH_EPSILON:
+            return EPSILON
+        return 0
 
 
 def format_p_value(x, minimal_value=P_VALUE_MIN, smaller_than_sign: str = '<'):
@@ -86,40 +101,39 @@ class PValue(OperatorValue):
         self.var_name = var_name
 
     def _get_new_object(self, value):
-        return self.__class__(value, created_by=self.created_by, var_name=self.var_name)
+        with self.BEHAVE_NORMALLY.temporary_set(True):
+            return self.__class__(value, created_by=self.created_by, var_name=self.var_name)
 
     def _raise_if_forbidden_func(self, method_name):
         raise RunIssue.from_current_tb(
-            category='Be careful with p-values',
+            category='Do not convert or manipulate p-values',
             issue=self.error_message_on_forbidden_func.format(func_name=method_name, created_by=self.created_by),
+            instructions='Please leave p-values intact.\n'
+                         'Do not apply to p-values any function or operation '
+                         '(like str, repr, format, round, operators, etc).',
             code_problem=CodeProblem.RuntimeError,
         )
 
     def _apply_post_operator(self, op, method_name, value):
         if self.BEHAVE_NORMALLY:
             return value
-        if method_name in ['__str__', '__repr__']:
+        if method_name in ['__str__', '__repr__', '__format__']:
             on_str = self.ON_STR
             if on_str == OnStr.AS_FLOAT:
                 return value
-            if on_str == OnStr.SMALLER_THAN:
-                return format_p_value(self.value, minimal_value=P_VALUE_MIN, smaller_than_sign='<')
-            if on_str == OnStr.LATEX_SMALLER_THAN:
-                return format_p_value(self.value, minimal_value=P_VALUE_MIN, smaller_than_sign='$<$')
-            if on_str == OnStr.WITH_EPSILON:
-                return format_p_value(self.value, minimal_value=EPSILON, smaller_than_sign='')
-            if on_str == OnStr.WITH_ZERO:
-                return format_p_value(self.value, minimal_value=0, smaller_than_sign='')
             if on_str == OnStr.DEBUG:
                 return f'PValue({value})'
             if on_str == OnStr.RAISE:
                 self._raise_if_forbidden_func(method_name)
-            assert False, f'Unknown value for ON_STR: {on_str}'
+            return format_p_value(self.value, minimal_value=on_str.minimal_value(), smaller_than_sign=on_str.st_sign())
         if method_name in self.OPERATORS_RETURNING_NEW_PVALUE:
             return self._get_new_object(value)
         if method_name in self.OPERATORS_RETURNING_NORMAL_VALUE:
             return value
         self._raise_if_forbidden_func(method_name)
+
+    def is_integer(self):
+        return self.value.is_integer()
 
     @property
     def __class__(self):
@@ -173,6 +187,7 @@ def convert_to_p_value(value, created_by: str = None, var_name: str = None,
     if isinstance(value, np.ndarray):
         return np.vectorize(convert_to_p_value)(value, **kwargs)
     if isinstance(value, pd.Series):
+        value = value.copy()
         kwargs.pop('var_name')
         for i in range(len(value)):
             value.iloc[i] = convert_to_p_value(value.iloc[i], var_name=value.index[i], **kwargs)
@@ -203,6 +218,38 @@ def is_containing_p_value(value):
     return False
 
 
+def is_only_p_values(value):
+    if is_p_value(value):
+        return True
+    if isinstance(value, np.ndarray):
+        return np.all(np.vectorize(is_only_p_values)(value))
+    if isinstance(value, pd.Series):
+        return value.apply(is_only_p_values).all()
+    if isinstance(value, pd.DataFrame):
+        return value.applymap(is_only_p_values).all().all()
+    if isinstance(value, (list, tuple)):
+        return all(is_only_p_values(val) for val in value)
+    if isinstance(value, dict):
+        return all(is_only_p_values(val) for val in value.values())
+    return False
+
+
+def convert_p_values_to_floats(value):
+    if is_p_value(value):
+        return value.value
+    if isinstance(value, np.ndarray):
+        return np.vectorize(convert_p_values_to_floats)(value)
+    if isinstance(value, pd.Series):
+        return value.apply(convert_p_values_to_floats)
+    if isinstance(value, pd.DataFrame):
+        return value.applymap(convert_p_values_to_floats)
+    if isinstance(value, (list, tuple)):
+        return type(value)(convert_p_values_to_floats(val) for val in value)
+    if isinstance(value, dict):
+        return {key: convert_p_values_to_floats(val) for key, val in value.items()}
+    return value
+
+
 @dataclass
 class TrackPValueCreationFuncs(RunContext):
     package_names: Iterable[str] = ()
@@ -228,3 +275,46 @@ class OnStrPValue:
     def __exit__(self, exc_type, exc_val, exc_tb):
         PValue.ON_STR = self.prev_on_str
         return False
+
+
+@contextmanager
+def pvalue_on_str_for_latex():
+    """
+    If the current PValue.ON_STR is SMALLER_THAN, then change it to LATEX_SMALLER_THAN.
+    """
+    if PValue.ON_STR == OnStr.SMALLER_THAN:
+        PValue.ON_STR = OnStr.LATEX_SMALLER_THAN
+        yield
+        PValue.ON_STR = OnStr.SMALLER_THAN
+    else:
+        yield
+
+
+class PValueToStars:
+    default_levels = (0.01, 0.001, 0.0001)
+
+    def __init__(self, p_value: Optional[float] = None, levels: Tuple[float] = None):
+        self.p_value = p_value
+        self.levels = levels or self.default_levels
+
+    def __str__(self):
+        return self.convert_to_stars()
+
+    def convert_to_stars(self):
+        p_value = self.p_value
+        levels = self.levels
+        if p_value < levels[2]:
+            return '***'
+        if p_value < levels[1]:
+            return '**'
+        if p_value < levels[0]:
+            return '*'
+        return 'ns'
+
+    def get_conversion_legend_text(self) -> str:
+        #  ns p >= 0.01, * p < 0.01, ** p < 0.001, *** p < 0.0001
+        levels = self.levels
+        legend = [f'ns p >= {levels[0]}']
+        for i, level in enumerate(levels):
+            legend.append(f'{(i + 1) * "*"} p < {level}')
+        return ', '.join(legend)

@@ -1,13 +1,11 @@
 import copy
-from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, Union, Optional
+from typing import Dict
 
-from data_to_paper.run_gpt_code.overrides.pvalue import OnStr
 from data_to_paper.code_and_output_files.ref_numeric_values import HypertargetPosition, HypertargetFormat
 
 
-class ContentViewPurpose(Enum):
+class ViewPurpose(Enum):
     FINAL_APPENDIX = 0
     FINAL_INLINE = 1
     PRODUCT = 2
@@ -15,85 +13,34 @@ class ContentViewPurpose(Enum):
     CODE_REVIEW = 4
     APP_HTML = 5
 
+    def is_for_llm(self):
+        return self in [ViewPurpose.PRODUCT, ViewPurpose.HYPERTARGET_PRODUCT, ViewPurpose.CODE_REVIEW]
 
-@dataclass(frozen=True)
-class ContentViewParams:
-    """
-    Parameters for how to present the content of the file.
-    """
-    hypertarget_format: HypertargetFormat
-    with_hyper_header: bool = False
-    is_block: bool = False
-    pvalue_on_str: Optional[OnStr] = None
-    is_html: bool = False
+    def is_for_paper(self):
+        return self in [ViewPurpose.FINAL_APPENDIX, ViewPurpose.FINAL_INLINE]
+
+    def is_for_html(self):
+        return self in [ViewPurpose.APP_HTML]
 
 
-ContentView = Union[Optional[ContentViewPurpose], ContentViewParams]
-
-DEFAULT_VIEW_PURPOSE_TO_PARAMS: Dict[Optional[ContentViewPurpose], ContentViewParams] = {
-    None:
-        ContentViewParams(
-            hypertarget_format=HypertargetFormat(position=HypertargetPosition.NONE),
-            with_hyper_header=False,
-            is_block=False,
-            pvalue_on_str=None),
-
-    ContentViewPurpose.FINAL_APPENDIX:
-        ContentViewParams(
-            hypertarget_format=HypertargetFormat(position=HypertargetPosition.ADJACENT, raised=True, escaped=True),
-            with_hyper_header=True,
-            is_block=False,
-            pvalue_on_str=OnStr.WITH_ZERO),
-
-    ContentViewPurpose.FINAL_INLINE:
-        ContentViewParams(
-            hypertarget_format=HypertargetFormat(position=HypertargetPosition.ADJACENT, raised=True, escaped=False),
-            with_hyper_header=False,
-            is_block=False,
-            pvalue_on_str=OnStr.SMALLER_THAN),
-
-    ContentViewPurpose.PRODUCT:
-        ContentViewParams(
-            hypertarget_format=HypertargetFormat(position=HypertargetPosition.NONE),
-            with_hyper_header=False,
-            is_block=False,
-            pvalue_on_str=OnStr.SMALLER_THAN),
-
-    ContentViewPurpose.HYPERTARGET_PRODUCT:
-        ContentViewParams(
-            hypertarget_format=HypertargetFormat(position=HypertargetPosition.WRAP, raised=False, escaped=False),
-            with_hyper_header=False,
-            is_block=False,
-            pvalue_on_str=OnStr.SMALLER_THAN),
-
-    ContentViewPurpose.CODE_REVIEW: ContentViewParams(
-        hypertarget_format=HypertargetFormat(position=HypertargetPosition.NONE),
-        with_hyper_header=False,
-        is_block=True,
-        pvalue_on_str=OnStr.SMALLER_THAN),
-
-    ContentViewPurpose.APP_HTML: ContentViewParams(
-        hypertarget_format=HypertargetFormat(position=HypertargetPosition.NONE),
-        with_hyper_header=False,
-        is_block=True,
-        pvalue_on_str=OnStr.SMALLER_THAN,
-        is_html=True),
+DEFAULT_VIEW_PURPOSE_TO_HYPERTARGET_FORMAT: Dict[ViewPurpose, HypertargetFormat] = {
+    None: HypertargetFormat(position=HypertargetPosition.NONE),
+    ViewPurpose.FINAL_APPENDIX: HypertargetFormat(position=HypertargetPosition.ADJACENT, raised=True, escaped=True),
+    ViewPurpose.FINAL_INLINE: HypertargetFormat(position=HypertargetPosition.ADJACENT, raised=True, escaped=False),
+    ViewPurpose.PRODUCT: HypertargetFormat(position=HypertargetPosition.NONE),
+    ViewPurpose.HYPERTARGET_PRODUCT: HypertargetFormat(position=HypertargetPosition.WRAP, raised=False, escaped=False),
+    ViewPurpose.CODE_REVIEW: HypertargetFormat(position=HypertargetPosition.NONE),
+    ViewPurpose.APP_HTML: HypertargetFormat(position=HypertargetPosition.NONE),
 }
 
 
 class ContentViewPurposeConverter:
-    def __init__(self, view_purpose_to_params: Dict[Optional[ContentViewPurpose], ContentViewParams] = None):
-        view_purpose_to_params = view_purpose_to_params or DEFAULT_VIEW_PURPOSE_TO_PARAMS
+    def __init__(self, view_purpose_to_params: Dict[ViewPurpose, HypertargetFormat] = None):
+        view_purpose_to_params = view_purpose_to_params or DEFAULT_VIEW_PURPOSE_TO_HYPERTARGET_FORMAT
         self.view_purpose_to_params = copy.deepcopy(view_purpose_to_params)
 
-    def convert_content_view_to_params(self, content_view: ContentView) -> ContentViewParams:
-        if isinstance(content_view, ContentViewPurpose) or content_view is None:
-            return self.view_purpose_to_params[content_view]
-        elif isinstance(content_view, ContentViewParams):
-            return content_view
-        else:
-            raise ValueError(f'content_view should be either ContentViewPurpose or ContentViewParams, '
-                             f'but got {content_view}')
+    def convert_view_purpose_to_hypertarget_format(self, view_purpose: ViewPurpose) -> HypertargetFormat:
+        return self.view_purpose_to_params[view_purpose]
 
     def __hash__(self):
         return hash(tuple(self.view_purpose_to_params.items()))

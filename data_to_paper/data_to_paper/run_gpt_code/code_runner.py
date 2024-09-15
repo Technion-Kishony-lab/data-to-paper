@@ -1,192 +1,207 @@
-import os
 import pickle
-import platform
-import threading
-import tempfile
-import uuid
-from abc import abstractmethod, ABC
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, Iterable, Tuple, List, Dict, Any, Type
+from types import ModuleType
 
-from data_to_paper.env import MAX_EXEC_TIME
-from data_to_paper.utils.mutable import Mutable
-from data_to_paper.run_gpt_code.dynamic_code import RunCode, is_serializable
-from data_to_paper.run_gpt_code.code_utils import extract_code_from_text
-from data_to_paper.utils import line_count
+import os
+import importlib
 
-from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
+from typing import Optional, Type, Tuple, Any, Union, Iterable, Dict, Callable
+
+from data_to_paper.env import DEBUG_MODE
+from data_to_paper.utils.types import ListBasedSet
 from data_to_paper.code_and_output_files.output_file_requirements import OutputFileRequirements
 
-from .base_run_contexts import RunContext
-from .cache_runs import CacheRunToFile
+from .base_run_contexts import MultiRunContext
+from .attr_replacers import PreventCalling
+from .config import configure_matplotlib
+from .run_contexts import PreventFileOpen, ModifyImport, WarningHandler, IssueCollector, \
+    TrackCreatedFiles, RunInDirectory
+
+from .exceptions import FailedRunningCode, BaseRunContextException, CodeTimeoutException
+from .timeout_context import timeout_context
+from .user_script_name import MODULE_NAME, module_filename
 from .run_issues import RunIssue
-from .exceptions import FailedRunningCode, CodeTimeoutException
 
-# process.queue fails on Mac OS X with large objects. Use file-based transfer instead.
-RUN_CACHE_FILEPATH = Mutable(None)
+from data_to_paper import llm_created_scripts
+module_dir = os.path.dirname(llm_created_scripts.__file__)
+module_default_filepath = os.path.join(module_dir, module_filename)
+
+USING_MATPLOTLIB_IN_GPT_CODE = False
+
+
+def save_code_to_module_file(code: str = None):
+    code = code or '# empty module\n'
+    with open(module_default_filepath, "w") as f:
+        f.write(code)
+
+
+def generate_empty_code_module_object() -> ModuleType:
+    """
+    Generate module object with the given code and return it.
+    """
+    save_code_to_module_file()
+    return importlib.import_module(llm_created_scripts.__name__ + '.' + MODULE_NAME)
+
+
+def is_serializable(x):
+    """
+    Check if x is serializable so that it can be transferred between processes.
+    """
+    try:
+        pickle.dumps(x)
+        return True
+    except Exception:
+        return False
 
 
 @dataclass
-class BaseCodeRunner(CacheRunToFile, ABC):
-    response: str = None  # response from the LLM (contains code)
-    script_file_path: Optional[Path] = None  # where to save the script after running. If None, don't save.
-    run_folder: Optional[Path] = None
-    output_file_requirements: OutputFileRequirements = OutputFileRequirements()
-    allowed_read_files: Iterable[str] = ()
-    additional_contexts: Optional[Dict[str, Any]] = None  # additional contexts to use when running code
-    run_code_cls: Type[RunCode] = RunCode
-    code_and_output_cls: Type[CodeAndOutput] = CodeAndOutput
-    _lines_added_in_front_of_code: int = None
-    timeout_sec: int = MAX_EXEC_TIME.val
-    cache_filepath: Path = field(default_factory=lambda: RUN_CACHE_FILEPATH.val)  # None if not caching
+class CodeRunner:
+    """
+    Run the provided code and report exceptions or specific warnings.
+    """
+    timeout_sec: Optional[int] = None
+    warnings_to_ignore: Optional[Iterable[Type[Warning]]] = \
+        (DeprecationWarning, ResourceWarning, PendingDeprecationWarning, FutureWarning)
+    warnings_to_raise: Optional[Iterable[Type[Warning]]] = ()
+    warnings_to_issue: Optional[Iterable[Type[Warning]]] = ...  # `...` for all that are not ignored or raised
 
-    @property
-    def lines_added_in_front_of_code(self) -> int:
-        return self._lines_added_in_front_of_code
+    forbidden_modules_and_functions: Iterable[Tuple[Any, str, bool]] = \
+        (
+            # Module, function, create RunIssue (True) or raise exception (False)
+            ('builtins', 'print', True),
+            ('builtins', 'input', False),
+            ('builtins', 'eval', False),
+            ('builtins', 'exit', False),
+            ('builtins', 'quit', False),
+            ('matplotlib.pyplot', 'show', True),  # 'matplotlib.pyplot' is a string because it is not always installed
+    )
+    modified_imports: Tuple[Tuple[str, Optional[str]]] = (
+            ('os', None),
+            ('sys', None),
+            ('subprocess', None),
+            ('shutil', None),
+    )
 
-    @abstractmethod
-    def get_raw_code(self) -> str:
-        """
-        Extract the raw code from the response.
-        """
-        return NotImplementedError
+    # File lists can include wildcards, e.g. '*.py' or '**/*.py'. () means no files. None means all files.
 
-    def _modify_code(self, code: str) -> Tuple[str, int]:
-        """
-        Modify the raw code before running it.
-        For example, add imports, change imports, etc.
-        Return the modified code and the number of lines added in front of the code.
-        """
-        return code, 0
+    # Allowed in `open` for reading/writing
+    allowed_open_read_files: Optional[Iterable[str]] = ()  # 'all' means all files. () means no files.
+    allowed_open_write_files: Optional[Iterable[str]] = None  # 'all': all. `None`: Based on output_file_requirements
 
-    def get_modified_code_for_run(self, code: str) -> str:
-        """
-        Get the actual code for running.
-        """
-        modified_code, self._lines_added_in_front_of_code = self._modify_code(code)
-        return modified_code
+    # Allowed new files. Assessed at end of run. If None then all files are allowed.
+    output_file_requirements: Optional[OutputFileRequirements] = OutputFileRequirements()
 
-    def get_run_code(self) -> RunCode:
-        """
-        Get the code for running.
-        """
-        return self.run_code_cls(
-            allowed_open_read_files=self.allowed_read_files,
-            allowed_open_write_files=None if self.output_file_requirements is None else
-            self.output_file_requirements.get_all_allowed_created_filenames(),
-            output_file_requirements=self.output_file_requirements,
-            run_folder=self.run_folder,
-            additional_contexts=self.additional_contexts,
-        )
+    run_folder: Union[Path, str] = field(default_factory=Path)
 
-    def _get_code_and_output(self, code: str, result: str, created_files: Iterable[str],
-                             contexts: Dict[str, Any] = None) -> CodeAndOutput:
-        """
-        Return the CodeAndOutput object for the given result and created files.
-        """
-        return self.code_and_output_cls(
-            code=code,
-            result=result,
-            created_files=self.output_file_requirements.convert_to_output_file_requirements_with_content(
-                created_files=created_files, run_folder=self.run_folder),
-            dataframe_operations=contexts['TrackDataFrames'].dataframe_operations
-            if 'TrackDataFrames' in contexts else None,
-            contexts=contexts,
-        )
+    additional_contexts: Optional[Dict[str, Any]] = field(default_factory=dict)
 
-    def run_code(self, code: Optional[str] = None, modified_code: Optional[str] = None) \
-            -> Tuple[CodeAndOutput, List[RunIssue], Dict[str, RunContext], Optional[FailedRunningCode]]:
+    _multi_context: MultiRunContext = None
+
+    _module: Optional[ModuleType] = None
+
+    def _get_or_create_multi_context(self) -> MultiRunContext:
+        if self._multi_context is not None:
+            return self._multi_context
+
+        allowed_open_write_files = self.allowed_open_write_files if self.allowed_open_write_files is not None \
+            else self.output_file_requirements.get_all_allowed_created_filenames()
+
+        # Mandatory contexts:
+        contexts = {
+            'RunInDirectory': RunInDirectory(folder=self.run_folder),
+            'IssueCollector': IssueCollector(),
+            'TrackCreatedFiles': TrackCreatedFiles(output_file_requirements=self.output_file_requirements),
+        }
+
+        # Optional builtin contexts:
+        if self.forbidden_modules_and_functions is not None:
+            contexts['PreventCalling'] = PreventCalling(modules_and_functions=self.forbidden_modules_and_functions)
+        if self.modified_imports is not None:
+            contexts['ModifyImport'] = ModifyImport(modified_imports=self.modified_imports)
+        if not (self.allowed_open_read_files is None and allowed_open_write_files is None):
+            contexts['PreventFileOpen'] = PreventFileOpen(allowed_read_files=self.allowed_open_read_files,
+                                                          allowed_write_files=allowed_open_write_files,
+                                                          allowed_write_folder=self.run_folder)
+        if not (self.warnings_to_raise is None and self.warnings_to_issue is None and self.warnings_to_ignore is None):
+            contexts['WarningHandler'] = WarningHandler(categories_to_raise=self.warnings_to_raise,
+                                                        categories_to_issue=self.warnings_to_issue,
+                                                        categories_to_ignore=self.warnings_to_ignore)
+        if self.timeout_sec is not None:
+            contexts['TimeoutContext'] = timeout_context(self.timeout_sec, CodeTimeoutException)
+
+        # Additional custom contexts:
+        if self.additional_contexts is not None:
+            for context_name, context in self.additional_contexts.items():
+                assert context_name not in contexts, f"Context name {context_name} already exists."
+                contexts[context_name] = context
+
+        # name all contexts
+        for name, context in contexts.items():
+            context.name = name
+
+        self._multi_context = MultiRunContext(contexts=contexts)
+        return self._multi_context
+
+    def run(self, code: Union[str, Callable, ModuleType]
+            ) -> Tuple[Any, ListBasedSet[str], MultiRunContext, Optional[FailedRunningCode]]:
         """
-        Run code from GPT response, and return the output and the code.
+        Run the provided code and report exceptions or specific warnings.
+
+        `code` can be provided as:
+        - a string of code to run,
+            To run the code, we save it to a .py file and use the importlib to import it.
+        - a function to run,
+            The function is called in the current context.
+        - a module to run,
+            The module is reloaded and the function is called in the current context.
+
+        Returns:
+            result: the result of a call to a function in the code, None if no function was called.
+            created_files: the files that were created during the run.
+            multi_context: the multi context that was used during the run.
+            exception: an exception that was raised during the run, None if no exception was raised.
         """
-        if code is None:
-            code = self.get_raw_code()
-        if modified_code is None:
-            modified_code = self.get_modified_code_for_run(code)
-        result, created_files, issues, contexts, exception = \
-            self.get_run_code().run(code=modified_code, save_as=self.script_file_path)
+        if USING_MATPLOTLIB_IN_GPT_CODE:
+            configure_matplotlib()
 
-        return self._get_code_and_output(code, result, created_files, contexts), issues, contexts, exception
-
-    def _get_run_directory(self):
-        return self.run_folder
-
-    def _get_instance_key(self) -> tuple:
-        return (self.get_modified_code_for_run(self.get_raw_code()), )
-
-    def _run(self):
-        return self.run_code_in_separate_process()
-
-    def run_code_in_separate_process(self) \
-            -> Tuple[Optional[CodeAndOutput], List[RunIssue], Dict[str, RunContext], Optional[FailedRunningCode]]:
-        """
-        Run the provided code in a separate process and report exceptions or specific warnings.
-        Calls `run_in_provided_process` which is a wrapper for `run`.
-        """
-        code = self.get_raw_code()
-        modified_code = self.get_modified_code_for_run(code)
-        queue_or_filepath = f"subprocess_output_{uuid.uuid4()}_{os.getpid()}.pkl"
-        queue_or_filepath = os.path.join(tempfile.gettempdir(), queue_or_filepath)
-        try:
-            process = threading.Thread(
-                target=self._run_code_and_put_result_in_queue,
-                args=(queue_or_filepath, code, modified_code),
-            )
-        except (AttributeError, TypeError):
-            for k, v in self.__dict__.items():
-                if not is_serializable(v):
-                    print(f'Attribute {k} is not serializable.')
-            raise
-        process.start()
-        process.join(self.timeout_sec)
-        if process.is_alive():
-            with os.popen(f'{"sudo -n " if platform.system() == "Darwin" else ""}py-spy dump --pid {process.pid}') as f:
-                py_spy_stack = f.read()
-            process.join()
-            result = (
-                None,
-                [],
-                dict(),
-                FailedRunningCode.from_exception_with_py_spy(CodeTimeoutException(self.timeout_sec),
-                                                             (py_spy_stack, modified_code)))
+        if isinstance(code, str):
+            self._module = generate_empty_code_module_object()
+            save_code_to_module_file(code)
+        elif isinstance(code, ModuleType):
+            self._module = code
         else:
-            with open(queue_or_filepath, 'rb') as f:
-                result = pickle.load(f)
-            os.remove(queue_or_filepath)
-            if isinstance(result, Exception):
-                raise result
-        return result
+            self._module = None
 
-    def _run_code_and_put_result_in_queue(self, queue_or_filepath, code: str, modified_code: str):
-        """
-        Run the provided code and put the result in the queue.
-        """
+        multi_context = self._get_or_create_multi_context()
+        exception = None
+        result = None
         try:
-            result = self.run_code(code, modified_code)
-        except Exception as e:
-            result = e
-        with open(queue_or_filepath, 'wb') as f:
-            pickle.dump(result, f)
+            with multi_context:
+                try:
+                    if self._module is None:
+                        result = code()
+                    else:
+                        module = importlib.reload(self._module)
+                        result = self._run_function_in_module(module)
+                except RunIssue as e:
+                    exception = e
+                except Exception as e:
+                    exception = FailedRunningCode.from_exception(e)
 
+        except BaseRunContextException as e:
+            exception = FailedRunningCode.from_exception(e)
+        except Exception:
+            raise
+        finally:
+            if not DEBUG_MODE:
+                save_code_to_module_file()  # leave the module empty
 
-@dataclass
-class CodeRunner(BaseCodeRunner):
-    """
-    CodeRunner facilitates extracting and running Python code from LLM response::
-    1. Extract code from GPT response.
-    2. Run code, raise a relevant exception with text to send to the LLM.
-    3. Read the output file created by the run if successful.
-    """
+        for context in multi_context.get_contexts():
+            assert is_serializable(context), f"Context {context} is not serializable."
 
-    add_in_front_of_code: str = ''
+        created_files = multi_context.contexts['TrackCreatedFiles'].created_files
+        return result, created_files, multi_context, exception
 
-    def get_raw_code(self) -> str:
-        return extract_code_from_text(self.response)
-
-    def _modify_code(self, code: str) -> Tuple[str, int]:
-        """
-        Modify the extracted code before running it.
-        """
-        modified_code = self.add_in_front_of_code + code
-        return modified_code, line_count(self.add_in_front_of_code)
+    def _run_function_in_module(self, module: ModuleType):
+        pass

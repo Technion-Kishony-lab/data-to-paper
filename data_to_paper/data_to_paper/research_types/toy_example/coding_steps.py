@@ -21,7 +21,6 @@ class DemoCodeProductsGPT(BaseCodeProductsGPT):
     assistant_agent: DemoAgent = DemoAgent.Performer
     user_agent: DemoAgent = DemoAgent.Debugger
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal')
-    gpt_script_filename: str = None
     code_name: str = 'Prime Number Search'
 
     @property
@@ -34,17 +33,17 @@ class DemoCodeProductsGPT(BaseCodeProductsGPT):
     def data_folder(self) -> Optional[Path]:
         return Path(self.products.data_file_descriptions.data_folder)
 
-    output_file_requirements: OutputFileRequirements = \
-        OutputFileRequirements([TextContentOutputFileRequirement('output.txt')])
-
     supported_packages: Tuple[str, ...] = ('numpy', )
 
     mission_prompt: str = dedent_triple_quote_str("""
         Please write a short Python code for the goal above.
 
-        Your code should create an output text file named "{output_filename}", which should \t
-        contain the results of your analysis.
+        Your code should create the following output files: {requested_output_filenames}.
+        These files should contain ...
 
         If needed, you can use the following packages which are already installed:
         {supported_packages}
         """)
+
+    def _create_output_file_requirements(self) -> OutputFileRequirements:
+        return OutputFileRequirements([TextContentOutputFileRequirement('output.txt')])

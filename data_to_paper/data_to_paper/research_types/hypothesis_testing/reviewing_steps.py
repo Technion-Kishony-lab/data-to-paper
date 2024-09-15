@@ -2,6 +2,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Tuple, Dict, Any, Iterable, List, Collection, Type
 
+from data_to_paper.env import JSON_MODE, WRITING_MODEL_ENGINE
 from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str, word_count
 from data_to_paper.base_steps.result_converser import Rewind
@@ -16,7 +17,6 @@ from .product_types import GoalAndHypothesisProduct, MostSimilarPapersProduct, N
     HypothesisTestingPlanProduct
 from .scientific_products import ScientificProducts
 from .writing_steps import ShowCitationProducts
-from .model_engines import get_model_engine_for_class
 
 
 @dataclass
@@ -34,7 +34,7 @@ class ScientificProductsQuotedReviewGPT(BaseProductsQuotedReviewGPT):
 
 @dataclass
 class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
-    model_engine: ModelEngine = field(default_factory=lambda: get_model_engine_for_class(GoalReviewGPT))
+    model_engine: ModelEngine = WRITING_MODEL_ENGINE
     LLM_PARAMETERS = {'temperature': 1.0}
     max_reviewing_rounds: int = 1
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions_no_headers',
@@ -116,11 +116,11 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
 
 @dataclass
 class GetMostSimilarCitations(ShowCitationProducts, PythonDictReviewBackgroundProductsConverser):
+    json_mode: bool = JSON_MODE
     products: ScientificProducts = None
     allow_citations_from_step: str = 'goal'
     max_reviewing_rounds: int = 0
 
-    model_engine: ModelEngine = field(default_factory=lambda: get_model_engine_for_class(GetMostSimilarCitations))
     value_type: type = Dict[str, str]
     goal_noun: str = 'most similar papers'
     goal_verb: str = 'find'
@@ -135,10 +135,10 @@ class GetMostSimilarCitations(ShowCitationProducts, PythonDictReviewBackgroundPr
         From the literature search above, list up to 5 key papers whose results are most \t
         similar/overlapping with our research goal and hypothesis.
 
-        Return your response as a Python Dict[str, str], where the keys are bibtex ids of the papers, \t
+        Return your response as a {python_or_json} Dict[str, str], where the keys are bibtex ids of the papers, \t
         and the values are the titles of the papers. For example:
 
-        ```python
+        ```{python_or_json}
         {
             "Smith2020TheAB": 
                 "A title of a paper most overlapping with our goal and hypothesis",
@@ -176,8 +176,8 @@ class GetMostSimilarCitations(ShowCitationProducts, PythonDictReviewBackgroundPr
 
 @dataclass
 class NoveltyAssessmentReview(ShowCitationProducts, PythonDictWithDefinedKeysReviewBackgroundProductsConverser):
+    json_mode: bool = JSON_MODE
     products: ScientificProducts = None
-    model_engine: ModelEngine = field(default_factory=lambda: get_model_engine_for_class(NoveltyAssessmentReview))
     value_type: type = Dict[str, Any]
     allowed_values_for_keys: Dict[str, Iterable] = field(default_factory=lambda: {'choice': ('OK', 'REVISE')})
     default_rewind_for_result_error: Rewind = Rewind.AS_FRESH_CORRECTION  # to maintain chain of thought
@@ -192,52 +192,60 @@ class NoveltyAssessmentReview(ShowCitationProducts, PythonDictWithDefinedKeysRev
                                                   'most_similar_papers')
     sentence_to_add_at_the_end_of_reviewer_response: str = dedent_triple_quote_str("""
         Please correct your {goal_noun} based on the feedback provided.
-        Make sure to return your full assessment, as \t
-        a Python dictionary {'similarities': List[str], 'differences': List[str], 'choice': str, 'explanation': str}.
+        Make sure to return your full assessment, as {your_response_should_be_formatted_as}.
         """)
 
     mission_prompt: str = dedent_triple_quote_str("""
         We would like to assess the novelty of our {research_goal} with respect to the literature.
-        Given the related papers listed above, please return a Python dictionary \t
-        with the following structure \t
-        {'similarities': List[str], 'differences': List[str], 'choice': str, 'explanation': str}: 
+        Given the related papers listed above, please return \t
+        {your_response_should_be_formatted_as}. Where:
 
-        * 'similarities': Provide a List[str] of potential similarities between our goal and hypothesis, \t
+        * "similarities": Provide a List[str] of potential similarities between our goal and hypothesis, \t
         and the related papers listed above.
 
-        * 'differences': Provide a List[str] of potential differences, if any, between our stated {research_goal} \t
+        * "differences": Provide a List[str] of potential differences, if any, between our stated {research_goal} \t
         and the related papers listed above.
 
-        * 'choice': Given your assessment above, choose one of the following two options:
+        * "choice": Given your assessment above, choose one of the following two options:
 
         a. Our goal and hypothesis offer a significant novelty compared to existing literature, and \t
-        will likely lead to interesting and novel findings {'choice': 'OK'}.
+        will likely lead to interesting and novel findings {"choice": "OK"}.
 
         b. Our goal and hypothesis have overlap with existing literature, and I can suggest ways to \t
-        revise them to make them more novel {'choice': 'REVISE'}.
+        revise them to make them more novel {"choice": "REVISE"}.
 
-        * 'explanation': Provide a brief explanation of your choice.
+        * "explanation": Provide a brief explanation of your choice.
 
-        Your response should be formatted as a Python dictionary, like this:
-        ```python
+        For example:
+
+        ```{python_or_json}
         {
-            'similarities': ['Our research goal is similar to the paper by ... in that ...',
-                             'Our research goal somewhat overlaps with the findings of ...'],
-                             'Our hypothesis is similar to the paper by ... in that ...'],
-            'differences': ['Our goal and hypothesis are distinct because ...',
-                            'Our hypothesis differs from the paper by ... in that ...'],
-            'choice': 'OK'  # or 'REVISE'
-            'explanation': 'While our goal and hypothesis have some overlap with existing literature, \t
-                            I believe that the ... aspect of our research is novel and will lead to ...'
-                            # or 'The overlap with the result of ... is too significant, and I think we can \t
-                            # revise our goal to make it more novel, for example by ...'
+            "similarities": [
+                "Our research goal is similar to the paper by ... in that ...",
+                "Our research goal somewhat overlaps with the findings of ...",
+                "Our hypothesis is similar to the paper by ... in that ..."
+            ],
+            "differences": [
+                "Our goal and hypothesis are distinct because ...",
+                "Our hypothesis differs from the paper by ... in that ..."
+            ],
+
+            "choice": "OK",
+            "explanation": "While our goal and hypothesis have some overlap with existing literature, \t
+        I believe that the ... aspect of our research is novel and will lead to ..."
+
+            # or:
+
+            "choice": "REVISE"
+            "explanation": "The overlap with the result of ... is too significant, and I think we can \t
+        revise our goal to make it more novel, for example by ..."
         }
         ```
         """)
 
     your_response_should_be_formatted_as: str = dedent_triple_quote_str("""
-        a Python dictionary, like this:"
-        {'similarities': List[str], 'differences': List[str], 'choice': str, 'explanation': str}
+        a {python_or_json} dictionary, like this:"
+        {"similarities": List[str], "differences": List[str], "choice": str, "explanation": str}
         """)
 
     product_type: Type[ValueProduct] = NoveltyAssessmentProduct
@@ -245,16 +253,16 @@ class NoveltyAssessmentReview(ShowCitationProducts, PythonDictWithDefinedKeysRev
     def _check_response_value(self, response_value: Any) -> Any:
         response_value = super()._check_response_value(response_value)
         errors = []
-        if response_value['choice'] not in ['OK', 'REVISE']:
-            errors.append(f"Invalid choice: {response_value['choice']}. Choose 'OK' or 'REVISE'.")
-        if not isinstance(response_value['explanation'], str):
+        if response_value["choice"] not in ["OK", "REVISE"]:
+            errors.append(f'Invalid choice: {response_value["choice"]}. Choose "OK" or "REVISE".')
+        if not isinstance(response_value["explanation"], str):
             errors.append(f"Explanation must be a string.")
-        for key in ['similarities', 'differences']:
+        for key in ["similarities", "differences"]:
             if not isinstance(response_value[key], list):
-                errors.append(f"'{key}' must be a list of strings.")
+                errors.append(f'"{key}" must be a list of strings.')
             for item in response_value[key]:
                 if not isinstance(item, str):
-                    errors.append(f"Each item in '{key}' must be a string.")
+                    errors.append(f'Each item in "{key}" must be a string.')
         if errors:
             errors = '\n'.join(errors)
             self._raise_self_response_error(
@@ -283,6 +291,7 @@ class ReGoalReviewGPT(GoalReviewGPT):
 
 @dataclass
 class HypothesesTestingPlanReviewGPT(PythonDictWithDefinedKeysReviewBackgroundProductsConverser):
+    json_mode: bool = JSON_MODE
     value_type: type = Dict[str, Dict[str, str]]
     requested_keys: Collection[str] = ('ISSUES', 'HYPOTHESES')
     max_valid_response_iterations: int = 4
@@ -293,18 +302,20 @@ class HypothesesTestingPlanReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPr
                                                   'codes_and_outputs:data_exploration',
                                                   'research_goal')
     your_response_should_be_formatted_as: str = dedent_triple_quote_str("""
-        a Python dictionary with the following structure:
-        ```python
+        a {python_or_json} dictionary with the following structure:
+        ```{python_or_json}
         {
-            'ISSUES': {
-                '<Issue>': '<Description of the issue and how it should be accounted for>',
-                '<Another issue>': '...',
-                # ...
+            "ISSUES": {
+                "<Issue>": "<Description of the issue and how it should be accounted for>",
+                "<Another issue>": "...",
+                "etc": "..."
+            }
 
-            'HYPOTHESES': {
-                '<Hypothesis>': '<Statistical test>',
-                '<another Hypothesis>': '...',
-                # ...
+            "HYPOTHESES": {
+                "<Hypothesis>": "<Statistical test>",
+                "<another Hypothesis>": "...",
+                "etc": "..."
+            }
         }
         ```
         """)
@@ -319,7 +330,7 @@ class HypothesesTestingPlanReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPr
         Review the "{data_file_descriptions_no_headers}" and "{codes_and_outputs:data_exploration}" provided above, \t
         and return your assessment as {your_response_should_be_formatted_as}
 
-        - "ISSUES":
+        - ISSUES:
         The keys of this dictionary should briefly describe the statistical issues that we should account for.
         The values should describe the issue and how it should be accounted for in the statistical tests.
         For possible issues (keys), consider for example:
@@ -330,9 +341,9 @@ class HypothesesTestingPlanReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPr
         * Imbalanced data.
         * Any other relevant statistical issues.
 
-        - Hypotheses.
+        - HYPOTHESES
         The keys of this dictionary should briefly describe each of our hypotheses.
-        The values of this dictionary \t 
+        The values of this dictionary \t
         should specify the most adequate statistical test for each hypothesis, \t
         and describe how it should be performed while accounting for any issues you have outlined above.
 
@@ -342,20 +353,21 @@ class HypothesesTestingPlanReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPr
 
         Example:
 
-        ```python
+        ```{python_or_json}
         {
-            'ISSUES': {
-                'Missing data points': 'Based on the {codes_and_outputs:data_exploration}, \t
-        we should drop lines with missing data in ...',
-                'Confounding variables': 'We should adjust for ...',
+            "ISSUES": {
+                "Missing data points": 
+                    "Based on the {codes_and_outputs:data_exploration}, \t
+        we should drop lines with missing data in ...",
+                "Confounding variables": 
+                    "We should adjust for ..."
             },
-            'HYPOTHESES': {
+            "HYPOTHESES": {
                 "xxx is associated with yyy and zzz":
                     "Linear regression with xxx as the independent variable and \t
         yyy and zzz as the dependent variables while adjusting for aaa, bbb, ccc",
                 "The association between xxx and yyy is moderated by zzz": 
-                    "Repeat the above linear regression, \t
-        while adding the interaction term between yyy and zzz",
+                    "Repeat the above linear regression, while adding the interaction term between yyy and zzz"
         }
         ```
 
@@ -365,7 +377,7 @@ class HypothesesTestingPlanReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPr
         Note how in the example shown the different hypotheses are connected to each other, building towards a single
         study goal.
 
-        Remember to return a valid Python dictionary with the structure described above.
+        Remember to return a valid {python_or_json} dictionary with the structure described above.
         """)
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.PlanReviewer
@@ -400,7 +412,7 @@ class HypothesesTestingPlanReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPr
 
         # We want explicit hypotheses. Check that the hypotheses have at least 7 words:
         for hypothesis, test in hypotheses.items():
-            if word_count(hypothesis) < 7:
+            if word_count(hypothesis) < 5:
                 self._raise_self_response_error(
                     title='# Hypothesis too short',
                     error_message=f'The hypothesis "{hypothesis}" is too short.\n'

@@ -26,6 +26,10 @@ class IndexOrderedEnum(Enum):
     def get_first(cls):
         return list(cls)[0]
 
+    @classmethod
+    def get_last(cls):
+        return list(cls)[-1]
+
     def __eq__(self, other):
         if isinstance(other, IndexOrderedEnum):
             return self.get_index() == other.get_index()

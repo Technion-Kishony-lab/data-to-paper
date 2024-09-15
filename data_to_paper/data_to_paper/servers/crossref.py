@@ -1,18 +1,16 @@
-from dataclasses import dataclass
 from typing import List, Mapping, Any
 
 import requests
 from unidecode import unidecode
 
-from data_to_paper.exceptions import data_to_paperException
-
 from .base_server import ParameterizedQueryServerCaller
 from .custom_types import Citation
+from .types import ServerErrorException
 
 CROSSREF_URL = "https://api.crossref.org/works"
 
 HEADERS = {
-    "User-Agent": "data_to_paper/0.0.1 (mailto:fallpalapp@gmail.com)"
+    "User-Agent": "data_to_paper (mailto:fallpalapp@gmail.com)"
 }
 
 BIBTEX_TEMPLATE = '@{type}{{{id},\n{fields}}}\n'
@@ -57,18 +55,6 @@ BOOK_MAPPING = {
 
 STRS_TO_REMOVE_FROM_BIBTEX_ID = ["-", "_", "–", "’", "'", "/", " ", "(", ")", "[", "]", "{", "}", ":", ";",
                                  ",", ".", "?", "!", "“", "”", '"', "–"]
-
-
-@dataclass
-class ServerErrorCitationException(data_to_paperException):
-    """
-    Error raised server wasn't able to respond.
-    """
-    status_code: int
-    text: str
-
-    def __str__(self):
-        return f"Request failed with status code {self.status_code}, error: {self.text}"
 
 
 class CrossrefCitation(Citation):
@@ -162,8 +148,8 @@ class CrossrefServerCaller(ParameterizedQueryServerCaller):
                 raise ValueError(f"Value {value} for key {key} is not valid")
         return citation
 
-    @staticmethod
-    def _get_server_response(query, rows=4) -> List[dict]:
+    @classmethod
+    def _get_server_response(cls, query, rows=4) -> List[dict]:
         """
         Get the response from the crossref server as a list of CrossrefCitation objects.
         """
@@ -178,7 +164,7 @@ class CrossrefServerCaller(ParameterizedQueryServerCaller):
         response = requests.get(CROSSREF_URL, headers=HEADERS, params=params)
 
         if response.status_code != 200:
-            raise ServerErrorCitationException(status_code=response.status_code, text=response.text)
+            raise ServerErrorException(server=cls.name, response=response)
 
         data = response.json()
         items = data['message']['items']

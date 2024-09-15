@@ -33,7 +33,7 @@ class DualConverserGPT(Converser):
     """
     A base class for agents running two LLM agents.
     """
-    COPY_ATTRIBUTES = Converser.COPY_ATTRIBUTES | {'other_conversation_name'}
+    COPY_ATTRIBUTES = {'other_conversation_name'}
 
     other_system_prompt: str = 'You are a helpful scientist.'
 
@@ -106,15 +106,21 @@ class DualConverserGPT(Converser):
                                            **kwargs) -> Message:
         if send_to_app is None:
             send_to_app = not is_background and not ignore
-        content = \
-            self._show_and_edit_content(content, editing_title, editing_instructions, in_field_instructions,
-                                        send_to_app, app_panel, sleep_for)
-        return self.other_conversation_manager.append_user_message(
+        is_edit = editing_title or editing_instructions
+        if is_edit:
+            content = \
+                self._show_and_edit_content(content, editing_title, editing_instructions, in_field_instructions,
+                                            send_to_app, app_panel, sleep_for)
+        result = self.other_conversation_manager.append_user_message(
             content=format_value(self, content),
             tag=tag,
             comment=comment,
             previous_code=previous_code,
             ignore=ignore, is_background=is_background, **kwargs)
+        if not is_edit:
+            self._show_and_edit_content(content, editing_title, editing_instructions, in_field_instructions,
+                                        send_to_app, app_panel, sleep_for)
+        return result
 
     def apply_to_other_append_system_message(self, content: StrOrReplacer, tag: Optional[StrOrReplacer] = None,
                                              comment: Optional[StrOrReplacer] = None,
@@ -304,7 +310,7 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser, HumanReviewAppIn
 
         return message, message.content
 
-    def _add_or_replace_other_response(self, response: str) -> str:
+    def _add_or_replace_other_response(self, response: str):
         is_last_message_user = self.other_conversation[-1].role == Role.USER
         if not is_last_message_user:
             self.apply_to_other_delete_messages(-1)

@@ -1,8 +1,11 @@
+import numpy as np
 import pytest
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.datasets import load_iris
-from data_to_paper.run_gpt_code.overrides.sklearn.override_sklearn import SklearnSearchLimitCheck
+
+from data_to_paper.run_gpt_code.overrides.pvalue import is_p_value
+from data_to_paper.run_gpt_code.overrides.sklearn.override_sklearn import SklearnSearchLimitCheck, SklearnPValue
 from data_to_paper.run_gpt_code.run_issues import RunIssue
 
 
@@ -52,3 +55,11 @@ def test_randomized_search_cv_within_limit():
         # Should complete without errors
         randomized_search.fit(iris.data, iris.target)
         assert len(randomized_search.cv_results_['mean_test_score']) <= 3
+
+
+def test_f_regression_returns_pvalues():
+
+    with SklearnPValue():
+        from sklearn.feature_selection import f_regression
+        result = f_regression(np.array([[1], [2], [3]]), np.array([1, 2, 3]))
+    assert is_p_value(result[1][0])

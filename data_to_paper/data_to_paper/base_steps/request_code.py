@@ -5,7 +5,7 @@ from typing import Optional, Tuple, Dict, Type, Any, NamedTuple, Collection, Lis
 
 from data_to_paper.types import HumanReviewType
 from data_to_paper.env import SUPPORTED_PACKAGES, PAUSE_AT_LLM_FEEDBACK, PAUSE_AT_PROMPT_FOR_LLM_FEEDBACK, \
-    AUTO_TERMINATE_AI_REVIEW
+    AUTO_TERMINATE_AI_REVIEW, JSON_MODE, CODING_MODEL_ENGINE
 from data_to_paper.interactive import PanelNames
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.run_gpt_code.run_issues import CodeProblem
@@ -13,12 +13,16 @@ from data_to_paper.code_and_output_files.output_file_requirements import TextCon
     OutputFileRequirements
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList
-from data_to_paper.utils.replacer import Replacer
-from data_to_paper.code_and_output_files.file_view_params import ContentViewPurpose
-from data_to_paper.interactive import Symbols
+from data_to_paper.utils.replacer import Replacer, format_value
+from data_to_paper.code_and_output_files.file_view_params import ViewPurpose
 
 from data_to_paper.interactive.human_actions import RequestInfoHumanAction
 from data_to_paper.interactive.human_review import HumanReviewAppInteractor
+
+from data_to_paper.interactive.symbols import Symbols
+from data_to_paper.run_gpt_code.code_runner import CodeRunner
+from data_to_paper.run_gpt_code.extract_and_check_code import CodeExtractor, ModifyAndCheckCodeExtractor
+from data_to_paper.servers.model_engine import ModelEngine
 
 from .debugger import DebuggerConverser
 from .base_products_conversers import BackgroundProductsConverser
@@ -51,12 +55,13 @@ class CodeReviewPrompt(NamedTuple):
 
 @dataclass
 class RequestIssuesToSolutions(PythonDictReviewBackgroundProductsConverser):
-    LLM_PARAMETERS = {'temperature': 0.0}
-    value_type: type = Dict[str, Tuple[str, str]]
+    LLM_PARAMETERS = {'temperature': 0.5}
+    value_type: type = Dict[str, List[str]]
+    json_mode: bool = JSON_MODE
     your_response_should_be_formatted_as: str = dedent_triple_quote_str("""
-        a Python Dict[str, Tuple[str, str]], \t
-        mapping the checks you have done (keys) to a Tuple[str, str], indicating either your concern \t
-        ("CONCERN", "<your concern>") or your assertion that this check is ok ("OK", "<your assertion>").""")
+        a json object that can be evaluated with `json.loads()` to a Python Dict[str, List[str]].
+        mapping the checks you have done (keys) to a list of 2 strings, indicating either your concern \t
+        ["CONCERN", "<your concern>"] or your assertion that this check is ok ["OK", "<your assertion>"]""")
     formatting_instructions_for_feedback: str = dedent_triple_quote_str("""
         Please correct your response according to my feedback, and send it again.
 
@@ -78,7 +83,7 @@ class RequestIssuesToSolutions(PythonDictReviewBackgroundProductsConverser):
             if type_ not in ('CONCERN', 'OK'):
                 self._raise_self_response_error(
                     title='# Invalid value.',
-                    error_message=f'The first element of the tuple should be "CONCERN" or "OK", but got "{type_}".'
+                    error_message=f'The first element of the array should be "CONCERN" or "OK", but got {repr(type_)}.'
                 )
             response_value[key] = (type_, feedback)
         return response_value
@@ -86,16 +91,17 @@ class RequestIssuesToSolutions(PythonDictReviewBackgroundProductsConverser):
 
 @dataclass
 class BaseCodeProductsGPT(BackgroundProductsConverser, HumanReviewAppInteractor):
+    model_engine: ModelEngine = CODING_MODEL_ENGINE
     max_code_revisions: int = 5
     max_code_writing_attempts: int = 2
     max_debug_iterations_per_attempt: int = 12
     background_product_fields_to_hide_during_code_revision: Tuple[str, ...] = ()
     debugger_cls: Type[DebuggerConverser] = DebuggerConverser
     code_and_output_cls: Type[CodeAndOutput] = CodeAndOutput
+    code_extractor_cls: Type[CodeExtractor] = ModifyAndCheckCodeExtractor
+    code_runner_cls: Type[CodeRunner] = CodeRunner
     supported_packages: Tuple[str, ...] = SUPPORTED_PACKAGES
-
-    attrs_to_send_to_debugger: Tuple[str, ...] = \
-        ('output_file_requirements', 'data_filenames', 'data_folder', 'supported_packages', 'model_engine')
+    headers_required_in_code: Tuple[str, ...] = ()
 
     revision_round: int = 0
 
@@ -110,14 +116,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser, HumanReviewAppInteractor)
     mission_prompt: str = 'Please write a code to analyze the data.'
     termination_phrase: str = 'No issues found.'
 
-    output_file_requirements: OutputFileRequirements = \
-        OutputFileRequirements((TextContentOutputFileRequirement('results.txt'),))
-    # The name of the file that gpt code is instructed to save the results to.
-
     code_name: str = ''  # e.g. "data analysis"
-
-    gpt_script_filename: str = 'gpt_code'
-    # The base name of the python file in which the code written by gpt is saved.
 
     present_code_as_fresh: str = dedent_triple_quote_str("""
         Here is the code to perform the analysis.
@@ -130,7 +129,8 @@ class BaseCodeProductsGPT(BackgroundProductsConverser, HumanReviewAppInteractor)
     your_response_should_be_formatted_as: str = RequestIssuesToSolutions.your_response_should_be_formatted_as
 
     code_review_formatting_instructions: str = \
-        'Your response should be formatted as {your_response_should_be_formatted_as}.'
+        'Your response should be formatted as {your_response_should_be_formatted_as}.\n' \
+        'Do NOT provide any corrected code or code fragments.'
 
     code_review_notes: str = dedent_triple_quote_str("""
         Notes:
@@ -182,9 +182,22 @@ class BaseCodeProductsGPT(BackgroundProductsConverser, HumanReviewAppInteractor)
             """)),
     )
 
+    _output_file_requirements: OutputFileRequirements = None
+
+    def _create_output_file_requirements(self) -> OutputFileRequirements:
+        return OutputFileRequirements((
+            TextContentOutputFileRequirement('results.txt'),
+        ))
+
     @property
-    def output_filename(self) -> str:
-        return self.output_file_requirements.get_single_content_file()
+    def output_file_requirements(self) -> OutputFileRequirements:
+        if self._output_file_requirements is None:
+            self._output_file_requirements = self._create_output_file_requirements()
+        return self._output_file_requirements
+
+    @property
+    def requested_output_filenames(self):
+        return self.output_file_requirements.get_all_allowed_created_filenames()
 
     def _get_additional_contexts(self) -> Optional[Dict[str, Any]]:
         return None
@@ -240,8 +253,39 @@ class BaseCodeProductsGPT(BackgroundProductsConverser, HumanReviewAppInteractor)
             code_and_output.created_files.delete_all_created_files(self.data_folder)
             self.revision_round += 1
         code_and_output.name = self.code_name
-        code_and_output.provided_code = self.provided_code
+        code_and_output.provided_code = format_value(self, self.provided_code)
         return code_and_output
+
+    def get_debugger(self, previous_code: Optional[str] = None,
+                     data_filenames: Optional[Collection[str]] = 'not_provided',
+                     data_folder: Optional[Path] = 'not_provided',
+                     is_new_conversation: Optional[bool] = 'not_provided',
+                     ) -> DebuggerConverser:
+        if data_filenames == 'not_provided':
+            data_filenames = self.data_filenames
+        if data_folder == 'not_provided':
+            data_folder = self.data_folder
+        if is_new_conversation == 'not_provided':
+            is_new_conversation = False
+        return self.debugger_cls.from_(
+            self,
+            is_new_conversation=is_new_conversation,
+            max_debug_iterations=self.max_debug_iterations_per_attempt,
+            background_product_fields_to_hide=(() if self.revision_round == 0
+                                               else self.background_product_fields_to_hide_during_code_revision),
+            code_and_output_cls=self.code_and_output_cls,
+            previous_code=previous_code,
+            previous_code_problem=CodeProblem.NoCode if previous_code is None else CodeProblem.AllOK,
+            code_extractor_cls=self.code_extractor_cls,
+            code_runner_cls=self.code_runner_cls,
+            output_file_requirements=self.output_file_requirements,
+            data_filenames=data_filenames,
+            data_folder=data_folder,
+            supported_packages=self.supported_packages,
+            model_engine=self.model_engine,
+            headers_required_in_code=self.headers_required_in_code,
+            additional_contexts=self._get_additional_contexts(),
+        )
 
     def _run_debugger(self, previous_code: Optional[str] = None
                       ) -> Tuple[Optional[CodeAndOutput], Optional[DebuggerConverser]]:
@@ -252,19 +296,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser, HumanReviewAppInteractor)
             self.comment(f'Starting to write and debug code. {revision_and_attempt}.')
 
             # we now call the debugger that will try to run and provide feedback in multiple iterations:
-            debugger = self.debugger_cls.from_(
-                self,
-                is_new_conversation=False,
-                max_debug_iterations=self.max_debug_iterations_per_attempt,
-                gpt_script_filename=f"{self.gpt_script_filename}_revision{self.revision_round}_attempt{attempt}",
-                background_product_fields_to_hide=(() if self.revision_round == 0
-                                                   else self.background_product_fields_to_hide_during_code_revision),
-                code_and_output_cls=self.code_and_output_cls,
-                previous_code=previous_code,
-                previous_code_problem=CodeProblem.NoCode if previous_code is None else CodeProblem.AllOK,
-                additional_contexts=self._get_additional_contexts(),
-                **{k: getattr(self, k) for k in self.attrs_to_send_to_debugger},
-            )
+            debugger = self.get_debugger(previous_code)
             code_and_output = debugger.run_debugging()
             if code_and_output is None:
                 # debugging failed
@@ -293,10 +325,9 @@ class BaseCodeProductsGPT(BackgroundProductsConverser, HumanReviewAppInteractor)
         else:
             content_files_to_contents = \
                 code_and_output.created_files.get_created_content_files_to_pretty_contents(
-                    match_filename=wildcard_filename,
-                    content_view=ContentViewPurpose.CODE_REVIEW)
+                    view_purpose=ViewPurpose.CODE_REVIEW, match_filename=wildcard_filename, header_level=3)
             if not individually:
-                content_files_to_contents = {wildcard_filename: '\n'.join(content_files_to_contents.values())}
+                content_files_to_contents = {wildcard_filename: '\n\n'.join(content_files_to_contents.values())}
         return content_files_to_contents
 
     @staticmethod
@@ -333,28 +364,30 @@ class BaseCodeProductsGPT(BackgroundProductsConverser, HumanReviewAppInteractor)
             content_files_to_contents = self._get_content_files_to_contents(
                 code_and_output, code_review_prompt.wildcard_filename, code_review_prompt.individually)
             for filename, file_contents_str in content_files_to_contents.items():
+                requester = RequestIssuesToSolutions.from_(
+                    self,
+                    model_engine=self.model_engine,
+                    background_product_fields_to_hide=self.background_product_fields_to_hide_during_code_revision,
+                    app=None,
+                )
                 replacing_kwargs = dict(
                     file_contents_str=file_contents_str,
                     filename=filename,
                     **{k: Replacer(self, v).format_text()
                        for k, v in self._get_specific_attrs_for_code_and_output(code_and_output).items()},
                 )
-                header = Replacer(self, code_review_prompt.get_header(), kwargs=replacing_kwargs).format_text()
+                header = Replacer([self, requester], code_review_prompt.get_header(),
+                                  kwargs=replacing_kwargs).format_text()
                 formatted_code_review_prompt = \
-                    Replacer(self, '## Request ' + header + '\n' + code_review_prompt.prompt,
+                    Replacer([self, requester], '## Request ' + header + '\n' + code_review_prompt.prompt,
                              kwargs=replacing_kwargs).format_text()
                 self._app_send_prompt(PanelNames.FEEDBACK)
                 self._app_send_prompt(PanelNames.FEEDBACK, formatted_code_review_prompt,
                                       sleep_for=PAUSE_AT_PROMPT_FOR_LLM_FEEDBACK, from_md=True)
+                requester.mission_prompt = formatted_code_review_prompt
                 with self._app_temporarily_set_panel_status(PanelNames.FEEDBACK,
                                                             f"Waiting for LLM {header} ({self.model_engine})"):
-                    issues_to_is_ok_and_feedback = RequestIssuesToSolutions.from_(
-                        self,
-                        model_engine=self.model_engine,
-                        background_product_fields_to_hide=self.background_product_fields_to_hide_during_code_revision,
-                        mission_prompt=formatted_code_review_prompt,
-                        app=None,
-                    ).run_and_get_valid_result(with_review=False)
+                    issues_to_is_ok_and_feedback = requester.run_and_get_valid_result(with_review=False)
                 llm_msg, app_msg, is_all_ok = \
                     self._convert_issues_to_messages(issues_to_is_ok_and_feedback, header)
                 llm_msgs_and_is_issues.append((llm_msg, is_all_ok is True))

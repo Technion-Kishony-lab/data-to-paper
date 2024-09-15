@@ -43,6 +43,28 @@ NON_UTF8_CHARS = {
     '≤': r'$\leq$',
     '≥': r'$\geq$',
     '±': r'+-',
+    '²': r'$^2$',
+    '³': r'$^3$',
+    '¼': r'$\frac{1}{4}$',
+    '½': r'$\frac{1}{2}$',
+    '¾': r'$\frac{3}{4}$',
+    '×': r'$\times$',
+    '÷': r'$\div$',
+    '°': r'$^{\circ}$',
+    '∞': r'$\infty$',
+    '√': r'$\sqrt{}$',
+    '∑': r'$\sum$',
+    '∏': r'$\prod$',
+    '∈': r'$\in$',
+    '∉': r'$\notin$',
+    '∀': r'$\forall$',
+    '∃': r'$\exists$',
+    '∅': r'$\emptyset$',
+    '∆': r'$\Delta$',
+    '∇': r'$\nabla$',
+    '∂': r'$\partial$',
+    '“': r'"',
+    '”': r'"',
 }
 
 assert all(len(c) == 1 for c in CHARS.keys())
@@ -138,11 +160,11 @@ def replace_non_utf8_chars(text):
 
 def process_inside_and_outside_command(latex, inside_func, outside_func):
     # Split the latex string into parts outside and within \caption{...}
-    parts = re.split(pattern=r'(\\caption\{.*?\})', string=latex)
+    parts = re.split(pattern=r'(\\caption\{.*?\})', string=latex, flags=re.DOTALL)
 
     # Process each part using the appropriate function
-    processed_parts = [outside_func(part) if '\\caption' not in part else '\\caption{' + inside_func(
-        part[len('\\caption{'):-1]) + '}' for part in parts]
+    processed_parts = [outside_func(part) if not part.startswith(r'\caption') else r'\caption{' + inside_func(
+        part[len(r'\caption{'):-1]) + '}' for part in parts]
 
     # Reassemble the parts
     processed_latex = ''.join(processed_parts)
@@ -182,8 +204,7 @@ def process_latex_text_and_math(text, process_text=replace_special_latex_chars, 
 
 
 def wrap_as_latex_code_output(paragraph):
-    return "\\begin{codeoutput}\n" + replace_non_utf8_chars(
-        replace_special_latex_chars(paragraph)) + "\n\\end{codeoutput}"
+    return "\\begin{codeoutput}\n" + paragraph + "\n\\end{codeoutput}"
 
 
 def check_usage_of_un_allowed_commands(latex_content: str, unwanted_commands: Iterable[str]):

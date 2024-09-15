@@ -47,7 +47,6 @@ class ProductsHandler(Copier):
 
 @dataclass
 class ProductsConverser(ProductsHandler, ResultConverser):
-    COPY_ATTRIBUTES = ProductsHandler.COPY_ATTRIBUTES | ResultConverser.COPY_ATTRIBUTES
 
     def __post_init__(self):
         ProductsHandler.__post_init__(self)
@@ -177,7 +176,6 @@ class ReviewBackgroundProductsConverser(BackgroundProductsConverser, ReviewDialo
     Base class for conversers that specify prior products and then set a goal for the new product
     to be suggested and reviewed.
     """
-    COPY_ATTRIBUTES = BackgroundProductsConverser.COPY_ATTRIBUTES | ReviewDialogDualConverserGPT.COPY_ATTRIBUTES
     suppress_printing_other_conversation: bool = False
     max_reviewing_rounds: int = 0
     termination_phrase: str = "The {goal_noun} does not require any changes"
@@ -251,7 +249,7 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
 
         IMPORTANT NOTE:
         If we need to include a numeric value that was not calculated or is not explicitly given in the \t
-        Tables or "{additional_results}", \t
+        Display Items or "{additional_results}", \t
         and cannot be derived from them, \t
         then indicate `[unknown]` instead of the numeric value. 
 
@@ -358,8 +356,8 @@ class CheckReferencedNumericReviewBackgroundProductsConverser(CheckExtractionRev
         that match the \\hypertarget references in the provided sources above.
 
         IMPORTANT NOTE:
-        If we need to include a numeric value that is not explicitly provided in the Tables and other results above, \t
-        and cannot be derived from them, then indicate `[unknown]` instead of the numeric value. 
+        If we need to include a numeric value that is not explicitly provided in the Display Items and other results \t
+        above, and cannot be derived from them, then indicate `[unknown]` instead of the numeric value. 
 
         For example:
         'The p-value of the regression coefficient of the treatment was [unknown].'

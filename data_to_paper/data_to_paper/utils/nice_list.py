@@ -93,10 +93,15 @@ class NiceDict(dict):
     'key2': value2,
     }
     """
+    def __init__(self, *args, format_numerics_and_iterables: Optional[callable] = None):
+        super().__init__(*args)
+        self.format_numerics_and_iterables = format_numerics_and_iterables or repr
+
     def __str__(self):
         if len(self) == 0:
             return '{}'
-        return '{\n' + '\n'.join([f'    {repr(key)}: {repr(value)},' for key, value in self.items()]) + '\n}'
+        return '{\n' + '\n'.join([f'    {repr(key)}: {self.format_numerics_and_iterables(value)},'
+                                  for key, value in self.items()]) + '\n}'
 
     def __repr__(self):
         return str(self)

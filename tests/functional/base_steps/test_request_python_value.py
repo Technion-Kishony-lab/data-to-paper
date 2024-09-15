@@ -47,7 +47,7 @@ def test_request_python_value_json_mode():
             json_mode=True,
             model_engine=ModelEngine.GPT4_TURBO,
             mission_prompt='Please return a list of all prime numbers from 1 to 20. '
-                           'Return your response as JSON value.',
+                           'Return your response as json value.',
         )
         result = converser.run_and_get_valid_result()
     assert result == {'primes': [2, 3, 5, 7, 11, 13, 17, 19]}
@@ -96,13 +96,13 @@ def test_request_python_value_with_error(
         (correct_list_str_value.replace("]", ""), []),
         (correct_list_str_value.replace("]", ""), ['#0', 'a valid Python']),  # 'a valid Python' -> format error
         (correct_list_str_value.replace("'c'", "5"), ['#0', 'a valid Python']),  # 'a valid Python' -> format error
-        (correct_list_str_value, ['python', '`str`']),  # 'python' -> reposted as fresh; `str` -> content error
+        (correct_list_str_value, ['Python', '`str`']),  # 'python' -> reposted as fresh; `str` -> content error
     ]),
     (Rewind.AS_FRESH_CORRECTION, [
         (correct_list_str_value.replace("]", ""), []),
         (correct_list_str_value.replace("]", ""), ['#0', 'a valid Python']),
         (correct_list_str_value.replace("'c'", "5"), ['#0', 'a valid Python']),
-        (correct_list_str_value, ['#0', 'a valid Python', 'python', '`str`']),
+        (correct_list_str_value, ['#0', 'a valid Python', 'Python', '`str`']),
     ]),
 ])
 def test_request_python_error_messages(default_rewind, answers_contexts):
@@ -148,4 +148,4 @@ def test_request_python_ends_with_reposting_fresh_response():
     assert len(requester.conversation) == 3
 
     # Response is reposted as fresh:
-    assert requester.conversation[-1].content == f"```python\n{correct_list_str_value}\n```"
+    assert requester.conversation[-1].content == f"```Python\n{correct_list_str_value}\n```"

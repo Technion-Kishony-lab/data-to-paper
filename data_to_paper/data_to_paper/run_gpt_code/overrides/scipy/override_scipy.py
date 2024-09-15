@@ -1,10 +1,10 @@
 import functools
 import inspect
-from dataclasses import dataclass, field
-from typing import Iterable, Dict, Optional
+from dataclasses import dataclass
+from typing import Iterable, Optional
 
 from data_to_paper.env import TRACK_P_VALUES
-from data_to_paper.run_gpt_code.overrides.attr_replacers import SystematicFuncReplacerContext
+from data_to_paper.run_gpt_code.attr_replacers import SystematicFuncReplacerContext
 
 from ..pvalue import convert_to_p_value, TrackPValueCreationFuncs
 from ..types import is_namedtuple, NoIterTuple
@@ -13,13 +13,9 @@ from ..utils import get_func_call_str
 
 @dataclass
 class ScipyPValueOverride(SystematicFuncReplacerContext, TrackPValueCreationFuncs):
-    prevent_unpacking: Optional[bool] = True  # False - do not prevent;  True - prevent;  None - register unpacking
+    prevent_unpacking: Optional[bool] = True  # False - do not prevent;  True - prevent;  None - create issues
     package_names: Iterable[str] = ('scipy', )
     obj_import_str: str = 'scipy'
-    unpacking_func_to_fields: Dict[str, Iterable[str]] = field(default_factory=dict)
-
-    def record_unpacking(self, created_by: str, fields: Iterable[str]):
-        self.unpacking_func_to_fields[created_by] = fields
 
     def _should_replace(self, module, func_name, func) -> bool:
         doc = inspect.getdoc(func)

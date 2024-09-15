@@ -1,17 +1,13 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Tuple, Optional, Dict
+from typing import Tuple, Optional
 
 from data_to_paper.base_steps import BaseCodeProductsGPT
-from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
+from data_to_paper.llm_coding_utils import ALLOWED_PLOT_KINDS
 from data_to_paper.research_types.hypothesis_testing.cast import ScientificAgent
-from data_to_paper.research_types.hypothesis_testing.model_engines import get_model_engine_for_class
 from data_to_paper.research_types.hypothesis_testing.scientific_products import ScientificProducts, get_code_name, \
     get_code_agent
-from data_to_paper.run_gpt_code.overrides.contexts import OverrideStatisticsPackages
-from data_to_paper.run_gpt_code.overrides.scipy.override_scipy import ScipyPValueOverride
-from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList
 
@@ -40,36 +36,34 @@ class BaseScientificCodeProductsHandler:
 class BaseScientificCodeProductsGPT(BaseScientificCodeProductsHandler, BaseCodeProductsGPT):
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, )  # None for the raw data files, () for no data files
     background_product_fields: Tuple[str, ...] = ('all_file_descriptions', 'research_goal')
-    gpt_script_filename: str = None
 
     def __post_init__(self):
-        if self.gpt_script_filename is None:
-            self.gpt_script_filename = f'{self.code_step}_code'
         BaseScientificCodeProductsHandler.__post_init__(self)
         BaseCodeProductsGPT.__post_init__(self)
 
     @property
-    def files_created_in_prior_stages(self) -> NiceList[str]:
+    def files_available_from_prior_stages(self) -> NiceList[str]:
         files = NiceList([], wrap_with='"', separator='\n')
         for section in self.allow_data_files_from_sections:
             if section is None:
                 continue
             if section in self.products.codes_and_outputs:
-                files += self.products.codes_and_outputs[section].created_files.get_created_data_files()
+                files += \
+                    self.products.codes_and_outputs[section].created_files.get_created_files_available_for_next_steps()
         return files
 
     @property
     def data_filenames(self) -> NiceList[str]:
-        return NiceList(self.raw_data_filenames + self.files_created_in_prior_stages,
+        return NiceList(self.raw_data_filenames + self.files_available_from_prior_stages,
                         wrap_with='"', prefix='\n', separator='\n', suffix='\n')
 
     @property
     def list_additional_data_files_if_any(self) -> str:
-        if len(self.files_created_in_prior_stages) == 0:
+        if len(self.files_available_from_prior_stages) == 0:
             return ''
         return f'\nOr you can also use the processed files created above by the data processing code:\n' \
                f'```\n' \
-               f'{self.files_created_in_prior_stages}' \
+               f'{self.files_available_from_prior_stages}' \
                f'```\n' \
                f'Important: use the correct version of the data to perform each of the steps. For example, ' \
                f'for descriptive statistics use the original data, for model building use the processed data.'
@@ -88,93 +82,103 @@ class BaseScientificCodeProductsGPT(BaseScientificCodeProductsHandler, BaseCodeP
 
 
 @dataclass
-class BaseCreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
-    max_debug_iterations_per_attempt: int = 20
-    max_code_revisions: int = 3
-    headers_required_in_code: Tuple[str, ...] = ()
-    attrs_to_send_to_debugger: Tuple[str, ...] = \
-        BaseScientificCodeProductsGPT.attrs_to_send_to_debugger + ('headers_required_in_code',)
-    model_engine: ModelEngine = \
-        field(default_factory=lambda: get_model_engine_for_class(BaseCreateTablesCodeProductsGPT))
-    user_agent: ScientificAgent = ScientificAgent.Debugger
-    supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'statsmodels', 'sklearn')
+class BaseTableCodeProductsGPT(BaseScientificCodeProductsGPT):
+    df_to_latex_extra_vars: str = dedent_triple_quote_str('''
+        note: str = None, 
+        glossary: Dict[Any, str] = None,
+        ''', indent=8)
 
-    @staticmethod
-    def _get_regression_comments_for_code_and_output(code_and_output: CodeAndOutput) -> str:
-        if 'statsmodels' not in code_and_output.code:
-            return ''
-        linear_regression_funcs = ['ols(', 'OLS(', 'logit(', 'Logit(', 'glm(', 'GLM(']
-        code = code_and_output.code
-        func_names = [func for func in linear_regression_funcs if func in code]
-        if not func_names:
-            return ''
-        return dedent_triple_quote_str("""\n
-            # - In regressions, in case interactions terms are included:
-            # Is the main effect adequately included in the model with interaction terms?
-            # Did we use the `*` operator in statsmodels formula as recommended?
-            # (as applicable, better use `formula = "y ~ a * b"`, instead of trying to \t
-            manually multiply the variables)
-            # For example:
-            "Model with interaction terms": 
-                ("CONCERN", "We forgot to include the main effect in the xxx model, \t
-            please use the `*` operator in the formula")
-            """, indent=4)
+    df_to_latex_extra_vars_explain: str = dedent_triple_quote_str('''
+        `note`: Note to be added below the table caption.
+        `glossary`: Glossary for the table.
+        ''', indent=4)
 
-    @staticmethod
-    def _get_mediation_comments_for_code_and_output(code_and_output: CodeAndOutput) -> str:
-        if 'mediation' not in code_and_output.code.lower() and False:
-            return ''
-        return dedent_triple_quote_str("""\n
-            # - In mediation analysis:
-            # did we calculate the mediation effect (e.g., using the Sobel test or other)?
-            # did we account for relevant confounding factors?
-            # (by adding these same confounding factors to both the 'a' and 'b' paths)
-            # For example:
-            "Mediation analysis":
-                ("CONCERN", "We did not explicitly calculate the mediation effect")
-            """, indent=4)
+    df_to_latex_doc: str = dedent_triple_quote_str('''
+        def df_to_latex(df, 
+                filename: str, caption: str,
+        {df_to_latex_extra_vars}\t
+            ):
+            """
+            Saves a DataFrame `df` and creates a LaTeX table.
+            `filename`, `caption`: as in `df.to_latex`.
+        {df_to_latex_extra_vars_explain}\t
+            """
+        ''')
 
-    @staticmethod
-    def _get_machine_learning_comments_for_code_and_output(code_and_output: CodeAndOutput) -> str:
-        if 'sklearn' not in code_and_output.code:
-            return ''
-        ml_funcs = ['RandomForestClassifier(', 'RandomForestRegressor(',
-                    'ElasticNet(', 'SVR(', 'SVC(', 'MLPRegressor(',
-                    'DecisionTreeClassifier(',
-                    'DecisionTreeRegressor(', 'LogisticRegression(']
-        func_names = [func for func in ml_funcs if func in code_and_output.code]
-        if not func_names:
-            return ''
-        return dedent_triple_quote_str("""\n
-            # - Machine-Learning models:
-            # Are we adequately performing hyperparameter tuning using cross-validation (as appropriate). 
-            # Are the best hyperparameters reported (either in a table file or in the "additional_results.pkl" file).
-            # For example:
-            "Hyperparameter tuning":
-                ("CONCERN", "We forgot to perform hyperparameter tuning")
-            """, indent=4)
+    df_to_figure_extra_latex_vars: str = dedent_triple_quote_str('''
+        note: str = None, glossary: Dict[Any, str] = None,
+        ''', indent=8)
 
-    @staticmethod
-    def _get_scipy_unpacking_comments_for_code_and_output(code_and_output: CodeAndOutput) -> str:
-        override_stats = code_and_output.contexts['OverrideStatisticsPackages']
-        assert isinstance(override_stats, OverrideStatisticsPackages)
-        stat_contexts = override_stats.contexts
-        scipy_context = next((context for context in stat_contexts if isinstance(context, ScipyPValueOverride)), None)
-        if scipy_context:
-            func_to_fields = scipy_context.unpacking_func_to_fields
-            if func_to_fields:
-                s = ('\n# - Unpacking order\n'
-                     '# When unpacking or indexing the results of {}, are we using the correct order of fields?\n'). \
-                    format(NiceList(func_to_fields.keys(), wrap_with="`", last_separator=" or "))
-                for func, fields in func_to_fields.items():
-                    s += f'#   The correct order for `{func}` is: {NiceList(fields, wrap_with="`")}.\n'
-                return s
-        return ''
+    df_to_figure_extra_plot_vars: str = dedent_triple_quote_str('''
+        xlabel: str = None, ylabel: str = None,
+        ''', indent=8)
 
-    def _get_specific_attrs_for_code_and_output(self, code_and_output: CodeAndOutput) -> Dict[str, str]:
-        comments = super()._get_specific_attrs_for_code_and_output(code_and_output)
-        comments['regression_comments'] = self._get_regression_comments_for_code_and_output(code_and_output)
-        comments['mediation_comments'] = self._get_mediation_comments_for_code_and_output(code_and_output)
-        comments['machine_learning_comments'] = self._get_machine_learning_comments_for_code_and_output(code_and_output)
-        comments['scipy_unpacking_comments'] = self._get_scipy_unpacking_comments_for_code_and_output(code_and_output)
-        return comments
+    df_to_figure_extra_latex_vars_explain: str = dedent_triple_quote_str('''
+        `note`: Note to be added below the figure caption.
+        `glossary`: Glossary for the figure.
+        ''', indent=4)
+
+    df_to_figure_extra_plot_vars_explain: str = dedent_triple_quote_str('''
+        `xlabel`: Label for the x-axis.
+        `ylabel`: Label for the y-axis.
+        ''', indent=4)
+
+    df_to_figure_doc: str = dedent_triple_quote_str('''
+        def df_to_figure(
+                df, filename: str, caption: str,
+        {df_to_figure_extra_latex_vars}\t
+                x: Optional[str] = None, y: List[str] = None, 
+                kind: str = 'bar',
+                logx: bool = False, logy: bool = False,
+                y_ci: Optional[List[str]] = None,
+                y_p_value: Optional[List[str]] = None,
+        {df_to_figure_extra_plot_vars}\t
+            ):
+            """
+            Save a DataFrame `df` and create a LaTeX figure.
+            Parameters, for LaTex embedding of the figure:
+            `filename`: Filename for the figure.
+            `caption`: Caption for the figure.
+        {df_to_figure_extra_latex_vars_explain}\t
+
+            Parameters for df.plot():
+            `x`: Column name for x-axis (index by default).
+            `y`: List of m column names for y-axis (m=1 for single plot, m>1 for multiple plots).
+            `kind`: {allowed_plot_kinds}.
+            `logx` / `logy` (bool): log scale for x/y axis.
+        {df_to_figure_extra_plot_vars_explain}\t
+
+            `y_ci`: Confidence intervals for errorbars. 
+                List of m column names indicating confidence intervals for each y column. 
+                Each element in these columns must be a Tuple[float, float], \t
+        describing the lower and upper bounds of the CI. 
+
+             `y_p_value`: List of m column names (List[str]) containing numeric p-values of the \t
+        corresponding y columns. These numeric values will be automatically converted by df_to_figure to \t
+        stars ('***', '**', '*', 'ns') and plotted above the error bars.
+
+            If provided, the length of `y_ci`, and `y_p_value` should be the same as of `y`.
+
+            Example:
+            Suppose, we have:
+
+            df_lin_reg_longevity = pd.DataFrame({
+                'adjusted_coef': [0.4, ...], 'adjusted_coef_ci': [(0.35, 0.47), ...], \t
+        'adjusted_coef_pval': [0.012, ...],   
+                'unadjusted_coef': [0.2, ...], 'unadjusted_coef_ci': [(0.16, 0.23), ...], \t
+        'unadjusted_coef_pval': [0.0001, ...],
+            }, index=['var1', ...])
+
+            then:
+            df_to_figure(df_lin_reg_longevity, 'df_lin_reg_longevity', caption='Coefficients of ...', kind='bar',  
+                y=['adjusted_coef', 'unadjusted_coef'], 
+                y_ci=['adjusted_coef_ci', 'unadjusted_coef_ci'], 
+                y_p_value=['adjusted_coef_pval', 'unadjusted_coef_pval'])
+            """
+        ''')
+
+    @property
+    def allowed_plot_kinds(self) -> str:
+        if len(ALLOWED_PLOT_KINDS) == 1:
+            return f'only {ALLOWED_PLOT_KINDS[0]} is allowed'
+        return str(NiceList(ALLOWED_PLOT_KINDS, wrap_with="'", separator=', ', last_separator=' or '))

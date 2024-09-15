@@ -7,7 +7,7 @@ from .pvalue import TrackPValueCreationFuncs
 from .random import SetRandomSeeds
 from .scipy.override_scipy import ScipyPValueOverride
 from .sklearn.override_sklearn import SklearnFitOverride, SklearnSearchLimitCheck, SklearnRandomStateOverride, \
-    SklearnNNSizeOverride
+    SklearnNNSizeOverride, SklearnPValue
 from .statsmodels.override_statsmodels import StatsmodelsFitPValueOverride, StatsmodelsMultitestPValueOverride, \
     StatsmodelsAnovaPValueOverride, StatsmodelsMulticompPValueOverride
 from ..base_run_contexts import RunContext, MultiRunContext
@@ -28,6 +28,7 @@ class OverrideStatisticsPackages(MultiRunContext):
         StatsmodelsMultitestPValueOverride(),
         StatsmodelsAnovaPValueOverride(),
         StatsmodelsMulticompPValueOverride(),
+        SklearnPValue(),
         SklearnSearchLimitCheck(),
         SklearnRandomStateOverride(),  # see comment below
         SklearnNNSizeOverride(),

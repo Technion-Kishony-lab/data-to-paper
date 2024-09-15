@@ -8,25 +8,23 @@ from dataclasses import dataclass
 from typing import List, Dict, Optional, Tuple
 
 from data_to_paper.env import SEMANTIC_SCHOLAR_API_KEY
+
 from data_to_paper.exceptions import data_to_paperException
 from data_to_paper.latex.clean_latex import replace_special_latex_chars
-from data_to_paper.servers.base_server import ParameterizedQueryServerCaller
-from data_to_paper.servers.crossref import ServerErrorCitationException
-from data_to_paper.servers.custom_types import Citation
 from data_to_paper.utils.print_to_file import print_and_log_red
 from data_to_paper.utils.nice_list import NiceList
+
+from .base_server import ParameterizedQueryServerCaller
+from .custom_types import Citation
+from .types import ServerErrorException, MissingAPIKeyError, InvalidAPIKeyError
 
 
 # TODO: this is part of the WORKAROUND. remove it when the bug is fixed.
 def remove_word(string, word):
     import re
-    pattern = re.compile(r'\b{}\b\s*'.format(re.escape(word)), re.IGNORECASE)
+    pattern = re.compile(pattern=r'\b{}\b\s*'.format(re.escape(word)), flags=re.IGNORECASE)
     return re.sub(pattern, '', string)
 
-
-HEADERS = {
-    'x-api-key': SEMANTIC_SCHOLAR_API_KEY
-}
 
 PAPER_SEARCH_URL = 'https://api.semanticscholar.org/graph/v1/paper/search'
 EMBEDDING_URL = 'https://model-apis.semanticscholar.org/specter/v1/invoke'
@@ -125,13 +123,13 @@ class SemanticScholarPaperServerCaller(ParameterizedQueryServerCaller):
     name = "Semantic Scholar"
     file_extension = "_semanticscholar_paper.bin"
 
-    @staticmethod
-    def _get_server_response(query, rows=25) -> List[dict]:
+    @classmethod
+    def _get_server_response(cls, query, rows=25) -> List[dict]:
         """
         Get the response from the semantic scholar server as a list of dict citation objects.
         """
-        if SEMANTIC_SCHOLAR_API_KEY is None:
-            raise ValueError("SEMANTIC_SCHOLAR_API_KEY is not set in the environment variables.")
+        if SEMANTIC_SCHOLAR_API_KEY.key is None:
+            raise MissingAPIKeyError(server=cls.name, api_key=SEMANTIC_SCHOLAR_API_KEY)
 
         # TODO: THIS IS A WORKAROUND FOR A BUG IN SEMANTIC SCHOLAR. REMOVE WHEN FIXED.
         words_to_remove_in_case_of_zero_citation_error = \
@@ -145,7 +143,8 @@ class SemanticScholarPaperServerCaller(ParameterizedQueryServerCaller):
                 "fields": "title,url,abstract,tldr,journal,year,citationStyles,embedding,influentialCitationCount",
             }
             print_and_log_red(f'QUERYING SEMANTIC SCHOLAR FOR: "{query}"', should_log=False)
-            response = requests.get(PAPER_SEARCH_URL, headers=HEADERS, params=params)
+            headers = {'x-api-key': SEMANTIC_SCHOLAR_API_KEY.key}
+            response = requests.get(PAPER_SEARCH_URL, headers=headers, params=params)
 
             if response.status_code in (504, 429):
                 print_and_log_red("ERROR: Server timed out or too many requests. "
@@ -154,7 +153,9 @@ class SemanticScholarPaperServerCaller(ParameterizedQueryServerCaller):
                 continue
 
             if response.status_code != 200:
-                raise ServerErrorCitationException(status_code=response.status_code, text=response.text)
+                if response.reason == 'Forbidden':
+                    raise InvalidAPIKeyError(server=cls.name, response=response, api_key=SEMANTIC_SCHOLAR_API_KEY)
+                raise ServerErrorException(server=cls.name, response=response)
 
             data = response.json()
             try:
@@ -177,7 +178,7 @@ class SemanticScholarPaperServerCaller(ParameterizedQueryServerCaller):
                 return []
 
     @staticmethod
-    def _get_embedding(paper: Dict[str, str]) -> Tuple[np.ndarray, str]:
+    def _get_embedding(paper: Dict[str, Dict[str, str]]) -> Tuple[np.ndarray, str]:
         """
         Get the embedding of the paper and a message if there was an error.
         """
@@ -228,11 +229,11 @@ class SemanticScholarEmbeddingServerCaller(ParameterizedQueryServerCaller):
     """
     Embed "paper" (title + abstract) using SPECTER Semantic Scholar API.
     """
-
+    name = "Semantic Scholar Embedding"
     file_extension = "_semanticscholar_embedding.bin"
 
-    @staticmethod
-    def _get_server_response(paper: Dict[str, str]) -> np.ndarray:
+    @classmethod
+    def _get_server_response(cls, paper: Dict[str, str]) -> np.ndarray:
         """
         Send the paper to the SPECTER Semantic Scholar API and get the embedding.
         """
@@ -240,10 +241,11 @@ class SemanticScholarEmbeddingServerCaller(ParameterizedQueryServerCaller):
         if not all(key in paper for key in ["paper_id", "title", "abstract"]):
             raise ValueError("Paper must have 'paper_id', 'title' and 'abstract' attributes.")
 
+        print_and_log_red(f'GETTING SEMANTIC SCHOLAR EMBEDDING FOR: "{paper["title"]}"', should_log=False)
         response = requests.post(EMBEDDING_URL, json=[paper])
 
         if response.status_code != 200:
-            raise ServerErrorCitationException(status_code=response.status_code, text=response.text)
+            raise ServerErrorException(server=cls.name, response=response)
 
         paper_embedding = response.json()["preds"][0]["embedding"]
 

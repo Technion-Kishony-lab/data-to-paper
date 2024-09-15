@@ -4,7 +4,7 @@ from functools import partial
 
 import colorama
 from pygments.formatters.html import HtmlFormatter
-from pygments.lexers import PythonLexer
+from pygments.lexers import PythonLexer, JsonLexer
 from pygments.lexer import RegexLexer
 from pygments.formatters import Terminal256Formatter
 from pygments.styles import get_style_by_name
@@ -15,7 +15,7 @@ from data_to_paper.latex.latex_to_html import convert_latex_to_html
 from data_to_paper.env import CHOSEN_APP
 
 from .formatted_sections import FormattedSections
-from .text_formatting import wrap_string, wrap_text_with_triple_quotes
+from .text_formatting import wrap_string, wrap_as_block
 
 COLORS_TO_LIGHT_COLORS = {
     colorama.Fore.BLACK: colorama.Fore.LIGHTBLACK_EX,
@@ -68,6 +68,17 @@ def python_to_highlighted_text(code_str: str, color: str = '', label: Optional[s
         return highlight(code_str, PythonLexer(), terminal_formatter)
     else:
         return code_str
+
+
+def json_to_highlighted_html(json_str: str) -> str:
+    return highlight(json_str, JsonLexer(), html_code_formatter)
+
+
+def json_to_highlighted_text(json_str: str, color: str = '', label: Optional[str] = None) -> str:
+    if color:
+        return highlight(json_str, JsonLexer(), terminal_formatter)
+    else:
+        return json_str
 
 
 def demote_html_headers(html, demote_by=1):
@@ -150,7 +161,7 @@ def red_text(text: str, is_color: bool = True) -> str:
 def _colored_block(text: str, label: Optional[str], color: str, with_tags: bool = True,
                    is_color: bool = True, is_light: bool = False) -> str:
     if with_tags and label:
-        text = wrap_text_with_triple_quotes(text, label)
+        text = wrap_as_block(text, label)
     return colored_text(text, color, is_color, is_light)
 
 
@@ -186,7 +197,7 @@ def get_pre_html_format(text,
 
 def _block_to_html(text: str, label: Optional[str], with_tags: bool = True, **kwargs) -> str:
     if with_tags and label is not None:
-        text = wrap_text_with_triple_quotes(text, label)
+        text = wrap_as_block(text, label)
     return text_to_html(text, css_class='tripled_quote')
 
 
@@ -209,6 +220,7 @@ TAGS_TO_FORMATTERS: Dict[Optional[str], Tuple[Callable, Callable]] = {
     'latex': (_light_colored_block, convert_latex_to_html),
     'error': (partial(_light_colored_block_no_tags, color=colorama.Fore.RED),
               partial(text_to_html, css_class="runtime_error")),
+    'json': (json_to_highlighted_text, json_to_highlighted_html),
     'system': (_light_colored_block_no_tags, NotImplemented),
     'comment': (_light_colored_block_no_tags, NotImplemented),
 }
@@ -228,6 +240,8 @@ def format_text_with_code_blocks(text: str, text_color: str = '', from_md: Optio
     formatted_sections = FormattedSections.from_text(text)
     for formatted_section in formatted_sections:
         label, section, is_complete = formatted_section.to_tuple()
+        if label is not None:
+            label = label.lower()
         if not is_complete:
             formatters = NORMAL_FORMATTERS
             section = formatted_section.to_text()

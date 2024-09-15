@@ -2,31 +2,34 @@ import glob
 import json
 import os
 import shutil
+import time
+import traceback
 from dataclasses import dataclass, field
 
 from pathlib import Path
 from typing import Union, Type, Optional, Dict, Callable
 
-from data_to_paper.base_products.file_descriptions import CreateDataFileDescriptions
-from data_to_paper.env import FOLDER_FOR_RUN
+from data_to_paper.base_products.file_descriptions import CreateDataFileDescriptions, DataFileDescriptions
+from data_to_paper.env import FOLDER_FOR_RUN, DEBUG_MODE
 from data_to_paper.interactive.base_app_startup import BaseStartDialog
 from data_to_paper.servers.api_cost import StageToCost
 from data_to_paper.utils.file_utils import clear_directory
 from data_to_paper.utils.print_to_file import print_and_log, console_log_file_context
 from data_to_paper.servers.llm_call import OPENAI_SERVER_CALLER, OpenaiServerCaller
 from data_to_paper.servers.crossref import CROSSREF_SERVER_CALLER
-from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER
+from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER, \
+    SEMANTIC_SCHOLAR_EMBEDDING_SERVER_CALLER
 from data_to_paper.conversation.stage import Stage
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
 from data_to_paper.exceptions import TerminateException, ResetStepException
-from data_to_paper.base_products import DataFileDescriptions
-from data_to_paper.run_gpt_code.code_runner import RUN_CACHE_FILEPATH
+from data_to_paper.run_gpt_code.code_runner_wrapper import RUN_CACHE_FILEPATH
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.replacer import Replacer
 
 from data_to_paper.base_steps.base_products_conversers import ProductsHandler
-from data_to_paper.interactive.app_interactor import AppInteractor
+from data_to_paper.interactive.app_interactor import AppInteractor, _raise_if_reset
 from data_to_paper.interactive import PanelNames, BaseApp
+from data_to_paper.utils.text_formatting import add_header_and_footer_lines
 
 
 @dataclass
@@ -35,9 +38,10 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
     A base class for running a series of steps whose Products gradually accumulate towards a high level goal.
     """
     ACTIONS_FILENAME = 'conversation_actions.pkl'
-    OPENAI_RESPONSES_FILENAME = 'openai_responses.txt'
+    OPENAI_RESPONSES_FILENAME = 'response_recordings.json'
     CROSSREF_RESPONSES_FILENAME = 'crossref_responses.bin'
     SEMANTIC_SCHOLAR_RESPONSES_FILENAME = 'semantic_scholar_responses.bin'
+    SEMANTIC_SCHOLAR_EMBEDDING_RESPONSES_FILENAME = 'semantic_scholar_embedding_responses.bin'
     CODE_RUNNER_CACHE_FILENAME = 'code_runner_cache.pkl'
     API_USAGE_COST_FILENAME = 'api_usage_cost.json'
 
@@ -51,7 +55,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
     project_directory: Path = None
     temp_folder_to_run_in: Path = FOLDER_FOR_RUN
     actions_and_conversations: ActionsAndConversations = field(default_factory=ActionsAndConversations)
-    should_remove_temp_folder: bool = True
+    should_remove_temp_folder: bool = not DEBUG_MODE
 
     stages_to_conversations_lens: Dict[Stage, int] = field(default_factory=dict)
 
@@ -65,22 +69,40 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
     _stages_to_api_usage_cost: StageToCost = field(default_factory=StageToCost)
     stages_to_funcs: Dict[Stage, Callable] = None
 
+    _current_exception: Optional[Exception] = None
+    _prior_stage: Optional[Stage] = None
+
     server_caller: OpenaiServerCaller = None
+
+    close_or_continue_message = dedent_triple_quote_str("""
+        You can now:
+
+        1. **CLOSE** the app to terminate the run. 
+
+        2. **RE-TRY** by click the reset button of prior stages.
+        """)
 
     failure_message = dedent_triple_quote_str("""
         ## Run Terminated
-        Run terminated prematurely during stage `{current_stage}`.
-        ```error
+        Run terminated prematurely during the **{prior_stage}** stage.
+
         {exception}
-        ```
+
+        {close_or_continue_message}
         """)
     unexpected_error_message = dedent_triple_quote_str("""
-        # Run failed.
-        *data-to-paper* exited unexpectedly.
-        ### Exception:
+        ## Run failed unexpectedly
+        *data-to-paper* failed due to an unexpected error.
+
+        ---
         ```error
         {exception}
         ```
+        ---
+
+        Please report the exception traceback from the console as a GitHub issue.
+
+        {close_or_continue_message}        
         """)
     success_message = dedent_triple_quote_str("""
         ## Completed
@@ -90,16 +112,15 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         The created manuscript and all other output files are saved in:
         {output_directory}
 
-        You can click "Compile Paper" stage button to open the manuscript.
+        You can click the "{last_stage}" stage button to open the manuscript.
 
         Please check the created manuscript rigorously and carefully.
 
 
-        *Remember that the process is not error-free and the responsibility for the final manuscript \t
-        remains with you.*
+        **Remember that the process is not error-free and the responsibility for the final manuscript \t
+        remains with you.**
 
-
-        You can close the app now.
+        {close_or_continue_message}
         """)
 
     def _get_current_stage(self):
@@ -110,7 +131,8 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         Advance the stage.
         """
         self.current_stage = stage
-        self._app_advance_stage(stage=stage)
+        if isinstance(stage, Stage) or stage is True:
+            self._app_advance_stage(stage=stage)
         if isinstance(stage, Stage):
             self._add_cost_to_stage(stage=stage)
             if stage not in self.stages_to_conversations_lens:
@@ -154,33 +176,100 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
 
     def _run_all_steps(self):
         """
-        Run all the steps towards the high level goal.
+        Run a sequence of steps towards the high level goal.
+        stage can be a specific Stage, or True to indicate completion, or False to indicate early termination.
         """
         stage = self.stages.get_first()
         while True:
             self.advance_stage(stage)
-            if stage is True:
-                break
             try:
                 next_stage = self._run_stage(stage)
             except ResetStepException as e:
+                if e.stage is None:
+                    break  # Terminate the run
                 print_and_log(f'Resetting to stage {e.stage.name}')
                 next_stage = e.stage
                 self.reset_to_stage(next_stage)
-            if next_stage is None:
+            except Exception as e:
+                if not isinstance(e, TerminateException):
+                    traceback.print_exc()
+                self._current_exception = e
+                next_stage = False  # Failure stage
+            if next_stage is None:  # Default next stage
                 try:
                     next_stage = stage.get_next()
                 except ValueError:
-                    next_stage = True
+                    next_stage = True  # Success stage
+            self._prior_stage = stage
             stage = next_stage
+
+    @_raise_if_reset
+    def _check_for_reset(self):
+        """
+        Just wait and raise a ResetStepException if the user hit the reset-to-step buttons.
+        """
+        if not self.app:
+            raise ResetStepException(None)
+        time.sleep(0.1)
+
+    def _wait_for_reset(self):
+        """
+        Wait for the user to hit the reset-to-step buttons.
+        """
+        while True:
+            self._check_for_reset()
+
+    def _failed_step(self):
+        """
+        Handle a failed step. Either because of an unexpected error or because of
+        graceful step termination.
+        """
+        e = self._current_exception
+        self._current_exception = None
+        if isinstance(e, TerminateException):
+            self._respond_to_terminate_exception(e)
+        else:
+            self._respond_to_unexpected_error(e)
+        self._wait_for_reset()
+
+    def _respond_to_terminate_exception(self, e: TerminateException):
+        msg = Replacer(self, self.failure_message, kwargs={'exception': str(e),
+                                                           'prior_stage': self._prior_stage.value}).format_text()
+        self._app_send_prompt(PanelNames.MISSION_PROMPT, msg, from_md=True)
+        self._app_set_header('Terminate upon failure')
+        print_and_log(add_header_and_footer_lines('TERMINATING RUN', msg))
+
+    def _respond_to_unexpected_error(self, e: Exception):
+        self._app_clear_panels()
+        msg = Replacer(self, self.unexpected_error_message, kwargs={'exception': str(e)}).format_text()
+        self._app_send_prompt(PanelNames.MISSION_PROMPT, msg, from_md=True)
+        self._app_set_header('Unexpected Error')
+        print_and_log(add_header_and_footer_lines('UNEXPECTED ERROR', msg))
+
+    def _finished_step(self):
+        """
+        Handle a finished step.
+        """
+        msg = Replacer(self, self.success_message, kwargs={'last_stage': self.stages.get_last().value}).format_text()
+        self._app_send_prompt(PanelNames.MISSION_PROMPT, msg, from_md=True)
+        self._app_set_header('Completed')
+        print_and_log(add_header_and_footer_lines('COMPLETED RUN', msg))
+        self._wait_for_reset()
 
     def _run_stage(self, stage: Stage) -> Optional[Stage]:
         """
         Return the next stage to run.
         `None` for default next stage.
         `True` when the run is completed.
+        `False` when the run is gracefully terminated.
         """
-        return self.stages_to_funcs[stage]()
+        if stage is True:
+            func = self._finished_step
+        elif stage is False:
+            func = self._failed_step
+        else:
+            func = self.stages_to_funcs[stage]
+        return func()
 
     def _get_files_to_keep(self):
         """
@@ -192,6 +281,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
                     self.OPENAI_RESPONSES_FILENAME,
                     self.CROSSREF_RESPONSES_FILENAME,
                     self.SEMANTIC_SCHOLAR_RESPONSES_FILENAME,
+                    self.SEMANTIC_SCHOLAR_EMBEDDING_RESPONSES_FILENAME,
                     self.API_USAGE_COST_FILENAME,
                 ]]
 
@@ -224,40 +314,26 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         """
         Run all steps and save all created files to the output folder.
         """
-        self.server_caller = OPENAI_SERVER_CALLER
-        self.server_caller.set_current_stage_callback(self._get_current_stage)
-        self.server_caller.set_api_cost_callback(self._add_cost_to_stage)
 
         @RUN_CACHE_FILEPATH.temporary_set(
             self._get_path_in_output_directory(self.CODE_RUNNER_CACHE_FILENAME))
         @SEMANTIC_SCHOLAR_SERVER_CALLER.record_or_replay(
             self._get_path_in_output_directory(self.SEMANTIC_SCHOLAR_RESPONSES_FILENAME))
+        @SEMANTIC_SCHOLAR_EMBEDDING_SERVER_CALLER.record_or_replay(
+            self._get_path_in_output_directory(self.SEMANTIC_SCHOLAR_EMBEDDING_RESPONSES_FILENAME))
         @OPENAI_SERVER_CALLER.record_or_replay(
             self._get_path_in_output_directory(self.OPENAI_RESPONSES_FILENAME))
         @CROSSREF_SERVER_CALLER.record_or_replay(
             self._get_path_in_output_directory(self.CROSSREF_RESPONSES_FILENAME))
         def run():
-            try:
-                self._pre_run_preparations()
-                self._run_all_steps()
-            except TerminateException as e:
-                msg = Replacer(self, self.failure_message, kwargs={'exception': str(e)}).format_text()
-                self._app_send_prompt(PanelNames.MISSION_PROMPT, msg, from_md=True)
-                self._app_set_header('Terminate upon failure')
-                print_and_log(f'----- TERMINATING RUN ------\n{msg}\n----------------------------\n')
-            except Exception as e:
-                self._app_clear_panels()
-                msg = Replacer(self, self.unexpected_error_message, kwargs={'exception': str(e)}).format_text()
-                self._app_send_prompt(PanelNames.MISSION_PROMPT, msg, from_md=True)
-                raise
-            else:
-                msg = Replacer(self, self.success_message).format_text()
-                self._app_send_prompt(PanelNames.MISSION_PROMPT, msg, from_md=True)
-                self._app_set_header('Completed')
-                print_and_log(f'----- COMPLETED RUN ------\n{msg}\n----------------------------\n')
+            self._run_all_steps()
 
+        self.server_caller = OPENAI_SERVER_CALLER
+        self.server_caller.set_current_stage_callback(self._get_current_stage)
+        self.server_caller.set_api_cost_callback(self._add_cost_to_stage)
         self._create_or_clean_output_folder()
         self._create_temp_folder_to_run_in()
+        self._pre_run_preparations()
         with console_log_file_context(self.output_directory / 'console_log.txt'):
             try:
                 run()

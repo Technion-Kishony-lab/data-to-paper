@@ -9,24 +9,24 @@ from data_to_paper.servers.base_server import ListServerCaller, ParameterizedQue
 
 
 class TestListServerCaller(ListServerCaller):
-    @staticmethod
-    def _get_server_response(response: Union[str, Exception] = 'response'):
+    @classmethod
+    def _get_server_response(cls, response: Union[str, Exception] = 'response'):
         if isinstance(response, Exception):
             raise response
         return response
 
 
 class TestParameterizedQueryServerCaller(ParameterizedQueryServerCaller):
-    @staticmethod
-    def _get_server_response(response: Union[str, Exception] = 'response'):
+    @classmethod
+    def _get_server_response(cls, response: Union[str, Exception] = 'response'):
         if isinstance(response, Exception):
             raise response
         return response
 
 
 class TestOrderedKeyToListServerCaller(OrderedKeyToListServerCaller):
-    @staticmethod
-    def _get_server_response(key: str, response: Union[str, Exception] = 'response'):
+    @classmethod
+    def _get_server_response(cls, key: str, response: Union[str, Exception] = 'response'):
         if isinstance(response, Exception):
             raise response
         return response
@@ -123,42 +123,19 @@ def test_mock_server_exception():
         assert str(e.value) == 'exception2'
 
 
-def test_mock_server_records_exceptions():
-    server = TestListServerCaller()
-    with server.mock(old_records=[Exception('exception1')], record_more_if_needed=True) as mock:
-        with pytest.raises(Exception) as e:
-            mock.get_server_response()
-        assert str(e.value) == 'exception1'
-        with pytest.raises(ValueError):
-            mock.get_server_response(ValueError('exception2'))
-        recording = mock.new_records[0]
-        assert isinstance(recording, ValueError) and str(recording) == 'exception2'
-
-
 def test_mock_server_save_load_responses_to_file(tmpdir):
     server = TestListServerCaller()
     file_path = os.path.join(tmpdir, 'responses.txt')
-    responses = ['response1', ValueError('exception1'), 'response2', ValueError('exception2'), ValueError('exception3')]
+    responses = ['response1', 'response2', 'response3']
     with server.mock(file_path=file_path, should_save=True) as mock:
         for response in responses:
-            if isinstance(response, Exception):
-                with pytest.raises(type(response)) as e:
-                    mock.get_server_response(response)
-                assert str(e.value) == str(response)
-            else:
-                assert mock.get_server_response(response) == response
+            assert mock.get_server_response(response) == response
 
     for i in range(2):
         new_server = TestListServerCaller()
         with new_server.mock_with_file(file_path=file_path) as mock:
             for response in responses:
-                if isinstance(response, Exception):
-                    with pytest.raises(type(response)) as e:
-                        mock.get_server_response(response)
-                    assert str(e.value) == str(response)
-                    assert e.value.args == response.args
-                else:
-                    assert mock.get_server_response(response) == response
+                assert mock.get_server_response(response) == response
 
 
 def test_mock_server_saves_upon_error(tmpdir):

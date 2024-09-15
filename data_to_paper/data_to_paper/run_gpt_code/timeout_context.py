@@ -1,7 +1,10 @@
 import signal
 import threading
 import os
-from contextlib import contextmanager
+from dataclasses import dataclass
+from typing import Type
+
+from data_to_paper.run_gpt_code.base_run_contexts import RegisteredRunContext
 
 
 def timeout_context(seconds, exception=TimeoutError):
@@ -11,40 +14,50 @@ def timeout_context(seconds, exception=TimeoutError):
 
     # return different context manager depending on the operating system
     if os.name == 'nt':
-        return timeout_windows_context(seconds, exception)
+        return TimeoutWindowsContext(seconds=seconds, exception=exception)
     else:
-        return timeout_unix_context(seconds, exception)
+        return TimeoutUnixContext(seconds=seconds, exception=exception)
 
 
-@contextmanager
-def timeout_unix_context(seconds, exception=TimeoutError):
-    def signal_handler(signum, frame):
-        raise exception(seconds)
+@dataclass
+class BaseTimeoutContext(RegisteredRunContext):
+    seconds: int = 10
+    exception: Type[Exception] = TimeoutError
 
-    # Set the signal handler and alarm for the specified number of seconds
-    signal.signal(signal.SIGALRM, signal_handler)
-    signal.alarm(seconds)
 
-    try:
-        yield
-    finally:
-        # Cancel the alarm when the function completes
+@dataclass
+class TimeoutUnixContext(BaseTimeoutContext):
+
+    def __enter__(self):
+        signal.signal(signal.SIGALRM, self.signal_handler)
+        signal.alarm(self.seconds)
+        return super().__enter__()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
         signal.alarm(0)
+        return super().__exit__(exc_type, exc_val, exc_tb)
+
+    def signal_handler(self, signum, frame):
+        raise self.exception(self.seconds)
 
 
-@contextmanager
-def timeout_windows_context(seconds, exception=TimeoutError):
-    stop_event = threading.Event()
+@dataclass
+class TimeoutWindowsContext(BaseTimeoutContext):
 
-    def target():
+    def __enter__(self):
+        self.stop_event = threading.Event()
+        self.worker_thread = threading.Thread(target=self.target)
+        self.worker_thread.start()
+        self.worker_thread.join(timeout=self.seconds)
+        return super().__enter__()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if not self.stop_event.is_set():
+            raise self.exception(self.seconds)
+        return super().__exit__(exc_type, exc_val, exc_tb)
+
+    def target(self):
         try:
             yield
         finally:
-            stop_event.set()
-
-    worker_thread = threading.Thread(target=target)
-    worker_thread.start()
-    worker_thread.join(timeout=seconds)
-
-    if not stop_event.is_set():
-        raise exception(seconds)
+            self.stop_event.set()

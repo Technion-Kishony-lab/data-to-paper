@@ -6,7 +6,7 @@ from pytest import raises
 
 from data_to_paper.run_gpt_code.overrides.dataframes.df_methods.methods import DataframeKeyError
 from data_to_paper.run_gpt_code.timeout_context import timeout_context
-from data_to_paper.run_gpt_code.overrides.attr_replacers import PreventAssignmentToAttrs, AttrReplacer
+from data_to_paper.run_gpt_code.attr_replacers import PreventAssignmentToAttrs, AttrReplacer
 from tests.functional.run_gpt_code.fake_cls import TestDoNotAssign
 
 

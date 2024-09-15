@@ -6,12 +6,12 @@ import pytest
 
 from data_to_paper.base_steps import LatexReviewBackgroundProductsConverser
 from data_to_paper.servers.llm_call import OPENAI_SERVER_CALLER
-from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
+from data_to_paper.utils.text_formatting import wrap_as_block
 
 from .utils import TestProductsReviewGPT, check_wrong_and_right_responses
 
 
-wrap_latex = partial(wrap_text_with_triple_quotes, header='latex')
+wrap_latex = partial(wrap_as_block, header='latex')
 
 
 @dataclass

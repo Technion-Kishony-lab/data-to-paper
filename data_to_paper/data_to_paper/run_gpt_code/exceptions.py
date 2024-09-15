@@ -22,7 +22,16 @@ def convert_exception_to_any_exception_if_needed(e: Exception) -> Exception:
     if isinstance(e, (TimeoutError, SyntaxError, ImportError, RuntimeWarning, FileNotFoundError,
                       data_to_paperException)):
         return e
-    return AnyException(msg=str(e), type_name=type(e).__name__)
+    from .overrides.pvalue import is_p_value, OnStrPValue, OnStr
+    msg = None
+    if isinstance(e, KeyError):
+        key = e.args[0]
+        if is_p_value(key):
+            msg = 'Using PValue as a key in mapping is mot allowed.\nDo not attempt to map or transform PValue(s).'
+    if msg is None:
+        with OnStrPValue(OnStr.WITH_ZERO):
+            msg = str(e)
+    return AnyException(msg, type_name=type(e).__name__)
 
 
 @dataclass

@@ -1,16 +1,14 @@
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Tuple, List, Set, Iterable
 
 from data_to_paper.base_steps import LatexReviewBackgroundProductsConverser, \
     CheckReferencedNumericReviewBackgroundProductsConverser
 from data_to_paper.base_steps.exceptions import FailedCreatingProductException
 from data_to_paper.base_steps.literature_search import GET_LITERATURE_SEARCH_FOR_PRINT
-from data_to_paper.latex.tables import get_table_label
+from data_to_paper.latex.tables import get_displayitem_label
 from data_to_paper.research_types.hypothesis_testing.cast import ScientificAgent
 from data_to_paper.research_types.hypothesis_testing.scientific_products import ScientificProducts
-from data_to_paper.servers.model_engine import ModelEngine
-from data_to_paper.research_types.hypothesis_testing.model_engines import get_model_engine_for_class
 from data_to_paper.servers.custom_types import Citation
 
 from data_to_paper.utils import dedent_triple_quote_str
@@ -57,10 +55,8 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
     Base class for the writer of a paper section in latex format.
     """
     products: ScientificProducts = None
-    model_engine: ModelEngine = \
-        field(default_factory=lambda: get_model_engine_for_class(SectionWriterReviewBackgroundProductsConverser))
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions_no_headers', 'research_goal',
-                                                  'codes:data_analysis', 'latex_tables', 'additional_results',
+                                                  'codes:data_analysis', 'latex_displayitems', 'additional_results',
                                                   'title_and_abstract')
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = None
     should_remove_citations_from_section: bool = True
@@ -232,7 +228,7 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
 class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
     goal_noun: str = 'title and abstract for a research paper'
     background_product_fields: Tuple[str] = ('general_dataset_description',
-                                             'codes:data_analysis', 'latex_tables', 'additional_results')
+                                             'codes:data_analysis', 'latex_displayitems', 'additional_results')
     max_reviewing_rounds: int = 1
     conversation_name: str = 'Writing: Title and Abstract (first draft)'
 
@@ -260,8 +256,8 @@ class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProd
         * short statement of the subject and its importance. 
         * description of the research gap/question/motivation.
         * short, non-technical, description of the dataset used and a non-technical explanation of the methodology.
-        * summary of each of the main results. It should summarize each key result which is evident from the tables, \t
-        but without referring to specific numeric values from the tables.
+        * summary of each of the main results. Summarize each key result which is evident from the displayitems, \t
+        but without referring to specific numeric values from the displayitems.
         * statement of limitations and implications.
         """)
     section_review_specific_instructions: str = "{section_specific_instructions}"
@@ -325,8 +321,6 @@ class IntroductionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsCo
     allow_citations_from_step: str = 'writing'
     should_remove_citations_from_section: bool = False
     max_reviewing_rounds: int = 1
-    model_engine: ModelEngine = \
-        field(default_factory=lambda: get_model_engine_for_class(IntroductionSectionWriterReviewGPT))
     section_specific_instructions: str = dedent_triple_quote_str("""\n
         The introduction should be interesting and pique your reader’s interest. 
         It should be written while citing relevant papers from the Literature Searches above.
@@ -473,11 +467,11 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
 
     background_product_fields: Tuple[str, ...] = \
         ('title_and_abstract', 'data_file_descriptions_no_headers_linked', 'codes:data_analysis',
-         'latex_tables_linked', 'additional_results_linked')
+         'latex_displayitems_linked', 'additional_results_linked')
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = \
-        ('data_file_descriptions_no_headers_linked', 'latex_tables_linked', 'additional_results_linked')
+        ('data_file_descriptions_no_headers_linked', 'latex_displayitems_linked', 'additional_results_linked')
     self_products_to_other_products: Tuple[Tuple[str, str]] = (
-        ('latex_tables_linked', 'latex_tables'),
+        ('latex_displayitems_linked', 'latex_displayitems'),
         ('additional_results_linked', 'additional_results'),
         ('data_file_descriptions_no_headers_linked', 'data_file_descriptions_no_headers'),
     )
@@ -489,11 +483,16 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
     general_result_instructions: str = dedent_triple_quote_str("""\n
         Use the following guidelines when writing the Results:
 
-        * Include 3-4 paragraphs, each focusing on one of the Tables:
-        You should typically have a separate paragraph describing each of the Tables. \t
+        * Include 3-4 paragraphs, each typically focusing on one of the analysis and the resulting displayitems:
+        You should typically have a separate paragraph describing each of the Tables/Figures.  \t
+        If two or more display items are based on the same analysis (typically a table and a figure), \t
+        they should be discussed in the same paragraph. \t
         In each such paragraph, indicate the motivation/question for the analysis, the methodology, \t
-        and only then describe the results. You should refer to the Tables by their labels (using \\ref{table:xxx}) \t
-        and explain their content, but do not add the tables themselves (I will add the tables later manually).
+        and only then describe the results. \t
+        You should describe what we see and learn from each Table/Figure. \t
+        You should refer to the Tables/Figures by their labels \t
+        (using \\ref{table:xxx}, \\ref{figure:xxx}), \t
+        but do not add the displayitems themselves (they will be added later automatically).
 
         * Story-like flow: 
         It is often nice to have a story-like flow between the paragraphs, so that the reader \t
@@ -513,7 +512,7 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         * Numeric values:
 
         - Sources: 
-        You can extract numeric values from the above provided sources: "{latex_tables_linked}", \t
+        You can extract numeric values from the above provided sources: "{latex_displayitems_linked}", \t
         "{additional_results_linked}", and "{data_file_descriptions_no_headers_linked}".
         All numeric values in these sources have a \\hypertarget with a unique label. 
 
@@ -558,7 +557,7 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
 
         The treatment odds ratio was \t
         \\num{exp(\\hyperlink{Z3a}{0.17}), \t
-        "Translating the treatment regression coefficient to odds ratio"} (CI: \t 
+        "Translating the treatment regression coefficient to odds ratio"} (CI: \t
         \\num{exp(\\hyperlink{Z3a}{0.17} - 1.96 * \\hyperlink{Z3b}{0.072}), \t
         "low CI for treatment odds ratio, assuming normality"}, \t
         \\num{exp(\\hyperlink{Z3a}{0.17} + 1.96 * \\hyperlink{Z3b}{0.072}), \t
@@ -566,12 +565,12 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         ```
 
         * Accuracy: 
-        Make sure that you are only mentioning details that are explicitly found within the Tables and \t
+        Make sure that you are only mentioning details that are explicitly found within the Tables, Figures and \t
         Numerical Values.
 
         * Unknown values:
         If we need to include a numeric value that is not explicitly given in the \t
-        Tables or "{additional_results_linked}", and cannot be derived from them using the \\num command, \t
+        Tables/Figures or "{additional_results_linked}", and cannot be derived from them using the \\num command, \t
         then indicate `[unknown]` instead of the numeric value. 
 
         For example:
@@ -588,12 +587,12 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         (they will be automatically replaced with the actual numeric values in compilation).
         """)
     section_review_specific_instructions: str = dedent_triple_quote_str("""
-        Do not suggest adding missing information, or stating whats missing from the Tables and Numerical Values, \t
-        only suggest changes that are relevant to the Results section itself and that are supported by the given \t
-        Tables and Numerical Values.
+        Do not suggest adding missing information, or stating whats missing from the displayitems or Numerical Values.
+        Only suggest changes that are relevant to the Results section itself and that are supported by the given \t
+        displayitems and Numerical Values.
 
         Do not suggest changes to the {goal_noun} that may require data not available in the the \t
-        Tables and Numerical Values.
+        displayitems and Numerical Values.
         """)
     sentence_to_add_at_the_end_of_reviewer_response: str = dedent_triple_quote_str("""\n\n
         Please correct your response according to any points in my feedback that you find relevant and applicable.
@@ -603,20 +602,22 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         for dependent values.
     """)
 
-    def _get_table_labels(self, section_name: str) -> List[str]:
-        return [get_table_label(table) for table in self.products.get_latex_tables()[section_name]]
+    def _get_displayitem_labels(self, section_name: str) -> List[str]:
+        return [get_displayitem_label(displayitem)
+                for displayitem in self.products.get_latex_displayitems()[section_name]]
 
     def _check_and_refine_section(self, section: str, section_name: str) -> str:
         result = super()._check_and_refine_section(section, section_name)
-        table_labels = self._get_table_labels(section_name)
-        for table_label in table_labels:
-            if table_label not in section:
+        displayitems_labels = self._get_displayitem_labels(section_name)
+        figure_or_table = 'Figure' if section_name.startswith('figure') else 'Table'
+        for displayitem_label in displayitems_labels:
+            if displayitem_label not in section:
                 self._raise_self_response_error(
-                    title='# Missing Table reference',
+                    title='# Missing Displayitem reference',
                     error_message=dedent_triple_quote_str(f"""
-                        The {section_name} section should specifically reference each of the Tables that we have.
-                        Please make sure we have a sentence addressing Table "{table_label}".
-                        The sentence should have a reference like this: "Table~\\ref{{{table_label}}}".
+                        The {section_name} section should specifically reference each of the Displayitems that we have.
+                        Please make sure we have a sentence addressing {figure_or_table} "{displayitem_label}".
+                        The sentence should have a reference: "{figure_or_table}~\\ref{{{displayitem_label}}}".
                         """)
                 )
         return result
@@ -634,8 +635,6 @@ class DiscussionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConv
     allow_citations_from_step: str = 'writing'
     should_remove_citations_from_section: bool = False
     max_reviewing_rounds: int = 1
-    model_engine: ModelEngine = \
-        field(default_factory=lambda: get_model_engine_for_class(DiscussionSectionWriterReviewGPT))
     section_review_specific_instructions: str = dedent_triple_quote_str("""\n
         Also, please suggest if you see any specific additional citations that are adequate to include \t
         (from the Literature Searches above).

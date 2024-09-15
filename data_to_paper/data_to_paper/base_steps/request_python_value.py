@@ -1,18 +1,21 @@
 import json
 from dataclasses import dataclass
 
+from data_to_paper import Message
 from data_to_paper.base_steps.base_products_conversers import ReviewBackgroundProductsConverser
 
 from typing import Any, Dict, Optional, get_origin, Collection, Iterable
 
 from data_to_paper.base_steps.result_converser import Rewind
+from data_to_paper.env import JSON_MODEL_ENGINE
 from data_to_paper.run_gpt_code.code_utils import extract_content_of_triple_quote_block, FailedExtractingBlock, \
     NoBlocksFailedExtractingBlock, IncompleteBlockFailedExtractingBlock
+from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils.nice_list import NiceDict
 from data_to_paper.utils.tag_pairs import TagPairs
 from data_to_paper.utils.check_type import validate_value_type, WrongTypeException
 from data_to_paper.utils.text_extractors import extract_text_between_most_flanking_tags
-from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
+from data_to_paper.utils.text_formatting import wrap_as_block
 
 TYPES_TO_TAG_PAIRS: Dict[type, TagPairs] = {
     dict: TagPairs('{', '}'),
@@ -28,20 +31,24 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
     A base class for agents requesting the LLM to write a python value (like a list of str, or dict).
     Option for reviewing the sections (set max_reviewing_rounds > 0).
     """
+    model_engine: ModelEngine = JSON_MODEL_ENGINE
     value_type: type = None
     rewind_after_getting_a_valid_response: Optional[Rewind] = Rewind.AS_FRESH
     json_mode: bool = False
     your_response_should_be_formatted_as: str = '{property_your_response_should_be_formatted_as}'
 
-    def __post_init__(self):
-        super().__post_init__()
-        if self.json_mode:
-            self.llm_parameters['response_format'] = {"type": "json_object"}
+    @property
+    def is_really_json_mode(self) -> bool:
+        return self.json_mode and self.model_engine.allows_json_mode
+
+    @property
+    def python_or_json(self) -> str:
+        return 'json' if self.json_mode else 'Python'
 
     @property
     def property_your_response_should_be_formatted_as(self) -> str:
         if self.json_mode:
-            return f"a JSON object that can be evaluated with `json.loads()` to a Python {self.type_name}."
+            return f"a json object that can be evaluated with `json.loads()` to a Python {self.type_name}."
         return f"a Python {self.type_name} wrapped within a triple backtick 'python' code block."
 
     @property
@@ -52,19 +59,23 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
     def type_name(self) -> str:
         return str(self.value_type).replace('typing.', '')
 
+    def apply_get_and_append_assistant_message(self, *args, **kwargs) -> Message:
+        kwargs['is_json'] = self.is_really_json_mode
+        return super().apply_get_and_append_assistant_message(*args, **kwargs)
+
     def get_valid_result_as_markdown(self) -> str:
-        return wrap_text_with_triple_quotes(self.valid_result, 'python')
+        return wrap_as_block(self.valid_result, 'python')
 
     def _check_response_and_get_extracted_text(self, response: str) -> str:
         """
         Extracts the string of the python value from LLM response.
         If there is an error extracting the value, _raise_self_response_error is called.
         """
-        if self.json_mode:
+        if self.is_really_json_mode:
             return response
 
         try:
-            return extract_content_of_triple_quote_block(response, self.goal_noun, 'python')
+            return extract_content_of_triple_quote_block(response, self.goal_noun, self.python_or_json)
         except NoBlocksFailedExtractingBlock:
             pass
         except FailedExtractingBlock as e:
@@ -92,9 +103,9 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
         """
         Return a response that contains just the python value.
         """
-        if self.json_mode:
+        if self.is_really_json_mode:
             return extracted_text
-        return wrap_text_with_triple_quotes(extracted_text, 'python')
+        return wrap_as_block(extracted_text, self.python_or_json)
 
     def _evaluate_python_value_from_str(self, response: str) -> Any:
         try:
@@ -123,7 +134,7 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
         except WrongTypeException as e:
             self._raise_self_response_error(
                 title='# Incorrect response type',
-                error_message=e.message)
+                error_message=str(e))
         return response_value
 
     def _check_response_value(self, response_value: Any) -> Any:
@@ -163,10 +174,9 @@ class PythonDictWithDefinedKeysReviewBackgroundProductsConverser(PythonDictRevie
         check_response_value = super()._check_response_value(response_value)
         if self.requested_keys is not None:
             if set(response_value.keys()) != set(self.requested_keys):
-                type_name = 'JSON' if self.json_mode else 'Python'
                 self._raise_self_response_error(
                     title='# Incorrect keys in response',
-                    error_message=f'Your response should include a {type_name} dict containing the keys: '
+                    error_message=f'Your response should include a {self.python_or_json} dict containing the keys: '
                                   f'{self.requested_keys}')
 
         return check_response_value

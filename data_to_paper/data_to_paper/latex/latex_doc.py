@@ -1,11 +1,16 @@
 import re
-from dataclasses import dataclass, field
-from functools import partial
-from typing import List, Optional, Dict, Union, Iterable, Collection
 
+from dataclasses import dataclass
+from functools import partial
+from typing import Optional, Dict, Union, Iterable, Collection, Tuple
+
+from pathlib import Path
+
+from data_to_paper.exceptions import MissingInstallationError
 from data_to_paper.latex import save_latex_and_compile_to_pdf
 from data_to_paper.latex.clean_latex import process_latex_text_and_math
-from data_to_paper.latex.latex_to_pdf import evaluate_latex_num_command
+from data_to_paper.latex.latex_to_pdf import evaluate_latex_num_command, check_that_pdflatex_packages_is_installed, \
+    check_pdflatex_is_installed, PDFLATEX_INSTALLATION_INSTRUCTIONS
 
 from data_to_paper.servers.custom_types import Citation
 from data_to_paper.utils import dedent_triple_quote_str
@@ -21,6 +26,7 @@ DEFAULT_PACKAGES = (
     '{color}',
     '{listings}',
     '{sectsty}',
+    '{graphicx}',
 )
 
 DEFAULT_INITIATION_COMMANDS = (r"""
@@ -126,7 +132,7 @@ def get_tabular_block(latex_table: str) -> str:
     return re.search(pattern=r'\\begin{tabular}.*\n(.*)\\end{tabular}', string=latex_table, flags=re.DOTALL).group(0)
 
 
-@dataclass
+@dataclass(frozen=True)
 class LatexDocument:
     """
     A class for creating latex documents and compiling them to pdf.
@@ -138,7 +144,7 @@ class LatexDocument:
     section_heading_fontsize: str = 'Large'
     subsection_heading_fontsize: str = 'normalsize'
     subsubsection_heading_fontsize: str = 'normalsize'
-    initiation_commands: List[str] = field(default_factory=lambda: list(DEFAULT_INITIATION_COMMANDS))
+    initiation_commands: Tuple[str] = DEFAULT_INITIATION_COMMANDS
 
     section_numbering: bool = False
     subsection_numbering: bool = False
@@ -147,9 +153,9 @@ class LatexDocument:
     replace_scientific_exponents: bool = True
 
     author: str = 'data-to-paper'
-    packages: List[str] = field(default_factory=lambda: list(DEFAULT_PACKAGES))
+    packages: Tuple[str] = DEFAULT_PACKAGES
 
-    allow_table_tilde: bool = False
+    allow_displayitem_tilde: bool = False
 
     def _style_section(self, section: str) -> str:
         if not self.section_numbering:
@@ -167,8 +173,11 @@ class LatexDocument:
         else:
             section = section.replace(r'\subsubsection*{', r'\subsubsection{')
 
-        if not self.allow_table_tilde:
-            section = section.replace(r'Table\textasciitilde', r'Table ').replace(r'Table \textasciitilde', r'Table ')
+        if not self.allow_displayitem_tilde:
+            section = section.replace(r'Table\textasciitilde', r'Table ')
+            section = section.replace(r'Table \textasciitilde', r'Table ')
+            section = section.replace(r'Figure\textasciitilde', r'Figure ')
+            section = section.replace(r'Figure \textasciitilde', r'Figure ')
 
         section = evaluate_latex_num_command(section)[0]
 
@@ -187,24 +196,9 @@ class LatexDocument:
                      abstract: Optional[str] = None,
                      appendix: Optional[str] = None,
                      author: Optional[str] = None,
-                     references: Collection[Citation] = None,
-                     format_cite: bool = True,
+                     with_references: bool = False,
                      add_before_document: Optional[str] = None,
-                     file_stem: str = None,
-                     output_directory: Optional[str] = None,
-                     raise_on_too_wide: bool = True,
-                     ) -> (str, str):
-        """
-        Return the latex document as a string.
-
-        If `file_stem` is given, save the document to a file and compile it to pdf.
-
-        If `output_directory` is given, save the document to that directory.
-
-        If `output_directory` is None:
-            compile to pdf but do not save (checking for compilation errors).
-            `LatexCompilationError` is raised if there are errors.
-        """
+                     ) -> str:
 
         if isinstance(content, dict):
             if 'title' in content:
@@ -270,7 +264,7 @@ class LatexDocument:
         s += self._style_section(all_sections)
 
         # References:
-        if references:
+        if with_references:
             s += CITATION_TEMPLATE + '\n'
 
         # Appendix:
@@ -281,13 +275,79 @@ class LatexDocument:
         # End document:
         s += r'\end{document}' + '\n'
 
-        # Save and compile:
-        pdf_output = save_latex_and_compile_to_pdf(s, file_stem=file_stem, output_directory=output_directory,
-                                                   references=references, raise_on_too_wide=raise_on_too_wide,
-                                                   format_cite=format_cite)
-        return s, pdf_output
+        return s
 
-    def compile_table(self, latex_table: str, file_stem: str = None, output_directory: Optional[str] = None) -> float:
+    def raise_if_pdflatex_is_not_installed(self):
+        """
+        Check that pdflatex is installed.
+        """
+        if not check_pdflatex_is_installed():
+            raise MissingInstallationError(package_name='pdflatex', instructions=PDFLATEX_INSTALLATION_INSTRUCTIONS)
+
+    @property
+    def package_names(self):
+        return [package.split('{')[1].split('}')[0] for package in self.packages]
+
+    def raise_if_packages_are_not_installed(self):
+        """
+        Check that the packages used in the latex document are installed.
+        """
+        missing_packages = []
+        for package_name in self.package_names:
+            is_installed = check_that_pdflatex_packages_is_installed(package_name)
+            if is_installed is None:
+                print('Warning: failed checking if package is installed.')
+                return
+            elif not is_installed:
+                missing_packages.append(package_name)
+        if missing_packages:
+            raise MissingInstallationError(package_name=f'pdflatex packages {missing_packages}',
+                                           instructions='Please install the missing packages.')
+
+    def compile_document(self,
+                         content: Optional[Union[str, Iterable[str], Dict[Optional[str], str]]] = None,
+                         title: Optional[str] = None,
+                         abstract: Optional[str] = None,
+                         appendix: Optional[str] = None,
+                         author: Optional[str] = None,
+                         references: Collection[Citation] = None,
+                         format_cite: bool = True,
+                         add_before_document: Optional[str] = None,
+                         figures_folder: Optional[Path] = None,
+                         file_stem: str = 'test',
+                         output_directory: Optional[str] = None,
+                         ) -> (str, str, Optional[float]):
+        """
+        Return the latex document as a string.
+
+        If `file_stem` is given, save the document to a file and compile it to pdf.
+
+        If `output_directory` is given, save the document to that directory.
+
+        If `output_directory` is None:
+            compile to pdf but do not save (checking for compilation errors)
+
+        Returns:
+            - The latex content.
+            - The pdf compilation output.
+            - The overflow width of the table, if any.
+
+        `LatexCompilationError` is raised if there are errors.
+        """
+
+        self.raise_if_pdflatex_is_not_installed()
+        self.raise_if_packages_are_not_installed()
+
+        latex = self.get_document(content=content, title=title, abstract=abstract, appendix=appendix, author=author,
+                                  with_references=bool(references), add_before_document=add_before_document)
+        pdf_output, over_width_pts = save_latex_and_compile_to_pdf(latex, file_stem=file_stem,
+                                                                   output_directory=output_directory,
+                                                                   references=references,
+                                                                   format_cite=format_cite,
+                                                                   figures_folder=figures_folder)
+        return latex, pdf_output, over_width_pts
+
+    def compile_table(self, latex_table: str, file_stem: str = 'test', output_directory: Optional[str] = None) -> float:
         """
         Compile a latex table to pdf and return the width of the tabular part of the table,
         expressed as fraction of the page margin width.
@@ -310,13 +370,9 @@ class LatexDocument:
             \typeout{Page margin width: \the\textwidth}
             """).replace('<tabular>', get_tabular_block(latex_table)).replace('<table>', latex_table)
 
-        _, pdf_output = self.get_document(content=lrbox_table,
-                                          file_stem=file_stem,
-                                          output_directory=output_directory,
-                                          raise_on_too_wide=False,
-                                          format_cite=False,
-                                          )
+        _, pdf_output, over_width_pts = self.compile_document(
+            content=lrbox_table, format_cite=False, file_stem=file_stem, output_directory=output_directory)
 
         table_width = re.findall(pattern=r'Table width: (\d+\.\d+)pt', string=pdf_output)[0]
-        marging_width = re.findall(pattern=r'Page margin width: (\d+\.\d+)pt', string=pdf_output)[0]
-        return float(table_width) / float(marging_width)
+        margin_width = re.findall(pattern=r'Page margin width: (\d+\.\d+)pt', string=pdf_output)[0]
+        return float(table_width) / float(margin_width)

@@ -1,12 +1,12 @@
 from __future__ import annotations
 import functools
-from typing import Iterable, Callable
+from typing import Iterable
 from dataclasses import dataclass
 
 from data_to_paper.env import TRACK_P_VALUES
-from ..attr_replacers import SystematicMethodReplacerContext, SystematicFuncReplacerContext, AttrReplacer
-from ..pvalue import convert_to_p_value, PValue, TrackPValueCreationFuncs
+from ...attr_replacers import SystematicMethodReplacerContext, SystematicFuncReplacerContext, AttrReplacer
 from ...run_issues import CodeProblem, RunIssue
+from ..pvalue import convert_to_p_value, PValue, TrackPValueCreationFuncs
 
 MULTITEST_FUNCS_AND_PVAL_INDEXES = [
     ('multipletests', 1),
@@ -22,6 +22,25 @@ ANOVA_FUNCS = [
     'anova3_lm_single',
     'anova_lm',
 ]
+
+
+def _set_result_attr_or_modify_cache(result, attr, pvalues):
+    try:
+        setattr(result, attr, pvalues)
+    except AttributeError:
+        if attr in getattr(result, '_cache', {}):
+            result._cache[attr] = pvalues
+
+
+def custom_summary2_method(*args, **kwargs):
+    raise RunIssue.from_current_tb(
+        category="Statsmodels: good practices",
+        issue=f"Do not use any methods of the object created by summary2().",
+        instructions=f"Use instead the `tables` attribute of the object returned by summary2(), "
+                     f"from which you can extract the numerical values that you need.\n"
+                     f"Do not transform numerical values to strings.",
+        code_problem=CodeProblem.RuntimeError,
+    )
 
 
 @dataclass
@@ -41,10 +60,11 @@ class StatsmodelsFitPValueOverride(SystematicMethodReplacerContext, TrackPValueC
     def _should_replace(self, parent, attr_name, attr) -> bool:
         return attr_name.startswith('fit')
 
-    def _get_summary2_func(self, obj, original_func: Callable, created_by: str):
+    def _get_summary2_func(self, obj, results, created_by: str):
         """
         Get the overridden summary2 function of a statsmodels class.
         """
+        original_summary2 = results.summary2
 
         def custom_summary2(*args, **kwargs):
             """
@@ -52,21 +72,33 @@ class StatsmodelsFitPValueOverride(SystematicMethodReplacerContext, TrackPValueC
             Replaces "P>|t|" and "P>|z|" with PValue objects.
             """
             with PValue.BEHAVE_NORMALLY.temporary_set(True):
-                result = original_func(obj, *args, **kwargs)
+                result = original_summary2(*args, **kwargs)
 
             tables = result.tables
             table1 = tables[1]
 
-            pval_names = [name for name in table1.columns if name.startswith('P>')]
-            for pval_name in pval_names:
-                table1[pval_name] = convert_to_p_value(table1[pval_name], created_by=created_by, var_name=pval_name,
-                                                       context=self)
+            for columns in table1.columns:
+                if columns.startswith('P>'):
+                    table1[columns] = convert_to_p_value(table1[columns], created_by=created_by,
+                                                         var_name=columns, context=self)
+                else:
+                    # We need to convert the columns to float because the summary2 function
+                    # converts all the columns to object type even if there is just one PValue column.
+                    try:
+                        table1[columns] = table1[columns].astype(float)
+                    except ValueError:
+                        pass
+
+            unallowed_method = ['as_text', 'as_latex', 'as_html', 'as_csv']
+            for method_name in unallowed_method:
+                if hasattr(result, method_name):
+                    setattr(result, method_name, custom_summary2_method)
 
             return result
 
         return custom_summary2
 
-    def _get_summary_func(self, obj, original_func):
+    def _get_summary_func(self, original_func):
         """
         Get the overridden summary function of a statsmodels class.
         """
@@ -78,7 +110,9 @@ class StatsmodelsFitPValueOverride(SystematicMethodReplacerContext, TrackPValueC
             raise RunIssue.from_current_tb(
                 category="Statsmodels: good practices",
                 issue=f"Do not use the `summary` function of statsmodels.",
-                instructions=f"Use the `summary2` function instead.",
+                instructions=f"Use the `summary2` function instead, "
+                             f"from which you can extract the numerical values that you need.\n"
+                             f"Do not transform numerical values to strings.",
                 code_problem=CodeProblem.RuntimeError,
             )
 
@@ -110,20 +144,15 @@ class StatsmodelsFitPValueOverride(SystematicMethodReplacerContext, TrackPValueC
                     pvalues = convert_to_p_value(pvalues, created_by=created_by, context=self,
                                                  raise_on_nan=attr != 'f_pvalue')
                     pvalue_detected = True
-                    try:
-                        setattr(result, attr, pvalues)
-                    except AttributeError:
-                        if attr in getattr(result, '_cache', {}):
-                            result._cache[attr] = pvalues
+                    _set_result_attr_or_modify_cache(result, attr, pvalues)
 
                 if hasattr(result, 'summary2'):
-                    original_summary2 = result.summary2
-                    result.summary2 = self._get_summary2_func(obj, original_summary2, created_by)
+                    result.summary2 = self._get_summary2_func(obj, result, created_by)
                     pvalue_detected = True
 
                 if hasattr(result, 'summary'):
                     original_summary = result.summary
-                    result.summary = self._get_summary_func(obj, original_summary)
+                    result.summary = self._get_summary_func(original_summary)
                     pvalue_detected = True
 
                 if hasattr(result, 'eigenvals'):
