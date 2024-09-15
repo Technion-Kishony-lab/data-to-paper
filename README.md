@@ -4,23 +4,32 @@
 <img src="https://github.com/Technion-Kishony-lab/data-to-paper/blob/main/data_to_paper_icon.gif" width="450" align="right">
 </picture>
 
-**data-to-paper** is an automation framework that systematically navigates the power of AI through a **complete 
-end-to-end 
-scientific research**, starting from *raw data* alone and concluding with *transparent, backward-traceable, 
-human-verifiable scientific papers* ([example](https://t.co/iz44TDZZHb)).
-
+**data-to-paper** is an automation framework that systematically navigates interacting AI agents through a **complete 
+end-to-end scientific research**, starting from *raw data* alone and concluding with *transparent, backward-traceable, 
+human-verifiable scientific papers* 
+([Example paper](
+https://raw.githubusercontent.com/Technion-Kishony-lab/data-to-paper/feature/figures2/ExampleManuscriptFigures.pdf)).
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
 
+```commandline
+pip install data-to-paper
+```
+then run:
+```commandline
+data-to-paper
+```
+See [INSTALL.md](INSTALL.md) for more detailed installation instructions and dependencies.
+
 ### Key features
 * **End-to-end research.** The process navigates through the entire scientific path, 
-from data exploration, literature search and hypothesis generation, 
-through code writing and preparation of figures and tables, to results interpretation, and manuscript writing.
-* **"Data-chained" manuscripts**. The process creates transparent and verifiable manuscripts,
+from data exploration through literature search and ideation, to data analysis and interpretation, 
+and ultimately step-by-step writing of research papers.
+* **Traceable "data-chained" manuscripts**. The process creates fully traceable and verifiable manuscripts,
 where any numeric values can be click-traced all the way back to the code lines that created them
-([demo](https://youtu.be/HUkJcMXd9x0)).
-* **Autopilot or Copilot.** The platform can run autonomously (autopilot), or can be guided 
-via the *AI-Human Copiloting App*, allowing users to:
+([data-chaining demo](https://youtu.be/HUkJcMXd9x0)).
+* **Autopilot or Copilot.** The platform can run autonomously (Autopilot), or can be guided 
+via the *AI-Human Co-piloting App*, allowing users to:
 
   :compass: Oversee, Inspect and Guide the research
 
@@ -42,17 +51,15 @@ https://github.com/Technion-Kishony-lab/data-to-paper/assets/65530510/4c10c06d-d
 ### Motivation: Building a new standard for Transparent, Traceable, and Verifiable AI-driven Research
 The *data-to-paper* framework is created as a research project to understand the 
 capacities and limitations of LLM-driven scientific research, and to develop ways of harnessing LLM to accelerate 
-research while maintaining, and even enhancing, key scientific values, such as transparency, traceability and verifiability, 
+research while maintaining, and even enhancing, the key scientific values, such as transparency, traceability and verifiability, 
 and while allowing scientist to oversee and direct the process
 (see also: [living guidelines](https://www.nature.com/articles/d41586-023-03266-1)).
 
 ### Implementation
-Towards this goal, *data-to-paper* systematically guides **interacting 
-LLM and rule-based agents** through the conventional scientific path, from annotated data, through creating 
+Towards this goal, *data-to-paper* systematically guides **interacting LLM and rule-based agents** 
+through the conventional scientific path, from annotated data, through creating 
 research hypotheses, conducting literature search, writing and debugging data analysis code, 
 interpreting the results, and ultimately the step-by-step writing of a complete research paper.
-Tracking information flow through these steps, the process creates transparent and highly-traceable manuscripts, 
-where results, methodology and data are programmatically linked ([demo](https://youtu.be/HUkJcMXd9x0)).
 
 https://github.com/Technion-Kishony-lab/data-to-paper/assets/31969897/0f3acf7a-a775-43bd-a79c-6877f780f2d4
 
@@ -147,6 +154,8 @@ prevent unexpected charges.
 ### Related projects
 
 Here are some other cool multi-agent related projects:
+- [SakanaAI](https://github.com/SakanaAI/AI-Scientist)
+- [PaperQ2A](https://github.com/Future-House/paper-qa)
 - [LangChain](https://github.com/langchain-ai/langchain)
 - [AutoGen](https://microsoft.github.io/autogen/)
 - [AutoGPT](https://github.com/Significant-Gravitas/AutoGPT)
