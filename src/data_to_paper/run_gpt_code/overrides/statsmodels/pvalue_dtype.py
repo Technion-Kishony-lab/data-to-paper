@@ -1,3 +1,4 @@
+# pragma: no cover
 """
 This file is obsolete. It was used to create a custom p-value dtype for statsmodels to be used with
 PValueFloat which inherits from float.
@@ -31,7 +32,7 @@ class PValueDtype(PandasExtensionDtype):
     """
     # Required for all parameterized dtypes
     _metadata = ('func',)
-    _match = re.compile(r'(P|p)value\[(?P<func>.+)\]')
+    _match = re.compile(pattern=r'(P|p)value\[(?P<func>.+)\]')
     name = 'pvalue'
 
     def __init__(self, func=None):

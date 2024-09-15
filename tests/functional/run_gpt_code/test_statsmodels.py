@@ -11,7 +11,8 @@ from statsmodels.stats.anova import anova_lm
 from data_to_paper.run_gpt_code.code_runner import CodeRunner
 from data_to_paper.run_gpt_code.overrides.contexts import OverrideStatisticsPackages
 from data_to_paper.run_gpt_code.overrides.sklearn.override_sklearn import SklearnFitOverride
-from data_to_paper.run_gpt_code.overrides.statsmodels.override_statsmodels import StatsmodelsFitPValueOverride
+from data_to_paper.run_gpt_code.overrides.statsmodels.override_statsmodels import StatsmodelsFitPValueOverride, \
+    StatsmodelsMultitestPValueOverride, StatsmodelsAnovaPValueOverride
 from data_to_paper.run_gpt_code.overrides.scipy.override_scipy import ScipyPValueOverride
 from data_to_paper.run_gpt_code.overrides.pvalue import PValue, is_p_value, OnStrPValue, OnStr
 from statsmodels.formula.api import ols, logit
@@ -60,7 +61,7 @@ def test_fit_results_allow_ufunc(data_y_x):
         assert model.summary2().tables[1]['Coef.'].dtype == float
 
 
-def test_prevent_calling_summmary2_as_text(data_y_x):
+def test_prevent_calling_summary2_as_text(data_y_x):
     with OverrideStatisticsPackages():
         model = logit('y ~ x', data=data_y_x).fit()
         summary2 = model.summary2()
@@ -176,8 +177,58 @@ def test_statsmodels_ols():
         assert is_p_value(pval)
 
 
-def test_sklean_raise_on_multiple_fit_calls():
+def test_statsmodels_multitest():
+    with StatsmodelsMultitestPValueOverride():
+        from statsmodels.stats.multitest import multipletests
+        pvals = [0.1, 0.2, 0.3]
+        reject, pvals_corrected, _, _ = multipletests(pvals, method='fdr_bh')
+        assert is_p_value(pvals_corrected[0])
 
+
+def test_statsmodels_multiple_fit_calls_normal_has_no_bug():
+    """
+    This test is to show that unlike sklearn, statsmodels does not have a bug in repeated fit calls.
+    See below for sklearn test.
+    """
+    # Example data
+    data = sm.datasets.longley.load()
+    X = sm.add_constant(data.exog)
+    y = data.endog
+    model = sm.OLS(y, X)
+    res1 = model.fit()
+    # change y:
+    y[0] = -7
+    res2 = model.fit()
+    assert res1 is not res2
+    assert res1.summary() != res2.summary()  # This is the problem in basic behavior of statsmodels
+
+
+def test_statsmodels_does_not_raise_on_multiple_fit_calls():
+    with StatsmodelsFitPValueOverride():
+        # Example data
+        data = sm.datasets.longley.load()
+        X = sm.add_constant(data.exog)
+        y = data.endog
+        model = sm.OLS(y, X)
+        model.fit()
+        model.fit()
+
+
+def test_sklean_multiple_fit_calls_normal_bug():
+    # Example data
+    data = sm.datasets.longley.load()
+    X = sm.add_constant(data.exog)
+    y = data.endog
+    from sklearn.linear_model import LinearRegression
+    model = LinearRegression()
+    res1 = model.fit(X, y)
+    # change y:
+    y[0] = -7
+    res2 = model.fit(X, y)
+    assert res1 is res2  # This is the problem in basic behavior of sklearn
+
+
+def test_sklean_raise_on_multiple_fit_calls():
     with SklearnFitOverride():
         # Example data
         data = sm.datasets.longley.load()

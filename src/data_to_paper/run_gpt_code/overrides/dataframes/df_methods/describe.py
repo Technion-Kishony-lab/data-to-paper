@@ -1,3 +1,8 @@
+# pragma: no cover
+"""
+Obsolete. We are now enforcing removal of min/max in rule-based review.
+"""
+
 from typing import Optional
 from pandas.core.frame import DataFrame
 

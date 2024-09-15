@@ -125,6 +125,10 @@ class StatsmodelsFitPValueOverride(SystematicMethodReplacerContext, TrackPValueC
             result = original_func(obj, *args, **kwargs)
             if self._is_called_from_data_to_paper():
                 if hasattr(obj, '_prior_fit_results') and obj._prior_fit_results is result:
+                    #  TODO: Can likely be removed.
+                    # This behavior happen on sklean.
+                    # But not on statsmodels. So, we don't need to handle this case.
+                    # See test_statsmodels_multiple_fit_calls_normal_has_no_bug
                     raise RunIssue.from_current_tb(
                         category='Statsmodels: good practices',
                         issue=f"The `{original_func.__name__}` function was already called on this object. ",

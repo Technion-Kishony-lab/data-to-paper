@@ -110,6 +110,15 @@ def test_get_changed_and_unsaved_dataframes(tmpdir_with_csv_file):
         assert len(dataframe_operations.get_read_changed_but_unsaved_ids()) == 0
 
 
+def test_enforce_saving_changed_and_unsaved_dataframes(tmpdir_with_csv_file):
+    with TrackDataFrames(enforce_saving_altered_dataframes=True) as tdf:
+        df = pd.read_csv(str(tmpdir_with_csv_file.join('test.csv')))
+        df['new'] = [4, 5]
+        dataframe_operations = tdf.dataframe_operations
+    assert 'test.cs' in tdf.issues[0].issue
+    assert "doesn't save" in tdf.issues[0].issue
+
+
 def test_dataframe_column_names(tmpdir_with_csv_file):
     with TrackDataFrames() as tdf:
         df = pd.read_csv(str(tmpdir_with_csv_file.join('test.csv')))
