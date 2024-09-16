@@ -60,8 +60,17 @@ class RequestIssuesToSolutions(PythonDictReviewBackgroundProductsConverser):
     json_mode: bool = JSON_MODE
     your_response_should_be_formatted_as: str = dedent_triple_quote_str("""
         a json object that can be evaluated with `json.loads()` to a Python Dict[str, List[str]].
-        mapping the checks you have done (keys) to a list of 2 strings, indicating either your concern \t
-        ["CONCERN", "<your concern>"] or your assertion that this check is ok ["OK", "<your assertion>"]""")
+        mapping each check you have done (keys) to a list of 2 strings, indicating either your concern \t
+        ["CONCERN", "<your concern>"] or your assertion that this check is ok ["OK", "<your assertion>"].
+        Like this
+        ```json
+        {
+            "<your check>": ["CONCERN", "<your concern>"],
+            "<your check>": ["OK", "<your assertion>"]
+            "...": ["CONCERN/OK", "..."]
+        }
+        ```
+        """)
     formatting_instructions_for_feedback: str = dedent_triple_quote_str("""
         Please correct your response according to my feedback, and send it again.
 
