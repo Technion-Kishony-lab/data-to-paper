@@ -61,8 +61,8 @@ class OpenaiServerCaller(OrderedKeyToListServerCaller):
     file_extension = '_openai.txt'
     should_log_api_cost: bool = True
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.current_stage_callback = None
         self.api_cost_callback = None
 

@@ -548,6 +548,18 @@ class PysideApp(QMainWindow, BaseApp):
         self.send_text_signal.connect(self.worker.receive_text_signal)
         self.send_panel_continue_signal.connect(self.worker.receive_panel_continue_signal)
 
+    def closeEvent(self, event):
+        """Override the closeEvent to gracefully stop the worker thread."""
+        print("Main window is closing...")
+        for popup in self.popups:
+            popup.close()
+        self.stage_to_reset_to = True
+        # imitate a button click if resetting when waiting for user input
+        self._initiate_panel_button_clicks()
+        if not self.worker.wait(5000):
+            print("Worker thread did not finish in time. Forcefully terminating...")
+        event.accept()
+
     @classmethod
     def get_instance(cls):
         if cls.instance is None:
@@ -720,8 +732,10 @@ class PysideApp(QMainWindow, BaseApp):
         stages = list(self._get_stages())
         for stage in stages[stage_index:]:
             self.products.pop(stage, None)
-
         # imitate a button click if resetting when waiting for user input
+        self._initiate_panel_button_clicks()
+
+    def _initiate_panel_button_clicks(self):
         for panel in self.panels.values():
             for button in [panel.submit_button, panel.continue_button]:
                 if button.isVisible():

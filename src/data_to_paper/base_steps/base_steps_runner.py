@@ -185,7 +185,11 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
             try:
                 next_stage = self._run_stage(stage)
             except ResetStepException as e:
-                if e.stage is None:
+                if e.stage is True:
+                    if stage is True:
+                        print('Run completed successfully')
+                    else:
+                        print('Run terminated')
                     break  # Terminate the run
                 print_and_log(f'Resetting to stage {e.stage.name}')
                 next_stage = e.stage
@@ -209,7 +213,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         Just wait and raise a ResetStepException if the user hit the reset-to-step buttons.
         """
         if not self.app:
-            raise ResetStepException(None)
+            raise ResetStepException(True)
         time.sleep(0.1)
 
     def _wait_for_reset(self):
@@ -322,9 +326,9 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         @SEMANTIC_SCHOLAR_EMBEDDING_SERVER_CALLER.record_or_replay(
             self._get_path_in_output_directory(self.SEMANTIC_SCHOLAR_EMBEDDING_RESPONSES_FILENAME))
         @OPENAI_SERVER_CALLER.record_or_replay(
-            self._get_path_in_output_directory(self.OPENAI_RESPONSES_FILENAME))
-        @CROSSREF_SERVER_CALLER.record_or_replay(
-            self._get_path_in_output_directory(self.CROSSREF_RESPONSES_FILENAME))
+            self._get_path_in_output_directory(self.OPENAI_RESPONSES_FILENAME),
+            fail_if_not_all_responses_used=False
+            )
         def run():
             self._run_all_steps()
 

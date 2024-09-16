@@ -36,13 +36,13 @@ class ServerCaller(ABC):
     name: str = None
     file_extension: str = None
 
-    def __init__(self):
+    def __init__(self, fail_if_not_all_responses_used=True):
         self.old_records = self.empty_records
         self.new_records = self.empty_records
         self.args_kwargs_response_history = []  # for debugging
         self.is_playing_or_recording = False
         self.record_more_if_needed = False
-        self.fail_if_not_all_responses_used = True
+        self.fail_if_not_all_responses_used = fail_if_not_all_responses_used
         self.should_save = False
         self.file_path = None
 
@@ -171,7 +171,8 @@ class ServerCaller(ABC):
                          should_save=should_save,
                          file_path=file_path)
 
-    def record_or_replay(self, file_path: Union[str, Path] = None, should_mock: bool = True):
+    def record_or_replay(self, file_path: Union[str, Path] = None, should_mock: bool = True,
+                         fail_if_not_all_responses_used: bool = True):
         """
         Returns a decorator to call the decorated function while recording or replaying server responses.
 
@@ -191,7 +192,8 @@ class ServerCaller(ABC):
                                                       self.file_extension)
 
                 # run the test with the previous responses and record new responses
-                with self.mock_with_file(file_path=file_path):
+                with self.mock_with_file(file_path=file_path,
+                                         fail_if_not_all_responses_used=fail_if_not_all_responses_used):
                     func(*args, **kwargs)
 
             wrapper._module_file_path = func._module_file_path
@@ -206,8 +208,8 @@ class OrderedServerCaller(ServerCaller, ABC):
     a remote server, while allowing recording and replaying server responses in the same order.
     """
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.index_in_old_records = 0
 
     def are_more_records_available(self):

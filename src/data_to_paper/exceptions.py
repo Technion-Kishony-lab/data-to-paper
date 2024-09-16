@@ -1,6 +1,6 @@
 from abc import abstractmethod, ABCMeta
 from dataclasses import dataclass, is_dataclass, fields
-from typing import Optional
+from typing import Optional, Union
 
 from data_to_paper.conversation.stage import Stage
 
@@ -50,4 +50,4 @@ class ResetStepException(Exception):
     """
     An exception to reset the step.
     """
-    stage: Optional[Stage]  # reset to this stage, None to exit the app
+    stage: Optional[Union[Stage, bool]]  # reset to this stage, None to exit the app
