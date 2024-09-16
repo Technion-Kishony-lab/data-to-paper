@@ -6,7 +6,7 @@
 
 **data-to-paper** is an automation framework that systematically navigates interacting AI agents through a **complete 
 end-to-end scientific research**, starting from *raw data* alone and concluding with *transparent, backward-traceable, 
-human-verifiable scientific papers* <a href="https://raw.githubusercontent.com/Technion-Kishony-lab/data-to-paper/feature/figures2/ExampleManuscriptFigures.pdf" target="_blank">(Example paper)</a>.
+human-verifiable scientific papers* <a href="https://github.com/Technion-Kishony-lab/data-to-paper/blob/feature/figures2/ExampleManuscriptFigures.pdf" target="_blank">(Example paper)</a>.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
 
