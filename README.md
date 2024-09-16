@@ -22,6 +22,10 @@ data-to-paper
 See [INSTALL.md](INSTALL.md) for more detailed installation instructions and dependencies.
 
 ### Key features
+<picture>
+<img src="https://github.com/Technion-Kishony-lab/data-to-paper/blob/feature/update_packaging/page_flipping.gif" width="250" align="right">
+</picture>
+
 * **End-to-end research.** The process navigates through the entire scientific path, 
 from data exploration through literature search and ideation, to data analysis and interpretation, 
 and ultimately step-by-step writing of research papers.
