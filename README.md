@@ -10,6 +10,9 @@ human-verifiable scientific papers* <a href="https://github.com/Technion-Kishony
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
 
+<picture>
+<img src="https://github.com/Technion-Kishony-lab/data-to-paper/blob/feature/update_packaging/testimage" width="250" align="left">
+</picture>
 ### Try it out yourself
 
 ```commandline
@@ -19,6 +22,7 @@ then run:
 ```commandline
 data-to-paper
 ```
+
 See [INSTALL.md](INSTALL.md) for more detailed installation instructions and dependencies.
 
 ### Key features
@@ -48,7 +52,6 @@ via the *AI-Human Co-piloting App*, allowing users to:
   :heavy_dollar_sign:	Track API costs
 * **Coding guardrails.** Standard statistical packages are overridden with multiple guardrails 
 to minimize common LLM coding errors.
-
 
 https://github.com/Technion-Kishony-lab/data-to-paper/assets/65530510/4c10c06d-d7e9-4d7c-b9d4-7dbe904d15de
 
