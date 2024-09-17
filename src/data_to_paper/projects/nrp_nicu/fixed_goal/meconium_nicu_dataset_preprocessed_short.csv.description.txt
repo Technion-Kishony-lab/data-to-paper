@@ -1,0 +1,36 @@
+The dataset contains 44 columns:
+
+`PrePost` (0=Pre, 1=Post) Delivery pre or post the new 2015 policy
+`AGE` (int, in years) Maternal age
+`GRAVIDA` (int) Gravidity
+`PARA` (int) Parity
+`HypertensiveDisorders` (1=Yes, 0=No) Gestational hypertensive disorder
+`MaternalDiabetes`	(1=Yes, 0=No) Gestational diabetes
+`ModeDelivery` (Categorical) "VAGINAL" or "CS" (C. Section)
+`FetalDistress` (1=Yes, 0=No)
+`ProlongedRupture` (1=Yes, 0=No) Prolonged Rupture of Membranes
+`Chorioamnionitis` (1=Yes, 0=No)
+`Sepsis` (Categorical) Neonatal blood culture ("NO CULTURES", "NEG CULTURES", "POS CULTURES")
+`GestationalAge` (float, numerical). in weeks.
+`Gender` (Categorical) "M"/ "F"
+`BirthWeight` (float, in KG)
+`APGAR1` (int, 1-10) 1 minute APGAR score
+`APGAR5` (int, 1-10) 5 minute APGAR score
+`MeconiumConsistency` (categorical) "THICK" / "THIN"
+`PPV` (1=Yes, 0=No) Positive Pressure Ventilation
+`EndotrachealSuction` (1=Yes, 0=No) Whether endotracheal suctioning was performed
+`MeconiumRecovered` (1=Yes, 0=No)
+`CardiopulmonaryResuscitation` (1=Yes, 0=No)
+`ReasonAdmission` (categorical) Neonate ICU admission reason. ("OTHER", "RESP" or "CHORIOAMNIONITIS")
+`RespiratoryReasonAdmission` (1=Yes, 0=No)
+`RespiratoryDistressSyndrome` (1=Yes, 0=No)
+`TransientTachypnea` (1=Yes, 0=No)
+`MeconiumAspirationSyndrome` (1=Yes, 0=No)
+`OxygenTherapy` (1=Yes, 0=No)
+`MechanicalVentilation` (1=Yes, 0=No)
+`Surfactant` (1=Yes, 0=No) Surfactant inactivation
+`Pneumothorax` (1=Yes, 0=No)
+`AntibioticsDuration` (float, in days) Neonate treatment duration
+`Breastfeeding` (1=Yes, 0=No) Breastfed at NICU
+`LengthStay` (float, in days) Length of stay at NICU
+`SNAPPE_II_SCORE` (int) 0–20 (mild), 21–40 (moderate), 41- (severe)

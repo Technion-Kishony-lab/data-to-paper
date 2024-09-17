@@ -1,0 +1,27 @@
+The csv file is a clean dataset of 253,680 responses (rows) and 22 features (columns).
+All rows with missing values were removed from the original dataset; the current file contains no missing values.
+
+The columns in the dataset are:
+
+#1 `Diabetes_binary`: (int, bool) Diabetes (0=no, 1=yes)
+#2 `HighBP`: (int, bool) High Blood Pressure (0=no, 1=yes)
+#3 `HighChol`: (int, bool) High Cholesterol (0=no, 1=yes)
+#4 `CholCheck`: (int, bool) Cholesterol check in 5 years (0=no, 1=yes)
+#5 `BMI`: (int, numerical) Body Mass Index
+#6 `Smoker`: (int, bool) (0=no, 1=yes)
+#7 `Stroke`: (int, bool) Stroke (0=no, 1=yes)
+#8 `HeartDiseaseorAttack`: (int, bool) coronary heart disease (CHD) or myocardial infarction (MI), (0=no, 1=yes)
+#9 `PhysActivity`: (int, bool) Physical Activity in past 30 days (0=no, 1=yes)
+#10 `Fruits`: (int, bool) Consume one fruit or more each day (0=no, 1=yes)
+#11 `Veggies`: (int, bool) Consume one Vegetable or more each day (0=no, 1=yes)
+#12 `HvyAlcoholConsump` (int, bool) Heavy drinkers (0=no, 1=yes)
+#13 `AnyHealthcare` (int, bool) Have any kind of health care coverage (0=no, 1=yes)
+#14 `NoDocbcCost` (int, bool) Was there a time in the past 12 months when you needed to see a doctor but could not because of cost? (0=no, 1=yes)
+#15 `GenHlth` (int, ordinal) self-reported health (1=excellent, 2=very good, 3=good, 4=fair, 5=poor)
+#16 `MentHlth` (int, ordinal) How many days during the past 30 days was your mental health not good? (1 - 30 days)
+#17 `PhysHlth` (int, ordinal) Hor how many days during the past 30 days was your physical health not good? (1 - 30 days)
+#18 `DiffWalk` (int, bool) Do you have serious difficulty walking or climbing stairs? (0=no, 1=yes)
+#19 `Sex` (int, categorical) Sex (0=female, 1=male)
+#20 `Age` (int, ordinal) Age, 13-level age category in intervals of 5 years (1= 18 - 24, 2= 25 - 29, ..., 12= 75 - 79, 13 = 80 or older)
+#21 `Education` (int, ordinal) Education level on a scale of 1 - 6 (1=Never attended school, 2=Elementary, 3=Some high school, 4=High school, 5=Some college, 6=College)
+#22 `Income` (int, ordinal) Income scale on a scale of 1 to 8 (1= <=10K, 2= <=15K, 3= <=20K, 4= <=25K, 5= <=35K, 6= <=50K, 7= <=75K, 8= >75K)

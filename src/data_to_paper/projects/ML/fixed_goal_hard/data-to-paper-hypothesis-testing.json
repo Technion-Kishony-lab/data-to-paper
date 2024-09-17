@@ -1,0 +1,14 @@
+{
+    "data_filenames": [
+        "../data/tracheal_tube_insertion.csv"
+    ],
+    "data_files_is_binary": [
+        false
+    ],
+    "research_goal": "## Research Goal:\n\nTo construct and test \n4 different machine-learning models and 3 different formula-based models \nfor the optimal tracheal tube depth \n(defined here as `OTTD`, not an official term). \n\n### ML MODELS:\nUsing the provided features (age, sex, height, weight), your analysis code should create \nand evaluate the following 4 machine learning models for predicting the OTTD:\n\n- Random Forest (RF)\n- Elastic Net (EN)\n- Support Vector Machine (SVM)\n- Neural Network (NN)\n\nImportant: It is necessary to hyper-parameter tune each of the models.\n\n### FORMULA-BASED MODELS:\nYour analysis code should compute the following 3 formula-based models for the OTTD:\n\n- Height Formula-based Model: \nOTTD = height [cm] / 10 + 5 cm \n\n- Age Formula-based Model:\noptimal tube depth is provided for each age group:\n0 <= age [years] < 0.5: OTTD = 9 cm \n0.5 <= age [years] < 1: OTTD = 10 cm \n1 < age [years] < 2: OTTD = 11 cm \n2 < age [years]: OTTD = 12 cm + (age [years]) * 0.5 cm / year  \n\n- ID Formula-based Model:\nOTTD (in cm) = 3 * (tube ID [mm]) * cm/mm\n\n\n## Hypotheses:\n\n- Each of the 4 machine learning models will have significantly better predictive power than each of the formula-based \\\nmodels \\\n(as measured by their squared residuals (prediction - target)**2 on the same test set). ",
+    "should_do_data_exploration": true,
+    "project_specific_goal_guidelines": "",
+    "excluded_citation_titles": [
+        "Machine learning model for predicting the optimal depth of tracheal tube insertion in pediatric patients: A retrospective cohort study"
+    ]
+}

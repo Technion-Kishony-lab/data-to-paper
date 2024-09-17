@@ -1,0 +1,9 @@
+{
+    "research_goal": "Find the largest prime number smaller than the given natural number, n.\n",
+    "data_filenames": [
+        "../data/number.txt"
+    ],
+    "data_files_is_binary": [
+        false
+    ]
+}

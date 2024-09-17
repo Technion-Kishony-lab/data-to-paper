@@ -1,0 +1,12 @@
+{
+    "data_filenames": [
+        "../data/meconium_nicu_dataset_preprocessed_short.csv"
+    ],
+    "data_files_is_binary": [false],
+    "research_goal": "Research goal:\nExamining the impact of guideline change on neonatal treatment and outcomes.\n\nHypothesis:\n- Change in treatment policy lead to change in treatments.\n- The change in treatment policy improved neonatal outcome, measured by duration of stay, apgar scores, etc.",
+    "should_do_data_exploration": true,
+    "project_specific_goal_guidelines": "* Avoid goals and hypotheses that involve ethic issues like sociodemographic (Income, Education, etc.) and psychological (Mental Health) variables. \nNote though that you can, and should, still use these as confounding variables if needed.\n",
+    "excluded_citation_titles": [
+        "Outcomes of neonates born through meconium-stained amniotic fluid pre and post 2015 NRP guideline implementation"
+    ]
+}

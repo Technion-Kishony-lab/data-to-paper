@@ -1,53 +1,71 @@
 ## Backward-traceable AI-driven Research
 
 <picture>
-<img src="https://github.com/Technion-Kishony-lab/data-to-paper/blob/main/data_to_paper_icon.gif" width="450" align="right">
+<img src="https://github.com/Technion-Kishony-lab/data-to-paper/blob/main/data_to_paper_icon.gif" width="350" 
+align="right">
 </picture>
 
-**data-to-paper** is an automation framework that systematically navigates interacting AI agents through a **complete 
-end-to-end scientific research**, starting from *raw data* alone and concluding with *transparent, backward-traceable, 
-human-verifiable scientific papers* 
-([Example paper](
-https://raw.githubusercontent.com/Technion-Kishony-lab/data-to-paper/feature/figures2/ExampleManuscriptFigures.pdf)).
-
 [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
+
+**data-to-paper** is an automation framework that systematically navigates interacting AI agents through a **complete end-to-end scientific research**, 
+starting from *raw data* alone and concluding with *transparent, backward-traceable, 
+human-verifiable scientific papers* 
+(<a href="https://github.com/Technion-Kishony-lab/data-to-paper/blob/feature/figures2/ExampleManuscriptFigures.pdf" target="_blank">Example AI-created paper</a>, 
+[Copilot App DEMO](https://youtu.be/vrsxgX67n6I)).
+
+<picture>
+<img src="https://github.com/Technion-Kishony-lab/data-to-paper/blob/feature/update_packaging/AI-Human-agents.png" width="300" 
+align="left">
+</picture>
+
+### Try it out
 
 ```commandline
 pip install data-to-paper
 ```
-then run:
-```commandline
-data-to-paper
-```
-See [INSTALL.md](INSTALL.md) for more detailed installation instructions and dependencies.
+then run: `data-to-paper`
+
+See [INSTALL](INSTALL.md) for dependencies.
+<br clear="left"/>
+
 
 ### Key features
-* **End-to-end research.** The process navigates through the entire scientific path, 
-from data exploration through literature search and ideation, to data analysis and interpretation, 
-and ultimately step-by-step writing of research papers.
-* **Traceable "data-chained" manuscripts**. The process creates fully traceable and verifiable manuscripts,
-where any numeric values can be click-traced all the way back to the code lines that created them
-([data-chaining demo](https://youtu.be/HUkJcMXd9x0)).
-* **Autopilot or Copilot.** The platform can run autonomously (Autopilot), or can be guided 
-via the *AI-Human Co-piloting App*, allowing users to:
+<picture>
+<img src="https://github.com/Technion-Kishony-lab/data-to-paper/blob/feature/update_packaging/page_flipping.gif" width="350" align="right">
+</picture>
 
-  :compass: Oversee, Inspect and Guide the research
+* **End-to-end field-agnostic research.** The process navigates through the entire scientific path, 
+from data exploration, literature search and ideation, through data analysis and interpretation, 
+to the step-by-step writing of a complete research papers.
+* **Traceable "data-chained" manuscripts**. Tracing informtion flow, *data-to-paper* creates backward-traceable and verifiable manuscripts,
+where any numeric values can be click-traced all the way up to the specific code lines that created them
+([data-chaining DEMO](https://youtu.be/HUkJcMXd9x0)).
 
-  :dart: Set research goals, or let the AI autonomously raise and test hypotheses
 
-  :robot: Provide review, or invoke on-demand AI-reviews
+<picture>
+<img src="https://github.com/Technion-Kishony-lab/data-to-paper/blob/feature/update_packaging/research-steps-vertical.png" width=80 
+align="left">
+</picture>
 
-  :rewind: Rewind the process to prior steps
+* **Autopilot or Copilot.** The platform can run fully autonomously, or can be human-guided through the [Copilot App](https://youtu.be/vrsxgX67n6I), allowing users to:
 
-  :film_projector: Record and replay runs
+  - Oversee, Inspect and Guide the research
 
-  :heavy_dollar_sign:	Track API costs
+  - Set research goals, or let the AI autonomously raise and test hypotheses
+
+  - Provide review, or invoke on-demand AI-reviews
+
+  - Rewind the process to prior steps
+
+  - Record and replay runs
+
+  -	Track API costs
 * **Coding guardrails.** Standard statistical packages are overridden with multiple guardrails 
 to minimize common LLM coding errors.
 
+https://github.com/Technion-Kishony-lab/data-to-paper/assets/31969897/0f3acf7a-a775-43bd-a79c-6877f780f2d4
 
-https://github.com/Technion-Kishony-lab/data-to-paper/assets/65530510/4c10c06d-d7e9-4d7c-b9d4-7dbe904d15de
-
+  
 ### Motivation: Building a new standard for Transparent, Traceable, and Verifiable AI-driven Research
 The *data-to-paper* framework is created as a research project to understand the 
 capacities and limitations of LLM-driven scientific research, and to develop ways of harnessing LLM to accelerate 
@@ -61,7 +79,6 @@ through the conventional scientific path, from annotated data, through creating
 research hypotheses, conducting literature search, writing and debugging data analysis code, 
 interpreting the results, and ultimately the step-by-step writing of a complete research paper.
 
-https://github.com/Technion-Kishony-lab/data-to-paper/assets/31969897/0f3acf7a-a775-43bd-a79c-6877f780f2d4
 
 ### Reference
 The **data-to-paper** framework is described in the following pre-print:
@@ -70,52 +87,56 @@ The **data-to-paper** framework is described in the following pre-print:
 [arXiv:2404.17605](https://arxiv.org/abs/2404.17605)
 
 
-### Installation
-See [INSTALL.md](INSTALL.md) for installation instructions.
-
-### How to run
-1. Install data-to-paper ([INSTALL](INSTALL.md)).
-2. Run data-to-paper:
-      `python data_to_paper/data_to_paper/scripts/run.py`
-3. This will open a startup dialog that will allow you to specify your own project, 
-or to reproduce example projects (`data-to-paper/projects`) 
-4. Click "Start" to start the run, with human overseeing and feedback.
-5. At the end of the process, a pdf of the manuscript will be created in the project folder.
-
 ### Examples
 
 We ran **data-to-paper** on the following test cases:
 
 * **Health Indicators (open goal).** A clean unweighted subset of 
 CDC’s Behavioral Risk Factor Surveillance System (BRFSS) 2015 annual dataset 
-  ([Kaggle](https://www.kaggle.com/datasets/alexteboul/diabetes-health-indicators-dataset)). Here is an [example Paper](https://github.com/rkishony/data-to-paper-supplementary/blob/main/Supplementary%20Data-chained%20Manuscripts/Supplementary%20Data-chained%20Manuscript%20A.pdf) created by data-to paper.
+  ([Kaggle](https://www.kaggle.com/datasets/alexteboul/diabetes-health-indicators-dataset)). Here is an [example Paper](https://github.com/rkishony/data-to-paper-supplementary/blob/3704b0508192ff1f68b33be2ef282249f10f1254/Supplementary%20Data-chained%20Manuscripts/Supplementary%20Data-chained%20Manuscript%20A.pdf) created by data-to paper.
 
-Try out: `python run.py diabetes`
+Try out: 
+```shell
+data-to-paper diabetes
+```
 
 
 * **Social Network (open goal).** A directed graph of Twitter interactions among the 117th Congress members
-  ([Fink et al](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10493874/)). Here is an [example Paper](https://github.com/rkishony/data-to-paper-supplementary/blob/main/Supplementary%20Data-chained%20Manuscripts/Supplementary%20Data-chained%20Manuscript%20B.pdf) created by data-to paper.
+  ([Fink et al](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10493874/)). Here is an [example Paper](https://github.com/rkishony/data-to-paper-supplementary/blob/3704b0508192ff1f68b33be2ef282249f10f1254/Supplementary%20Data-chained%20Manuscripts/Supplementary%20Data-chained%20Manuscript%20B.pdf) created by data-to paper.
 
-Try out: `python run.py social_network`
-
+Try out:
+```shell
+data-to-paper social_network
+```
 
 * **Treatment Policy (fixed-goal).** A dataset on treatment and outcomes of non-vigorous infants admitted to the Neonatal Intensive Care Unit (NICU), before and after a change to treatment guidelines was implemented
-  ([Saint-Fleur et al](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0289945)). Here is an [example Paper](https://github.com/rkishony/data-to-paper-supplementary/blob/main/Supplementary%20Data-chained%20Manuscripts/Supplementary%20Data-chained%20Manuscript%20C.pdf) created by data-to paper.
+  ([Saint-Fleur et al](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0289945)). Here is an [example Paper](https://github.com/rkishony/data-to-paper-supplementary/blob/3704b0508192ff1f68b33be2ef282249f10f1254/Supplementary%20Data-chained%20Manuscripts/Supplementary%20Data-chained%20Manuscript%20C.pdf) created by data-to paper.
 
-Try out: `python run.py npr_nicu`
-
+Try out: 
+```shell
+data-to-paper npr_nicu
+```
 * **Treatment Optimization (fixed-goal).** A dataset of pediatric patients, which received mechanical ventilation after undergoing surgery, including an x-ray-based determination of the optimal tracheal tube intubation depth and a set of personalized patient attributes to be used in machine learning and formula-based models to predict this optimal depth
-  ([Shim et al](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0257069)). Here is an [example Paper](https://github.com/rkishony/data-to-paper-supplementary/blob/main/Supplementary%20Data-chained%20Manuscripts/Supplementary%20Data-chained%20Manuscript%20D.pdf) created by data-to paper.
+  ([Shim et al](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0257069)). Here is an [example Paper](https://github.com/rkishony/data-to-paper-supplementary/blob/3704b0508192ff1f68b33be2ef282249f10f1254/Supplementary%20Data-chained%20Manuscripts/Supplementary%20Data-chained%20Manuscript%20D.pdf) created by data-to paper.
 
 We defined three levels of difficulty for the research question for this paper.  
 1. **easy**: Compare two ML methods for predicting optimal intubation depth  
-Try out: `python run.py ML_easy`  
+Try out: 
+```shell
+data-to-paper ML_easy
+```  
   
 2. **medium**: Compare one ML method and one formula-based method for predicting optimal intubation depth  
-Try out: `python run.py ML_medium`  
+Try out: 
+```shell
+data-to-paper ML_medium
+```  
  
 3. **hard**: Compare 4 ML methods with 3 formula-based methods for predicting optimal intubation depth  
-Try out: `python run.py ML_hard`
+Try out:
+```shell
+data-to-paper ML_hard
+```
 
 ### Contributing
 We invite people to try out **data-to-paper** with their own data and are eager **for feedback and suggestions**.
