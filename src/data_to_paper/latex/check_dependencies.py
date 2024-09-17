@@ -1,4 +1,3 @@
-from data_to_paper.latex.latex_to_pdf import is_pdflatex_installed
 from data_to_paper.utils.resource_checking import resource_checking
 
 

@@ -12,7 +12,7 @@ from data_to_paper.run_gpt_code.code_runner import CodeRunner
 from data_to_paper.run_gpt_code.overrides.contexts import OverrideStatisticsPackages
 from data_to_paper.run_gpt_code.overrides.sklearn.override_sklearn import SklearnFitOverride
 from data_to_paper.run_gpt_code.overrides.statsmodels.override_statsmodels import StatsmodelsFitPValueOverride, \
-    StatsmodelsMultitestPValueOverride, StatsmodelsAnovaPValueOverride
+    StatsmodelsMultitestPValueOverride
 from data_to_paper.run_gpt_code.overrides.scipy.override_scipy import ScipyPValueOverride
 from data_to_paper.run_gpt_code.overrides.pvalue import PValue, is_p_value, OnStrPValue, OnStr
 from statsmodels.formula.api import ols, logit

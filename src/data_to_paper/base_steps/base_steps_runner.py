@@ -16,7 +16,6 @@ from data_to_paper.servers.api_cost import StageToCost
 from data_to_paper.utils.file_utils import clear_directory
 from data_to_paper.utils.print_to_file import print_and_log, console_log_file_context
 from data_to_paper.servers.llm_call import OPENAI_SERVER_CALLER, OpenaiServerCaller
-from data_to_paper.servers.crossref import CROSSREF_SERVER_CALLER
 from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER, \
     SEMANTIC_SCHOLAR_EMBEDDING_SERVER_CALLER
 from data_to_paper.conversation.stage import Stage
@@ -327,8 +326,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
             self._get_path_in_output_directory(self.SEMANTIC_SCHOLAR_EMBEDDING_RESPONSES_FILENAME))
         @OPENAI_SERVER_CALLER.record_or_replay(
             self._get_path_in_output_directory(self.OPENAI_RESPONSES_FILENAME),
-            fail_if_not_all_responses_used=False
-            )
+            fail_if_not_all_responses_used=False)
         def run():
             self._run_all_steps()
 

@@ -4,7 +4,6 @@ import traceback
 from pathlib import Path
 
 from data_to_paper.utils.mutable import Flag
-from data_to_paper.env import BASE_FOLDER
 
 MODULE_NAME = 'script_to_run'
 module_filename = MODULE_NAME + ".py"
