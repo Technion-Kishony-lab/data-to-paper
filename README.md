@@ -1,60 +1,71 @@
 ## Backward-traceable AI-driven Research
 
 <picture>
-<img src="https://github.com/Technion-Kishony-lab/data-to-paper/blob/main/data_to_paper_icon.gif" width="450" align="right">
+<img src="https://github.com/Technion-Kishony-lab/data-to-paper/blob/main/data_to_paper_icon.gif" width="350" 
+align="right">
 </picture>
-
-**data-to-paper** is an automation framework that systematically navigates interacting AI agents through a **complete 
-end-to-end scientific research**, starting from *raw data* alone and concluding with *transparent, backward-traceable, 
-human-verifiable scientific papers* <a href="https://github.com/Technion-Kishony-lab/data-to-paper/blob/feature/figures2/ExampleManuscriptFigures.pdf" target="_blank">(Example paper)</a>.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
 
+**data-to-paper** is an automation framework that systematically navigates interacting AI agents through a **complete end-to-end scientific research**, 
+starting from *raw data* alone and concluding with *transparent, backward-traceable, 
+human-verifiable scientific papers* 
+(<a href="https://github.com/Technion-Kishony-lab/data-to-paper/blob/feature/figures2/ExampleManuscriptFigures.pdf" target="_blank">Example AI-created paper</a>, 
+[Copilot App DEMO](https://youtu.be/vrsxgX67n6I)).
+
 <picture>
-<img src="https://github.com/Technion-Kishony-lab/data-to-paper/blob/feature/update_packaging/testimage" width="250" align="left">
+<img src="https://github.com/Technion-Kishony-lab/data-to-paper/blob/feature/update_packaging/AI-Human-agents.png" width="300" 
+align="left">
 </picture>
-### Try it out yourself
+
+### Try it out
 
 ```commandline
 pip install data-to-paper
 ```
-then run:
-```commandline
-data-to-paper
-```
+then run: `data-to-paper`
 
-See [INSTALL.md](INSTALL.md) for more detailed installation instructions and dependencies.
+See [INSTALL](INSTALL.md) for dependencies.
+<br clear="left"/>
+
 
 ### Key features
 <picture>
-<img src="https://github.com/Technion-Kishony-lab/data-to-paper/blob/feature/update_packaging/page_flipping.gif" width="250" align="right">
+<img src="https://github.com/Technion-Kishony-lab/data-to-paper/blob/feature/update_packaging/page_flipping.gif" width="350" align="right">
 </picture>
 
-* **End-to-end research.** The process navigates through the entire scientific path, 
-from data exploration through literature search and ideation, to data analysis and interpretation, 
-and ultimately step-by-step writing of research papers.
-* **Traceable "data-chained" manuscripts**. The process creates fully traceable and verifiable manuscripts,
-where any numeric values can be click-traced all the way back to the code lines that created them
-([data-chaining demo](https://youtu.be/HUkJcMXd9x0)).
-* **Autopilot or Copilot.** The platform can run autonomously (Autopilot), or can be guided 
-via the *AI-Human Co-piloting App*, allowing users to:
+* **End-to-end field-agnostic research.** The process navigates through the entire scientific path, 
+from data exploration, literature search and ideation, through data analysis and interpretation, 
+to the step-by-step writing of a complete research papers.
+* **Traceable "data-chained" manuscripts**. Tracing informtion flow, *data-to-paper* creates backward-traceable and verifiable manuscripts,
+where any numeric values can be click-traced all the way up to the specific code lines that created them
+([data-chaining DEMO](https://youtu.be/HUkJcMXd9x0)).
 
-  :compass: Oversee, Inspect and Guide the research
 
-  :dart: Set research goals, or let the AI autonomously raise and test hypotheses
+<picture>
+<img src="https://github.com/Technion-Kishony-lab/data-to-paper/blob/feature/update_packaging/research-steps-vertical.png" width=80 
+align="left">
+</picture>
 
-  :robot: Provide review, or invoke on-demand AI-reviews
+* **Autopilot or Copilot.** The platform can run fully autonomously, or can be human-guided through the [Copilot App](https://youtu.be/vrsxgX67n6I), allowing users to:
 
-  :rewind: Rewind the process to prior steps
+  - Oversee, Inspect and Guide the research
 
-  :film_projector: Record and replay runs
+  - Set research goals, or let the AI autonomously raise and test hypotheses
 
-  :heavy_dollar_sign:	Track API costs
+  - Provide review, or invoke on-demand AI-reviews
+
+  - Rewind the process to prior steps
+
+  - Record and replay runs
+
+  -	Track API costs
 * **Coding guardrails.** Standard statistical packages are overridden with multiple guardrails 
 to minimize common LLM coding errors.
 
-https://github.com/Technion-Kishony-lab/data-to-paper/assets/65530510/4c10c06d-d7e9-4d7c-b9d4-7dbe904d15de
+https://github.com/Technion-Kishony-lab/data-to-paper/assets/31969897/0f3acf7a-a775-43bd-a79c-6877f780f2d4
 
+  
 ### Motivation: Building a new standard for Transparent, Traceable, and Verifiable AI-driven Research
 The *data-to-paper* framework is created as a research project to understand the 
 capacities and limitations of LLM-driven scientific research, and to develop ways of harnessing LLM to accelerate 
@@ -68,7 +79,6 @@ through the conventional scientific path, from annotated data, through creating
 research hypotheses, conducting literature search, writing and debugging data analysis code, 
 interpreting the results, and ultimately the step-by-step writing of a complete research paper.
 
-https://github.com/Technion-Kishony-lab/data-to-paper/assets/31969897/0f3acf7a-a775-43bd-a79c-6877f780f2d4
 
 ### Reference
 The **data-to-paper** framework is described in the following pre-print:
