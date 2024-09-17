@@ -1,7 +1,7 @@
 ## Backward-traceable AI-driven Research
 
 <picture>
-<img src="https://github.com/Technion-Kishony-lab/data-to-paper/blob/main/data_to_paper_icon.gif" width="350" 
+<img src="https://github.com/Technion-Kishony-lab/data-to-paper/blob/main/assets/data_to_paper_icon.gif" width="350" 
 align="right">
 </picture>
 
@@ -10,11 +10,11 @@ align="right">
 **data-to-paper** is an automation framework that systematically navigates interacting AI agents through a **complete end-to-end scientific research**, 
 starting from *raw data* alone and concluding with *transparent, backward-traceable, 
 human-verifiable scientific papers* 
-(<a href="https://github.com/Technion-Kishony-lab/data-to-paper/blob/feature/figures2/ExampleManuscriptFigures.pdf" target="_blank">Example AI-created paper</a>, 
+(<a href="https://github.com/Technion-Kishony-lab/data-to-paper/blob/main/assets/ExampleManuscriptFigures.pdf" target="_blank">Example AI-created paper</a>, 
 [Copilot App DEMO](https://youtu.be/vrsxgX67n6I)).
 
 <picture>
-<img src="https://github.com/Technion-Kishony-lab/data-to-paper/blob/feature/update_packaging/AI-Human-agents.png" width="300" 
+<img src="https://github.com/Technion-Kishony-lab/data-to-paper/blob/main/assets/AI-Human-agents.png" width="300" 
 align="left">
 </picture>
 
@@ -28,11 +28,11 @@ then run: `data-to-paper`
 See [INSTALL](INSTALL.md) for dependencies.
 <br clear="left"/>
 
+<picture>
+<img src="https://github.com/Technion-Kishony-lab/data-to-paper/blob/main/assets/page_flipping.gif" width="400" align="right">
+</picture>
 
 ### Key features
-<picture>
-<img src="https://github.com/Technion-Kishony-lab/data-to-paper/blob/feature/update_packaging/page_flipping.gif" width="350" align="right">
-</picture>
 
 * **End-to-end field-agnostic research.** The process navigates through the entire scientific path, 
 from data exploration, literature search and ideation, through data analysis and interpretation, 
@@ -40,12 +40,6 @@ to the step-by-step writing of a complete research papers.
 * **Traceable "data-chained" manuscripts**. Tracing informtion flow, *data-to-paper* creates backward-traceable and verifiable manuscripts,
 where any numeric values can be click-traced all the way up to the specific code lines that created them
 ([data-chaining DEMO](https://youtu.be/HUkJcMXd9x0)).
-
-
-<picture>
-<img src="https://github.com/Technion-Kishony-lab/data-to-paper/blob/feature/update_packaging/research-steps-vertical.png" width=80 
-align="left">
-</picture>
 
 * **Autopilot or Copilot.** The platform can run fully autonomously, or can be human-guided through the [Copilot App](https://youtu.be/vrsxgX67n6I), allowing users to:
 
@@ -62,6 +56,14 @@ align="left">
   -	Track API costs
 * **Coding guardrails.** Standard statistical packages are overridden with multiple guardrails 
 to minimize common LLM coding errors.
+
+
+
+<picture>
+<img src="https://github.com/Technion-Kishony-lab/data-to-paper/blob/main/assets/research-steps-horizontal.png" width=100% 
+align="left">
+</picture>
+<br><br>
 
 https://github.com/Technion-Kishony-lab/data-to-paper/assets/31969897/0f3acf7a-a775-43bd-a79c-6877f780f2d4
 
