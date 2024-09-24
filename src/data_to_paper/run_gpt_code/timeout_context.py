@@ -14,7 +14,7 @@ def timeout_context(seconds, exception=TimeoutError):
 
     # return different context manager depending on the operating system
     if os.name == 'nt':
-        return TimeoutWindowsContext(seconds=seconds, exception=exception) # TODO: currently not working
+        return TimeoutWindowsContext(seconds=seconds, exception=exception)
     else:
         return TimeoutUnixContext(seconds=seconds, exception=exception)
 
