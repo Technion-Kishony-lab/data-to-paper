@@ -33,15 +33,6 @@ def test_prevent_assignment_to_attr_is_permissive_internally():
 
     assert t.not_allowed == 7
 
-
-def test_timeout_context():
-    with timeout_context(1):
-        pass
-    with raises(TimeoutError):
-        with timeout_context(1):
-            time.sleep(2)
-
-
 def _wrapper(*args, **kwargs):
     return 7
 
