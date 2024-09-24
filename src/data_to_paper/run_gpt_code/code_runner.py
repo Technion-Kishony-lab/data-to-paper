@@ -127,7 +127,7 @@ class CodeRunner:
             contexts['WarningHandler'] = WarningHandler(categories_to_raise=self.warnings_to_raise,
                                                         categories_to_issue=self.warnings_to_issue,
                                                         categories_to_ignore=self.warnings_to_ignore)
-        if self.timeout_sec is not None:
+        if self.timeout_sec is not None and os.name != 'nt':
             contexts['TimeoutContext'] = timeout_context(self.timeout_sec, CodeTimeoutException)
 
         # Additional custom contexts:
