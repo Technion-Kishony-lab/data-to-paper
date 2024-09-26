@@ -48,6 +48,9 @@ brew install --cask mactex-no-gui
  """
 
 
+CREATIONFLAGS = 0 if os.name != 'nt' else subprocess.CREATE_NO_WINDOW
+
+
 def is_pdflatex_installed() -> Optional[bool]:
     """
     Check that pdflatex is installed.
@@ -56,7 +59,7 @@ def is_pdflatex_installed() -> Optional[bool]:
     """
     try:
         subprocess.run(['pdflatex', '--version'], check=True, stdout=subprocess.DEVNULL,
-                       stderr=subprocess.DEVNULL)
+                       stderr=subprocess.DEVNULL, creationflags=CREATIONFLAGS)
     except FileNotFoundError:
         return False
     except subprocess.CalledProcessError:
@@ -72,7 +75,7 @@ def is_pdflatex_package_installed(package: str) -> Optional[bool]:
     """
     try:
         subprocess.run(['kpsewhich', package + '.sty'], check=True, stdout=subprocess.DEVNULL,
-                       stderr=subprocess.DEVNULL)
+                       stderr=subprocess.DEVNULL, creationflags=CREATIONFLAGS)
     except FileNotFoundError:
         return None
     except subprocess.CalledProcessError:
@@ -202,7 +205,8 @@ def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_dir
             f.write(latex_content)
         try:
             pdflatex_output = subprocess.run(pdflatex_params,
-                                             check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                                             check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                             creationflags=CREATIONFLAGS)
         except FileNotFoundError:
             raise MissingInstallationError(package_name="pdflatex", instructions=PDFLATEX_INSTALLATION_INSTRUCTIONS)
         except subprocess.CalledProcessError as e:
@@ -216,12 +220,12 @@ def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_dir
             try:
                 if should_compile_with_bib:
                     try:
-                        subprocess.run(['bibtex', file_stem], check=True)
+                        subprocess.run(['bibtex', file_stem], check=True, creationflags=CREATIONFLAGS)
                     except FileNotFoundError:
                         raise MissingInstallationError(package_name="bibtex",
                                                        instructions=PDFLATEX_INSTALLATION_INSTRUCTIONS)
-                subprocess.run(pdflatex_params, check=True)
-                subprocess.run(pdflatex_params, check=True)
+                subprocess.run(pdflatex_params, check=True, creationflags=CREATIONFLAGS)
+                subprocess.run(pdflatex_params, check=True, creationflags=CREATIONFLAGS)
             except subprocess.CalledProcessError:
                 _move_latex_and_pdf_to_output_directory(file_stem, output_directory, latex_file_name)
                 raise
