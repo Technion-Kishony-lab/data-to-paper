@@ -100,12 +100,6 @@ class CodeRunnerWrapper(CacheRunToFile):
         Run the provided code and put the result in the queue.
         """
         code_runner = self.code_runner
-        # TODO: this is not great because the timeout context is created upon first run
-        #  of the CodeRunner instance, so if we reset the time it is not effective.
-        # We want the inner timer to trigger first, because if it works we will
-        # also get the line number of the error:
-        if self.timeout_sec is not None:
-            code_runner.timeout_sec = self.timeout_sec - 1
         try:
             result = code_runner.run(code=self.code)
         except Exception as e:

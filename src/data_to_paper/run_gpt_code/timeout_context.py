@@ -1,3 +1,8 @@
+# This module is not being used anymore. Timeout is now implemented by CodeRunnerWrapper
+# The use of signal is really nice because it allows catching the specific line where the code timed out,
+# but it only works on mac, and there is no such alternative for Windows.
+
+
 import signal
 import threading
 import os

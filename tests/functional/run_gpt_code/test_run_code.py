@@ -89,21 +89,6 @@ def test_run_code_correctly_reports_exception_from_func():
     assert 'stupid error' in msg
 
 
-def test_run_code_timeout():
-    code = dedent_triple_quote_str("""
-        import time
-        # line 2
-        time.sleep(20)
-        # line 4
-        """)
-    results = CodeRunner(timeout_sec=1).run(code)
-    error = results[3]
-    assert isinstance(error, FailedRunningCode)
-    assert isinstance(error.exception, TimeoutError)
-    lineno_lines, msg = error.get_lineno_line_message()
-    assert lineno_lines == [(3, 'time.sleep(20)')]
-
-
 @pytest.mark.parametrize("forbidden_call", ['input', 'exit', 'quit', 'eval'])
 def test_run_code_forbidden_functions(forbidden_call):
     time.sleep(0.1)
