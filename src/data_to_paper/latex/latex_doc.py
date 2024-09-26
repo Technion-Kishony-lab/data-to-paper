@@ -296,9 +296,11 @@ class LatexDocument:
         for package_name in self.package_names:
             is_installed = is_pdflatex_package_installed(package_name)
             if is_installed is None:
-                print('Warning: failed checking if package is installed.')
-                return
-            elif not is_installed:
+                raise MissingInstallationError(
+                    package_name='pdflatex',
+                    instructions='Failed checking pdflatex sub-packages. Please install pdflatex first.')
+            print(f'{package_name}: {is_installed}')
+            if not is_installed:
                 missing_packages.append(package_name)
         if missing_packages:
             raise MissingInstallationError(package_name=f'pdflatex packages {missing_packages}',
