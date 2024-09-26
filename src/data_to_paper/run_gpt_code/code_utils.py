@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from data_to_paper.utils.formatted_sections import FormattedSections
+from data_to_paper.text.formatted_sections import FormattedSections
 
 
 @dataclass

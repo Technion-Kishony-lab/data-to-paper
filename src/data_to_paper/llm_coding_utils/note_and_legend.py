@@ -2,7 +2,7 @@ from typing import Dict
 
 from data_to_paper.latex.clean_latex import replace_special_latex_chars
 from data_to_paper.utils.dataframe import extract_df_axes_labels
-from data_to_paper.utils.text_formatting import escape_html
+from data_to_paper.text.text_formatting import escape_html
 
 
 def convert_note_and_glossary_to_latex_table_caption(df, note: str, glossary: Dict[str, str], index: bool) -> str:

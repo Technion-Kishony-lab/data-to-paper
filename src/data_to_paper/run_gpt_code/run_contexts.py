@@ -13,7 +13,7 @@ from pathlib import Path
 
 from data_to_paper.utils.file_utils import is_name_matches_list_of_wildcard_names
 from data_to_paper.utils.types import ListBasedSet
-from data_to_paper.utils import dedent_triple_quote_str
+from data_to_paper.text import dedent_triple_quote_str
 
 from .exceptions import CodeWriteForbiddenFile, CodeReadForbiddenFile, \
     CodeImportForbiddenModule, UnAllowedFilesCreated

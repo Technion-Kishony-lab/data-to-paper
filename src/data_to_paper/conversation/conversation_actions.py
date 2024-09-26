@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional, List, Set
 
-from data_to_paper.utils.highlighted_text import red_text
+from data_to_paper.text.highlighted_text import red_text
 from data_to_paper.base_cast import Agent
 
 from .actions_and_conversations import Action

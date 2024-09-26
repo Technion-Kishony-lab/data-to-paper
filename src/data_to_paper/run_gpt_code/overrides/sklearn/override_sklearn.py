@@ -7,7 +7,7 @@ from data_to_paper.run_gpt_code.base_run_contexts import MultiRunContext
 from data_to_paper.run_gpt_code.attr_replacers import SystematicMethodReplacerContext, \
     PreventAssignmentToAttrs, AttrReplacer
 from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue
-from data_to_paper.utils import dedent_triple_quote_str
+from data_to_paper.text import dedent_triple_quote_str
 
 from ..pvalue import convert_to_p_value, TrackPValueCreationFuncs
 

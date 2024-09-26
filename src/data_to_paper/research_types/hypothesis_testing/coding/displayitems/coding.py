@@ -19,7 +19,7 @@ from data_to_paper.run_gpt_code.code_runner import CodeRunner
 from data_to_paper.run_gpt_code.overrides.dataframes.df_with_attrs import InfoDataFrameWithSaveObjFuncCall
 from data_to_paper.run_gpt_code.overrides.pvalue import PValue, OnStr, OnStrPValue
 from data_to_paper.run_gpt_code.run_issues import RunIssue, CodeProblem
-from data_to_paper.utils import dedent_triple_quote_str
+from data_to_paper.text import dedent_triple_quote_str
 
 from ..analysis.coding import BaseDataFramePickleContentOutputFileRequirement, DataAnalysisDebuggerConverser
 from ...check_df_to_funcs.df_checker import check_displayitem_df

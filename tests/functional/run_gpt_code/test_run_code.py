@@ -15,7 +15,7 @@ from data_to_paper.run_gpt_code.overrides.sklearn.override_sklearn import Sklear
 from data_to_paper.run_gpt_code.overrides.random import SetRandomSeeds
 from data_to_paper.run_gpt_code.run_issues import RunIssue
 from data_to_paper.code_and_output_files.output_file_requirements import OutputFileRequirements
-from data_to_paper.utils import dedent_triple_quote_str
+from data_to_paper.text import dedent_triple_quote_str
 
 
 class CallFuncCodeRunner(CodeRunner):

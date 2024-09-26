@@ -5,7 +5,7 @@ from data_to_paper.code_and_output_files.output_file_requirements import OutputF
     DataOutputFileRequirement
 from data_to_paper.research_types.hypothesis_testing.coding.base_code_conversers import BaseScientificCodeProductsGPT
 from data_to_paper.research_types.hypothesis_testing.coding.utils import create_pandas_and_stats_contexts
-from data_to_paper.utils import dedent_triple_quote_str
+from data_to_paper.text import dedent_triple_quote_str
 
 
 @dataclass

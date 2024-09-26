@@ -12,12 +12,11 @@ from data_to_paper.base_cast import Agent
 from data_to_paper.run_gpt_code.code_utils import extract_code_from_text, FailedExtractingBlock
 from data_to_paper.servers.llm_call import count_number_of_tokens_in_message
 from data_to_paper.servers.model_engine import OpenaiCallParameters, ModelEngine
-from data_to_paper.utils import format_text_with_code_blocks, line_count
-from data_to_paper.utils.highlighted_text import colored_text
+from data_to_paper.text import line_count, wrap_as_block
+from data_to_paper.text.highlighted_text import colored_text, format_text_with_code_blocks
 from data_to_paper.utils.numerics import is_lower_eq
-from data_to_paper.utils.text_formatting import wrap_as_block
-from data_to_paper.utils.formatted_sections import FormattedSections
-from data_to_paper.utils.text_extractors import get_dot_dot_dot_text
+from data_to_paper.text.formatted_sections import FormattedSections
+from data_to_paper.text.text_extractors import get_dot_dot_dot_text
 
 # noinspection PyUnresolvedReferences
 colorama.just_fix_windows_console()

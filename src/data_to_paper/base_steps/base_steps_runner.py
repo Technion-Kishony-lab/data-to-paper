@@ -22,13 +22,13 @@ from data_to_paper.conversation.stage import Stage
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
 from data_to_paper.exceptions import TerminateException, ResetStepException
 from data_to_paper.run_gpt_code.code_runner_wrapper import RUN_CACHE_FILEPATH
-from data_to_paper.utils import dedent_triple_quote_str
+from data_to_paper.text import dedent_triple_quote_str
 from data_to_paper.utils.replacer import Replacer
 
 from data_to_paper.base_steps.base_products_conversers import ProductsHandler
 from data_to_paper.interactive.app_interactor import AppInteractor, _raise_if_reset
 from data_to_paper.interactive import PanelNames, BaseApp
-from data_to_paper.utils.text_formatting import add_header_and_footer_lines
+from data_to_paper.text.text_formatting import add_header_and_footer_lines
 
 
 @dataclass

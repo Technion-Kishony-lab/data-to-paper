@@ -3,7 +3,7 @@ from typing import Any
 
 from data_to_paper.code_and_output_files.file_view_params import ViewPurpose
 from data_to_paper.conversation.stage import Stage
-from data_to_paper.utils import format_text_with_code_blocks
+from data_to_paper.text.highlighted_text import format_text_with_code_blocks
 
 
 @dataclass

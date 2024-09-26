@@ -3,8 +3,8 @@ from typing import NamedTuple, Union, Callable, Tuple, Dict, List, Any
 
 from data_to_paper.base_products.product import Product
 from data_to_paper.conversation.stage import Stage
-from data_to_paper.utils import format_text_with_code_blocks
-from data_to_paper.utils.text_formatting import ArgsOrKwargs, format_with_args_or_kwargs
+from data_to_paper.text.highlighted_text import format_text_with_code_blocks
+from data_to_paper.text.text_formatting import ArgsOrKwargs, format_with_args_or_kwargs
 
 
 class NameDescriptionStage(NamedTuple):

@@ -13,7 +13,7 @@ from data_to_paper.latex.latex_to_pdf import evaluate_latex_num_command, is_pdfl
     is_pdflatex_installed, PDFLATEX_INSTALLATION_INSTRUCTIONS
 
 from data_to_paper.servers.custom_types import Citation
-from data_to_paper.utils import dedent_triple_quote_str
+from data_to_paper.text import dedent_triple_quote_str
 
 DEFAULT_PACKAGES = (
     '[utf8]{inputenc}',

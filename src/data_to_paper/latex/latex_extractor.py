@@ -1,6 +1,6 @@
 from typing import List
 
-from data_to_paper.utils.text_extractors import extract_text_between_tags
+from data_to_paper.text.text_extractors import extract_text_between_tags
 
 from .exceptions import FailedToExtractLatexContent
 from .latex_section_tags import get_list_of_tag_pairs_for_section_or_fragment

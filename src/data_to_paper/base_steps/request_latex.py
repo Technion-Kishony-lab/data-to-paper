@@ -5,14 +5,13 @@ from typing import Optional, List, Tuple
 
 from data_to_paper.env import WRITING_MODEL_ENGINE
 
-from data_to_paper.utils import dedent_triple_quote_str
+from data_to_paper.text import dedent_triple_quote_str, wrap_as_block
 from data_to_paper.utils.nice_list import NiceList
-from data_to_paper.utils.text_formatting import wrap_as_block
 from data_to_paper.latex import FailedToExtractLatexContent, extract_latex_section_from_response
 from data_to_paper.latex.exceptions import UnwantedCommandsUsedInLatex, BaseLatexProblemInCompilation
 from data_to_paper.run_gpt_code.code_utils import extract_content_of_triple_quote_block, FailedExtractingBlock, \
     IncompleteBlockFailedExtractingBlock, NoBlocksFailedExtractingBlock
-from data_to_paper.utils.citataion_utils import find_citation_ids
+from data_to_paper.latex.citataion_utils import find_citation_ids
 from data_to_paper.utils.types import ListBasedSet
 from data_to_paper.latex.latex_doc import LatexDocument
 from data_to_paper.latex.clean_latex import process_latex_text_and_math, check_usage_of_un_allowed_commands

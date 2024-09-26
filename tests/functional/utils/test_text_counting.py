@@ -1,6 +1,6 @@
 import pytest
 
-from data_to_paper.utils.text_counting import diff_strs
+from data_to_paper.text.text_counting import diff_strs
 
 
 @pytest.mark.parametrize('context, expected', [

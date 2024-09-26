@@ -12,8 +12,8 @@ from data_to_paper.code_and_output_files.referencable_text import convert_str_to
 from data_to_paper.latex.clean_latex import wrap_as_latex_code_output, replace_special_latex_chars, \
     replace_non_utf8_chars
 from data_to_paper.run_gpt_code.base_run_contexts import RunContext
-from data_to_paper.utils import format_text_with_code_blocks
-from data_to_paper.utils.text_formatting import wrap_as_block
+from data_to_paper.text import wrap_as_block
+from data_to_paper.text.highlighted_text import format_text_with_code_blocks
 
 if TYPE_CHECKING:
     from data_to_paper.run_gpt_code.overrides.dataframes.dataframe_operations import DataframeOperations

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from data_to_paper.exceptions import data_to_paperException
-from data_to_paper.utils.text_formatting import wrap_as_block
+from data_to_paper.text import wrap_as_block
 
 
 @dataclass

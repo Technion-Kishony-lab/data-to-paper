@@ -9,8 +9,8 @@ from data_to_paper.research_types.hypothesis_testing.cast import ScientificAgent
 from data_to_paper.research_types.hypothesis_testing.coding.base_code_conversers import BaseScientificCodeProductsGPT
 from data_to_paper.research_types.hypothesis_testing.coding.utils import create_pandas_and_stats_contexts
 from data_to_paper.run_gpt_code.run_issues import RunIssue, CodeProblem
-from data_to_paper.utils import dedent_triple_quote_str
-from data_to_paper.utils.highlighted_text import output_to_highlighted_html
+from data_to_paper.text import dedent_triple_quote_str
+from data_to_paper.text.highlighted_text import output_to_highlighted_html
 from data_to_paper.utils.nice_list import NiceList
 
 
