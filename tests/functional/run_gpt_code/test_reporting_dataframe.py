@@ -149,7 +149,7 @@ def test_even_non_reporting_df_reports_on_save(tmpdir):
 def test_df_float_precision_to_csv():
     with TrackDataFrames():
         df = pd.DataFrame({'a': [1.23456789]})
-        assert df.to_csv().endswith('1.23456789\n')
+        assert df.to_csv().strip().endswith('1.23456789')
 
 
 def test_df_float_precision_str():

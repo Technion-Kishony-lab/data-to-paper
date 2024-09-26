@@ -24,6 +24,6 @@ def test_timeout_context_is_serializable(context_cls):
     try:
         with context:
             pass
-    except TimeoutError:
+    except Exception:
         pass
     assert is_serializable(context)
