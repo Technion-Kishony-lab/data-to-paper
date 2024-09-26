@@ -195,10 +195,10 @@ def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_dir
         # Create the bib file:
         if should_compile_with_bib:
             references_bibtex = [reference.bibtex for reference in references]
-            with open(BIB_FILENAME, 'w') as f:
+            with open(BIB_FILENAME, 'w', encoding='utf-8') as f:
                 f.write('\n\n'.join(references_bibtex))
 
-        with open(latex_file_name, 'w') as f:
+        with open(latex_file_name, 'w', encoding='utf-8') as f:
             f.write(latex_content)
         try:
             pdflatex_output = subprocess.run(pdflatex_params,

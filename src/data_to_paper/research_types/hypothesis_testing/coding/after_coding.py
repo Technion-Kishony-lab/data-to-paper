@@ -211,7 +211,7 @@ class RequestCodeProducts(BaseScientificCodeProductsHandler, ProductsConverser):
         """
         if self.output_directory is None:
             return
-        with open(f'{self.output_directory}/{code_step}.py', 'w') as f:
+        with open(f'{self.output_directory}/{code_step}.py', 'w', encoding='utf-8') as f:
             f.write(code_and_output.code)
 
     def get_code_and_output(self) -> CodeAndOutput:

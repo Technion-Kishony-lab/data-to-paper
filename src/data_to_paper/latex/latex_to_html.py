@@ -62,7 +62,7 @@ def convert_latex_to_html(latex: str) -> str:
             # process latex and escape special characters
             latex = process_latex_text_and_math(latex)
             # Write the LaTeX into a temporary file
-            with open(tex_file, 'w') as f:
+            with open(tex_file, 'w', encoding='utf-8') as f:
                 f.write(latex)
             # Convert using Pandoc
             html_output = subprocess.check_output(command, universal_newlines=True)

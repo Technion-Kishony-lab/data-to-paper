@@ -32,7 +32,7 @@ USING_MATPLOTLIB_IN_GPT_CODE = False
 
 def save_code_to_module_file(code: str = None):
     code = code or '# empty module\n'
-    with open(module_default_filepath, "w") as f:
+    with open(module_default_filepath, "w", encoding='utf-8') as f:
         f.write(code)
 
 
