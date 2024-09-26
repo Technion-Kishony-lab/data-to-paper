@@ -15,7 +15,7 @@ from data_to_paper.interactive.base_app_startup import BaseStartDialog
 from data_to_paper.servers.api_cost import StageToCost
 from data_to_paper.utils.file_utils import clear_directory
 from data_to_paper.utils.print_to_file import print_and_log, console_log_file_context
-from data_to_paper.servers.llm_call import OPENAI_SERVER_CALLER, OpenaiServerCaller
+from data_to_paper.servers.llm_call import OPENAI_SERVER_CALLER, LLMServerCaller
 from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER, \
     SEMANTIC_SCHOLAR_EMBEDDING_SERVER_CALLER
 from data_to_paper.conversation.stage import Stage
@@ -71,7 +71,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
     _current_exception: Optional[Exception] = None
     _prior_stage: Optional[Stage] = None
 
-    server_caller: OpenaiServerCaller = None
+    server_caller: LLMServerCaller = None
 
     close_or_continue_message = dedent_triple_quote_str("""
         You can now:
