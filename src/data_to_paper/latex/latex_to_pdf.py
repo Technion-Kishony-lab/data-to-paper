@@ -9,6 +9,7 @@ from typing import Optional, Collection, Tuple, Dict
 
 from pathlib import Path
 
+from data_to_paper.utils.subprocess import SYSTEM_KWARGS
 from data_to_paper.terminate.exceptions import MissingInstallationError
 from data_to_paper.servers.custom_types import Citation
 from data_to_paper.utils.file_utils import run_in_temp_directory
@@ -48,9 +49,6 @@ brew install --cask mactex-no-gui
  """
 
 
-CREATIONFLAGS = 0 if os.name != 'nt' else subprocess.CREATE_NO_WINDOW
-
-
 def is_pdflatex_installed() -> Optional[bool]:
     """
     Check that pdflatex is installed.
@@ -59,7 +57,7 @@ def is_pdflatex_installed() -> Optional[bool]:
     """
     try:
         subprocess.run(['pdflatex', '--version'], check=True, stdout=subprocess.DEVNULL,
-                       stderr=subprocess.DEVNULL, creationflags=CREATIONFLAGS)
+                       stderr=subprocess.DEVNULL, **SYSTEM_KWARGS)
     except FileNotFoundError:
         return False
     except subprocess.CalledProcessError:
@@ -75,7 +73,7 @@ def is_pdflatex_package_installed(package: str) -> Optional[bool]:
     """
     try:
         subprocess.run(['kpsewhich', package + '.sty'], check=True, stdout=subprocess.DEVNULL,
-                       stderr=subprocess.DEVNULL, creationflags=CREATIONFLAGS)
+                       stderr=subprocess.DEVNULL, **SYSTEM_KWARGS)
     except FileNotFoundError:
         return None
     except subprocess.CalledProcessError:
@@ -206,7 +204,7 @@ def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_dir
         try:
             pdflatex_output = subprocess.run(pdflatex_params,
                                              check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                             creationflags=CREATIONFLAGS)
+                                             **SYSTEM_KWARGS)
         except FileNotFoundError:
             raise MissingInstallationError(package_name="pdflatex", instructions=PDFLATEX_INSTALLATION_INSTRUCTIONS)
         except subprocess.CalledProcessError as e:
@@ -220,12 +218,12 @@ def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_dir
             try:
                 if should_compile_with_bib:
                     try:
-                        subprocess.run(['bibtex', file_stem], check=True, creationflags=CREATIONFLAGS)
+                        subprocess.run(['bibtex', file_stem], check=True, **SYSTEM_KWARGS)
                     except FileNotFoundError:
                         raise MissingInstallationError(package_name="bibtex",
                                                        instructions=PDFLATEX_INSTALLATION_INSTRUCTIONS)
-                subprocess.run(pdflatex_params, check=True, creationflags=CREATIONFLAGS)
-                subprocess.run(pdflatex_params, check=True, creationflags=CREATIONFLAGS)
+                subprocess.run(pdflatex_params, check=True, **SYSTEM_KWARGS)
+                subprocess.run(pdflatex_params, check=True, **SYSTEM_KWARGS)
             except subprocess.CalledProcessError:
                 _move_latex_and_pdf_to_output_directory(file_stem, output_directory, latex_file_name)
                 raise
