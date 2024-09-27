@@ -80,14 +80,14 @@ class PreventFileOpen(SingletonRegisteredRunContext):
         file_name = args[0] if len(args) > 0 else kwargs.get('file', None)
         open_mode = args[1] if len(args) > 1 else kwargs.get('mode', 'r')
         is_opening_for_writing = open_mode in ['w', 'a', 'x', 'w+b', 'a+b', 'x+b', 'wb', 'ab', 'xb']
-        if is_opening_for_writing:
-            if not self.is_allowed_write_file(file_name):
-                raise CodeWriteForbiddenFile(file=file_name)
-        else:
-            if not self.is_allowed_read_file(file_name) \
-                    and not ModifyImport.get_runtime_instance(). \
-                    is_currently_importing():  # allow read files when importing packages
-                raise CodeReadForbiddenFile(file=file_name)
+        # allow read/write files when importing packages
+        if not ModifyImport.get_runtime_instance().is_currently_importing():
+            if is_opening_for_writing:
+                if not self.is_allowed_write_file(file_name):
+                    raise CodeWriteForbiddenFile(file=file_name)
+            else:
+                if not self.is_allowed_read_file(file_name):
+                    raise CodeReadForbiddenFile(file=file_name)
         return self.original_open(*args, **kwargs)
 
     def _is_system_file(self, file_name):
@@ -192,9 +192,8 @@ class ModifyImport(SingletonRegisteredRunContext):
             try:
                 return self.original_import(name, globals, locals, fromlist, level)
             except Exception as e:
-                exc = ImportError(str(e))
-                exc.fromlist = fromlist
-                raise exc
+                e.fromlist = fromlist
+                raise e
 
     @contextmanager
     def within_import(self, package_name):

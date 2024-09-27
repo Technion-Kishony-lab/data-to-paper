@@ -47,6 +47,14 @@ def test_run_code_correctly_reports_exception():
     assert linenos_lines == [(3, "raise Exception('error')")]
 
 
+def test_import_statsmodels():
+    # this caused a bug on Windows.
+    # the import is using try-except on imports to check ig packages exists
+    code = "import statsmodels.api as sm"
+    error = CodeRunner().run(code)[3]
+    assert error is None
+
+
 def test_run_code_raises_warning():
     code = dedent_triple_quote_str("""
         import warnings
