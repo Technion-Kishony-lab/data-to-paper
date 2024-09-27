@@ -157,16 +157,13 @@ def add_watermark_to_pdf(pdf_path: str, watermark_path: str, output_path: str = 
     if output_path is None:
         output_path = pdf_path
 
-    # Open the PDF and watermark files
-    pdf_doc = fitz.open(pdf_path)
-    watermark_doc = fitz.open(watermark_path)
+    with fitz.open(pdf_path) as pdf_doc, fitz.open(watermark_path) as watermark_doc:
+        for page in pdf_doc:
+            # Overlay the watermark onto the page by adding the XObject
+            page.show_pdf_page(page.rect, watermark_doc, 0)
 
-    for page in pdf_doc:
-        # Overlay the watermark onto the page by adding the XObject
-        page.show_pdf_page(page.rect, watermark_doc, 0)
-
-    # Save the watermarked PDF
-    pdf_doc.save(output_path, incremental=True, encryption=0)
+        # Save the watermarked PDF
+        pdf_doc.save(output_path, incremental=True, encryption=0)
 
 
 def _get_over_width_pts(pdflatex_output: str) -> Optional[float]:
