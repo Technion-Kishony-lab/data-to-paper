@@ -144,13 +144,15 @@ class SemanticScholarPaperServerCaller(ParameterizedQueryServerCaller):
             }
             print_and_log_red(f'QUERYING SEMANTIC SCHOLAR FOR: "{query}"', should_log=False)
             headers = {'x-api-key': SEMANTIC_SCHOLAR_API_KEY.key}
-            response = requests.get(PAPER_SEARCH_URL, headers=headers, params=params)
-
-            if response.status_code in (504, 429):
+            for attempt in range(3):
+                response = requests.get(PAPER_SEARCH_URL, headers=headers, params=params)
+                if response.status_code not in (504, 429):
+                    break
                 print_and_log_red("ERROR: Server timed out or too many requests. "
                                   "We wait for 5 sec and try again.", should_log=False)
                 time.sleep(5)
-                continue
+            else:
+                raise ServerErrorException(server=cls.name, response=response)  # if we failed all attempts
 
             if response.status_code != 200:  # 200 is the success code
                 if response.reason == 'Forbidden':
