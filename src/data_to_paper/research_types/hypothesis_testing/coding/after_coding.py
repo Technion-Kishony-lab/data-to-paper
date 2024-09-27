@@ -12,7 +12,7 @@ from data_to_paper.latex.latex_doc import LatexDocument
 
 from data_to_paper.research_types.hypothesis_testing.coding.base_code_conversers import \
     BaseScientificCodeProductsHandler, BaseScientificCodeProductsGPT
-from data_to_paper.utils import dedent_triple_quote_str
+from data_to_paper.text import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceDict
 from data_to_paper.utils.replacer import Replacer
 from data_to_paper.utils.types import ListBasedSet

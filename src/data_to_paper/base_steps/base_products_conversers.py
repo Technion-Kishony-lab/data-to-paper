@@ -5,8 +5,7 @@ from pathlib import Path
 from typing import List, Tuple, Optional
 
 from data_to_paper.base_products import Products
-from data_to_paper.utils import dedent_triple_quote_str
-from data_to_paper.utils.copier import Copier
+from data_to_paper.text import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.utils.replacer import Replacer, StrOrReplacer
 from data_to_paper.utils.types import ListBasedSet
@@ -17,6 +16,7 @@ from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.code_and_output_files.ref_numeric_values import find_hyperlinks, find_numeric_values, \
     find_matching_reference, replace_hyperlinks_with_values, TARGET, LINK
 
+from .copier import Copier
 from .result_converser import ResultConverser, Rewind, BumpModel
 from .dual_converser import ReviewDialogDualConverserGPT
 

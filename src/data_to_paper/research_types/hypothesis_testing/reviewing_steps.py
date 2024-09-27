@@ -4,7 +4,7 @@ from typing import Tuple, Dict, Any, Iterable, List, Collection, Type
 
 from data_to_paper.env import JSON_MODE, WRITING_MODEL_ENGINE
 from data_to_paper.servers.model_engine import ModelEngine
-from data_to_paper.utils import dedent_triple_quote_str, word_count
+from data_to_paper.text import dedent_triple_quote_str, word_count
 from data_to_paper.base_steps.result_converser import Rewind
 from data_to_paper.base_steps import BaseProductsQuotedReviewGPT, PythonDictReviewBackgroundProductsConverser, \
     PythonDictWithDefinedKeysReviewBackgroundProductsConverser

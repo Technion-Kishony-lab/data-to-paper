@@ -1,7 +1,7 @@
 import numpy as np
 
 from data_to_paper.env import CODING_MODEL_ENGINE, JSON_MODEL_ENGINE, WRITING_MODEL_ENGINE
-from data_to_paper.utils.resource_checking import resource_checking
+from data_to_paper.terminate.resource_checking import resource_checking
 from data_to_paper.conversation import Message, Role
 
 from data_to_paper.servers.llm_call import OPENAI_SERVER_CALLER

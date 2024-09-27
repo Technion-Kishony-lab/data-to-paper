@@ -26,7 +26,7 @@ from data_to_paper.run_gpt_code.overrides.dataframes.utils import df_to_string_w
     format_numerics_and_iterables
 from data_to_paper.run_gpt_code.overrides.pvalue import is_containing_p_value, OnStr, OnStrPValue
 from data_to_paper.run_gpt_code.run_issues import RunIssue, CodeProblem
-from data_to_paper.utils import dedent_triple_quote_str
+from data_to_paper.text import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceDict
 
 

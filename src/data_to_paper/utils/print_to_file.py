@@ -7,7 +7,7 @@ from functools import partial
 from pathlib import Path
 
 from .console_log_to_html import convert_console_log_to_html
-from .highlighted_text import colored_text
+from data_to_paper.text.highlighted_text import colored_text
 from .mutable import Mutable, Flag
 
 CONSOLE_LOG_FILE = Mutable(None)

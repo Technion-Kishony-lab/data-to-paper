@@ -54,10 +54,11 @@ class LLMResponse(SerializableValue):
     """
 
 
-class OpenaiServerCaller(OrderedKeyToListServerCaller):
+class LLMServerCaller(OrderedKeyToListServerCaller):
     """
     Class to call OpenAI API.
     """
+    name = 'LLM Server'
     file_extension = '_openai.txt'
     should_log_api_cost: bool = True
 
@@ -94,7 +95,7 @@ class OpenaiServerCaller(OrderedKeyToListServerCaller):
 
     @staticmethod
     def _check_after_spending_money(content: str, messages: List[Message], model_engine: ModelEngine):
-        tokens_in, tokens_out, cost = OpenaiServerCaller._get_cost_of_api_call(content, messages, model_engine)
+        tokens_in, tokens_out, cost = LLMServerCaller._get_cost_of_api_call(content, messages, model_engine)
         print_and_log_red(f'Total: {tokens_in} prompt tokens, {tokens_out} returned tokens, cost: ${cost :.2f}.',
                           should_log=False)
 
@@ -189,7 +190,7 @@ class OpenaiServerCaller(OrderedKeyToListServerCaller):
             return LLMResponse(serialized_record)
 
 
-OPENAI_SERVER_CALLER = OpenaiServerCaller()
+OPENAI_SERVER_CALLER = LLMServerCaller()
 
 
 def count_number_of_tokens_in_message(messages: Union[List[Message], str], model_engine: ModelEngine) -> int:

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import Optional, List, Tuple
 
 from data_to_paper.run_gpt_code.exceptions import FailedRunningCode
-from data_to_paper.utils import word_count
+from data_to_paper.text import word_count
 from data_to_paper.utils.replacer import format_value
 from data_to_paper.utils.types import IndexOrderedEnum, ListBasedSet
 

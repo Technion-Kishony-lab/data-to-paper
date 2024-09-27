@@ -11,10 +11,11 @@ from data_to_paper.conversation import ConversationManager, GeneralMessageDesign
 from data_to_paper.interactive import PanelNames
 from data_to_paper.interactive.app_interactor import AppInteractor, _raise_if_reset
 from data_to_paper.servers.model_engine import ModelEngine
-from data_to_paper.utils.copier import Copier
 from data_to_paper.utils.replacer import StrOrReplacer, format_value
 from data_to_paper.utils.print_to_file import print_and_log_red, print_and_log_magenta
 from data_to_paper.base_cast import Agent
+
+from .copier import Copier
 
 
 @dataclass

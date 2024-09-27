@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, Tuple
 
-from data_to_paper.utils import dedent_triple_quote_str
+from data_to_paper.text import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList
 
 from data_to_paper.base_steps import BaseCodeProductsGPT

@@ -6,9 +6,9 @@ import pandas as pd
 from matplotlib import pyplot as plt
 from pandas import DataFrame
 
-from data_to_paper.utils import dedent_triple_quote_str
+from data_to_paper.text import dedent_triple_quote_str
 from data_to_paper.utils.check_type import raise_on_wrong_func_argument_types_decorator
-from data_to_paper.utils.highlighted_text import text_to_html
+from data_to_paper.text.highlighted_text import text_to_html
 from data_to_paper.utils.numerics import is_lower_eq
 
 from data_to_paper.run_gpt_code.overrides.pvalue import PValueToStars, OnStr, OnStrPValue

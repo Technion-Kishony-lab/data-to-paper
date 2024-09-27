@@ -1,7 +1,7 @@
 import pytest
 
 from data_to_paper.run_gpt_code.code_utils import add_label_to_first_triple_quotes_if_missing
-from data_to_paper.utils.text_numeric_formatting import round_floats
+from data_to_paper.text.text_numeric_formatting import round_floats
 
 
 @pytest.mark.parametrize('text, expected', [

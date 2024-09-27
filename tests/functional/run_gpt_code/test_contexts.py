@@ -1,11 +1,9 @@
-import time
 import pickle
 
 import pandas
 from pytest import raises
 
 from data_to_paper.run_gpt_code.overrides.dataframes.df_methods.methods import DataframeKeyError
-from data_to_paper.run_gpt_code.timeout_context import timeout_context
 from data_to_paper.run_gpt_code.attr_replacers import PreventAssignmentToAttrs, AttrReplacer
 from tests.functional.run_gpt_code.fake_cls import TestDoNotAssign
 
@@ -32,6 +30,7 @@ def test_prevent_assignment_to_attr_is_permissive_internally():
         t.set_internally(7)
 
     assert t.not_allowed == 7
+
 
 def _wrapper(*args, **kwargs):
     return 7

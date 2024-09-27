@@ -1,8 +1,8 @@
 from dataclasses import dataclass, field
 from typing import Tuple, Union, Any, Optional
 
-from data_to_paper.utils.text_extractors import extract_all_external_brackets
-from data_to_paper.utils.text_formatting import forgiving_format
+from data_to_paper.text.text_extractors import extract_all_external_brackets
+from data_to_paper.text.text_formatting import forgiving_format
 from data_to_paper.utils.types import ListBasedSet
 
 

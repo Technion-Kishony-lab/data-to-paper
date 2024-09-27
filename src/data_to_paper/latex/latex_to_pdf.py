@@ -9,11 +9,11 @@ from typing import Optional, Collection, Tuple, Dict
 
 from pathlib import Path
 
-from data_to_paper.exceptions import MissingInstallationError
+from data_to_paper.terminate.exceptions import MissingInstallationError
 from data_to_paper.servers.custom_types import Citation
 from data_to_paper.utils.file_utils import run_in_temp_directory
 from data_to_paper.code_and_output_files.ref_numeric_values import replace_hyperlinks_with_values
-from data_to_paper.utils.text_extractors import extract_all_external_brackets
+from data_to_paper.text.text_extractors import extract_all_external_brackets
 
 from .exceptions import LatexCompilationError, LatexNumCommandFormulaEvalError, \
     LatexNestedNumCommandError, LatexNumCommandNoExplanation, PlainNumberLatexNumCommandError
@@ -21,7 +21,7 @@ from .exceptions import LatexCompilationError, LatexNumCommandFormulaEvalError, 
 BIB_FILENAME: str = 'citations.bib'
 WATERMARK_PATH: str = os.path.join(os.path.dirname(__file__), 'watermark.pdf')
 
-PDFLATEX_INSTALLATION_INSTRUCTIONS = """
+PDFLATEX_INSTALLATION_INSTRUCTIONS = r"""
 Installations instructions for pdflatex:
 
 * **On Ubuntu**:

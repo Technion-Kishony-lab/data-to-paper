@@ -9,15 +9,15 @@ from typing import Optional, Any, List, Tuple, Iterable, Dict, Type
 from data_to_paper.env import MAX_SENSIBLE_OUTPUT_SIZE_TOKENS, NUM_DIGITS_FOR_FLOATS
 from data_to_paper.servers.llm_call import count_number_of_tokens_in_message
 from data_to_paper.servers.model_engine import ModelEngine
-from data_to_paper.utils import dedent_triple_quote_str, format_text_with_code_blocks
-from data_to_paper.utils.text_extractors import extract_to_nearest_newline
-from data_to_paper.utils.text_numeric_formatting import round_floats
+from data_to_paper.text import dedent_triple_quote_str, wrap_as_block
+from data_to_paper.text.highlighted_text import format_text_with_code_blocks
+from data_to_paper.text.text_extractors import extract_to_nearest_newline
+from data_to_paper.text.text_numeric_formatting import round_floats
 from data_to_paper.code_and_output_files.referencable_text import NumericReferenceableText, \
     BaseReferenceableText, convert_str_to_latex_label
 
 from data_to_paper.run_gpt_code.overrides.pvalue import OnStrPValue, OnStr
 from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue
-from data_to_paper.utils.text_formatting import wrap_as_block
 
 from .file_view_params import ContentViewPurposeConverter, ViewPurpose
 from .ref_numeric_values import ReferencedValue, HypertargetFormat

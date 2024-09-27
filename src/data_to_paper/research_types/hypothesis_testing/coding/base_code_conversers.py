@@ -8,7 +8,7 @@ from data_to_paper.llm_coding_utils import ALLOWED_PLOT_KINDS
 from data_to_paper.research_types.hypothesis_testing.cast import ScientificAgent
 from data_to_paper.research_types.hypothesis_testing.scientific_products import ScientificProducts, get_code_name, \
     get_code_agent
-from data_to_paper.utils import dedent_triple_quote_str
+from data_to_paper.text import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList
 
 

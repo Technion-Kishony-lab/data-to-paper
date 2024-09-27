@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from data_to_paper.utils import extract_text_between_tags
+from data_to_paper.text.text_extractors import extract_text_between_tags
 
 
 def get_displayitem_label(displayitem: str) -> Optional[str]:

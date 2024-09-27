@@ -12,7 +12,7 @@ from data_to_paper.conversation.stage import Stage
 from data_to_paper.env import PAUSE_AT_RULE_BASED_FEEDBACK
 from data_to_paper.exceptions import data_to_paperException
 from data_to_paper.interactive import PanelNames
-from data_to_paper.utils import format_text_with_code_blocks
+from data_to_paper.text.highlighted_text import format_text_with_code_blocks
 from data_to_paper.utils.mutable import Flag
 from data_to_paper.utils.print_to_file import print_and_log_red
 from data_to_paper.utils.replacer import StrOrReplacer, format_value

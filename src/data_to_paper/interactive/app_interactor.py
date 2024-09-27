@@ -6,12 +6,12 @@ from typing import Optional, Dict, Union, Iterable, Tuple
 
 from data_to_paper.env import REQUEST_CONTINUE_IN_PLAYBACK, FAKE_REQUEST_HUMAN_RESPONSE_ON_PLAYBACK
 
-from data_to_paper.utils import format_text_with_code_blocks
+from data_to_paper.text.highlighted_text import format_text_with_code_blocks
 from data_to_paper.utils.replacer import format_value, StrOrReplacer
-from data_to_paper.utils.highlighted_text import demote_html_headers
+from data_to_paper.text.highlighted_text import demote_html_headers
 from data_to_paper.utils.mutable import Mutable
 
-from data_to_paper.exceptions import ResetStepException
+from data_to_paper.terminate.exceptions import ResetStepException
 
 from data_to_paper.conversation.stage import Stage
 

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from data_to_paper.exceptions import TerminateException
+from data_to_paper.terminate.exceptions import TerminateException
 
 
 @dataclass

@@ -7,8 +7,8 @@ from typing import Union
 
 from requests import Response
 
-from data_to_paper.exceptions import TerminateException
-from data_to_paper.utils.text_formatting import dedent_triple_quote_str
+from data_to_paper.terminate.exceptions import TerminateException
+from data_to_paper.text import dedent_triple_quote_str
 
 
 @dataclass
@@ -34,8 +34,15 @@ class ServerErrorException(BaseServerErrorException):
     """
     response: Union[Response, Exception]
 
+    def _get_response_as_str(self):
+        try:
+            return f'Server status code: {self.response.status_code}\n{self.response.reason}'
+        except AttributeError:
+            return str(self.response)
+
     def __str__(self):
-        return f"Request to `{self.server}` server failed with thje following error:\n```error\n{self.response}\n```"
+        return f"Request to `{self.server}` server failed with the following error:\n```error\n" \
+               f"{self._get_response_as_str()}\n```"
 
 
 @dataclass

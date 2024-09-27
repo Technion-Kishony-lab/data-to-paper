@@ -2,11 +2,11 @@ import os
 import re
 import subprocess
 
-from data_to_paper.exceptions import MissingInstallationError
+from data_to_paper.terminate.exceptions import MissingInstallationError
+from data_to_paper.terminate.resource_checking import resource_checking
 from data_to_paper.latex.clean_latex import process_latex_text_and_math
 from data_to_paper.utils.file_utils import run_in_temp_directory
-from data_to_paper.utils.resource_checking import resource_checking
-from data_to_paper.utils.text_formatting import escape_html
+from data_to_paper.text.text_formatting import escape_html
 
 
 @resource_checking("Checking Pandoc installation")

@@ -7,7 +7,7 @@ from data_to_paper.env import CHOSEN_APP
 from data_to_paper.interactive.get_app import get_or_create_q_application_if_app_is_pyside
 from data_to_paper.interactive.pyside_app import PysideApp
 from data_to_paper.interactive.enum_types import PanelNames
-from data_to_paper.utils.highlighted_text import format_text_with_code_blocks
+from data_to_paper.text.highlighted_text import format_text_with_code_blocks
 
 long = "This is a very long sentence to test wrapping and proper <b>escaping</b>"
 block = f"""

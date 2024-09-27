@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Tuple, Optional
 
-from data_to_paper.utils import dedent_triple_quote_str
+from data_to_paper.text import dedent_triple_quote_str
 
 from .base_products_conversers import BackgroundProductsConverser
 from .result_converser import Rewind

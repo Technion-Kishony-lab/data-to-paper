@@ -1,4 +1,4 @@
-from data_to_paper.utils.text_formatting import short_repr
+from data_to_paper.text.text_formatting import short_repr
 
 
 def get_func_call_str(func_name: str, args, kwargs):

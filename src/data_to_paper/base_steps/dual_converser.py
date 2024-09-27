@@ -4,10 +4,10 @@ from typing import Optional
 
 from data_to_paper.types import HumanReviewType
 from data_to_paper.conversation import ConversationManager, GeneralMessageDesignation, Message
-from data_to_paper.utils import dedent_triple_quote_str
+from data_to_paper.text import dedent_triple_quote_str
 from data_to_paper.utils.replacer import StrOrReplacer, format_value
 from data_to_paper.utils.print_to_file import print_and_log_magenta
-from data_to_paper.utils.text_counting import is_bulleted_list
+from data_to_paper.text.text_counting import is_bulleted_list
 from data_to_paper.interactive import PanelNames
 from data_to_paper.interactive.human_actions import RequestInfoHumanAction
 from data_to_paper.interactive.human_review import HumanReviewAppInteractor

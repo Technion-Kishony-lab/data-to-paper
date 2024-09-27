@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Tuple
 
 from data_to_paper.base_steps import LatexReviewBackgroundProductsConverser
-from data_to_paper.utils import dedent_triple_quote_str
+from data_to_paper.text import dedent_triple_quote_str
 
 
 from .cast import DemoAgent
