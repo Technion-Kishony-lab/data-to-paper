@@ -153,14 +153,12 @@ time.sleep(40)
 
 timeout_sec = 3
 
-# TODO: works ok for some of the long run cases, but not for all (see disabled cases below)
-
 
 @pytest.mark.parametrize("code", [
     # code_multi_process_gipc,
     code_multi_process_threading,
-    # code_multi_process_multiprocessing,
-    # code_multi_process_sklearn,
+    code_multi_process_multiprocessing,
+    code_multi_process_sklearn,
     code_multi_process_sklearn,
     code_same_process,
 ])
@@ -175,7 +173,6 @@ def test_run_code_timeout_multiprocessing(code):
                           timeout_sec=timeout_sec,
                           ).run_code_in_separate_process()
     assert isinstance(exception, FailedRunningCode)
-    print(exception.exception)
     assert isinstance(exception.exception, TimeoutError)
     lineno_lines, msg = exception.get_lineno_line_message()
     assert msg == f'Code timeout after {timeout_sec} seconds.'

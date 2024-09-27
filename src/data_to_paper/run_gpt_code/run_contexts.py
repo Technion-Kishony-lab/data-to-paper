@@ -69,7 +69,10 @@ class PreventFileOpen(SingletonRegisteredRunContext):
             self._is_system_file(file_name)
 
     def is_allowed_write_file(self, file_name: str) -> bool:
-        file_path = Path(file_name).resolve()
+        try:
+            file_path = Path(file_name).resolve()
+        except TypeError:
+            return True
         if self.allowed_write_folder is not None and file_path.parents[0].resolve() != self.allowed_write_folder and \
                 not _is_temp_file(file_name):
             return False
