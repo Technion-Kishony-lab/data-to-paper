@@ -1,4 +1,6 @@
 import os
+import time
+
 import numpy as np
 
 from typing import Dict, Union, List, Tuple
@@ -21,32 +23,35 @@ def _pickle_dump_with_checks(obj, file, *args, original_func=None, context_manag
     filename = file.name
     category = 'Use of `pickle.dump`'
 
+    def close_and_remove_and_raise(e: Exception):
+        file.close()
+        time.sleep(0.1)
+        os.remove(filename)  # the file is already open and has size 0
+        raise e
+
     # Do not allow any other arguments
     if args or kwargs:
-        os.remove(filename)  # the file is already open and has size 0
-        raise RunIssue.from_current_tb(
+        close_and_remove_and_raise(RunIssue.from_current_tb(
             category=category,
             item=filename,
             issue="Please use `dump(obj, file)` with only the `obj` and `file` arguments.",
             instructions="Please do not specify any other arguments.",
             code_problem=CodeProblem.RuntimeError,
-        )
+        ))
 
     # Only allow a dictionary with string keys and values that are basic types.
     if not isinstance(obj, dict) or not all(isinstance(key, str) for key in obj.keys()):
-        os.remove(filename)
-        raise RunIssue.from_current_tb(
+        close_and_remove_and_raise(RunIssue.from_current_tb(
             category=category,
             item=filename,
             issue="You can only save a dictionary with string keys and values that are basic types.",
             code_problem=CodeProblem.RuntimeError,
-        )
+        ))
 
     try:
         validate_value_type(obj, AllowedType)
     except WrongTypeException as e:
-        os.remove(filename)
-        raise RunIssue.from_current_tb(
+        close_and_remove_and_raise(RunIssue.from_current_tb(
             category=category,
             item=filename,
             issue="You can only save a dictionary with string keys and values that are basic types.\n"
@@ -54,7 +59,7 @@ def _pickle_dump_with_checks(obj, file, *args, original_func=None, context_manag
             instructions=f"Please make sure that the object you are saving to the {filename} is a dictionary with "
                          f"string keys and simple-type values.",
             code_problem=CodeProblem.RuntimeError,
-        )
+        ))
 
     # try str of the dict. This will raise an error if the dict contains object that
     #  we do not allow to show as text.
@@ -62,24 +67,22 @@ def _pickle_dump_with_checks(obj, file, *args, original_func=None, context_manag
         with OnStrPValue(OnStr.SMALLER_THAN):
             s = str(obj)
     except Exception as e:
-        os.remove(filename)
-        raise RunIssue.from_current_tb(
+        close_and_remove_and_raise(RunIssue.from_current_tb(
             category=category,
             item=filename,
             issue="The saved dictionary contains objects that cannot be shown as text.\n"
                   "It created the following error:\n" + str(e),
             code_problem=CodeProblem.RuntimeError,
-        )
+        ))
 
     if len(s) > 500:
-        os.remove(filename)
-        raise RunIssue.from_current_tb(
+        close_and_remove_and_raise(RunIssue.from_current_tb(
             category=category,
             item=filename,
             issue="The saved dictionary is too large to be shown as text.",
             instructions="Please reduce the amount of data you are saving to the file.",
             code_problem=CodeProblem.RuntimeError,
-        )
+        ))
 
     with PValue.BEHAVE_NORMALLY.temporary_set(True):
         return original_func(obj, file)

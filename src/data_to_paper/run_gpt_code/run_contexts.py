@@ -73,7 +73,8 @@ class PreventFileOpen(SingletonRegisteredRunContext):
             file_path = Path(file_name).resolve()
         except TypeError:
             return True
-        if self.allowed_write_folder is not None and file_path.parents[0].resolve() != self.allowed_write_folder and \
+        if self.allowed_write_folder is not None and \
+                file_path.parents[0].resolve() != Path(self.allowed_write_folder).resolve() and \
                 not _is_temp_file(file_name):
             return False
         return self.allowed_write_files == 'all' or \
