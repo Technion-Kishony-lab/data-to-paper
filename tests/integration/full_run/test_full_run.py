@@ -1,4 +1,5 @@
-import os
+
+import shutil
 from pathlib import Path
 
 from data_to_paper.base_steps.run_all_steps import set_project_and_run
@@ -10,17 +11,20 @@ correct_output_directory = CURRENT_DIR / 'correct_files'
 
 
 def compare_files(file1: Path, file2: Path):
-    with open(file1, 'r') as f1, open(file2, 'r') as f2:
-        assert f1.read() == f2.read()
+    with open(file1, 'r', encoding='utf-8') as f1:
+        content1 = f1.read()
+    with open(file2, 'r', encoding='utf-8') as f2:
+        content2 = f2.read()
+    assert content1 == content2
 
 
 def test_toy_example(tmpdir):
     output_directory = Path(tmpdir)
     # copy openai_responses.txt from correct_output_directory to output_directory
-    os.system(f'cp {correct_output_directory / "response_recordings.json"} {output_directory}')
+    shutil.copy(correct_output_directory / "response_recordings.json", output_directory)
     set_project_and_run(ToyStepsRunner, project_directory, output_directory)
     files = ['paper.tex']
     for file in files:
         compare_files(output_directory / file, correct_output_directory / file)
         # Overriding the correct output files with the new files
-        # os.system(f'cp {output_directory / file} {correct_output_directory / file}')
+        # shutil.copy(output_directory / file, correct_output_directory / file)

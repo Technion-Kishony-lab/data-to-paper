@@ -18,8 +18,7 @@ from .config import configure_matplotlib
 from .run_contexts import PreventFileOpen, ModifyImport, WarningHandler, IssueCollector, \
     TrackCreatedFiles, RunInDirectory
 
-from .exceptions import FailedRunningCode, BaseRunContextException, CodeTimeoutException
-from .timeout_context import timeout_context
+from .exceptions import FailedRunningCode, BaseRunContextException
 from .user_script_name import MODULE_NAME, module_filename
 from .run_issues import RunIssue
 
@@ -32,7 +31,7 @@ USING_MATPLOTLIB_IN_GPT_CODE = False
 
 def save_code_to_module_file(code: str = None):
     code = code or '# empty module\n'
-    with open(module_default_filepath, "w") as f:
+    with open(module_default_filepath, "w", encoding='utf-8') as f:
         f.write(code)
 
 
@@ -60,7 +59,6 @@ class CodeRunner:
     """
     Run the provided code and report exceptions or specific warnings.
     """
-    timeout_sec: Optional[int] = None
     warnings_to_ignore: Optional[Iterable[Type[Warning]]] = \
         (DeprecationWarning, ResourceWarning, PendingDeprecationWarning, FutureWarning)
     warnings_to_raise: Optional[Iterable[Type[Warning]]] = ()
@@ -127,9 +125,6 @@ class CodeRunner:
             contexts['WarningHandler'] = WarningHandler(categories_to_raise=self.warnings_to_raise,
                                                         categories_to_issue=self.warnings_to_issue,
                                                         categories_to_ignore=self.warnings_to_ignore)
-        if self.timeout_sec is not None:
-            contexts['TimeoutContext'] = timeout_context(self.timeout_sec, CodeTimeoutException)
-
         # Additional custom contexts:
         if self.additional_contexts is not None:
             for context_name, context in self.additional_contexts.items():

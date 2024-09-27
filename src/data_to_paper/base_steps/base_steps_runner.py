@@ -143,7 +143,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         """
         if save_to_file:
             filename = product_field + '.txt'
-            with open(self.output_directory / filename, 'w') as file:
+            with open(self.output_directory / filename, 'w', encoding='utf-8') as file:
                 file.write(self.products.get_description(product_field))
         if self.app:
             product = self.products.get_description_as_html(product_field)

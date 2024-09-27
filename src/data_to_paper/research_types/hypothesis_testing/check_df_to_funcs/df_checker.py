@@ -578,7 +578,7 @@ class DfContentChecker(BaseContentDfChecker):
     def _is_index_a_range(index, max_allowed_range: int = 2):
         num_rows = len(index)
         return not isinstance(index, pd.MultiIndex) \
-            and list(index) == list(range(num_rows)) and index.dtype == int \
+            and list(index) == list(range(num_rows)) and pd.api.types.is_integer_dtype(index.dtype) \
             and num_rows > max_allowed_range
 
     CHOICE_OF_CHECKS = BaseDfChecker.CHOICE_OF_CHECKS | {

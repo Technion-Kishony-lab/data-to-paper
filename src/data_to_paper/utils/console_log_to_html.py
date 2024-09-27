@@ -41,11 +41,11 @@ def convert_console_log_to_html(console_filepath: Path):
     # check if file exists and is not empty
     if not os.path.isfile(console_filepath) or not os.path.getsize(console_filepath) > 0:
         raise FileNotFoundError(f'File {console_filepath} does not exist or is empty')
-    with open(console_filepath, 'r') as f:
+    with open(console_filepath, 'r', encoding='utf-8') as f:
         text_as_string = f.read()
         filtered_text = filter_text(text_as_string)
         text_as_string_html = convert_ansi_to_html(filtered_text)
         html_file = console_filepath.parent / (console_filepath.stem + '.html')
-        with open(html_file, 'w') as new_f:
+        with open(html_file, 'w', encoding='utf-8') as new_f:
             new_f.write(text_as_string_html)
     return html_file

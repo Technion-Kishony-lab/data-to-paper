@@ -156,15 +156,15 @@ timeout_sec = 3
 # TODO: works ok for some of the long run cases, but not for all (see disabled cases below)
 
 
-@pytest.mark.parametrize("code, result, is_internal", [
-    # (code_multi_process_gipc, []),
-    (code_multi_process_threading, [(6, 'p.join()')], True),
-    # (code_multi_process_multiprocessing, []),
-    # (code_multi_process_sklearn, [('14', 'grid_search.fit(X, y)')]),
-    (code_multi_process_sklearn, [], False),
-    (code_same_process, [(3, 'time.sleep(40)')], True),
+@pytest.mark.parametrize("code", [
+    # code_multi_process_gipc,
+    code_multi_process_threading,
+    # code_multi_process_multiprocessing,
+    # code_multi_process_sklearn,
+    code_multi_process_sklearn,
+    code_same_process,
 ])
-def test_run_code_timeout_multiprocessing(code, result, is_internal):
+def test_run_code_timeout_multiprocessing(code):
     """
     is_internal:
         False if by CodeRunnerWrapper
@@ -178,6 +178,4 @@ def test_run_code_timeout_multiprocessing(code, result, is_internal):
     print(exception.exception)
     assert isinstance(exception.exception, TimeoutError)
     lineno_lines, msg = exception.get_lineno_line_message()
-    print(lineno_lines)
-    assert lineno_lines == result
-    assert msg == f'Code timeout after {timeout_sec - is_internal} seconds.'
+    assert msg == f'Code timeout after {timeout_sec} seconds.'
