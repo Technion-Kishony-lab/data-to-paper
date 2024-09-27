@@ -2,7 +2,7 @@ import os
 import re
 import subprocess
 
-from data_to_paper.utils.subprocess import SYSTEM_KWARGS
+from data_to_paper.utils.subprocess_call import get_subprocess_kwargs
 from data_to_paper.terminate.exceptions import MissingInstallationError
 from data_to_paper.terminate.resource_checking import resource_checking
 from data_to_paper.latex.clean_latex import process_latex_text_and_math
@@ -18,8 +18,7 @@ def check_pandoc_is_installed():
 
 def raise_if_pandoc_is_not_installed():
     try:
-        subprocess.run(['pandoc', '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True,
-                       **SYSTEM_KWARGS)
+        subprocess.run(['pandoc', '--version'], **get_subprocess_kwargs(capture=False))
     except FileNotFoundError:
         raise MissingInstallationError(package_name="Pandoc", instructions="See: https://pandoc.org/installing.html")
 
@@ -67,8 +66,8 @@ def convert_latex_to_html(latex: str) -> str:
             with open(tex_file, 'w', encoding='utf-8') as f:
                 f.write(latex)
             # Convert using Pandoc
-            html_output = subprocess.check_output(command, universal_newlines=True, **SYSTEM_KWARGS)
-            return html_output
+            output = subprocess.run(command, universal_newlines=True, **get_subprocess_kwargs())
+            return output.stdout
     except subprocess.CalledProcessError:
         # In case of an error, return the raw latex with proper escaping for HTML
         return escape_html(latex)
