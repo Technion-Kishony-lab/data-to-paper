@@ -48,6 +48,7 @@ import os
 import sys
 
 from data_to_paper.base_steps.run_all_steps import set_project_and_run
+from data_to_paper.env import BASE_FOLDER
 from data_to_paper.research_types.hypothesis_testing.steps_runner import HypothesisTestingStepsRunner
 from data_to_paper.research_types.toy_example.steps_runner import ToyStepsRunner
 
@@ -85,6 +86,20 @@ RUN_PARAMETERS = {
 }
 
 
+def extract_version_from_toml(file_path: str = None) -> str:
+    # Can also use toml.load(file_path), but more dependencies...
+    file_path = file_path or BASE_FOLDER / '..' / '..' / 'pyproject.toml'
+    with open(file_path, "r") as f:
+        for line in f:
+            line = line.strip()
+            if line.startswith("version"):
+                try:
+                    return line.split('"')[1]
+                except IndexError:
+                    pass
+    return "unknown"
+
+
 def run():
     parser = argparse.ArgumentParser()
 
@@ -92,7 +107,12 @@ def run():
     parser.add_argument('--run_name', type=str, default=None)
     parser.add_argument('--project_folder', type=str, default=None)
     parser.add_argument('--research_type', type=str, default=None)
+    parser.add_argument('--version', action='store_true', help="Display the version of the tool")
     args = parser.parse_args()
+    if args.version:
+        print(f"data-to-paper version {extract_version_from_toml()}")
+        return
+
     project = args.project
     run_name = args.run_name
     project_folder = args.project_folder
