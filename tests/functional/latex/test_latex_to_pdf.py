@@ -3,11 +3,10 @@ import os
 import pytest
 from pytest import fixture
 
-from data_to_paper.latex import save_latex_and_compile_to_pdf
 from data_to_paper.latex.clean_latex import process_latex_text_and_math
 from data_to_paper.latex.exceptions import LatexCompilationError
 from data_to_paper.latex.latex_doc import LatexDocument
-from data_to_paper.latex.latex_to_pdf import evaluate_latex_num_command
+from data_to_paper.latex.latex_to_pdf import evaluate_latex_num_command, save_latex_and_compile_to_pdf
 from data_to_paper.servers.crossref import CrossrefCitation
 
 

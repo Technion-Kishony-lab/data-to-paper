@@ -11,7 +11,7 @@ from data_to_paper.utils.replacer import format_value, StrOrReplacer
 from data_to_paper.text.highlighted_text import demote_html_headers
 from data_to_paper.utils.mutable import Mutable
 
-from data_to_paper.exceptions import ResetStepException
+from data_to_paper.terminate.exceptions import ResetStepException
 
 from data_to_paper.conversation.stage import Stage
 

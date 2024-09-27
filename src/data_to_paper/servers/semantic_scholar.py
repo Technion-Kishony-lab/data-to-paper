@@ -152,7 +152,7 @@ class SemanticScholarPaperServerCaller(ParameterizedQueryServerCaller):
                 time.sleep(5)
                 continue
 
-            if response.status_code != 200:
+            if response.status_code != 200:  # 200 is the success code
                 if response.reason == 'Forbidden':
                     raise InvalidAPIKeyError(server=cls.name, response=response, api_key=SEMANTIC_SCHOLAR_API_KEY)
                 raise ServerErrorException(server=cls.name, response=response)

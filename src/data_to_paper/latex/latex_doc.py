@@ -6,11 +6,10 @@ from typing import Optional, Dict, Union, Iterable, Collection, Tuple
 
 from pathlib import Path
 
-from data_to_paper.exceptions import MissingInstallationError
-from data_to_paper.latex import save_latex_and_compile_to_pdf
+from data_to_paper.terminate.exceptions import MissingInstallationError
 from data_to_paper.latex.clean_latex import process_latex_text_and_math
 from data_to_paper.latex.latex_to_pdf import evaluate_latex_num_command, is_pdflatex_package_installed, \
-    is_pdflatex_installed, PDFLATEX_INSTALLATION_INSTRUCTIONS
+    is_pdflatex_installed, save_latex_and_compile_to_pdf, PDFLATEX_INSTALLATION_INSTRUCTIONS
 
 from data_to_paper.servers.custom_types import Citation
 from data_to_paper.text import dedent_triple_quote_str
@@ -299,7 +298,8 @@ class LatexDocument:
                 raise MissingInstallationError(
                     package_name='pdflatex',
                     instructions='Failed checking pdflatex sub-packages. Please install pdflatex first.')
-            print(f'{package_name}: {is_installed}')
+            status = 'Installed' if is_installed else 'Not installed'
+            print(f'pdflatex package `{package_name}`: {status}')
             if not is_installed:
                 missing_packages.append(package_name)
         if missing_packages:

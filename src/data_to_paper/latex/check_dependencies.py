@@ -1,16 +1,15 @@
-from data_to_paper.utils.resource_checking import resource_checking
+from data_to_paper.terminate.resource_checking import resource_checking
+from .latex_doc import LatexDocument
 
 
 @resource_checking("Checking pdflatex installation")
 def check_pdflatex_is_installed():
-    from .latex_doc import LatexDocument
     # This will raise MissingInstallationError
     LatexDocument().raise_if_pdflatex_is_not_installed()
 
 
 @resource_checking("Checking pdflatex packages installation")
 def check_pdflatex_packages_are_installed():
-    from .latex_doc import LatexDocument
     # This will raise MissingInstallationError
     LatexDocument().raise_if_packages_are_not_installed()
 

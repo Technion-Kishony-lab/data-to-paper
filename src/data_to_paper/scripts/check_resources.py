@@ -7,7 +7,7 @@ from data_to_paper.servers.check_connection import check_all_servers
 
 
 def check_resources():
-    print('\n\nChecking API keys and correct installation of all dependencies...')
+    print('\n\nChecking external server connections, API keys, and installation dependencies...\n')
     check_all_servers()
     check_all_pdflatex_dependencies()
     check_pandoc_is_installed()

@@ -20,7 +20,7 @@ from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLE
     SEMANTIC_SCHOLAR_EMBEDDING_SERVER_CALLER
 from data_to_paper.conversation.stage import Stage
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
-from data_to_paper.exceptions import TerminateException, ResetStepException
+from data_to_paper.terminate.exceptions import TerminateException, ResetStepException
 from data_to_paper.run_gpt_code.code_runner_wrapper import RUN_CACHE_FILEPATH
 from data_to_paper.text import dedent_triple_quote_str
 from data_to_paper.utils.replacer import Replacer
