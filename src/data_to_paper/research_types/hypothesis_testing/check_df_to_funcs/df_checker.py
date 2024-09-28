@@ -118,7 +118,8 @@ class ChainChecker(BaseChecker):
             issues, intermediate_results = checker.run_checks()
             self.issues.extend(issues)
             self.intermediate_results.update(intermediate_results)
-            if issues and self.stop_after_first_issue:
+            non_forgivable_issues = [issue for issue in self.issues if issue.forgive_after is None]
+            if non_forgivable_issues and self.stop_after_first_issue:
                 break
 
 

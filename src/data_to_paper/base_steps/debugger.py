@@ -42,6 +42,10 @@ def _get_description_of_run_error(error: Exception):
         """).format(str_error)
 
 
+# Good for debugging:
+FORGIVE_ALL_FORGIVABLE_ISSUES = False
+
+
 @dataclass
 class DebuggerConverser(BackgroundProductsConverser):
     """
@@ -401,6 +405,7 @@ class DebuggerConverser(BackgroundProductsConverser):
 
     def _remove_issues_exceeding_max_count(self, issues: List[RunIssue]):
         return [issue for issue in issues if issue.forgive_after is None or
+                not FORGIVE_ALL_FORGIVABLE_ISSUES and
                 self.issues_to_counts.get(issue, 0) < issue.forgive_after]
 
     def _respond_to_issues(self, issues: Union[None, RunIssue, List[RunIssue], RunIssues],
