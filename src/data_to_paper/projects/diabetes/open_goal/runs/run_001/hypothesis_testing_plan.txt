@@ -1,0 +1,21 @@
+## Statistical considerations:
+### Confounding variables:
+Several variables in the dataset such as age, sex, education, and income could confound the relationship between lifestyle behaviors and diabetes. We should adjust for these variables in our statistical tests.
+### Imbalanced data:
+The dataset indicates that certain variables, such as 'Diabetes_binary,' have a low incidence rate (13.93%). This imbalance may affect the power of our statistical tests and the estimated relationships. We might need to use techniques like oversampling/undersampling or weighted analysis.
+### Multiple comparisons:
+Given the number of lifestyle factors and potential interactions, we are at risk of making multiple comparisons, which increases the risk of Type I error. Multiple comparison correction methods, such as the Bonferroni correction, should be considered.
+### Dependencies between data points:
+Certain lifestyle behaviors may be highly correlated with each other (e.g., physical activity and diet). We need to account for these dependencies in our statistical models to avoid multicollinearity.
+
+## Hypotheses:
+### Hypothesis:
+Individuals who engage in physical activity, consume fruits and vegetables daily, and do not smoke have a significantly lower likelihood of having diabetes compared to individuals who do not engage in physical activity, do not consume fruits and vegetables daily, and smoke
+### Test:
+Logistic regression with 'Diabetes_binary' as the dependent variable, and 'PhysActivity,' 'Fruits,' 'Veggies,' and 'Smoker' as independent variables. Adjust for confounding variables including 'Age,' 'Sex,' 'Education,' and 'Income.' Include interaction terms for the combined effect of these lifestyle behaviors.
+
+### Hypothesis:
+The interactions between these lifestyle behaviors will have a multiplicative effect on diabetes risk reduction
+### Test:
+Interaction terms for 'PhysActivity*Fruits*Veggies*Smoker' should be included in the logistic regression model. Assess the interaction by examining the significance and effect size of these terms.
+

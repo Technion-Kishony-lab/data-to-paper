@@ -1,0 +1,5 @@
+## Research Goal: 
+To understand how lifestyle behaviors such as physical activity, diet (fruit and vegetable consumption), and smoking interact and their combined impact on the likelihood of having diabetes.
+
+## Hypothesis: 
+Individuals who engage in physical activity, consume fruits and vegetables daily, and do not smoke have a significantly lower likelihood of having diabetes compared to individuals who do not engage in physical activity, do not consume fruits and vegetables daily, and smoke. The interactions between these lifestyle behaviors will have a multiplicative effect on diabetes risk reduction.

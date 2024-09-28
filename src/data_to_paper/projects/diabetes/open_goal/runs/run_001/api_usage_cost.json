@@ -1,4 +1,18 @@
 {
     "Get Data": 0,
-    "Data Exploration": 0.07
+    "Data Exploration": 0.07,
+    "Research Goal": 0.02,
+    "Lit. Review I": 0.01,
+    "Assess Novelty": 0.04,
+    "Hypothesis & Plan": 0.03,
+    "Data Analysis": 0.46,
+    "Tables/Figures": 0.68,
+    "Draft abstract": 0.19,
+    "Lit. Review II": 0.01,
+    "Results": 0.15,
+    "Title and Abstract": 0.03,
+    "Methods": 0.02,
+    "Introduction": 0.04,
+    "Discussion": 0.03,
+    "Compile Paper": 0
 }
