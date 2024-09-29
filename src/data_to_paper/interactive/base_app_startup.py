@@ -3,17 +3,18 @@ from __future__ import annotations
 import sys
 from functools import partial
 from pathlib import Path
-from typing import List, Tuple, Type, Optional
-from typing import TYPE_CHECKING
+from typing import List, Tuple, Type, Optional, TYPE_CHECKING
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication, QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QFileDialog, \
-    QMessageBox, QTextEdit, QWidget, QHBoxLayout, QSizePolicy, QFrame, QCheckBox, QComboBox
+    QMessageBox, QWidget, QHBoxLayout, QSizePolicy, QFrame, QCheckBox, QComboBox
 
 from data_to_paper.base_products.file_descriptions import TEXT_EXTS
 from data_to_paper.env import BASE_FOLDER
-from data_to_paper.interactive.get_app import get_or_create_q_application_if_app_is_pyside
-from data_to_paper.interactive.styles import SCROLLBAR_STYLE, QCHECKBOX_STYLE
+
+from .base_widgets import PlainTextPasteTextEdit
+from .get_app import get_or_create_q_application_if_app_is_pyside
+from .styles import SCROLLBAR_STYLE, QCHECKBOX_STYLE
 
 if TYPE_CHECKING:
     from data_to_paper.base_steps import BaseStepsRunner
@@ -84,15 +85,6 @@ QLineEdit {
 """ + SCROLLBAR_STYLE
 
 text_box_style = "background-color: #151515; color: white;"
-
-
-class PlainTextPasteTextEdit(QTextEdit):
-    def insertFromMimeData(self, source):
-        if source.hasText():
-            # Insert text as plain text, removing any formatting
-            self.insertPlainText(source.text())
-        else:
-            super().insertFromMimeData(source)  # Default behavior for non-text data if needed
 
 
 def create_info_label(tooltip_text):

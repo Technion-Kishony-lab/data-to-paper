@@ -3,11 +3,12 @@ from __future__ import annotations
 import os
 import shutil
 import zipfile
+import pandas as pd
+
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional, List, Union
-
-import pandas as pd
+from unidecode import unidecode
 
 from data_to_paper.code_and_output_files.file_view_params import ViewPurpose
 from data_to_paper.env import FOLDER_FOR_RUN
@@ -218,7 +219,7 @@ class CreateDataFileDescriptions:
         """
         return ReferencableTextProduct(
             referencable_text=NumericReferenceableText(
-                text=description,
+                text=unidecode(description),
                 hypertarget_prefix=self._get_hypertarget_prefix(file_num, file_name)),
             name=file_name,
         )
