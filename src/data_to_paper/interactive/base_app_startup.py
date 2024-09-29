@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication, QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QFileDialog, \
-    QMessageBox, QTextEdit, QWidget, QHBoxLayout, QSizePolicy, QFrame, QCheckBox
+    QMessageBox, QTextEdit, QWidget, QHBoxLayout, QSizePolicy, QFrame, QCheckBox, QComboBox
 
 from data_to_paper.base_products.file_descriptions import TEXT_EXTS
 from data_to_paper.env import BASE_FOLDER
@@ -67,6 +67,14 @@ QPushButton:pressed {
 
 QPushButton:disabled {
     background-color: #606060;
+}
+
+QComboBox {
+    background-color: #151515;
+    color: white;
+    border: 1px solid #606060;
+    border-radius: 5px;
+    padding: 5px;
 }
 
 QLineEdit {
@@ -170,7 +178,6 @@ class FileWidget(QWidget):
         return self.description_edit.toPlainText()
 
     def setDisabled(self, disable: bool):
-        self.file_path_widget.setReadOnly(disable)
         self.is_binary_checkbox.setDisabled(disable)
         self.browse_button.setDisabled(disable)
         self.remove_button.setDisabled(disable)
@@ -243,33 +250,77 @@ class MultiFileWidget(QWidget):
         is_binary = is_binary or []
         descriptions = descriptions or []
         super().__init__()
+
+        self.current_file_widget = None
+        self.file_widgets = []
+
         self._abs_project_directory = abs_project_directory
         layout = QVBoxLayout()
-        self.files_layout = QVBoxLayout()
-        layout.addLayout(self.files_layout)
+
+        # Create a horizontal layout for the pulldown menu and file count label
+        header_layout = QHBoxLayout()
+
+        # Create the ComboBox (dropdown) to list files
+        self.file_selector = QComboBox()
+        self.file_selector.currentIndexChanged.connect(self.display_selected_file)
+
+        # Set the size policy to make the ComboBox extend to the right as far as possible
+        self.file_selector.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        header_layout.addWidget(self.file_selector)
+
+        # Create a label to show the total number of files
+        self.file_count_label = QLabel(f"")
+        self.update_file_count()
+        self.file_count_label.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)  # Fixed size for the label
+        header_layout.addWidget(self.file_count_label)
+
+        # Add Another File button
         self.add_file_button = QPushButton("Add Another File")
         self.add_file_button.clicked.connect(self.add_file)
         self.add_file_button.setFixedWidth(200)  # prevent button from expanding
-        layout.addWidget(self.add_file_button, alignment=Qt.AlignHCenter)  # center it in the layout
+        header_layout.addWidget(self.add_file_button, alignment=Qt.AlignmentFlag.AlignRight)
+
+        # Add the header layout to the main layout
+        layout.addLayout(header_layout)
+
+        # Area to display the selected FileWidget
+        self.file_display_area = QVBoxLayout()
+        layout.addLayout(self.file_display_area)
+
         self.setLayout(layout)
         for file_path, is_bin, description in zip(file_paths, is_binary, descriptions):
             self.add_file(file_path, is_bin, description)
         self.on_change = on_change
 
     def get_all_file_widgets(self) -> List[FileWidget]:
-        file_widgets = []
-        for i in range(self.files_layout.count()):
-            file_widget = self.files_layout.itemAt(i).widget()
-            if isinstance(file_widget, FileWidget):
-                file_widgets.append(file_widget)
-        return file_widgets
+        return self.file_widgets
 
     def add_file(self, abs_file_path='', is_binary=False, description=''):
-        new_file_widget = FileWidget(self._abs_project_directory, self.files_layout.count() + 1,
+        new_file_widget = FileWidget(self._abs_project_directory, len(self.file_widgets) + 1,
                                      file_path=abs_file_path, is_binary=is_binary, description=description,
                                      on_change=self.on_change)
-        self.files_layout.addWidget(new_file_widget)
+        new_file_widget.browse_button.clicked.connect(self.on_browse)
+        self.file_widgets.append(new_file_widget)
         new_file_widget.remove_button.clicked.connect(partial(self._remove_file, new_file_widget))
+
+        self.update_file_count()
+        self._update_file_labels(len(self.file_widgets) - 1)
+        self.display_selected_file(len(self.file_widgets) - 1)
+        self.on_change()
+
+    def on_browse(self, file_widget: FileWidget):
+        self._update_file_labels()
+
+    def display_selected_file(self, index: int):
+        if self.current_file_widget:
+            self.file_display_area.removeWidget(self.current_file_widget)
+            self.current_file_widget.hide()  # Hide the current widget
+        if index < 0 or index >= len(self.file_widgets):
+            self.current_file_widget = None
+            return
+        self.current_file_widget = self.get_all_file_widgets()[index]
+        self.current_file_widget.show()
+        self.file_display_area.addWidget(self.current_file_widget)
 
     def set_project_directory(self, abs_project_directory: Optional[Path]):
         self._abs_project_directory = abs_project_directory
@@ -277,12 +328,42 @@ class MultiFileWidget(QWidget):
             file_widget.set_project_directory(abs_project_directory)
 
     def _remove_file(self, widget):
-        widget.destroyed.connect(self._update_file_labels)
+        index = self.get_all_file_widgets().index(widget)
+        # widget.destroyed.connect(self._update_file_labels)
         widget.deleteLater()
+        self.file_widgets.remove(widget)
 
-    def _update_file_labels(self):
-        for index, file_widget in enumerate(self.get_all_file_widgets()):
-            file_widget.file_label_widget.setText(f"File #{index + 1}:")
+        self.update_file_count()
+        index = min(index, len(self.file_widgets) - 1)
+        self._update_file_labels(index)
+        self.display_selected_file(index)
+        self.on_change()
+
+    def _update_file_labels(self, index: Optional[int] = None):
+        """Update the labels of the files in the ComboBox."""
+        for i, file_widget in enumerate(self.get_all_file_widgets()):
+            file_widget.file_label_widget.setText(f"File #{i + 1}:")
+        index = index if index is not None else self.file_selector.currentIndex()
+        self.file_selector.blockSignals(True)
+        self.file_selector.clear()
+        for i, file_widget in enumerate(self.file_widgets):
+            abs_file_path = file_widget.abs_path if file_widget.abs_path else ''
+            file_name = self._get_file_display_name(i + 1, abs_file_path)
+            self.file_selector.addItem(file_name)
+        self.file_selector.setCurrentIndex(index)
+        self.file_selector.blockSignals(False)
+
+    def update_file_count(self):
+        """Update the total number of files label."""
+        self.file_count_label.setText(f"Total number of files: {len(self.file_widgets)}")
+
+    def _get_file_display_name(self, file_number: int, abs_file_path: str) -> str:
+        """Return the display name for the file in the format 'File #X: <file_stem>'."""
+        s = f"File #{file_number}"
+        if abs_file_path:
+            file_stem = Path(abs_file_path).name  # Get the full file name (including extension)
+            s += f": {file_stem}"
+        return s
 
     def setDisabled(self, disable: bool):
         self.add_file_button.setDisabled(disable)
@@ -290,12 +371,21 @@ class MultiFileWidget(QWidget):
             file_widget.setDisabled(disable)
 
     def clear(self, num_files=1):
-        while self.files_layout.count():
-            widget = self.files_layout.takeAt(0).widget()
+        """Clear all the file widgets and reset with a specified number of empty file slots."""
+        # Clear all existing file widgets
+        self.file_widgets.clear()
+        self.file_selector.clear()
+
+        # Remove widgets from the display area
+        while self.file_display_area.count():
+            widget = self.file_display_area.takeAt(0).widget()
             if widget:
                 widget.deleteLater()
         for _ in range(num_files):
             self.add_file()
+
+        # Update the file count label
+        self.update_file_count()
 
 
 class SingleFileWidget(MultiFileWidget):
