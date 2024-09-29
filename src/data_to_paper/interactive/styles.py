@@ -1,5 +1,3 @@
-import os
-
 from pygments.formatters.html import HtmlFormatter
 
 

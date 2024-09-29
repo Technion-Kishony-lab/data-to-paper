@@ -49,7 +49,6 @@ import sys
 import importlib.metadata
 
 from data_to_paper.base_steps.run_all_steps import set_project_and_run
-from data_to_paper.env import BASE_FOLDER
 from data_to_paper.research_types.hypothesis_testing.steps_runner import HypothesisTestingStepsRunner
 from data_to_paper.research_types.toy_example.steps_runner import ToyStepsRunner
 
