@@ -46,6 +46,7 @@ See the `env.py` file for setting other available options.
 import argparse
 import os
 import sys
+import importlib.metadata
 
 from data_to_paper.base_steps.run_all_steps import set_project_and_run
 from data_to_paper.env import BASE_FOLDER
@@ -86,18 +87,11 @@ RUN_PARAMETERS = {
 }
 
 
-def extract_version_from_toml(file_path: str = None) -> str:
-    # Can also use toml.load(file_path), but more dependencies...
-    file_path = file_path or BASE_FOLDER / '..' / '..' / 'pyproject.toml'
-    with open(file_path, "r") as f:
-        for line in f:
-            line = line.strip()
-            if line.startswith("version"):
-                try:
-                    return line.split('"')[1]
-                except IndexError:
-                    pass
-    return "unknown"
+def get_version() -> str:
+    try:
+        return importlib.metadata.version('data-to-paper')
+    except importlib.metadata.PackageNotFoundError:
+        return "unknown"
 
 
 def run():
@@ -110,7 +104,7 @@ def run():
     parser.add_argument('--version', action='store_true', help="Display the version of the tool")
     args = parser.parse_args()
     if args.version:
-        print(f"data-to-paper version {extract_version_from_toml()}")
+        print(f"data-to-paper version {get_version()}")
         return
 
     project = args.project
