@@ -13,7 +13,7 @@ from PySide6.QtWidgets import QApplication, QDialog, QVBoxLayout, QLabel, QLineE
 from data_to_paper.base_products.file_descriptions import TEXT_EXTS
 from data_to_paper.env import BASE_FOLDER
 from data_to_paper.interactive.get_app import get_or_create_q_application_if_app_is_pyside
-from data_to_paper.interactive.styles import SCROLLBAR_STYLE
+from data_to_paper.interactive.styles import SCROLLBAR_STYLE, QCHECKBOX_STYLE
 
 if TYPE_CHECKING:
     from data_to_paper.base_steps import BaseStepsRunner
@@ -134,6 +134,7 @@ class FileWidget(QWidget):
         self.file_path_widget = file_path_widget
 
         is_binary_checkbox = QCheckBox("Binary")
+        is_binary_checkbox.setStyleSheet(QCHECKBOX_STYLE)
         is_binary_checkbox.setChecked(is_binary)
         file_path_tray.addWidget(is_binary_checkbox)
         self.is_binary_checkbox = is_binary_checkbox

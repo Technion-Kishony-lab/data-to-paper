@@ -2,7 +2,6 @@ import os
 
 from pygments.formatters.html import HtmlFormatter
 
-ICON_PATH = os.path.join(os.path.dirname(__file__) + '/icons/')
 
 # Colors:
 CURRENT_STEP_COLOR = '#005599'  # darker blue
@@ -213,14 +212,5 @@ QCheckBox {
 QCheckBox::indicator {
     width: 15px;
     height: 15px;
-}
-
-QCheckBox::indicator:unchecked {
-    border: 1px solid #a0a0a0;
-}
-
-QCheckBox::indicator:checked {
-    border: 1px solid #a0a0a0;
-    image: url(""" + ICON_PATH + """checkmark.png);
 }
 """
