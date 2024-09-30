@@ -1,3 +1,4 @@
+import importlib
 import os
 import re
 import shutil
@@ -20,7 +21,6 @@ from .exceptions import LatexCompilationError, LatexNumCommandFormulaEvalError, 
     LatexNestedNumCommandError, LatexNumCommandNoExplanation, PlainNumberLatexNumCommandError
 
 BIB_FILENAME: str = 'citations.bib'
-WATERMARK_PATH: str = os.path.join(os.path.dirname(__file__), 'watermark.pdf')
 
 PDFLATEX_INSTALLATION_INSTRUCTIONS = r"""
 Installations instructions for pdflatex:
@@ -221,7 +221,8 @@ def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_dir
                 _move_latex_and_pdf_to_output_directory(file_stem, output_directory, latex_file_name)
                 raise
 
-        add_watermark_to_pdf(file_stem + '.pdf', WATERMARK_PATH)
+        with importlib.resources.path('data_to_paper.latex.resources', 'watermark.pdf') as watermark_path:
+            add_watermark_to_pdf(file_stem + '.pdf', str(watermark_path))
 
         _move_latex_and_pdf_to_output_directory(file_stem, output_directory, latex_file_name)
         over_width_pts = _get_over_width_pts(pdflatex_output)

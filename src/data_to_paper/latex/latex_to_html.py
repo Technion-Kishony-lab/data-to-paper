@@ -1,4 +1,4 @@
-import os
+import importlib
 import re
 import subprocess
 
@@ -36,38 +36,41 @@ def convert_latex_to_html(latex: str) -> str:
     raise_if_pandoc_is_not_installed()
 
     is_title = re.search(pattern=r'\\title{(.+?)}', string=latex)
-    dir_path = os.path.dirname(os.path.realpath(__file__))
+
     tex_file = 'temp.tex'
-    command = [
-        'pandoc', '-s', tex_file,
-        '--lua-filter', os.path.join(dir_path, 'adjust_section.lua'),
-        '-t', 'html'
-    ]
 
     # Get the html template:
     if is_title:
         template_name = 'html_template_for_title_latex.html'
     else:
         template_name = 'html_template_for_titleless_latex.html'
-    template_path = os.path.join(dir_path, template_name)
-    command += ['--template', template_path]
 
-    if not is_title:
-        command += ['--metadata', 'title=Titleless LaTeX Document']
+    with importlib.resources.path('data_to_paper.latex.resources', 'adjust_section.lua') as lua_file, \
+            importlib.resources.path('data_to_paper.latex.resources', template_name) as template_path:
+        command = [
+            'pandoc', '-s', tex_file,
+            '--lua-filter', str(lua_file),
+            '-t', 'html'
+        ]
 
-    # To show citation commands (like '\\cite{ref1}'):
-    command += ['--citeproc']
+        command += ['--template', str(template_path)]
 
-    try:
-        with run_in_temp_directory():
-            # process latex and escape special characters
-            latex = process_latex_text_and_math(latex)
-            # Write the LaTeX into a temporary file
-            with open(tex_file, 'w', encoding='utf-8') as f:
-                f.write(latex)
-            # Convert using Pandoc
-            output = subprocess.run(command, universal_newlines=True, **get_subprocess_kwargs())
-            return output.stdout
-    except subprocess.CalledProcessError:
-        # In case of an error, return the raw latex with proper escaping for HTML
-        return escape_html(latex)
+        if not is_title:
+            command += ['--metadata', 'title=Titleless LaTeX Document']
+
+        # To show citation commands (like '\\cite{ref1}'):
+        command += ['--citeproc']
+
+        try:
+            with run_in_temp_directory():
+                # process latex and escape special characters
+                latex = process_latex_text_and_math(latex)
+                # Write the LaTeX into a temporary file
+                with open(tex_file, 'w', encoding='utf-8') as f:
+                    f.write(latex)
+                # Convert using Pandoc
+                output = subprocess.run(command, universal_newlines=True, **get_subprocess_kwargs())
+                return output.stdout
+        except subprocess.CalledProcessError:
+            # In case of an error, return the raw latex with proper escaping for HTML
+            return escape_html(latex)
