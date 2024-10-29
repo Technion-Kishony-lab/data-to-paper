@@ -16,7 +16,7 @@ from data_to_paper.utils.nice_list import NiceList
 
 from .base_server import ParameterizedQueryServerCaller
 from .custom_types import Citation
-from .types import ServerErrorException, MissingAPIKeyError, InvalidAPIKeyError, MissingSemanticScholarAPIKeyError
+from .types import ServerErrorException, InvalidAPIKeyError, MissingSemanticScholarAPIKeyError
 
 
 # TODO: this is part of the WORKAROUND. remove it when the bug is fixed.
