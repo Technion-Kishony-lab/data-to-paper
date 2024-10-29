@@ -148,9 +148,10 @@ class SemanticScholarPaperServerCaller(ParameterizedQueryServerCaller):
                 response = requests.get(PAPER_SEARCH_URL, headers=headers, params=params)
                 if response.status_code not in (504, 429):
                     break
-                print_and_log_red("ERROR: Server timed out or too many requests. "
-                                  "We wait for 5 sec and try again.", should_log=False)
-                time.sleep(5)
+                wait_time = 2 ** attempt  # Exponential backoff
+                print_and_log_red(f"ERROR: Server timed out or too many requests. "
+                                  f"We wait for {wait_time} sec and try again.", should_log=False)
+                time.sleep(wait_time)
             else:
                 raise ServerErrorException(server=cls.name, response=response)  # if we failed all attempts
 
