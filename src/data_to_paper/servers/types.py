@@ -3,10 +3,10 @@ from __future__ import annotations
 import os
 from abc import ABCMeta
 from dataclasses import dataclass
+from requests import Response
 from typing import Union
 
-from requests import Response
-
+from data_to_paper.env import SEMANTIC_SCHOLAR_API_KEY
 from data_to_paper.terminate.exceptions import TerminateException
 from data_to_paper.text import dedent_triple_quote_str
 
@@ -59,6 +59,18 @@ class MissingAPIKeyError(BaseAPIKeyError):
         return \
             f"The API key for `{self.server}` is missing.\n" \
             f"You need to set the `{self.api_key.key_name}` environment variable.\n" \
+            f"\n{self.instructions}"
+
+
+@dataclass
+class MissingSemanticScholarAPIKeyError(MissingAPIKeyError):
+    api_key: APIKey = SEMANTIC_SCHOLAR_API_KEY
+
+    def __str__(self):
+        return \
+            f"WARNING: SEMANTIC SCHOLAR API key is missing. The server should work without an API key, " \
+            f"but it will be slower and depend on the availability of the API endpoint.\n" \
+            f"Its recommended setting the `SEMANTIC_SCHOLAR_API_KEY` environment variable.\n" \
             f"\n{self.instructions}"
 
 
