@@ -129,7 +129,7 @@ class SemanticScholarPaperServerCaller(ParameterizedQueryServerCaller):
         Get the response from the semantic scholar server as a list of dict citation objects.
         """
         if SEMANTIC_SCHOLAR_API_KEY.key is None:
-            missing_api_key_error = MissingSemanticScholarAPIKeyError(server=cls.name)
+            missing_api_key_error = MissingSemanticScholarAPIKeyError(server=cls.name, api_key=SEMANTIC_SCHOLAR_API_KEY)
             print_and_log_red(missing_api_key_error, should_log=False)
 
         # TODO: THIS IS A WORKAROUND FOR A BUG IN SEMANTIC SCHOLAR. REMOVE WHEN FIXED.

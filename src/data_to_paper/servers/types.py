@@ -6,7 +6,6 @@ from dataclasses import dataclass
 from requests import Response
 from typing import Union
 
-from data_to_paper.env import SEMANTIC_SCHOLAR_API_KEY
 from data_to_paper.terminate.exceptions import TerminateException
 from data_to_paper.text import dedent_triple_quote_str
 
@@ -64,7 +63,6 @@ class MissingAPIKeyError(BaseAPIKeyError):
 
 @dataclass
 class MissingSemanticScholarAPIKeyError(MissingAPIKeyError):
-    api_key: APIKey = SEMANTIC_SCHOLAR_API_KEY
 
     def __str__(self):
         return \
