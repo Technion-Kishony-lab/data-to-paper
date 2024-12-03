@@ -12,6 +12,7 @@ starting from *raw data* alone and concluding with *transparent, backward-tracea
 human-verifiable scientific papers* 
 (<a href="https://github.com/Technion-Kishony-lab/data-to-paper/blob/main/assets/ExampleManuscriptFigures.pdf" target="_blank">Example AI-created paper</a>, 
 [Copilot App DEMO](https://youtu.be/vrsxgX67n6I)).
+This repository is the code implementation for the paper ["Autonomous LLM-Driven Research — from Data to Human-Verifiable Research Papers"](https://doi.org/10.1056/AIoa2400555).
 
 <picture>
 <img src="https://github.com/Technion-Kishony-lab/data-to-paper/blob/main/assets/AI-Human-agents.png" width="300" 
@@ -83,10 +84,16 @@ interpreting the results, and ultimately the step-by-step writing of a complete 
 
 
 ### Reference
-The **data-to-paper** framework is described in the following pre-print:
+The **data-to-paper** framework is described in the following NEJM AI paper:
+- Tal Ifargan, Lukas Hafner, Maor Kern, Ori Alcalay and Roy Kishony,
+"Autonomous LLM-Driven Research — from Data to Human-Verifiable Research Papers"
+[10.1056/AIoa2400555](https://doi.org/10.1056/AIoa2400555)
+
+and in the following pre-print:
  - Tal Ifargan, Lukas Hafner, Maor Kern, Ori Alcalay and Roy Kishony, 
 "Autonomous LLM-driven research from data to human-verifiable research papers", 
-[arXiv:2404.17605](https://arxiv.org/abs/2404.17605)
+[arXiv:2404.17605](
+https://doi.org/10.48550/arXiv.2404.17605)
 
 
 ### Examples
