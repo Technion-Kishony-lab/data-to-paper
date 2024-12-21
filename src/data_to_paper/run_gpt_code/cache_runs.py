@@ -175,6 +175,10 @@ class CacheRunToFile:
         return results
 
 
+def _listdir_files_only():
+    return [f for f in os.listdir() if os.path.isfile(f)]
+
+
 @contextmanager
 def get_created_files():
     """
@@ -184,14 +188,14 @@ def get_created_files():
     """
     # we need to preserve the filenames and metadata of the files
     preexisting_files_and_metadata = set()
-    for filename in os.listdir():
+    for filename in _listdir_files_only():
         preexisting_files_and_metadata.update(_get_filename_and_metadata(filename))
 
     created_files = []
     try:
         yield created_files
     finally:
-        for filename in sorted(os.listdir()):
+        for filename in sorted(_listdir_files_only()):
             if _get_filename_and_metadata(filename) not in preexisting_files_and_metadata:
                 created_files.append(filename)
 
