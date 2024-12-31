@@ -38,7 +38,7 @@ See [INSTALL](INSTALL.md) for dependencies.
 * **End-to-end field-agnostic research.** The process navigates through the entire scientific path, 
 from data exploration, literature search and ideation, through data analysis and interpretation, 
 to the step-by-step writing of a complete research papers.
-* **Traceable "data-chained" manuscripts**. Tracing informtion flow, *data-to-paper* creates backward-traceable and verifiable manuscripts,
+* **Traceable "data-chained" manuscripts**. Tracing information flow, *data-to-paper* creates backward-traceable and verifiable manuscripts,
 where any numeric values can be click-traced all the way up to the specific code lines that created them
 ([data-chaining DEMO](https://youtu.be/HUkJcMXd9x0)).
 
