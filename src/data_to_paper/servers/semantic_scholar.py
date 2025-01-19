@@ -130,7 +130,7 @@ class SemanticScholarPaperServerCaller(ParameterizedQueryServerCaller):
         """
         if SEMANTIC_SCHOLAR_API_KEY.key is None:
             missing_api_key_error = MissingSemanticScholarAPIKeyError(server=cls.name, api_key=SEMANTIC_SCHOLAR_API_KEY)
-            print_and_log_red(missing_api_key_error, should_log=False)
+            print_and_log_red(str(missing_api_key_error), should_log=False)
 
         # TODO: THIS IS A WORKAROUND FOR A BUG IN SEMANTIC SCHOLAR. REMOVE WHEN FIXED.
         words_to_remove_in_case_of_zero_citation_error = \
