@@ -16,7 +16,7 @@ from data_to_paper.utils.nice_list import NiceList
 
 from .base_server import ParameterizedQueryServerCaller
 from .custom_types import Citation
-from .types import ServerErrorException, MissingAPIKeyError, InvalidAPIKeyError
+from .types import ServerErrorException, InvalidAPIKeyError, MissingSemanticScholarAPIKeyError
 
 
 # TODO: this is part of the WORKAROUND. remove it when the bug is fixed.
@@ -129,7 +129,8 @@ class SemanticScholarPaperServerCaller(ParameterizedQueryServerCaller):
         Get the response from the semantic scholar server as a list of dict citation objects.
         """
         if SEMANTIC_SCHOLAR_API_KEY.key is None:
-            raise MissingAPIKeyError(server=cls.name, api_key=SEMANTIC_SCHOLAR_API_KEY)
+            missing_api_key_error = MissingSemanticScholarAPIKeyError(server=cls.name, api_key=SEMANTIC_SCHOLAR_API_KEY)
+            print_and_log_red(str(missing_api_key_error), should_log=False)
 
         # TODO: THIS IS A WORKAROUND FOR A BUG IN SEMANTIC SCHOLAR. REMOVE WHEN FIXED.
         words_to_remove_in_case_of_zero_citation_error = \
@@ -143,14 +144,15 @@ class SemanticScholarPaperServerCaller(ParameterizedQueryServerCaller):
                 "fields": "title,url,abstract,tldr,journal,year,citationStyles,embedding,influentialCitationCount",
             }
             print_and_log_red(f'QUERYING SEMANTIC SCHOLAR FOR: "{query}"', should_log=False)
-            headers = {'x-api-key': SEMANTIC_SCHOLAR_API_KEY.key}
+            headers = {'x-api-key': SEMANTIC_SCHOLAR_API_KEY.key} if SEMANTIC_SCHOLAR_API_KEY.key else {}
             for attempt in range(3):
                 response = requests.get(PAPER_SEARCH_URL, headers=headers, params=params)
                 if response.status_code not in (504, 429):
                     break
-                print_and_log_red("ERROR: Server timed out or too many requests. "
-                                  "We wait for 5 sec and try again.", should_log=False)
-                time.sleep(5)
+                wait_time = 2 ** attempt  # Exponential backoff
+                print_and_log_red(f"ERROR: Server timed out or too many requests. "
+                                  f"We wait for {wait_time} sec and try again.", should_log=False)
+                time.sleep(wait_time)
             else:
                 raise ServerErrorException(server=cls.name, response=response)  # if we failed all attempts
 

@@ -3,9 +3,8 @@ from __future__ import annotations
 import os
 from abc import ABCMeta
 from dataclasses import dataclass
-from typing import Union
-
 from requests import Response
+from typing import Union
 
 from data_to_paper.terminate.exceptions import TerminateException
 from data_to_paper.text import dedent_triple_quote_str
@@ -32,17 +31,20 @@ class ServerErrorException(BaseServerErrorException):
     """
     Error raised server wasn't able to respond.
     """
+
     response: Union[Response, Exception]
 
     def _get_response_as_str(self):
         try:
-            return f'Server status code: {self.response.status_code}\n{self.response.reason}'
+            return f"Server status code: {self.response.status_code}\n{self.response.reason}"
         except AttributeError:
             return str(self.response)
 
     def __str__(self):
-        return f"Request to `{self.server}` server failed with the following error:\n```error\n" \
-               f"{self._get_response_as_str()}\n```"
+        return (
+            f"Request to `{self.server}` server failed with the following error:\n```error\n"
+            f"{self._get_response_as_str()}\n```"
+        )
 
 
 @dataclass
@@ -56,10 +58,25 @@ class BaseAPIKeyError(BaseServerErrorException, metaclass=ABCMeta):
 
 class MissingAPIKeyError(BaseAPIKeyError):
     def __str__(self):
-        return \
-            f"The API key for `{self.server}` is missing.\n" \
-            f"You need to set the `{self.api_key.key_name}` environment variable.\n" \
+        return (
+            f"The API key for `{self.server}` is missing.\n"
+            f"You need to set the `{self.api_key.key_name}` environment variable.\n"
             f"\n{self.instructions}"
+        )
+
+
+@dataclass
+class MissingSemanticScholarAPIKeyError(MissingAPIKeyError):
+    def __str__(self):
+        return (
+            f"WARNING: SEMANTIC SCHOLAR API key is missing. The server should work without an API key, "
+            f"but it will be slower and depend on the availability of the API endpoint.\n"
+            f"Its recommended setting the `SEMANTIC_SCHOLAR_API_KEY` environment variable.\n"
+            f"\n{self.instructions}"
+        )
+
+    def __repr__(self):
+        return self.__str__()
 
 
 @dataclass
@@ -67,9 +84,10 @@ class InvalidAPIKeyError(BaseAPIKeyError):
     response: Union[Response, Exception] = None
 
     def __str__(self):
-        return \
-            f"The API key for `{self.server}` is invalid.\n" \
-            f"Trying to connect to the server with the key:\n`{self.api_key.key}`\n" \
-            f"Connection failed with the following error:\n" \
-            f"---\n```error\n{self.response}\n```\n---\n" \
+        return (
+            f"The API key for `{self.server}` is invalid.\n"
+            f"Trying to connect to the server with the key:\n`{self.api_key.key}`\n"
+            f"Connection failed with the following error:\n"
+            f"---\n```error\n{self.response}\n```\n---\n"
             f"\n{self.instructions}"
+        )
