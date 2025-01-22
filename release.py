@@ -198,15 +198,18 @@ def main():
 
         should_restore = True
 
-        # Update version
-        update_pyproject_version(new_version)
-        run_command(["git", "add", PYPROJECT_FILE])
-        run_command(["git", "commit", "-m", f"version {new_version}"])
-        run_command(["git", "tag", "-a", new_version, "-m", f"Version {new_version}"])
+        # Update version if needed
+        if original_state.initial_version != new_version:
+            update_pyproject_version(new_version)
+            run_command(["git", "add", PYPROJECT_FILE])
+            run_command(["git", "commit", "-m", f"version {new_version}"])
+            run_command(
+                ["git", "tag", "-a", new_version, "-m", f"Version {new_version}"]
+            )
 
-        # Push changes
-        run_command(["git", "push", "origin", "main"])
-        run_command(["git", "push", "origin", new_version])
+            # Push changes
+            run_command(["git", "push", "origin", "main"])
+            run_command(["git", "push", "origin", new_version])
 
         # Publish package
         publish_package(test_mode)
