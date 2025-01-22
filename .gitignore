@@ -13,4 +13,7 @@ __pycache__/
 *.lock
 **.egg-info/
 
+# VS Code
+.vscode/
+
 src/data_to_paper/interactive/config/run_setup.json
