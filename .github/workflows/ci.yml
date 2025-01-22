@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install system deps
+      run: |
+        sudo apt-get update && \
+        sudo apt-get install -y --no-install-recommends \
+        texlive-latex-base \
+        texlive-latex-extra \
+        texlive-fonts-recommended \ 
+        pandoc
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+
+    - name: Install package
+      run: |
+        pip install .
+        
+    - name: Run tests
+      run: pytest tests/
