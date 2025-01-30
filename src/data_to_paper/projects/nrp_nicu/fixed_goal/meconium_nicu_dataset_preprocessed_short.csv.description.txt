@@ -33,4 +33,4 @@ The dataset contains 44 columns:
 `AntibioticsDuration` (float, in days) Neonate treatment duration
 `Breastfeeding` (1=Yes, 0=No) Breastfed at NICU
 `LengthStay` (float, in days) Length of stay at NICU
-`SNAPPE_II_SCORE` (int) 0–20 (mild), 21–40 (moderate), 41- (severe)
+`SNAPPE_II_SCORE` (int) 0-20 (mild), 21-40 (moderate), 41- (severe)
