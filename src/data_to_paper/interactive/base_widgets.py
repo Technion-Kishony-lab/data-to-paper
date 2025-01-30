@@ -40,3 +40,11 @@ class PlainTextPasteTextEdit(QPlainTextEdit):
             self.handle_paste()
             return True
         return super().event(event)
+
+    def setPlainText(self, text):
+        # Convert the text to UTF-8 using unidecode
+        return super().setPlainText(unidecode(text))
+
+    def toPlainText(self):
+        # Get the text and convert it to UTF-8 using unidecode
+        return unidecode(super().toPlainText())
