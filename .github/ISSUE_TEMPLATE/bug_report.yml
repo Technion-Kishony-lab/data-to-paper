@@ -1,0 +1,58 @@
+name: Bug Report
+description: File a bug report
+title: "[BUG]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Please fill out *all* the following sections.
+
+  - type: dropdown
+    id: user_os
+    attributes:
+      label: Operating System
+      description: Please select your operating system.
+      options:
+        - Windows
+        - Linux
+        - macOS
+    validations:
+      required: true
+
+  - type: input
+    id: package_version
+    attributes:
+      label: Package Version
+      description: Please enter the version of the package you are using.
+      placeholder: for example `1.1.9`
+    validations:
+      required: true
+
+  - type: input
+    id: llm_details
+    attributes:
+      label: LLM Details
+      description: Provide details about the LLM (e.g., which llm you are using, what provider you are using, does the LLM support json schema?, etc.)
+      placeholder: GPT-4o, from OpenAI API, supports json schema...
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: Paste the error you got from the app and provide additional details describing the issue
+      placeholder: Paste error from the app and additional details...
+    validations:
+      required: true
+
+  - type: textarea
+    id: traceback
+    attributes:
+      label: Exception Traceback
+      description: Paste the full exception traceback from the console. Issues without traceback will be closed automatically.
+      placeholder: Paste traceback here...
+    validations:
+      required: true

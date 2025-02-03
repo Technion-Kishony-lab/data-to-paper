@@ -1,0 +1,19 @@
+name: Feature Suggestion
+description: Suggest a feature
+title: "[FEATURE]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a feature! Please provide a detailed description of your idea.
+
+  - type: textarea
+    id: feature_description
+    attributes:
+      label: Feature Description
+      description: Describe the feature you are suggesting in detail.
+      placeholder: Describe the feature here...
+    validations:
+      required: true

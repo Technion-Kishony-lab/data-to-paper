@@ -1,0 +1,19 @@
+name: General Question
+description: Ask a general question
+title: "[QUESTION]: "
+labels:
+  - user question
+body:
+  - type: markdown
+    attributes:
+      value: |
+        If you want to raise a discussion point, this is the place.
+
+  - type: textarea
+    id: general_question
+    attributes:
+      label: QUESTION
+      description: Ask any general question about the system, or raise a relevant discussion point
+      placeholder: I want to ask if...
+    validations:
+      required: true
