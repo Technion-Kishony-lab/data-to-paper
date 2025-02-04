@@ -14,8 +14,18 @@ authors = [
 ]
 readme = "README.md"
 license = { file = "LICENSE" }
-keywords = ["data-to-paper", "research", "AI-driven-research", "backward-traceable", "ai", "agents",
-    "autonomous-agents", "scientific-research", "interactive-machine-learning", "llm"]
+keywords = [
+    "data-to-paper",
+    "research",
+    "AI-driven-research",
+    "backward-traceable",
+    "ai",
+    "agents",
+    "autonomous-agents",
+    "scientific-research",
+    "interactive-machine-learning",
+    "llm",
+]
 classifiers = [
     'Intended Audience :: Education',
     'Intended Audience :: Science/Research',
@@ -47,7 +57,7 @@ dependencies = [
     "scipy~=1.11.1",
     "scikit-learn~=1.3.0",
     "networkx~=3.2.1",
-    "matplotlib~=3.9.0"
+    "matplotlib~=3.9.0",
 ]
 requires-python = ">=3.9"
 
@@ -55,18 +65,14 @@ requires-python = ">=3.9"
 Repository = "https://github.com/Technion-Kishony-lab/data-to-paper"
 
 [project.optional-dependencies]
-dev = [
-    "pytest",
-    "pytest-pep8",
-    "pytest-cov",
-    "pytest-benchmark",
-]
+dev = ["pytest", "pytest-pep8", "pytest-cov", "pytest-benchmark"]
 
 [project.gui-scripts]
 data-to-paper = "data_to_paper.scripts.run:run"
 
 [project.scripts]
 data-to-paper-chkres = "data_to_paper.scripts.check_resources:check_resources"
+data-to-paper-run-with-console = "data_to_paper.scripts.run:run"
 
 [tool.setuptools]
 include-package-data = true
