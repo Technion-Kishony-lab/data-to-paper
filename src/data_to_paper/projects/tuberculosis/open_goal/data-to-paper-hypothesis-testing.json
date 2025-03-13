@@ -1,0 +1,13 @@
+{
+    "research_goal": null,
+    "data_filenames": [
+        "../data/SAMPLES_CLEAN.csv",
+        "../data/PHENOTYPES_CLEAN.csv",
+        "../data/GENOMES_CLEAN.csv"
+    ],
+    "data_files_is_binary": [
+        false,
+        false,
+        false
+    ]
+}

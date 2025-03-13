@@ -1,0 +1,12 @@
+A csv file where each line is a sample of tuberculosis. The columns are:
+
+UNIQUEID, str, identifier of the sample
+COUNTRY_WHERE_SAMPLE_TAKEN, str, 3-letter code for the country where the patient was sampled
+COLLECTION_DATE, date, date when the sample was taken
+SMOKER, str, whether the patient is a smoker ('not known', 'False', 'True')
+INJECT_DRUG_USER, str, whether the patient is an inject drug user ('not known', 'False', 'True')
+IS_HOMELESS, str, whether the patient is homeless ('not known', 'False', 'True')
+IS_IMPRISONED, str, whether the patient is imprisoned ('not known', 'False', 'True')
+HIV, str, whether the patient is HIV positive ('not known', 'False', 'True')
+DIABETES, str, whether the patient has diabetes ('not known', 'False', 'True')
+WHO_OUTCOME, str, the outcome of the patient according to the World Health Organization ('not known', 'Cured', 'Died', 'Failed', 'Lost to follow-up', 'Not evaluated', 'Transferred out')

@@ -1,0 +1,19 @@
+A csv file of the measured resistance phenotypes for each sample.
+The columns are:
+
+UNIQUEID, str, identifier of the sample
+AMI_MEASURED, amikacin
+BDQ_MEASURED, bedaquiline
+CFZ_MEASURED, clofazimine
+DLM_MEASURED, delamanid
+EMB_MEASURED, ethambutol
+ETH_MEASURED, ethionamide
+INH_MEASURED, isoniazid
+KAN_MEASURED, kanamycin
+LEV_MEASURED, levofloxacin
+LZD_MEASURED, linezolid
+MXF_MEASURED, moxifloxacin
+RIF_MEASURED, rifampicin
+RFB_MEASURED, rifabutin
+
+Each of these columns is a str, with Sensitive ('S') or Resistant ('R'), or not measured (NaN)
