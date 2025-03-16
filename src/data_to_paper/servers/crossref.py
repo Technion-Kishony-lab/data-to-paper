@@ -5,7 +5,7 @@ from unidecode import unidecode
 
 from .base_server import ParameterizedQueryServerCaller
 from .custom_types import Citation
-from .types import ServerErrorException
+from .server_types import ServerErrorException
 
 CROSSREF_URL = "https://api.crossref.org/works"
 
