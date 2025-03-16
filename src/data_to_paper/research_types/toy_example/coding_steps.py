@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, Tuple
 
+from data_to_paper.servers.model_manager import ModelManager
 from data_to_paper.text import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList
 
@@ -16,7 +17,7 @@ from .products import DemoProducts
 
 @dataclass
 class DemoCodeProductsGPT(BaseCodeProductsGPT):
-    model_engine: ModelEngine = ModelEngine.GPT4_TURBO
+    model_engine: ModelEngine = ModelEngine(ModelManager.get_instance().get_current_model())
     products: DemoProducts = None
     assistant_agent: DemoAgent = DemoAgent.Performer
     user_agent: DemoAgent = DemoAgent.Debugger

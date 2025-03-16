@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 
+from data_to_paper.servers.model_manager import ModelManager
 from data_to_paper.types import HumanReviewType
 from data_to_paper.conversation import ConversationManager, GeneralMessageDesignation, Message
 from data_to_paper.text import dedent_triple_quote_str
@@ -81,7 +82,7 @@ class DualConverserGPT(Converser):
                                                         hidden_messages: GeneralMessageDesignation = None,
                                                         expected_tokens_in_response: int = None,
                                                         **kwargs) -> Message:
-        model_engine = model_engine or self.model_engine or ModelEngine.DEFAULT
+        model_engine = ModelEngine(ModelManager.get_instance().get_current_model())
         with self._app_temporarily_set_panel_status(PanelNames.FEEDBACK,
                                                     f'Waiting for Reviewer LLM ({model_engine})...'):
             self._app_send_prompt(PanelNames.FEEDBACK)

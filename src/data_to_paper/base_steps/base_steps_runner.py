@@ -373,7 +373,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         def run():
             self._run_all_steps()
 
-        self.server_caller = OPENAI_SERVER_CALLER
+        self.server_caller = LLM_SERVER_CALLER
         self.server_caller.set_current_stage_callback(self._get_current_stage)
         self.server_caller.set_api_cost_callback(self._add_cost_to_stage)
         self._create_or_clean_output_folder()
