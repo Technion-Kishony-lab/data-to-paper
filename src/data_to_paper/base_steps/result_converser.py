@@ -7,11 +7,16 @@ from typing import Any, Optional, Tuple, Union, Iterable, Type
 from data_to_paper.base_products.product import Product, ValueProduct
 from data_to_paper.base_steps.converser import Converser
 from data_to_paper.base_steps.exceptions import FailedCreatingProductException
-from data_to_paper.conversation.message_designation import RangeMessageDesignation, SingleMessageDesignation
+from data_to_paper.conversation.message_designation import (
+    RangeMessageDesignation,
+    SingleMessageDesignation,
+)
 from data_to_paper.conversation.stage import Stage
 from data_to_paper.env import PAUSE_AT_RULE_BASED_FEEDBACK
 from data_to_paper.exceptions import data_to_paperException
 from data_to_paper.interactive import PanelNames
+from data_to_paper.servers.model_engine import ModelEngine
+from data_to_paper.servers.model_manager import ModelManager
 from data_to_paper.text.highlighted_text import format_text_with_code_blocks
 from data_to_paper.utils.mutable import Flag
 from data_to_paper.utils.print_to_file import print_and_log_red
@@ -43,23 +48,23 @@ class Rewind(Enum):
     DELETE_ALL: delete (1)-(7)
     """
 
-    REGENERATE = 'regenerate'
+    REGENERATE = "regenerate"
     # regenerate the last response
 
-    RESTART = 'restart'
+    RESTART = "restart"
     # deleted all iterations and get a fresh response
 
-    AS_FRESH = 'as_fresh'
+    AS_FRESH = "as_fresh"
     # delete all previous responses and modify and post the current response as a fresh response
 
-    ACCUMULATE = 'accumulate'
+    ACCUMULATE = "accumulate"
     # just normally add the current response and the feedback
 
-    AS_FRESH_CORRECTION = 'as_fresh_correction'
+    AS_FRESH_CORRECTION = "as_fresh_correction"
     # delete any previous erroneous responses except the first one and modify and post the current response as a fresh
     # response
 
-    DELETE_ALL = 'delete_all'
+    DELETE_ALL = "delete_all"
     # delete all previous responses including the original user initiation prompt
 
 
@@ -68,12 +73,12 @@ class BumpModel(Enum):
     An enum for the different ways to bump the model upon invalid response.
     """
 
-    DO_NOT_BUMP = 'do_not_bump'
+    DO_NOT_BUMP = "do_not_bump"
 
-    HIGHER_STRENGTH = 'higher_strength'
+    HIGHER_STRENGTH = "higher_strength"
     # bump the model to a model with higher strength
 
-    HIGHER_CONTEXT = 'higher_context'
+    HIGHER_CONTEXT = "higher_context"
     # bump the model to a model with higher context
 
     @classmethod
@@ -89,8 +94,9 @@ class SelfResponseError(data_to_paperException):
     """
     Exception raised when the response to a request for a latex section is not acceptable.
     """
+
     error_message: str = None
-    title: str = ''
+    title: str = ""
     formatting_instructions: str = None
     rewind: Rewind = None
     bump_model: Optional[BumpModel] = None
@@ -98,7 +104,7 @@ class SelfResponseError(data_to_paperException):
     # if positive, we will *reduce* the iteration count so that we have more iterations to correct the response
 
     def __str__(self):
-        return f'SelfResponseError: {self.error_message}'
+        return f"SelfResponseError: {self.error_message}"
 
 
 class NoResponse:
@@ -117,13 +123,13 @@ class ResultConverser(Converser):
     fresh_response  <--- extracted_text <--- valid_result  <---
     """
 
-    performer: str = 'scientist'
+    performer: str = "scientist"
 
     # goal_noun: the desired output of the conversation (expressed as a singular noun).
-    goal_noun: str = 'one-paragraph summary on the solar system'
+    goal_noun: str = "one-paragraph summary on the solar system"
 
     # goal_verb: a verb applied to achieve the goal, like 'write', 'draw', 'build', 'code', etc.
-    goal_verb: str = 'write'
+    goal_verb: str = "write"
 
     # *** Properties that are more generic (adjust only if needed) ***
 
@@ -135,8 +141,7 @@ class ResultConverser(Converser):
 
     your_response_should_be_formatted_as: str = ""
 
-    formatting_instructions_for_feedback: str = \
-        "Remember, your response should be formatted as {your_response_should_be_formatted_as}"
+    formatting_instructions_for_feedback: str = "Remember, your response should be formatted as {your_response_should_be_formatted_as}"
 
     default_rewind_for_result_error: Rewind = Rewind.AS_FRESH
     # Can be any of the Rewind options. In particular:
@@ -157,7 +162,9 @@ class ResultConverser(Converser):
 
     # Output:
     stage: Stage = None
-    product_type: Type[ValueProduct] = None  # the type of the product to be generated. If None, non-product result.
+    product_type: Type[ValueProduct] = (
+        None  # the type of the product to be generated. If None, non-product result.
+    )
     valid_result: Union[Product, Any] = field(default_factory=NoResponse)
     _valid_result_update_count: int = 0
 
@@ -165,7 +172,9 @@ class ResultConverser(Converser):
         valid_result = self._get_valid_result()
         if isinstance(valid_result, Product):
             return valid_result.as_html(2)
-        return format_text_with_code_blocks(self.get_valid_result_as_markdown(), width=None, is_html=True, from_md=True)
+        return format_text_with_code_blocks(
+            self.get_valid_result_as_markdown(), width=None, is_html=True, from_md=True
+        )
 
     def get_valid_result_as_markdown(self) -> str:
         valid_result = self._get_valid_result()
@@ -188,9 +197,12 @@ class ResultConverser(Converser):
         Add background messages to the two conversations to set them ready for the cycle.
         """
         if self.mission_prompt:
-            self.apply_append_user_message(self.mission_prompt, app_panel=PanelNames.MISSION_PROMPT,
-                                           editing_title='Revise as needed',
-                                           in_field_instructions='Write the mission prompt.')
+            self.apply_append_user_message(
+                self.mission_prompt,
+                app_panel=PanelNames.MISSION_PROMPT,
+                editing_title="Revise as needed",
+                in_field_instructions="Write the mission prompt.",
+            )
 
     @property
     def _has_valid_result(self) -> bool:
@@ -220,14 +232,16 @@ class ResultConverser(Converser):
                 html = "No result yet."
             self._app_send_prompt(PanelNames.PRODUCT, html, provided_as_html=True)
 
-    def _raise_self_response_error(self,
-                                   title: str,
-                                   error_message: StrOrReplacer,
-                                   formatting_instructions: StrOrReplacer = None,
-                                   missing_end: bool = False,
-                                   rewind: Optional[Rewind] = None,
-                                   add_iterations: Optional[int] = None,
-                                   bump_model: Optional[BumpModel] = None):
+    def _raise_self_response_error(
+        self,
+        title: str,
+        error_message: StrOrReplacer,
+        formatting_instructions: StrOrReplacer = None,
+        missing_end: bool = False,
+        rewind: Optional[Rewind] = None,
+        add_iterations: Optional[int] = None,
+        bump_model: Optional[BumpModel] = None,
+    ):
         """
         Raise a SelfResponseError with the given error message and instructions for how to rewind the conversation.
 
@@ -239,7 +253,9 @@ class ResultConverser(Converser):
           if the first response was extractable, we already have example of a correctly formatted response.
           If the first response was not extractable, we already answered with formatting instructions.
         """
-        is_first_response = self._conversation_len_before_first_response == len(self.conversation) - 1
+        is_first_response = (
+            self._conversation_len_before_first_response == len(self.conversation) - 1
+        )
         if self._is_extracting:
             if rewind is None:
                 if is_first_response:
@@ -260,18 +276,32 @@ class ResultConverser(Converser):
                 add_iterations = 0
             if bump_model is None:
                 bump_model = BumpModel.DO_NOT_BUMP
-        raise SelfResponseError(format_value(self, error_message),
-                                title=title, formatting_instructions=formatting_instructions,
-                                rewind=rewind, bump_model=bump_model,
-                                add_iterations=add_iterations)
+        raise SelfResponseError(
+            format_value(self, error_message),
+            title=title,
+            formatting_instructions=formatting_instructions,
+            rewind=rewind,
+            bump_model=bump_model,
+            add_iterations=add_iterations,
+        )
 
-    def _convert_response_error_to_error_message(self, response_error: SelfResponseError) -> str:
+    def _convert_response_error_to_error_message(
+        self, response_error: SelfResponseError
+    ) -> str:
         """
         Convert the response error to an error message.
         """
-        formatting_instructions = response_error.formatting_instructions or self.formatting_instructions_for_feedback
-        return format_value(self, response_error.title) + '\n' + format_value(self, response_error.error_message) \
-            + '\n' + format_value(self, formatting_instructions)
+        formatting_instructions = (
+            response_error.formatting_instructions
+            or self.formatting_instructions_for_feedback
+        )
+        return (
+            format_value(self, response_error.title)
+            + "\n"
+            + format_value(self, response_error.error_message)
+            + "\n"
+            + format_value(self, formatting_instructions)
+        )
 
     """
     Response --> extracted_text --> valid_result --> Product
@@ -286,7 +316,9 @@ class ResultConverser(Converser):
         """
         return response
 
-    def _check_extracted_text_and_update_valid_result(self, extracted_text: ExtractedText):
+    def _check_extracted_text_and_update_valid_result(
+        self, extracted_text: ExtractedText
+    ):
         """
         # extracted_text --> valid_result #
         Check the extracted_text and extract the needed information into valid_result.
@@ -298,7 +330,9 @@ class ResultConverser(Converser):
         """
         self._update_valid_result(extracted_text)
 
-    def _convert_valid_result_to_product(self, valid_result: Any) -> Union[Product, Any]:
+    def _convert_valid_result_to_product(
+        self, valid_result: Any
+    ) -> Union[Product, Any]:
         """
         # valid_result --> Product #
         Convert the valid result to a product.
@@ -311,23 +345,29 @@ class ResultConverser(Converser):
     fresh_response <-- extracted_text <-- valid_result <-- Product
     """
 
-    def _convert_extracted_text_to_fresh_looking_response(self, extracted_text: ExtractedText) -> str:
+    def _convert_extracted_text_to_fresh_looking_response(
+        self, extracted_text: ExtractedText
+    ) -> str:
         """
         # fresh_response <-- extracted_text #
         Convert the extracted text to a response that can be posted to the conversation.
         """
         if isinstance(extracted_text, str):
             return extracted_text
-        return '\n\n'.join(extracted_text)
+        return "\n\n".join(extracted_text)
 
-    def _convert_valid_result_back_to_extracted_text(self, valid_result: Any) -> ExtractedText:
+    def _convert_valid_result_back_to_extracted_text(
+        self, valid_result: Any
+    ) -> ExtractedText:
         """
         # extracted_text <-- valid_result #
         Convert the valid result to an extracted result.
         """
         return str(valid_result)
 
-    def _convert_product_back_to_valid_result(self, product: Union[Product, Any]) -> Any:
+    def _convert_product_back_to_valid_result(
+        self, product: Union[Product, Any]
+    ) -> Any:
         """
         # valid_result <-- Product #
         Convert the product to a valid result.
@@ -336,25 +376,32 @@ class ResultConverser(Converser):
             return product.value
         return product
 
-    def _convert_valid_results_to_fresh_looking_response(self, valid_results: Any) -> str:
+    def _convert_valid_results_to_fresh_looking_response(
+        self, valid_results: Any
+    ) -> str:
         """
         # fresh_response <-- extracted_text <-- valid_result <-- Product #
         Convert the valid results to a response that can be posted to the conversation.
         """
         valid_results = self._convert_product_back_to_valid_result(valid_results)
-        extracted_text = self._convert_valid_result_back_to_extracted_text(valid_results)
-        fresh_response = self._convert_extracted_text_to_fresh_looking_response(extracted_text)
+        extracted_text = self._convert_valid_result_back_to_extracted_text(
+            valid_results
+        )
+        fresh_response = self._convert_extracted_text_to_fresh_looking_response(
+            extracted_text
+        )
         return fresh_response
 
-    def _rewind_conversation_to_first_response(self, offset: int = 0, last: int = -1, start: int = None):
+    def _rewind_conversation_to_first_response(
+        self, offset: int = 0, last: int = -1, start: int = None
+    ):
         """
         Rewind the conversation to the first response + offset.
         offset=0 means that we delete all messages including the first response.
         """
         if start is None:
             start = self._conversation_len_before_first_response
-        self.apply_delete_messages(
-            RangeMessageDesignation.from_(start + offset, last))
+        self.apply_delete_messages(RangeMessageDesignation.from_(start + offset, last))
 
     def _iterate_until_valid_response(self) -> Tuple[bool, bool]:
         """
@@ -370,6 +417,8 @@ class ResultConverser(Converser):
         self._self_response_iteration_count = 0
         initial_valid_result_update_count = self._valid_result_update_count
         is_new_valid_result = False
+        model_was_bumped = False
+        curr_model = ModelManager.get_instance().get_current_model()
         while self._self_response_iteration_count < self.max_valid_response_iterations:
             self._self_response_iteration_count += 1
             # to allow starting either before or after the first self response:
@@ -381,38 +430,66 @@ class ResultConverser(Converser):
                 # We are starting before the first self response
                 is_preexisting_self_response = False
 
-            if self._self_response_iteration_count == 1 and is_preexisting_self_response:
+            if (
+                self._self_response_iteration_count == 1
+                and is_preexisting_self_response
+            ):
                 self._conversation_len_before_first_response -= 1
 
             if not is_preexisting_self_response:
                 self_message = self.apply_get_and_append_assistant_message()
                 self_response = self_message.content
 
+            if model_was_bumped:
+                self.model_engine = ModelEngine(
+                    ModelManager.get_instance().set_current_model(curr_model)
+                )
+                model_was_bumped = False
+
             # check if the response is valid:
-            with self._app_temporarily_set_panel_status(PanelNames.FEEDBACK, 'Rule-based check ...'):
+            with self._app_temporarily_set_panel_status(
+                PanelNames.FEEDBACK, "Rule-based check ..."
+            ):
                 self._app_send_prompt(PanelNames.FEEDBACK)
                 response_error = None
                 extracted_text = None
                 try:
                     with self._is_extracting.temporary_set(True):
-                        extracted_text = self._check_response_and_get_extracted_text(self_response)
+                        extracted_text = self._check_response_and_get_extracted_text(
+                            self_response
+                        )
                 except SelfResponseError as e:
                     response_error = e
                 if not response_error:
                     try:
-                        self._check_extracted_text_and_update_valid_result(extracted_text)
+                        self._check_extracted_text_and_update_valid_result(
+                            extracted_text
+                        )
                     except SelfResponseError as e:
                         response_error = e
-                is_new_valid_result = self._valid_result_update_count > initial_valid_result_update_count
+                is_new_valid_result = (
+                    self._valid_result_update_count > initial_valid_result_update_count
+                )
 
             if response_error:
                 self._self_response_iteration_count -= response_error.add_iterations
                 if response_error.bump_model:
                     try:
+                        curr_model = ModelManager.get_instance().get_current_model()
                         if response_error.bump_model == BumpModel.HIGHER_STRENGTH:
-                            self.model_engine = self.model_engine.get_model_with_more_strength()
+                            ModelManager.get_instance().set_current_model(
+                                self.model_engine.get_model_with_more_strength().value
+                            )
+                            self.model_engine = ModelEngine(
+                                ModelManager.get_instance().get_current_model()
+                            )
                         elif response_error.bump_model == BumpModel.HIGHER_CONTEXT:
-                            self.model_engine = self.model_engine.get_model_with_more_context()
+                            ModelManager.get_instance().set_current_model(
+                                self.model_engine.get_model_with_more_context().value
+                            )
+                            self.model_engine = ModelEngine(
+                                ModelManager.get_instance().get_current_model()
+                            )
                         model_was_bumped = True
                     except ValueError:
                         model_was_bumped = False
@@ -426,19 +503,35 @@ class ResultConverser(Converser):
             #                           from_md=True,
             #                           sleep_for=PAUSE_AT_RULE_BASED_FEEDBACK)
 
-            rewind = response_error.rewind if response_error else self.rewind_after_getting_a_valid_response
+            rewind = (
+                response_error.rewind
+                if response_error
+                else self.rewind_after_getting_a_valid_response
+            )
 
             # replace the response with a fresh looking response if needed:
-            cycle_num = (len(self.conversation) - self._conversation_len_before_first_response + 1) // 2
-            if (rewind == Rewind.AS_FRESH or rewind == Rewind.AS_FRESH_CORRECTION and cycle_num > 1) \
-                    and extracted_text:
+            cycle_num = (
+                len(self.conversation)
+                - self._conversation_len_before_first_response
+                + 1
+            ) // 2
+            if (
+                rewind == Rewind.AS_FRESH
+                or rewind == Rewind.AS_FRESH_CORRECTION
+                and cycle_num > 1
+            ) and extracted_text:
                 self.apply_delete_messages(SingleMessageDesignation(-1))
                 self.apply_append_surrogate_message(
-                    self._convert_extracted_text_to_fresh_looking_response(extracted_text))
+                    self._convert_extracted_text_to_fresh_looking_response(
+                        extracted_text
+                    )
+                )
             # add the rule-based error message:
             if response_error:
-                self.apply_append_user_message(self._convert_response_error_to_error_message(response_error),
-                                               sleep_for=PAUSE_AT_RULE_BASED_FEEDBACK)
+                self.apply_append_user_message(
+                    self._convert_response_error_to_error_message(response_error),
+                    sleep_for=PAUSE_AT_RULE_BASED_FEEDBACK,
+                )
 
             # rewind:
             if rewind == Rewind.RESTART:
@@ -452,9 +545,13 @@ class ResultConverser(Converser):
                 assert response_error
                 self._rewind_conversation_to_first_response(offset=2, last=-3)
             elif rewind == Rewind.DELETE_ALL:
-                self._rewind_conversation_to_first_response(-1)  # delete including the user initiation prompt
+                self._rewind_conversation_to_first_response(
+                    -1
+                )  # delete including the user initiation prompt
             elif rewind == Rewind.AS_FRESH:
-                self._rewind_conversation_to_first_response(offset=0, last=-3 if response_error else -2)
+                self._rewind_conversation_to_first_response(
+                    offset=0, last=-3 if response_error else -2
+                )
 
             if not response_error:
                 assert is_new_valid_result
@@ -464,7 +561,7 @@ class ResultConverser(Converser):
 
     def _get_valid_result(self) -> Union[Product, Any]:
         if not self._has_valid_result:
-            raise FailedCreatingProductException('Failed to create a valid result.')
+            raise FailedCreatingProductException("Failed to create a valid result.")
         return self.valid_result
 
     def _post_run(self):
@@ -479,14 +576,18 @@ class ResultConverser(Converser):
         """
         return self._iterate_until_valid_response()
 
-    def run_and_get_valid_result_and_termination_reason(self, *args, **kwargs) -> Tuple[Tuple[bool, bool], Any]:
+    def run_and_get_valid_result_and_termination_reason(
+        self, *args, **kwargs
+    ) -> Tuple[Tuple[bool, bool], Any]:
         """
         Run the conversation until we get a valid result.
         Return whether the conversation is converged and whether we have a new valid result.
         """
         self.initialize_conversation_if_needed()
         termination_reason = self._run_and_return_termination_reason(*args, **kwargs)
-        result = self._get_valid_result()  # raises FailedCreatingProductException if no valid result
+        result = (
+            self._get_valid_result()
+        )  # raises FailedCreatingProductException if no valid result
         self._post_run()
         return result, termination_reason
 
