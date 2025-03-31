@@ -5,7 +5,7 @@
 align="right">
 </picture>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT) [![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2FTechnion-Kishony-lab%2Fdata-to-paper&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false)](https://hits.seeyoufarm.com)
+[![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
 
 **data-to-paper** is an automation framework that systematically navigates interacting AI agents through a **complete end-to-end scientific research**, 
 starting from *raw data* alone and concluding with *transparent, backward-traceable, 
