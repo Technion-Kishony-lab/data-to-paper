@@ -52,7 +52,7 @@ def check_llm_servers_connection():
         print(f"Checking LLM Server connection for {model_engine}... ", end="")
         # Calling the server. Will raise ServerErrorException, InvalidAPIKeyError, or MissingAPIKeyError
         response = litellm.check_valid_key(
-            model=model_engine.values, api_key=model_engine.api_key
+            model=model_engine.value, api_key=model_engine.api_key
         )
         if not response:
             raise InvalidAPIKeyError(
@@ -66,4 +66,8 @@ def check_llm_servers_connection():
 def check_all_servers():
     check_semantic_scholar_connection()
     check_semantic_scholar_embedding_connection()
+    check_llm_servers_connection()
+
+
+if __name__ == "__main__":
     check_llm_servers_connection()
