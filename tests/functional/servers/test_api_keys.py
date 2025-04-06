@@ -1,6 +1,6 @@
 from data_to_paper.servers.check_connection import check_semantic_scholar_connection, \
     check_llm_servers_connection, check_all_servers
-from data_to_paper.servers.types import InvalidAPIKeyError, MissingSemanticScholarAPIKeyError
+from data_to_paper.servers.server_types import InvalidAPIKeyError, MissingSemanticScholarAPIKeyError
 
 
 def test_check_all_servers():
