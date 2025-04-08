@@ -9,15 +9,20 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Union, Type, Optional, Dict, Callable
 
-from data_to_paper.base_products.file_descriptions import CreateDataFileDescriptions, DataFileDescriptions
-from data_to_paper.env import FOLDER_FOR_RUN, DEBUG_MODE
+from data_to_paper.base_products.file_descriptions import (
+    CreateDataFileDescriptions,
+    DataFileDescriptions,
+)
+from data_to_paper.env import FOLDER_FOR_RUN, DEBUG_MODE, SCHOLAR_SERVER
 from data_to_paper.interactive.base_app_startup import BaseStartDialog
 from data_to_paper.servers.api_cost import StageToCost
 from data_to_paper.utils.file_utils import clear_directory
 from data_to_paper.utils.print_to_file import print_and_log, console_log_file_context
 from data_to_paper.servers.llm_call import OPENAI_SERVER_CALLER, LLMServerCaller
-from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER, \
-    SEMANTIC_SCHOLAR_EMBEDDING_SERVER_CALLER
+from data_to_paper.servers.semantic_scholar import (
+    SEMANTIC_SCHOLAR_EMBEDDING_SERVER_CALLER,
+)
+
 from data_to_paper.conversation.stage import Stage
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
 from data_to_paper.terminate.exceptions import TerminateException, ResetStepException
@@ -36,15 +41,18 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
     """
     A base class for running a series of steps whose Products gradually accumulate towards a high level goal.
     """
-    ACTIONS_FILENAME = 'conversation_actions.pkl'
-    OPENAI_RESPONSES_FILENAME = 'response_recordings.json'
-    CROSSREF_RESPONSES_FILENAME = 'crossref_responses.bin'
-    SEMANTIC_SCHOLAR_RESPONSES_FILENAME = 'semantic_scholar_responses.bin'
-    SEMANTIC_SCHOLAR_EMBEDDING_RESPONSES_FILENAME = 'semantic_scholar_embedding_responses.bin'
-    CODE_RUNNER_CACHE_FILENAME = 'code_runner_cache.pkl'
-    API_USAGE_COST_FILENAME = 'api_usage_cost.json'
 
-    PROJECT_PARAMETERS_FILENAME = 'data-to-paper.json'
+    ACTIONS_FILENAME = "conversation_actions.pkl"
+    OPENAI_RESPONSES_FILENAME = "response_recordings.json"
+    CROSSREF_RESPONSES_FILENAME = "crossref_responses.bin"
+    SEMANTIC_SCHOLAR_RESPONSES_FILENAME = "semantic_scholar_responses.bin"
+    SEMANTIC_SCHOLAR_EMBEDDING_RESPONSES_FILENAME = (
+        "semantic_scholar_embedding_responses.bin"
+    )
+    CODE_RUNNER_CACHE_FILENAME = "code_runner_cache.pkl"
+    API_USAGE_COST_FILENAME = "api_usage_cost.json"
+
+    PROJECT_PARAMETERS_FILENAME = "data-to-paper.json"
     DEFAULT_PROJECT_PARAMETERS = dict()
 
     APP_STARTUP_CLS = BaseStartDialog
@@ -53,7 +61,9 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
     project_parameters: dict = field(default_factory=DEFAULT_PROJECT_PARAMETERS.copy)
     project_directory: Path = None
     temp_folder_to_run_in: Path = FOLDER_FOR_RUN
-    actions_and_conversations: ActionsAndConversations = field(default_factory=ActionsAndConversations)
+    actions_and_conversations: ActionsAndConversations = field(
+        default_factory=ActionsAndConversations
+    )
     should_remove_temp_folder: bool = not DEBUG_MODE
 
     stages_to_conversations_lens: Dict[Stage, int] = field(default_factory=dict)
@@ -73,23 +83,28 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
 
     server_caller: LLMServerCaller = None
 
-    close_or_continue_message = dedent_triple_quote_str("""
+    close_or_continue_message = dedent_triple_quote_str(
+        """
         You can now:
 
         1. **CLOSE** the app to terminate the run. 
 
         2. **RE-TRY** by click the reset button of prior stages.
-        """)
+        """
+    )
 
-    failure_message = dedent_triple_quote_str("""
+    failure_message = dedent_triple_quote_str(
+        """
         ## Run Terminated
         Run terminated prematurely during the **{prior_stage}** stage.
 
         {exception}
 
         {close_or_continue_message}
-        """)
-    unexpected_error_message = dedent_triple_quote_str("""
+        """
+    )
+    unexpected_error_message = dedent_triple_quote_str(
+        """
         ## Run failed unexpectedly
         *data-to-paper* failed due to an unexpected error.
 
@@ -102,8 +117,10 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         Please report the exception traceback from the console as a GitHub issue.
 
         {close_or_continue_message}        
-        """)
-    success_message = dedent_triple_quote_str("""
+        """
+    )
+    success_message = dedent_triple_quote_str(
+        """
         ## Completed
         This *data-to-paper* research cycle is now completed.
         The manuscript is ready. 
@@ -120,7 +137,8 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         remains with you.**
 
         {close_or_continue_message}
-        """)
+        """
+    )
 
     def _get_current_stage(self):
         return self.current_stage
@@ -135,15 +153,17 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         if isinstance(stage, Stage):
             self._add_cost_to_stage(stage=stage)
             if stage not in self.stages_to_conversations_lens:
-                self.stages_to_conversations_lens[stage] = len(self.actions_and_conversations.conversations)
+                self.stages_to_conversations_lens[stage] = len(
+                    self.actions_and_conversations.conversations
+                )
 
     def send_product_to_client(self, product_field: str, save_to_file: bool = False):
         """
         Get the base GPT script file.
         """
         if save_to_file:
-            filename = product_field + '.txt'
-            with open(self.output_directory / filename, 'w', encoding='utf-8') as file:
+            filename = product_field + ".txt"
+            with open(self.output_directory / filename, "w", encoding="utf-8") as file:
                 file.write(self.products.get_description(product_field))
         if self.app:
             product = self.products.get_description_as_html(product_field)
@@ -161,7 +181,9 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
 
         # delete all conversations in the actions_and_conversations of the steps after and including the step
         conversation_names = list(self.actions_and_conversations.conversations.keys())
-        conversations_to_delete = conversation_names[self.stages_to_conversations_lens[stage]:]
+        conversations_to_delete = conversation_names[
+            self.stages_to_conversations_lens[stage] :
+        ]
         for conversation in conversations_to_delete:
             del self.actions_and_conversations.conversations[conversation]
 
@@ -186,11 +208,11 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
             except ResetStepException as e:
                 if e.stage is True:
                     if stage is True:
-                        print('Run completed successfully')
+                        print("Run completed successfully")
                     else:
-                        print('Run terminated')
+                        print("Run terminated")
                     break  # Terminate the run
-                print_and_log(f'Resetting to stage {e.stage.name}')
+                print_and_log(f"Resetting to stage {e.stage.name}")
                 next_stage = e.stage
                 self.reset_to_stage(next_stage)
             except Exception as e:
@@ -236,27 +258,36 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         self._wait_for_reset()
 
     def _respond_to_terminate_exception(self, e: TerminateException):
-        msg = Replacer(self, self.failure_message, kwargs={'exception': str(e),
-                                                           'prior_stage': self._prior_stage.value}).format_text()
+        msg = Replacer(
+            self,
+            self.failure_message,
+            kwargs={"exception": str(e), "prior_stage": self._prior_stage.value},
+        ).format_text()
         self._app_send_prompt(PanelNames.MISSION_PROMPT, msg, from_md=True)
-        self._app_set_header('Terminate upon failure')
-        print_and_log(add_header_and_footer_lines('TERMINATING RUN', msg))
+        self._app_set_header("Terminate upon failure")
+        print_and_log(add_header_and_footer_lines("TERMINATING RUN", msg))
 
     def _respond_to_unexpected_error(self, e: Exception):
         self._app_clear_panels()
-        msg = Replacer(self, self.unexpected_error_message, kwargs={'exception': str(e)}).format_text()
+        msg = Replacer(
+            self, self.unexpected_error_message, kwargs={"exception": str(e)}
+        ).format_text()
         self._app_send_prompt(PanelNames.MISSION_PROMPT, msg, from_md=True)
-        self._app_set_header('Unexpected Error')
-        print_and_log(add_header_and_footer_lines('UNEXPECTED ERROR', msg))
+        self._app_set_header("Unexpected Error")
+        print_and_log(add_header_and_footer_lines("UNEXPECTED ERROR", msg))
 
     def _finished_step(self):
         """
         Handle a finished step.
         """
-        msg = Replacer(self, self.success_message, kwargs={'last_stage': self.stages.get_last().value}).format_text()
+        msg = Replacer(
+            self,
+            self.success_message,
+            kwargs={"last_stage": self.stages.get_last().value},
+        ).format_text()
         self._app_send_prompt(PanelNames.MISSION_PROMPT, msg, from_md=True)
-        self._app_set_header('Completed')
-        print_and_log(add_header_and_footer_lines('COMPLETED RUN', msg))
+        self._app_set_header("Completed")
+        print_and_log(add_header_and_footer_lines("COMPLETED RUN", msg))
         self._wait_for_reset()
 
     def _run_stage(self, stage: Stage) -> Optional[Stage]:
@@ -278,15 +309,17 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         """
         Get the files to keep after the run.
         """
-        return [str(self.output_directory / recording_file)
-                for recording_file in [
-                    self.CODE_RUNNER_CACHE_FILENAME,
-                    self.OPENAI_RESPONSES_FILENAME,
-                    self.CROSSREF_RESPONSES_FILENAME,
-                    self.SEMANTIC_SCHOLAR_RESPONSES_FILENAME,
-                    self.SEMANTIC_SCHOLAR_EMBEDDING_RESPONSES_FILENAME,
-                    self.API_USAGE_COST_FILENAME,
-                ]]
+        return [
+            str(self.output_directory / recording_file)
+            for recording_file in [
+                self.CODE_RUNNER_CACHE_FILENAME,
+                self.OPENAI_RESPONSES_FILENAME,
+                self.CROSSREF_RESPONSES_FILENAME,
+                self.SEMANTIC_SCHOLAR_RESPONSES_FILENAME,
+                self.SEMANTIC_SCHOLAR_EMBEDDING_RESPONSES_FILENAME,
+                self.API_USAGE_COST_FILENAME,
+            ]
+        ]
 
     def _create_or_clean_output_folder(self):
         """
@@ -294,7 +327,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         """
         if os.path.exists(self.output_directory):
             # delete all the files except the mock_openai file:
-            for file in glob.glob(str(self.output_directory / '*')):
+            for file in glob.glob(str(self.output_directory / "*")):
                 if file not in self._get_files_to_keep():
                     # the file can be a non-empty directory or a file. remove it anyway:
                     if os.path.isfile(file):
@@ -319,14 +352,24 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         """
 
         @RUN_CACHE_FILEPATH.temporary_set(
-            self._get_path_in_output_directory(self.CODE_RUNNER_CACHE_FILENAME))
-        @SEMANTIC_SCHOLAR_SERVER_CALLER.record_or_replay(
-            self._get_path_in_output_directory(self.SEMANTIC_SCHOLAR_RESPONSES_FILENAME))
+            self._get_path_in_output_directory(self.CODE_RUNNER_CACHE_FILENAME)
+        )
+        @SCHOLAR_SERVER.get_server_instance().record_or_replay(
+            self._get_path_in_output_directory(
+                self.CROSSREF_RESPONSES_FILENAME
+                if SCHOLAR_SERVER.server == "Crossref"
+                else self.SEMANTIC_SCHOLAR_RESPONSES_FILENAME
+            )
+        )
         @SEMANTIC_SCHOLAR_EMBEDDING_SERVER_CALLER.record_or_replay(
-            self._get_path_in_output_directory(self.SEMANTIC_SCHOLAR_EMBEDDING_RESPONSES_FILENAME))
+            self._get_path_in_output_directory(
+                self.SEMANTIC_SCHOLAR_EMBEDDING_RESPONSES_FILENAME
+            )
+        )
         @OPENAI_SERVER_CALLER.record_or_replay(
             self._get_path_in_output_directory(self.OPENAI_RESPONSES_FILENAME),
-            fail_if_not_all_responses_used=False)
+            fail_if_not_all_responses_used=False,
+        )
         def run():
             self._run_all_steps()
 
@@ -336,7 +379,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         self._create_or_clean_output_folder()
         self._create_temp_folder_to_run_in()
         self._pre_run_preparations()
-        with console_log_file_context(self.output_directory / 'console_log.txt'):
+        with console_log_file_context(self.output_directory / "console_log.txt"):
             try:
                 run()
             finally:
@@ -347,9 +390,9 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
                     shutil.rmtree(self.temp_folder_to_run_in, ignore_errors=True)
 
     @classmethod
-    def get_project_parameters_from_project_directory(cls, project_directory: Path,
-                                                      add_default_parameters: bool = True
-                                                      ) -> dict:
+    def get_project_parameters_from_project_directory(
+        cls, project_directory: Path, add_default_parameters: bool = True
+    ) -> dict:
         """
         Get the project parameters from the project directory.
         """
@@ -361,21 +404,24 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
             with open(project_directory / cls.PROJECT_PARAMETERS_FILENAME) as file:
                 input_project_parameters = json.load(file)
             # check that the keys of input_project_parameters are in project_parameters:
-            unknown_keys = set(input_project_parameters.keys()) - set(cls.DEFAULT_PROJECT_PARAMETERS.keys())
+            unknown_keys = set(input_project_parameters.keys()) - set(
+                cls.DEFAULT_PROJECT_PARAMETERS.keys()
+            )
             if unknown_keys:
-                raise ValueError(f'Unknown keys in project parameters: {unknown_keys}')
+                raise ValueError(f"Unknown keys in project parameters: {unknown_keys}")
             project_parameters.update(input_project_parameters)
         return project_parameters
 
     @classmethod
-    def create_project_directory_from_project_parameters(cls, project_directory: Path, project_parameters: dict,
-                                                         **kwargs):
+    def create_project_directory_from_project_parameters(
+        cls, project_directory: Path, project_parameters: dict, **kwargs
+    ):
         """
         Create the project directory from the project parameters.
         """
         clear_directory(project_directory, create_if_missing=True)
         if cls.PROJECT_PARAMETERS_FILENAME:
-            with open(project_directory / cls.PROJECT_PARAMETERS_FILENAME, 'w') as file:
+            with open(project_directory / cls.PROJECT_PARAMETERS_FILENAME, "w") as file:
                 json.dump(project_parameters, file, indent=4)
 
     @classmethod
@@ -390,7 +436,9 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         """
         Get the project parameters from the project directory.
         """
-        self.project_parameters = self.get_project_parameters_from_project_directory(self.project_directory)
+        self.project_parameters = self.get_project_parameters_from_project_directory(
+            self.project_directory
+        )
 
     """
     api usage cost
@@ -398,8 +446,12 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
 
     def _add_cost_to_stage(self, cost: float = 0, stage: Optional[Stage] = None):
         stage = stage or self.current_stage
-        self._stages_to_api_usage_cost[stage] = self._stages_to_api_usage_cost.get(stage, 0) + cost
-        self._stages_to_api_usage_cost.save_to_json(self.output_directory / self.API_USAGE_COST_FILENAME)
+        self._stages_to_api_usage_cost[stage] = (
+            self._stages_to_api_usage_cost.get(stage, 0) + cost
+        )
+        self._stages_to_api_usage_cost.save_to_json(
+            self.output_directory / self.API_USAGE_COST_FILENAME
+        )
         self.app_send_api_usage_cost()
 
     def app_send_api_usage_cost(self):
@@ -412,48 +464,62 @@ class DataStepRunner(BaseStepsRunner):
     A class for running a series of steps towards a high level goal.
     With the ability to handle data files.
     """
-    data_file_descriptions: DataFileDescriptions = field(default_factory=DataFileDescriptions)
+
+    data_file_descriptions: DataFileDescriptions = field(
+        default_factory=DataFileDescriptions
+    )
     DEFAULT_PROJECT_PARAMETERS = dict(
         data_filenames=[],
         data_files_is_binary=[],
-        general_description='',
+        general_description="",
         data_file_descriptions=[],
     )
 
     @classmethod
-    def get_project_parameters_from_project_directory(cls, project_directory: Path,
-                                                      add_default_parameters: bool = True
-                                                      ) -> dict:
+    def get_project_parameters_from_project_directory(
+        cls, project_directory: Path, add_default_parameters: bool = True
+    ) -> dict:
         """
         Get the project parameters from the project directory.
         """
         project_parameters = super().get_project_parameters_from_project_directory(
-            project_directory, add_default_parameters)
+            project_directory, add_default_parameters
+        )
         # add data_file descriptions:
         data_file_descriptions = CreateDataFileDescriptions(
-                data_files_str_paths=project_parameters['data_filenames'],
-                project_directory=project_directory,
-                data_files_is_binary=[None] * len(project_parameters['data_filenames']),
-            ).get_raw_str_data_file_descriptions()
-        project_parameters['data_file_descriptions'] = [
-            data_file_description.description for data_file_description in data_file_descriptions]
-        project_parameters['general_description'] = data_file_descriptions.general_description
+            data_files_str_paths=project_parameters["data_filenames"],
+            project_directory=project_directory,
+            data_files_is_binary=[None] * len(project_parameters["data_filenames"]),
+        ).get_raw_str_data_file_descriptions()
+        project_parameters["data_file_descriptions"] = [
+            data_file_description.description
+            for data_file_description in data_file_descriptions
+        ]
+        project_parameters["general_description"] = (
+            data_file_descriptions.general_description
+        )
         return project_parameters
 
     @classmethod
-    def create_project_directory_from_project_parameters(cls, project_directory: Path, project_parameters: dict,
-                                                         **kwargs):
+    def create_project_directory_from_project_parameters(
+        cls, project_directory: Path, project_parameters: dict, **kwargs
+    ):
         """
         Create the project directory from the project parameters.
         """
         project_parameters = project_parameters.copy()
-        data_file_descriptions = project_parameters.pop('data_file_descriptions')
-        general_description = project_parameters.pop('general_description')
-        super().create_project_directory_from_project_parameters(project_directory, project_parameters)
-        CreateDataFileDescriptions(project_directory=project_directory,
-                                   data_files_str_paths=project_parameters['data_filenames'],
-                                   ).create_file_descriptions(general_description=general_description,
-                                                              data_file_descriptions=data_file_descriptions)
+        data_file_descriptions = project_parameters.pop("data_file_descriptions")
+        general_description = project_parameters.pop("general_description")
+        super().create_project_directory_from_project_parameters(
+            project_directory, project_parameters
+        )
+        CreateDataFileDescriptions(
+            project_directory=project_directory,
+            data_files_str_paths=project_parameters["data_filenames"],
+        ).create_file_descriptions(
+            general_description=general_description,
+            data_file_descriptions=data_file_descriptions,
+        )
 
     @classmethod
     def check_files_exist(cls, project_directory: Path, project_parameters: dict):
@@ -463,7 +529,7 @@ class DataStepRunner(BaseStepsRunner):
         super().check_files_exist(project_directory, project_parameters)
         CreateDataFileDescriptions(
             project_directory=project_directory,
-            data_files_str_paths=project_parameters['data_filenames'],
+            data_files_str_paths=project_parameters["data_filenames"],
         ).check_files_exist()
 
     def _read_data_file_descriptions(self):
@@ -471,9 +537,9 @@ class DataStepRunner(BaseStepsRunner):
         Read the data file descriptions from the project directory
         """
         self.data_file_descriptions = CreateDataFileDescriptions(
-            data_files_str_paths=self.project_parameters['data_filenames'],
+            data_files_str_paths=self.project_parameters["data_filenames"],
             project_directory=self.project_directory,
-            data_files_is_binary=self.project_parameters['data_files_is_binary'],
+            data_files_is_binary=self.project_parameters["data_files_is_binary"],
             temp_folder_to_run_in=self.temp_folder_to_run_in,
         ).create_temp_folder_and_get_file_descriptions()
 
