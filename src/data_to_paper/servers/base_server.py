@@ -8,7 +8,11 @@ from typing import Union, Optional
 
 from data_to_paper.env import CHOSEN_APP, DELAY_SERVER_CACHE_RETRIEVAL
 from .json_dump import dump_to_json, load_from_json
-from .serialize_exceptions import serialize_exception, is_exception, de_serialize_exception
+from .serialize_exceptions import (
+    serialize_exception,
+    is_exception,
+    de_serialize_exception,
+)
 
 
 class NoMoreResponsesToMockError(Exception):
@@ -17,10 +21,17 @@ class NoMoreResponsesToMockError(Exception):
 
 def recursively_convert_lists_and_dicts_to_tuples(obj):
     if isinstance(obj, (list, tuple)):
-        return tuple(recursively_convert_lists_and_dicts_to_tuples(item) for item in obj)
+        return tuple(
+            recursively_convert_lists_and_dicts_to_tuples(item) for item in obj
+        )
     if isinstance(obj, dict):
-        return tuple((recursively_convert_lists_and_dicts_to_tuples(key),
-                      recursively_convert_lists_and_dicts_to_tuples(value)) for key, value in obj.items())
+        return tuple(
+            (
+                recursively_convert_lists_and_dicts_to_tuples(key),
+                recursively_convert_lists_and_dicts_to_tuples(value),
+            )
+            for key, value in obj.items()
+        )
     return obj
 
 
@@ -37,6 +48,7 @@ class ServerCaller(ABC):
     file_extension: str = None
 
     def __init__(self, fail_if_not_all_responses_used=True):
+
         self.old_records = self.empty_records
         self.new_records = self.empty_records
         self.args_kwargs_response_history = []  # for debugging
@@ -118,7 +130,9 @@ class ServerCaller(ABC):
             self._add_response_to_new_records(args, kwargs, response)
             if self.should_save:
                 self.save_records()
-        self.args_kwargs_response_history.append((args, kwargs, response))  # for debugging and testing
+        self.args_kwargs_response_history.append(
+            (args, kwargs, response)
+        )  # for debugging and testing
         return response
 
     def __enter__(self):
@@ -132,8 +146,14 @@ class ServerCaller(ABC):
             self.save_records()
         return False  # do not suppress exceptions
 
-    def mock(self, old_records=None, record_more_if_needed=True, fail_if_not_all_responses_used=True,
-             should_save=False, file_path=None):
+    def mock(
+        self,
+        old_records=None,
+        record_more_if_needed=True,
+        fail_if_not_all_responses_used=True,
+        should_save=False,
+        file_path=None,
+    ):
         """
         Returns a context manager to mock the server responses (specified as old_records).
         """
@@ -154,8 +174,13 @@ class ServerCaller(ABC):
         Path(os.path.dirname(file_path)).mkdir(parents=True, exist_ok=True)
         self._save_records(self.all_records, file_path)
 
-    def mock_with_file(self, file_path, record_more_if_needed=True, fail_if_not_all_responses_used=True,
-                       should_save=True):
+    def mock_with_file(
+        self,
+        file_path,
+        record_more_if_needed=True,
+        fail_if_not_all_responses_used=True,
+        should_save=True,
+    ):
         """
         Returns a context-manager to mock the server responses from a specified file.
         """
@@ -165,14 +190,20 @@ class ServerCaller(ABC):
         else:
             old_records = []
 
-        return self.mock(old_records=old_records,
-                         record_more_if_needed=record_more_if_needed,
-                         fail_if_not_all_responses_used=fail_if_not_all_responses_used,
-                         should_save=should_save,
-                         file_path=file_path)
+        return self.mock(
+            old_records=old_records,
+            record_more_if_needed=record_more_if_needed,
+            fail_if_not_all_responses_used=fail_if_not_all_responses_used,
+            should_save=should_save,
+            file_path=file_path,
+        )
 
-    def record_or_replay(self, file_path: Union[str, Path] = None, should_mock: bool = True,
-                         fail_if_not_all_responses_used: bool = True):
+    def record_or_replay(
+        self,
+        file_path: Union[str, Path] = None,
+        should_mock: bool = True,
+        fail_if_not_all_responses_used: bool = True,
+    ):
         """
         Returns a decorator to call the decorated function while recording or replaying server responses.
 
@@ -181,19 +212,26 @@ class ServerCaller(ABC):
         """
 
         def decorator(func):
-            if not hasattr(func, '_module_file_path'):
-                func._module_file_path = os.path.dirname(os.path.abspath(func.__code__.co_filename))
+            if not hasattr(func, "_module_file_path"):
+                func._module_file_path = os.path.dirname(
+                    os.path.abspath(func.__code__.co_filename)
+                )
 
             @functools.wraps(func)
             def wrapper(*args, **kwargs):
                 nonlocal file_path
                 # use the file path of the decorated function if not given
-                file_path = file_path or os.path.join(func._module_file_path, 'recorded_responses', func.__name__ +
-                                                      self.file_extension)
+                file_path = file_path or os.path.join(
+                    func._module_file_path,
+                    "recorded_responses",
+                    func.__name__ + self.file_extension,
+                )
 
                 # run the test with the previous responses and record new responses
-                with self.mock_with_file(file_path=file_path,
-                                         fail_if_not_all_responses_used=fail_if_not_all_responses_used):
+                with self.mock_with_file(
+                    file_path=file_path,
+                    fail_if_not_all_responses_used=fail_if_not_all_responses_used,
+                ):
                     func(*args, **kwargs)
 
             wrapper._module_file_path = func._module_file_path
@@ -250,7 +288,9 @@ class OrderedServerCaller(ServerCaller, ABC):
     def __exit__(self, exc_type, exc_val, exc_tb):
         results = super().__exit__(exc_type, exc_val, exc_tb)
         if self.fail_if_not_all_responses_used and self.are_more_records_available():
-            raise AssertionError(f'Not all responses were used ({self.__class__.__name__}).')
+            raise AssertionError(
+                f"Not all responses were used ({self.__class__.__name__})."
+            )
         return results
 
     def __enter__(self):
@@ -279,12 +319,13 @@ class ListServerCaller(OrderedServerCaller):
         self.new_records.append(response)
 
     def _save_records(self, records, filepath):
-        dump_to_json([self._serialize_record(record)
-                      for record in records], filepath)
+        dump_to_json([self._serialize_record(record) for record in records], filepath)
 
     def _load_records(self, filepath):
-        return [self._deserialize_record(serialized_record)
-                for serialized_record in load_from_json(filepath)]
+        return [
+            self._deserialize_record(serialized_record)
+            for serialized_record in load_from_json(filepath)
+        ]
 
 
 class OrderedKeyToListServerCaller(OrderedServerCaller):
@@ -308,13 +349,15 @@ class OrderedKeyToListServerCaller(OrderedServerCaller):
         """
         Return a single list of all the old records, as tuples of (key, value).
         """
-        return [(key, value) for key, values in self.old_records.items() for value in values]
+        return [
+            (key, value) for key, values in self.old_records.items() for value in values
+        ]
 
     def _get_response_from_a_record(self, record, args, kwargs):
         # record is (key, value)
         key = self._generate_key(args, kwargs)
         if not key == record[0]:
-            raise ValueError(f'Key mismatch: {key} != {record[0]}')
+            raise ValueError(f"Key mismatch: {key} != {record[0]}")
         return record[1]
 
     def _add_response_to_new_records(self, args, kwargs, response):
@@ -327,22 +370,29 @@ class OrderedKeyToListServerCaller(OrderedServerCaller):
         return convert_args_kwargs_to_tuple(args, kwargs)
 
     def _save_records(self, records, filepath):
-        serialized_records = \
-            {key: [self._serialize_record(record) for record in value] for key, value in records.items()}
+        serialized_records = {
+            key: [self._serialize_record(record) for record in value]
+            for key, value in records.items()
+        }
         dump_to_json(serialized_records, filepath)
 
     def _load_records(self, filepath):
         serialized_records = load_from_json(filepath)
-        return {key:
-                [self._deserialize_record(record) for record in value] for key, value in serialized_records.items()}
+        return {
+            key: [self._deserialize_record(record) for record in value]
+            for key, value in serialized_records.items()
+        }
 
     def mock(self, old_records=None, *args, **kwargs):
         """
         Returns a context manager to mock the server responses (specified as old_records).
         """
         result = super().mock(old_records, *args, **kwargs)
-        self.old_records = old_records if isinstance(old_records, dict) else {"GENERAL": old_records} if (
-            old_records) else self.empty_records
+        self.old_records = (
+            old_records
+            if isinstance(old_records, dict)
+            else {"GENERAL": old_records} if (old_records) else self.empty_records
+        )
         return result
 
 
@@ -369,9 +419,9 @@ class ParameterizedQueryServerCaller(ServerCaller, ABC):
         self.new_records[tuple_args_and_kwargs] = response
 
     def _save_records(self, records, filepath):
-        with open(filepath, 'wb') as file:
+        with open(filepath, "wb") as file:
             pickle.dump(records, file)
 
     def _load_records(self, filepath):
-        with open(filepath, 'rb') as filepath:
+        with open(filepath, "rb") as filepath:
             return pickle.load(filepath)
