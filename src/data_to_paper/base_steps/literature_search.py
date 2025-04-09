@@ -274,8 +274,8 @@ class LiteratureSearch(ValueProduct):
             citations = [
                 citation
                 for citation in citations
-                if (citation.title is not None or citation.title != "")
-                and (citation.abstract is not None or citation.abstract != "")
+                if (citation.title is not None and citation.title != "")
+                and (citation.abstract is not None and citation.abstract != "")
             ]
 
         else:
