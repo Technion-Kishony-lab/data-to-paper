@@ -249,9 +249,6 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
         if self.response_to_floating_citations:
             section_without_citations = remove_citations_from_section(section)
             allowed_ids = self._get_allowed_bibtex_citation_ids()
-            print("*" * 20)
-            print(f"allowed_ids: {allowed_ids}")
-            print("*" * 20)
             floating_ids = ListBasedSet(
                 [
                     citation_id
