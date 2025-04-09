@@ -57,6 +57,7 @@ BOOK_MAPPING = {
 
 
 STRS_TO_REMOVE_FROM_BIBTEX_ID = [
+    " ",
     "-",
     "_",
     "–",
@@ -81,6 +82,39 @@ STRS_TO_REMOVE_FROM_BIBTEX_ID = [
     '"',
     "–",
 ]
+
+FORBIDDEN_BIBTEX_IDS = set(
+    [
+        "None",
+        "none",
+        "nan",
+        "NA",
+        "na",
+        "N/A",
+        "Introduction",
+        "introduction",
+        "Results",
+        "results",
+        "Discussion",
+        "discussion",
+        "Methods",
+        "methods",
+        "Abstract",
+        "abstract",
+        "Conclusion",
+        "conclusion",
+        "Background",
+        "background",
+        "Acknowledgments",
+        "acknowledgments",
+        "References",
+        "references",
+        "Supplementary",
+        "supplementary",
+        "",
+        " ",
+    ]
+)
 
 
 class CrossrefCitation(Citation):
@@ -305,7 +339,11 @@ class CrossrefServerCaller(ParameterizedQueryServerCaller):
         citations = NiceList(separator="\n", prefix="[\n", suffix="\n]")
         for rank, paper in enumerate(response):
             citation = CrossrefCitation(paper, search_rank=rank, query=query)
-            if len(citation.bibtex_id) <= 4:
+            if (
+                len(citation.bibtex_id) <= 4
+                or citation.bibtex_id in FORBIDDEN_BIBTEX_IDS
+            ):
+                # bibtex_id is too short or is forbidden
                 print_and_log_red(
                     f"ERROR: bibtex_id is too short. skipping. Title: {citation.title}"
                 )
