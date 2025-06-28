@@ -125,6 +125,7 @@ class CrossrefCitation(Citation):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._bibtex_id_override = None  # For handling duplicate IDs
 
     @property
     def bibtex_type(self) -> str:
@@ -161,16 +162,76 @@ class CrossrefCitation(Citation):
     def bibtex_id(self) -> str:
         """
         Get the bibtex id for this citation.
+        Creates a more descriptive and unique ID to avoid conflicts.
         """
-        bibtex_id = unidecode(self["first_author_family"]) + (
-            str(self.get("year")) if self.get("year") else ""
-        )
-        bibtex_id += self["title"].split(" ")[0] if self.get("title") else ""
+        # Check for override first (used for uniqueness)
+        if hasattr(self, '_bibtex_id_override') and self._bibtex_id_override:
+            return self._bibtex_id_override
+            
+        # Check if we have sufficient metadata for a quality citation
+        if not self._has_sufficient_metadata():
+            return None  # Signal that this citation should be filtered out
+            
+        # Get components with better fallbacks
+        first_author = self.get("first_author_family", "")
+        if first_author:
+            first_author = unidecode(first_author)
+            # Clean author name more thoroughly
+            first_author = ''.join(c for c in first_author if c.isalnum())
+            first_author = first_author[:12]  # Limit length
+        else:
+            first_author = "UnknownAuthor"
+            
+        year = str(self.get("year", "")) if self.get("year") else "NoYear"
+        
+        # Use multiple meaningful words from title for better uniqueness
+        title_words = []
+        if self.get("title"):
+            # Split title and filter out common words
+            common_words = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'being'}
+            words = self.get("title", "").split()
+            meaningful_words = [w for w in words if w.lower() not in common_words and len(w) > 2][:3]  # Take up to 3 meaningful words
+            
+            if meaningful_words:
+                title_words = [unidecode(word) for word in meaningful_words]
+                # Clean each word
+                title_words = [''.join(c for c in word if c.isalnum()) for word in title_words]
+                title_words = [word for word in title_words if len(word) > 1]  # Filter out single letters
+        
+        if not title_words:
+            title_words = ["NoTitle"]
+            
+        # Create more descriptive ID
+        title_part = ''.join(word.capitalize() for word in title_words[:3])  # Use up to 3 words
+        bibtex_id = first_author + year + title_part
 
-        # remove special characters from the id like -, _, etc.
+        # remove special characters from the id
         for char in STRS_TO_REMOVE_FROM_BIBTEX_ID:
             bibtex_id = bibtex_id.replace(char, "")
+            
+        # Ensure minimum quality and not forbidden
+        if len(bibtex_id) <= 8 or bibtex_id in FORBIDDEN_BIBTEX_IDS:
+            # Use DOI-based ID if available (more reliable)
+            if self.get("DOI"):
+                doi_clean = ''.join(c for c in self.get("DOI") if c.isalnum())[-10:]
+                bibtex_id = first_author + year + "DOI" + doi_clean
+            else:
+                # If still not good enough, this citation should be filtered out
+                return None
+                
         return bibtex_id
+    
+    def _has_sufficient_metadata(self) -> bool:
+        """
+        Check if this citation has sufficient metadata to be useful.
+        """
+        # Must have at least title and either author or year
+        has_title = bool(self.get("title", "").strip())
+        has_author = bool(self.get("first_author_family", "").strip())
+        has_year = bool(self.get("year"))
+        
+        # Must have title and at least one of author/year
+        return has_title and (has_author or has_year)
 
     @property
     def title(self) -> str:
@@ -337,18 +398,28 @@ class CrossrefServerCaller(ParameterizedQueryServerCaller):
         """
         query = args[0] if args else kwargs.get("query", None)
         citations = NiceList(separator="\n", prefix="[\n", suffix="\n]")
+        seen_bibtex_ids = set()
+        
         for rank, paper in enumerate(response):
             citation = CrossrefCitation(paper, search_rank=rank, query=query)
-            if (
-                len(citation.bibtex_id) <= 4
-                or citation.bibtex_id in FORBIDDEN_BIBTEX_IDS
-            ):
-                # bibtex_id is too short or is forbidden
-                print_and_log_red(
-                    f"ERROR: bibtex_id is too short. skipping. Title: {citation.title}"
-                )
+            
+            # Check if citation has sufficient metadata
+            if citation.bibtex_id is None:
+                print_and_log_red(f"Skipping citation with insufficient metadata: {citation.get('title', 'No title')[:50]}")
                 continue
+                
+            # Ensure uniqueness - if we have a duplicate, modify it
+            original_id = citation.bibtex_id
+            counter = 1
+            while citation.bibtex_id in seen_bibtex_ids:
+                citation._bibtex_id_override = f"{original_id}{chr(65 + counter - 1)}"  # Add A, B, C, etc.
+                counter += 1
+                if counter > 26:  # Fallback after Z
+                    citation._bibtex_id_override = f"{original_id}{counter - 26}"
+                    
+            seen_bibtex_ids.add(citation.bibtex_id)
             citations.append(citation)
+            
         return citations
 
 
