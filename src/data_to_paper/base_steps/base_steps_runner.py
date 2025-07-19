@@ -182,7 +182,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
         # delete all conversations in the actions_and_conversations of the steps after and including the step
         conversation_names = list(self.actions_and_conversations.conversations.keys())
         conversations_to_delete = conversation_names[
-            self.stages_to_conversations_lens[stage] :
+            self.stages_to_conversations_lens[stage]:
         ]
         for conversation in conversations_to_delete:
             del self.actions_and_conversations.conversations[conversation]
