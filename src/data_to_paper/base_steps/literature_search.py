@@ -275,7 +275,7 @@ class LiteratureSearch(ValueProduct):
                 citation
                 for citation in citations
                 if (citation.title is not None and citation.title != "")
-                and (citation.abstract is not None and citation.abstract != "")
+                or (citation.abstract is not None and citation.abstract != "")
             ]
 
         else:
