@@ -3,14 +3,23 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, Tuple, Dict, Type, Any, NamedTuple, Collection, List
 
+from data_to_paper.servers.model_manager import ModelManager
 from data_to_paper.types import HumanReviewType
-from data_to_paper.env import SUPPORTED_PACKAGES, PAUSE_AT_LLM_FEEDBACK, PAUSE_AT_PROMPT_FOR_LLM_FEEDBACK, \
-    AUTO_TERMINATE_AI_REVIEW, JSON_MODE, CODING_MODEL_ENGINE
+from data_to_paper.env import (
+    SUPPORTED_PACKAGES,
+    PAUSE_AT_LLM_FEEDBACK,
+    PAUSE_AT_PROMPT_FOR_LLM_FEEDBACK,
+    AUTO_TERMINATE_AI_REVIEW,
+    JSON_MODE,
+    CODING_MODEL_ENGINE,
+)
 from data_to_paper.interactive import PanelNames
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.run_gpt_code.run_issues import CodeProblem
-from data_to_paper.code_and_output_files.output_file_requirements import TextContentOutputFileRequirement, \
-    OutputFileRequirements
+from data_to_paper.code_and_output_files.output_file_requirements import (
+    TextContentOutputFileRequirement,
+    OutputFileRequirements,
+)
 from data_to_paper.text import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.utils.replacer import Replacer, format_value
@@ -21,7 +30,10 @@ from data_to_paper.interactive.human_review import HumanReviewAppInteractor
 
 from data_to_paper.interactive.symbols import Symbols
 from data_to_paper.run_gpt_code.code_runner import CodeRunner
-from data_to_paper.run_gpt_code.extract_and_check_code import CodeExtractor, ModifyAndCheckCodeExtractor
+from data_to_paper.run_gpt_code.extract_and_check_code import (
+    CodeExtractor,
+    ModifyAndCheckCodeExtractor,
+)
 from data_to_paper.servers.model_engine import ModelEngine
 
 from .debugger import DebuggerConverser
@@ -47,15 +59,15 @@ class CodeReviewPrompt(NamedTuple):
     # use {file_contents_str} to include the content of the created file(s)
 
     def get_header(self) -> str:
-        header = 'Review'
+        header = "Review"
         if self.name:
-            header += f' of {self.name}'
+            header += f" of {self.name}"
         return header
 
 
 @dataclass
 class RequestIssuesToSolutions(PythonDictReviewBackgroundProductsConverser):
-    LLM_PARAMETERS = {'temperature': 0.5}
+    LLM_PARAMETERS = {"temperature": 0.5}
     value_type: type = Dict[str, List[str]]
     json_mode: bool = JSON_MODE
     your_response_should_be_formatted_as: str = dedent_triple_quote_str("""
@@ -89,10 +101,10 @@ class RequestIssuesToSolutions(PythonDictReviewBackgroundProductsConverser):
         response_value = super()._check_response_value(response_value)
         for key, (type_, feedback) in response_value.items():
             type_ = type_.upper()
-            if type_ not in ('CONCERN', 'OK'):
+            if type_ not in ("CONCERN", "OK"):
                 self._raise_self_response_error(
-                    title='# Invalid value.',
-                    error_message=f'The first element of the array should be "CONCERN" or "OK", but got {repr(type_)}.'
+                    title="# Invalid value.",
+                    error_message=f'The first element of the array should be "CONCERN" or "OK", but got {repr(type_)}.',
                 )
             response_value[key] = (type_, feedback)
         return response_value
@@ -120,12 +132,12 @@ class BaseCodeProductsGPT(BackgroundProductsConverser, HumanReviewAppInteractor)
         You are a brilliant data scientist. You are writing a Python code to analyze data.
         """)
 
-    goal_noun: str = '{code_name} code'
-    goal_verb: str = 'write'
-    mission_prompt: str = 'Please write a code to analyze the data.'
-    termination_phrase: str = 'No issues found.'
+    goal_noun: str = "{code_name} code"
+    goal_verb: str = "write"
+    mission_prompt: str = "Please write a code to analyze the data."
+    termination_phrase: str = "No issues found."
 
-    code_name: str = ''  # e.g. "data analysis"
+    code_name: str = ""  # e.g. "data analysis"
 
     present_code_as_fresh: str = dedent_triple_quote_str("""
         Here is the code to perform the analysis.
@@ -135,11 +147,14 @@ class BaseCodeProductsGPT(BackgroundProductsConverser, HumanReviewAppInteractor)
         ```
         """)  # set to None to not present code
 
-    your_response_should_be_formatted_as: str = RequestIssuesToSolutions.your_response_should_be_formatted_as
+    your_response_should_be_formatted_as: str = (
+        RequestIssuesToSolutions.your_response_should_be_formatted_as
+    )
 
-    code_review_formatting_instructions: str = \
-        'Your response should be formatted as {your_response_should_be_formatted_as}.\n' \
-        'Do NOT provide any corrected code or code fragments.'
+    code_review_formatting_instructions: str = (
+        "Your response should be formatted as {your_response_should_be_formatted_as}.\n"
+        "Do NOT provide any corrected code or code fragments."
+    )
 
     code_review_notes: str = dedent_triple_quote_str("""
         Notes:
@@ -157,7 +172,11 @@ class BaseCodeProductsGPT(BackgroundProductsConverser, HumanReviewAppInteractor)
 
     # set to () to skip option for revision
     code_review_prompts: Collection[CodeReviewPrompt] = (
-        CodeReviewPrompt(None, '*', False, dedent_triple_quote_str("""
+        CodeReviewPrompt(
+            None,
+            "*",
+            False,
+            dedent_triple_quote_str("""
             I ran your code. 
 
             Here is the content of the output file(s) that the code created:
@@ -188,15 +207,16 @@ class BaseCodeProductsGPT(BackgroundProductsConverser, HumanReviewAppInteractor)
             ```
 
             {code_review_notes}
-            """)),
+            """),
+        ),
     )
 
     _output_file_requirements: OutputFileRequirements = None
 
     def _create_output_file_requirements(self) -> OutputFileRequirements:
-        return OutputFileRequirements((
-            TextContentOutputFileRequirement('results.txt'),
-        ))
+        return OutputFileRequirements(
+            (TextContentOutputFileRequirement("results.txt"),)
+        )
 
     @property
     def output_file_requirements(self) -> OutputFileRequirements:
@@ -214,14 +234,16 @@ class BaseCodeProductsGPT(BackgroundProductsConverser, HumanReviewAppInteractor)
     def get_created_file_names_explanation(self, code_and_output: CodeAndOutput) -> str:  # noqa
         created_files = code_and_output.created_files.get_all_created_files()
         if len(created_files) == 0:
-            return ''
+            return ""
         elif len(created_files) == 1:
             created_file = next(iter(created_files))
             return f'It creates the file "{created_file}".'
         else:
-            return f'It creates the files: {list(created_files)}.'
+            return f"It creates the files: {list(created_files)}."
 
-    def _get_specific_attrs_for_code_and_output(self, code_and_output: CodeAndOutput) -> Dict[str, str]:
+    def _get_specific_attrs_for_code_and_output(
+        self, code_and_output: CodeAndOutput
+    ) -> Dict[str, str]:
         return {}
 
     @property
@@ -230,9 +252,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser, HumanReviewAppInteractor)
         The names of the files that gpt code can access.
         Need to be overridden by subclasses, to include the names of the data files from Products
         """
-        return NiceList([],
-                        wrap_with='"',
-                        prefix='{} data file[s]: ')
+        return NiceList([], wrap_with='"', prefix="{} data file[s]: ")
 
     @property
     def data_folder(self) -> Optional[Path]:
@@ -244,7 +264,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser, HumanReviewAppInteractor)
 
     @property
     def _request_code_tag(self):
-        return f'code_revision_{self.revision_round}'
+        return f"code_revision_{self.revision_round}"
 
     def _get_initial_code_and_output(self) -> CodeAndOutput:  # noqa
         return CodeAndOutput()
@@ -265,26 +285,33 @@ class BaseCodeProductsGPT(BackgroundProductsConverser, HumanReviewAppInteractor)
         code_and_output.provided_code = format_value(self, self.provided_code)
         return code_and_output
 
-    def get_debugger(self, previous_code: Optional[str] = None,
-                     data_filenames: Optional[Collection[str]] = 'not_provided',
-                     data_folder: Optional[Path] = 'not_provided',
-                     is_new_conversation: Optional[bool] = 'not_provided',
-                     ) -> DebuggerConverser:
-        if data_filenames == 'not_provided':
+    def get_debugger(
+        self,
+        previous_code: Optional[str] = None,
+        data_filenames: Optional[Collection[str]] = "not_provided",
+        data_folder: Optional[Path] = "not_provided",
+        is_new_conversation: Optional[bool] = "not_provided",
+    ) -> DebuggerConverser:
+        if data_filenames == "not_provided":
             data_filenames = self.data_filenames
-        if data_folder == 'not_provided':
+        if data_folder == "not_provided":
             data_folder = self.data_folder
-        if is_new_conversation == 'not_provided':
+        if is_new_conversation == "not_provided":
             is_new_conversation = False
         return self.debugger_cls.from_(
             self,
             is_new_conversation=is_new_conversation,
             max_debug_iterations=self.max_debug_iterations_per_attempt,
-            background_product_fields_to_hide=(() if self.revision_round == 0
-                                               else self.background_product_fields_to_hide_during_code_revision),
+            background_product_fields_to_hide=(
+                ()
+                if self.revision_round == 0
+                else self.background_product_fields_to_hide_during_code_revision
+            ),
             code_and_output_cls=self.code_and_output_cls,
             previous_code=previous_code,
-            previous_code_problem=CodeProblem.NoCode if previous_code is None else CodeProblem.AllOK,
+            previous_code_problem=CodeProblem.NoCode
+            if previous_code is None
+            else CodeProblem.AllOK,
             code_extractor_cls=self.code_extractor_cls,
             code_runner_cls=self.code_runner_cls,
             output_file_requirements=self.output_file_requirements,
@@ -296,20 +323,23 @@ class BaseCodeProductsGPT(BackgroundProductsConverser, HumanReviewAppInteractor)
             additional_contexts=self._get_additional_contexts(),
         )
 
-    def _run_debugger(self, previous_code: Optional[str] = None
-                      ) -> Tuple[Optional[CodeAndOutput], Optional[DebuggerConverser]]:
+    def _run_debugger(
+        self, previous_code: Optional[str] = None
+    ) -> Tuple[Optional[CodeAndOutput], Optional[DebuggerConverser]]:
         for attempt in range(self.max_code_writing_attempts):
             # in each attempt, we are resetting the conversation back to this tag:
-            revision_and_attempt = f"Revision {self.revision_round + 1}/{self.max_code_revisions} " \
-                                   f"(attempt {attempt + 1}/{self.max_code_writing_attempts})"
-            self.comment(f'Starting to write and debug code. {revision_and_attempt}.')
+            revision_and_attempt = (
+                f"Revision {self.revision_round + 1}/{self.max_code_revisions} "
+                f"(attempt {attempt + 1}/{self.max_code_writing_attempts})"
+            )
+            self.comment(f"Starting to write and debug code. {revision_and_attempt}.")
 
             # we now call the debugger that will try to run and provide feedback in multiple iterations:
             debugger = self.get_debugger(previous_code)
             code_and_output = debugger.run_debugging()
             if code_and_output is None:
                 # debugging failed
-                self.comment(f'Debugging failed, {revision_and_attempt}.')
+                self.comment(f"Debugging failed, {revision_and_attempt}.")
                 continue
 
             if self.present_code_as_fresh:
@@ -317,30 +347,41 @@ class BaseCodeProductsGPT(BackgroundProductsConverser, HumanReviewAppInteractor)
                 self._rewind_conversation_to_first_response()
                 self.apply_append_surrogate_message(
                     content=Replacer(
-                        self, self.present_code_as_fresh,
+                        self,
+                        self.present_code_as_fresh,
                         kwargs=dict(
                             code=code_and_output.code,
-                            created_file_names_explanation=self.get_created_file_names_explanation(code_and_output),
-                        )),
-                    comment='Adding the debugged code as if it was the original response.',
+                            created_file_names_explanation=self.get_created_file_names_explanation(
+                                code_and_output
+                            ),
+                        ),
+                    ),
+                    comment="Adding the debugged code as if it was the original response.",
                 )
             return code_and_output, debugger
         return None, None
 
-    def _get_content_files_to_contents(self, code_and_output: CodeAndOutput, wildcard_filename: str,
-                                       individually: bool) -> Dict[str, str]:
+    def _get_content_files_to_contents(
+        self, code_and_output: CodeAndOutput, wildcard_filename: str, individually: bool
+    ) -> Dict[str, str]:
         if wildcard_filename is None:
             content_files_to_contents = {None: None}
         else:
-            content_files_to_contents = \
-                code_and_output.created_files.get_created_content_files_to_pretty_contents(
-                    view_purpose=ViewPurpose.CODE_REVIEW, match_filename=wildcard_filename, header_level=3)
+            content_files_to_contents = code_and_output.created_files.get_created_content_files_to_pretty_contents(
+                view_purpose=ViewPurpose.CODE_REVIEW,
+                match_filename=wildcard_filename,
+                header_level=3,
+            )
             if not individually:
-                content_files_to_contents = {wildcard_filename: '\n\n'.join(content_files_to_contents.values())}
+                content_files_to_contents = {
+                    wildcard_filename: "\n\n".join(content_files_to_contents.values())
+                }
         return content_files_to_contents
 
     @staticmethod
-    def _convert_issues_to_messages(issues: Dict[str, Tuple[str, str]], header: str) -> Tuple[str, str, bool]:
+    def _convert_issues_to_messages(
+        issues: Dict[str, Tuple[str, str]], header: str
+    ) -> Tuple[str, str, bool]:
         """
         Convert the issues to:
         - llm_msg: a string with the issues that are problems to send to the LLM
@@ -348,30 +389,48 @@ class BaseCodeProductsGPT(BackgroundProductsConverser, HumanReviewAppInteractor)
         - is_all_ok: True if all issues are OK, False if all issues are concerns, None if there are both
         """
 
-        concern_issues = {issue: feedback for issue, (type_, feedback) in issues.items() if type_ != 'OK'}
-        is_all_ok = True if not concern_issues else False if len(concern_issues) == len(issues) else None
-        llm_msg = f'# {header}\n\n'
+        concern_issues = {
+            issue: feedback
+            for issue, (type_, feedback) in issues.items()
+            if type_ != "OK"
+        }
+        is_all_ok = (
+            True
+            if not concern_issues
+            else False
+            if len(concern_issues) == len(issues)
+            else None
+        )
+        llm_msg = f"# {header}\n\n"
         if concern_issues:
-            llm_msg += '\n\n'.join(f'## {issue}\n{solution}' for issue, solution in concern_issues.items())
+            llm_msg += "\n\n".join(
+                f"## {issue}\n{solution}" for issue, solution in concern_issues.items()
+            )
         else:
-            llm_msg += 'No issues found.'
+            llm_msg += "No issues found."
 
         if issues:
-            app_msg = '\n'.join(
-                f'### {Symbols.get_is_ok_symbol(type_ == "OK")} {issue}\n{feedback}'
-                for issue, (type_, feedback) in issues.items())
+            app_msg = "\n".join(
+                f"### {Symbols.get_is_ok_symbol(type_ == 'OK')} {issue}\n{feedback}"
+                for issue, (type_, feedback) in issues.items()
+            )
         else:
-            app_msg = f'No issues found.'
-        app_msg = f'## {Symbols.get_is_ok_symbol(is_all_ok)} {header}\n{app_msg}'
+            app_msg = f"No issues found."
+        app_msg = f"## {Symbols.get_is_ok_symbol(is_all_ok)} {header}\n{app_msg}"
         return llm_msg, app_msg, is_all_ok
 
-    def _get_llm_code_review(self, code_and_output: CodeAndOutput, auto_terminate: bool) -> str:
+    def _get_llm_code_review(
+        self, code_and_output: CodeAndOutput, auto_terminate: bool
+    ) -> str:
         if auto_terminate and self.revision_round >= self.max_code_revisions:
             return self.termination_phrase
         llm_msgs_and_is_issues: List[Tuple[str, bool]] = []
         for index, code_review_prompt in enumerate(self.code_review_prompts):
             content_files_to_contents = self._get_content_files_to_contents(
-                code_and_output, code_review_prompt.wildcard_filename, code_review_prompt.individually)
+                code_and_output,
+                code_review_prompt.wildcard_filename,
+                code_review_prompt.individually,
+            )
             for filename, file_contents_str in content_files_to_contents.items():
                 requester = RequestIssuesToSolutions.from_(
                     self,
@@ -382,49 +441,82 @@ class BaseCodeProductsGPT(BackgroundProductsConverser, HumanReviewAppInteractor)
                 replacing_kwargs = dict(
                     file_contents_str=file_contents_str,
                     filename=filename,
-                    **{k: Replacer(self, v).format_text()
-                       for k, v in self._get_specific_attrs_for_code_and_output(code_and_output).items()},
+                    **{
+                        k: Replacer(self, v).format_text()
+                        for k, v in self._get_specific_attrs_for_code_and_output(
+                            code_and_output
+                        ).items()
+                    },
                 )
-                header = Replacer([self, requester], code_review_prompt.get_header(),
-                                  kwargs=replacing_kwargs).format_text()
-                formatted_code_review_prompt = \
-                    Replacer([self, requester], '## Request ' + header + '\n' + code_review_prompt.prompt,
-                             kwargs=replacing_kwargs).format_text()
+                header = Replacer(
+                    [self, requester],
+                    code_review_prompt.get_header(),
+                    kwargs=replacing_kwargs,
+                ).format_text()
+                formatted_code_review_prompt = Replacer(
+                    [self, requester],
+                    "## Request " + header + "\n" + code_review_prompt.prompt,
+                    kwargs=replacing_kwargs,
+                ).format_text()
                 self._app_send_prompt(PanelNames.FEEDBACK)
-                self._app_send_prompt(PanelNames.FEEDBACK, formatted_code_review_prompt,
-                                      sleep_for=PAUSE_AT_PROMPT_FOR_LLM_FEEDBACK, from_md=True)
+                self._app_send_prompt(
+                    PanelNames.FEEDBACK,
+                    formatted_code_review_prompt,
+                    sleep_for=PAUSE_AT_PROMPT_FOR_LLM_FEEDBACK,
+                    from_md=True,
+                )
                 requester.mission_prompt = formatted_code_review_prompt
-                with self._app_temporarily_set_panel_status(PanelNames.FEEDBACK,
-                                                            f"Waiting for LLM {header} ({self.model_engine})"):
-                    issues_to_is_ok_and_feedback = requester.run_and_get_valid_result(with_review=False)
-                llm_msg, app_msg, is_all_ok = \
-                    self._convert_issues_to_messages(issues_to_is_ok_and_feedback, header)
+                model_engine = ModelEngine(
+                    ModelManager.get_instance().get_current_model()
+                )
+                with self._app_temporarily_set_panel_status(
+                    PanelNames.FEEDBACK,
+                    f"Waiting for LLM {header} ({model_engine.value})",
+                ):
+                    issues_to_is_ok_and_feedback = requester.run_and_get_valid_result(
+                        with_review=False
+                    )
+                llm_msg, app_msg, is_all_ok = self._convert_issues_to_messages(
+                    issues_to_is_ok_and_feedback, header
+                )
                 llm_msgs_and_is_issues.append((llm_msg, is_all_ok is True))
-                self._app_send_prompt(PanelNames.FEEDBACK, app_msg, sleep_for=PAUSE_AT_LLM_FEEDBACK, from_md=True)
+                self._app_send_prompt(
+                    PanelNames.FEEDBACK,
+                    app_msg,
+                    sleep_for=PAUSE_AT_LLM_FEEDBACK,
+                    from_md=True,
+                )
 
         if all(is_ok for _, is_ok in llm_msgs_and_is_issues):
             return self.termination_phrase
-        return '\n\n\n'.join(llm_msg for llm_msg, is_issues in llm_msgs_and_is_issues)
+        return "\n\n\n".join(llm_msg for llm_msg, is_issues in llm_msgs_and_is_issues)
 
-    def _get_human_code_review(self, llm_review: Optional[str] = None,
-                               initial_text: str = '',
-                               title: str = 'Human Code Review',
-                               ) -> Optional[str]:
+    def _get_human_code_review(
+        self,
+        llm_review: Optional[str] = None,
+        initial_text: str = "",
+        title: str = "Human Code Review",
+    ) -> Optional[str]:
         if not self.app:
             return None
-        human_review, human_action = self._app_receive_text_and_action(PanelNames.FEEDBACK, initial_text=initial_text,
-                                                                       title=title,
-                                                                       in_field_instructions=dedent_triple_quote_str("""
+        human_review, human_action = self._app_receive_text_and_action(
+            PanelNames.FEEDBACK,
+            initial_text=initial_text,
+            title=title,
+            in_field_instructions=dedent_triple_quote_str("""
                 Enter your feedback on code and output.
                 Leave blank if no issues.
-                """), optional_suggestions={'AI': llm_review, 'Default': ''})
+                """),
+            optional_suggestions={"AI": llm_review, "Default": ""},
+        )
         if isinstance(human_action, RequestInfoHumanAction):
-            assert human_action.value == 'AI'
+            assert human_action.value == "AI"
             return None
         return human_review
 
-    def _get_code_review(self, code_and_output: CodeAndOutput,
-                         debugger: DebuggerConverser) -> bool:
+    def _get_code_review(
+        self, code_and_output: CodeAndOutput, debugger: DebuggerConverser
+    ) -> bool:
         """
         Return True/False indicating if the LLM wants to revise the code.
         If true, set the conversation to the state where the user ask the LLM to revise the code.
@@ -435,34 +527,48 @@ class BaseCodeProductsGPT(BackgroundProductsConverser, HumanReviewAppInteractor)
             human_review = None
         elif self.actual_human_review == HumanReviewType.LLM_FIRST:
             # LLM code review is performed first and sent for human review
-            llm_review = self._get_llm_code_review(code_and_output, auto_terminate=AUTO_TERMINATE_AI_REVIEW)
+            llm_review = self._get_llm_code_review(
+                code_and_output, auto_terminate=AUTO_TERMINATE_AI_REVIEW
+            )
             human_review = self._get_human_code_review(llm_review)
         elif self.actual_human_review == HumanReviewType.LLM_UPON_REQUEST:
             # LLM code review is requested only if human click "AI" button
             llm_review = None
             human_review = self._get_human_code_review(llm_review)
             if human_review is None:
-                llm_review = self._get_llm_code_review(code_and_output, auto_terminate=AUTO_TERMINATE_AI_REVIEW)
-                human_review = self._get_human_code_review(llm_review, title='Human Code Review (AI draft provided)',
-                                                           initial_text=llm_review)
+                llm_review = self._get_llm_code_review(
+                    code_and_output, auto_terminate=AUTO_TERMINATE_AI_REVIEW
+                )
+                human_review = self._get_human_code_review(
+                    llm_review,
+                    title="Human Code Review (AI draft provided)",
+                    initial_text=llm_review,
+                )
         else:
-            raise ValueError(f'Invalid value for human_review: {self.actual_human_review}')
+            raise ValueError(
+                f"Invalid value for human_review: {self.actual_human_review}"
+            )
 
         review = llm_review if human_review is None else human_review
         is_terminating = not review.strip() or review == self.termination_phrase
         if human_review is None:
-            review = review + '\n\n## Other\nPlease fix any other issues that you may find.'
+            review = (
+                review + "\n\n## Other\nPlease fix any other issues that you may find."
+            )
 
-        prompt_to_append_at_end_of_response = \
-            Replacer(debugger, debugger.prompt_to_append_at_end_of_response).format_text()
+        prompt_to_append_at_end_of_response = Replacer(
+            debugger, debugger.prompt_to_append_at_end_of_response
+        ).format_text()
         if not is_terminating:
-            response = '# Code review\n' + dedent_triple_quote_str("""
+            response = "# Code review\n" + dedent_triple_quote_str("""
                 The code has some issues that need to be fixed:
 
                 {code_review}
 
                 {prompt_to_append_at_end_of_response}
-                """).format(code_review=review,
-                            prompt_to_append_at_end_of_response=prompt_to_append_at_end_of_response)
+                """).format(
+                code_review=review,
+                prompt_to_append_at_end_of_response=prompt_to_append_at_end_of_response,
+            )
             self.apply_append_user_message(response)
         return is_terminating

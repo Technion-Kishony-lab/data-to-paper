@@ -3,18 +3,48 @@ from typing import Optional, List, Collection, Dict, Callable, Any, Union, Tuple
 
 from PySide6.QtCore import Qt, QMutex, QWaitCondition, QThread, Signal, Slot
 from PySide6.QtGui import QTextOption, QTextCursor
-from PySide6.QtWidgets import QMainWindow, QVBoxLayout, QLabel, QPushButton, QWidget, \
-    QHBoxLayout, QSplitter, QTextEdit, QTabWidget, QDialog, QSizePolicy, QCheckBox, QSpacerItem
+from PySide6.QtWidgets import (
+    QMainWindow,
+    QVBoxLayout,
+    QLabel,
+    QPushButton,
+    QWidget,
+    QHBoxLayout,
+    QSplitter,
+    QTextEdit,
+    QTabWidget,
+    QDialog,
+    QSizePolicy,
+    QCheckBox,
+    QSpacerItem,
+    QCompleter,
+    QLineEdit,
+)
 
 from data_to_paper.conversation.stage import Stage
 from data_to_paper.interactive.base_app import BaseApp, REQUESTING_MISSING_TEXT
 from data_to_paper.interactive.enum_types import PanelNames
-from data_to_paper.interactive.get_app import get_or_create_q_application_if_app_is_pyside
-from data_to_paper.interactive.styles import CURRENT_STEP_COLOR, SUBMIT_BUTTON_COLOR, PANEL_HEADER_COLOR, QEDIT_STYLE, \
-    STEP_PANEL_BUTTON_STYLE, BACKGROUND_COLOR, CSS, APP_STYLE, TABS_STYLE, HTMLPOPUP_STYLE, \
-    MAIN_SPLITTER_STYLE, QCHECKBOX_STYLE, STEP_PANEL_RESET_BUTTON_STYLE
+from data_to_paper.interactive.get_app import (
+    get_or_create_q_application_if_app_is_pyside,
+)
+from data_to_paper.interactive.styles import (
+    CURRENT_STEP_COLOR,
+    SUBMIT_BUTTON_COLOR,
+    PANEL_HEADER_COLOR,
+    QEDIT_STYLE,
+    STEP_PANEL_BUTTON_STYLE,
+    BACKGROUND_COLOR,
+    CSS,
+    APP_STYLE,
+    TABS_STYLE,
+    HTMLPOPUP_STYLE,
+    MAIN_SPLITTER_STYLE,
+    QCHECKBOX_STYLE,
+    STEP_PANEL_RESET_BUTTON_STYLE,
+)
 from data_to_paper.interactive.utils import open_file_on_os
 from data_to_paper.servers.api_cost import StageToCost
+from data_to_paper.servers.model_manager import ModelManager
 
 
 def _get_label_height(label: QLabel) -> int:
@@ -48,7 +78,9 @@ class Worker(QThread):
         if self.func_to_run is not None:
             self.func_to_run()
 
-    def worker_set_status(self, panel_name: PanelNames, position: int, status: str = ''):
+    def worker_set_status(
+        self, panel_name: PanelNames, position: int, status: str = ""
+    ):
         self.set_status_signal.emit(panel_name, position, status)
 
     def worker_set_header(self, header: str):
@@ -60,21 +92,36 @@ class Worker(QThread):
         self.condition.wait(self.mutex)
         self.mutex.unlock()
 
-    def worker_request_text(self, panel_name: PanelNames, initial_text: str = '',
-                            title: Optional[str] = None,
-                            instructions: Optional[str] = None,
-                            in_field_instructions: Optional[str] = None,
-                            optional_suggestions: Dict[str, str] = None) -> str:
+    def worker_request_text(
+        self,
+        panel_name: PanelNames,
+        initial_text: str = "",
+        title: Optional[str] = None,
+        instructions: Optional[str] = None,
+        in_field_instructions: Optional[str] = None,
+        optional_suggestions: Dict[str, str] = None,
+    ) -> str:
         self.mutex.lock()
-        self.request_text_signal.emit(panel_name, initial_text, title, instructions, in_field_instructions,
-                                      optional_suggestions)
+        self.request_text_signal.emit(
+            panel_name,
+            initial_text,
+            title,
+            instructions,
+            in_field_instructions,
+            optional_suggestions,
+        )
         self.condition.wait(self.mutex)
         input_text = self._text_input
         self.mutex.unlock()
         return input_text
 
-    def worker_show_text(self, panel_name: PanelNames, text: str, is_html: bool = False,
-                         scroll_to_bottom: bool = False):
+    def worker_show_text(
+        self,
+        panel_name: PanelNames,
+        text: str,
+        is_html: bool = False,
+        scroll_to_bottom: bool = False,
+    ):
         self.show_text_signal.emit(panel_name, text, is_html, scroll_to_bottom)
 
     def worker_set_focus_on_panel(self, panel_name: PanelNames):
@@ -118,23 +165,34 @@ class StepsPanel(QWidget):
         self.layout = QVBoxLayout(self)
         self.step_widgets = {}
 
-    def init_ui(self, labels_to_callbacks: Dict[Tuple[str, str, bool], Tuple[Callable, Callable]]):
+    def init_ui(
+        self,
+        labels_to_callbacks: Dict[Tuple[str, str, bool], Tuple[Callable, Callable]],
+    ):
         self.labels_to_callbacks = labels_to_callbacks
-        for (label, name, resettable), (step_callback, reset_callback) in self.labels_to_callbacks.items():
+        for (label, name, resettable), (
+            step_callback,
+            reset_callback,
+        ) in self.labels_to_callbacks.items():
             self.step_widgets[label] = QHBoxLayout()
             step_button = QPushButton(label)
             step_button.setFixedWidth(130)
             step_button.clicked.connect(step_callback)
             self.step_widgets[label].addWidget(step_button)
             if resettable:
-                reset_to_step_button = QPushButton('↺')
+                reset_to_step_button = QPushButton("↺")
                 reset_to_step_button.setFixedWidth(20)
-                reset_to_step_button.setStyleSheet(STEP_PANEL_RESET_BUTTON_STYLE.format(background_color="#909090",
-                                                                                        pressed_color="#707070"))
+                reset_to_step_button.setStyleSheet(
+                    STEP_PANEL_RESET_BUTTON_STYLE.format(
+                        background_color="#909090", pressed_color="#707070"
+                    )
+                )
                 reset_to_step_button.clicked.connect(reset_callback)
                 self.step_widgets[label].addWidget(reset_to_step_button)
             else:  # add a spacer to keep the layout consistent
-                spacer = QSpacerItem(20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
+                spacer = QSpacerItem(
+                    20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum
+                )
                 self.step_widgets[label].addItem(spacer)
             self.layout.addLayout(self.step_widgets[label])
         self.layout.setSpacing(5)
@@ -144,19 +202,26 @@ class StepsPanel(QWidget):
         for i, step in enumerate(self.step_widgets):
             if i == self.current_step:
                 self.step_widgets[step].itemAt(0).widget().setStyleSheet(
-                    STEP_PANEL_BUTTON_STYLE.format(background_color=CURRENT_STEP_COLOR,
-                                                   pressed_color="#003377"))
+                    STEP_PANEL_BUTTON_STYLE.format(
+                        background_color=CURRENT_STEP_COLOR, pressed_color="#003377"
+                    )
+                )
                 if self.step_widgets[step].itemAt(1).widget() is not None:
                     self.step_widgets[step].itemAt(1).widget().setEnabled(True)
             elif i < self.current_step:
                 self.step_widgets[step].itemAt(0).widget().setStyleSheet(
-                    STEP_PANEL_BUTTON_STYLE.format(background_color=SUBMIT_BUTTON_COLOR,
-                                                   pressed_color="#006400"))
+                    STEP_PANEL_BUTTON_STYLE.format(
+                        background_color=SUBMIT_BUTTON_COLOR, pressed_color="#006400"
+                    )
+                )
                 if self.step_widgets[step].itemAt(1).widget() is not None:
                     self.step_widgets[step].itemAt(1).widget().setEnabled(True)
             else:
                 self.step_widgets[step].itemAt(0).widget().setStyleSheet(
-                    STEP_PANEL_BUTTON_STYLE.format(background_color="#909090", pressed_color="#707070"))
+                    STEP_PANEL_BUTTON_STYLE.format(
+                        background_color="#909090", pressed_color="#707070"
+                    )
+                )
                 # if the there is a reset button and not a spacer, disable the reset button
                 if self.step_widgets[step].itemAt(1).widget() is not None:
                     self.step_widgets[step].itemAt(1).widget().setEnabled(False)
@@ -171,12 +236,16 @@ class StepsPanel(QWidget):
                 # set reset button to not visible
                 self.step_widgets[step].itemAt(1).widget().setVisible(False)
                 # add a spacer to keep the layout consistent
-                spacer = QSpacerItem(20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
+                spacer = QSpacerItem(
+                    20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum
+                )
                 self.step_widgets[step].addItem(spacer)
 
 
 class Panel(QWidget):
-    def __init__(self, header: Optional[str] = None, header_right: Optional[str] = None):
+    def __init__(
+        self, header: Optional[str] = None, header_right: Optional[str] = None
+    ):
         """
         A panel that displays text and allows editing.
         """
@@ -191,7 +260,9 @@ class Panel(QWidget):
         label = QLabel(header)
         label.setFixedHeight(_get_label_height(label))
         self.header_label = label
-        self.header_label.setStyleSheet(f"color: {PANEL_HEADER_COLOR}; font-size: 16px; font-weight: bold;")
+        self.header_label.setStyleSheet(
+            f"color: {PANEL_HEADER_COLOR}; font-size: 16px; font-weight: bold;"
+        )
         header_tray.addWidget(label)
 
         self.header_right = header_right
@@ -222,17 +293,23 @@ class Panel(QWidget):
 
 
 class EditableTextPanel(Panel):
-    def __init__(self, header: str, header_right: Optional[str] = None,
-                 suggestion_button_names: Optional[Collection[str]] = None):
+    def __init__(
+        self,
+        header: str,
+        header_right: Optional[str] = None,
+        suggestion_button_names: Optional[Collection[str]] = None,
+    ):
         super().__init__(header, header_right)
         if suggestion_button_names is None:
             suggestion_button_names = []
         self.suggestion_button_names = suggestion_button_names
         self.suggestion_buttons = []
-        self.suggestion_texts = [''] * len(suggestion_button_names)
+        self.suggestion_texts = [""] * len(suggestion_button_names)
 
         self.text_edit = QTextEdit()
-        self.text_edit.setWordWrapMode(QTextOption.WrapMode.WrapAtWordBoundaryOrAnywhere)
+        self.text_edit.setWordWrapMode(
+            QTextOption.WrapMode.WrapAtWordBoundaryOrAnywhere
+        )
         # self.text_edit.setFontPointSize(14)
         self.text_edit.setStyleSheet(QEDIT_STYLE)
 
@@ -251,19 +328,30 @@ class EditableTextPanel(Panel):
 
         self.continue_button = QPushButton("Continue")
         self.continue_button.setVisible(False)
-        self.continue_button.setStyleSheet('QPushButton {background-color: #E3E0DA; color:' + BACKGROUND_COLOR + ';}')
+        self.continue_button.setStyleSheet(
+            "QPushButton {background-color: #E3E0DA; color:" + BACKGROUND_COLOR + ";}"
+        )
         self.continue_button.clicked.connect(self.on_continue)
         self.buttons_tray.addWidget(self.continue_button)
 
         self.submit_button = QPushButton("Submit")
-        self.submit_button.setStyleSheet('QPushButton {background-color: ' + SUBMIT_BUTTON_COLOR + '; color:'
-                                         + BACKGROUND_COLOR + ';}')
+        self.submit_button.setStyleSheet(
+            "QPushButton {background-color: "
+            + SUBMIT_BUTTON_COLOR
+            + "; color:"
+            + BACKGROUND_COLOR
+            + ";}"
+        )
         self.submit_button.clicked.connect(self.on_submit)
         self.buttons_tray.addWidget(self.submit_button)
 
         for i, button_text in enumerate(suggestion_button_names):
             button = QPushButton(button_text)
-            button.setStyleSheet('QPushButton {background-color: #E3E0DA; color:' + BACKGROUND_COLOR + ';}')
+            button.setStyleSheet(
+                "QPushButton {background-color: #E3E0DA; color:"
+                + BACKGROUND_COLOR
+                + ";}"
+            )
             button.clicked.connect(self.on_suggestion_button_click)
             self.buttons_tray.addWidget(button)
             self.suggestion_buttons.append(button)
@@ -281,7 +369,7 @@ class EditableTextPanel(Panel):
         if self.instructions is not None:
             self.instructions_label.setText(self.instructions)
         else:
-            self.instructions_label.setText('')
+            self.instructions_label.setText("")
         self.instructions_label.setVisible(bool(self.instructions))
 
     def on_suggestion_button_click(self):
@@ -301,7 +389,7 @@ class EditableTextPanel(Panel):
 
     def _set_html_text(self, text: str):
         # add the CSS to the HTML
-        self.text_edit.setHtml(f'<style>{CSS}</style>{text}')
+        self.text_edit.setHtml(f"<style>{CSS}</style>{text}")
 
     def set_text(self, text: str, is_html: bool = False):
         self.text_edit.setReadOnly(True)
@@ -314,11 +402,14 @@ class EditableTextPanel(Panel):
         self.instructions = instructions
         self.update_instructions()
 
-    def edit_text(self, text: Optional[str] = '',
-                  title: Optional[str] = None,
-                  instruction: Optional[str] = None,
-                  in_field_instructions: Optional[str] = None,
-                  suggestion_texts: Optional[List[str]] = None):
+    def edit_text(
+        self,
+        text: Optional[str] = "",
+        title: Optional[str] = None,
+        instruction: Optional[str] = None,
+        in_field_instructions: Optional[str] = None,
+        suggestion_texts: Optional[List[str]] = None,
+    ):
         self.text_edit.setReadOnly(False)
         if in_field_instructions:
             self.text_edit.setPlaceholderText(in_field_instructions)
@@ -326,8 +417,8 @@ class EditableTextPanel(Panel):
         self._set_buttons_visibility(True)
         if suggestion_texts is not None:
             self.suggestion_texts = suggestion_texts
-        self.set_instructions(instruction or '')
-        self.set_header_right(title or '')
+        self.set_instructions(instruction or "")
+        self.set_header_right(title or "")
 
     def scroll_to_bottom(self):
         self.text_edit.moveCursor(QTextCursor.End)
@@ -338,10 +429,10 @@ class EditableTextPanel(Panel):
 
     def on_submit(self):
         self.text_edit.setReadOnly(True)
-        self.text_edit.setPlaceholderText('')
+        self.text_edit.setPlaceholderText("")
         self._set_buttons_visibility(False)
-        self.set_header_right('')
-        self.set_instructions('')
+        self.set_header_right("")
+        self.set_instructions("")
 
     def on_continue(self):
         self.continue_button.setVisible(False)
@@ -361,7 +452,7 @@ class HtmlPopup(QDialog):
         # QLabel to display HTML content
         label = QTextEdit()
         label.setReadOnly(True)
-        label.setHtml(f'<style>{CSS}</style>{html_content}')
+        label.setHtml(f"<style>{CSS}</style>{html_content}")
 
         # label.setText(html_content)
         # label.setTextFormat(Qt.RichText)  # Set the text format to RichText to enable HTML
@@ -386,7 +477,9 @@ def create_tabs(names_to_panels: Dict[str, Panel]):
 
 class APIUsageCostDialog(QDialog):
     def __init__(self, html_content, parent=None):
-        super(APIUsageCostDialog, self).__init__(parent, Qt.WindowType.WindowCloseButtonHint)
+        super(APIUsageCostDialog, self).__init__(
+            parent, Qt.WindowType.WindowCloseButtonHint
+        )
         self.setWindowTitle("API Usage Cost")
 
         # Layout to organize widgets
@@ -395,7 +488,7 @@ class APIUsageCostDialog(QDialog):
         # QLabel to display HTML content
         label = QTextEdit()
         label.setReadOnly(True)
-        label.setHtml(f'<style>{CSS}</style>{html_content}')
+        label.setHtml(f"<style>{CSS}</style>{html_content}")
 
         layout.addWidget(label)
 
@@ -419,13 +512,20 @@ class PysideApp(QMainWindow, BaseApp):
         self.products: Dict[Stage, Any] = {}
         self.popups = set()
         self.api_usage_cost = StageToCost()
+        self.model_manager = ModelManager.get_instance()
 
         self.panels = {
-            PanelNames.SYSTEM_PROMPT: EditableTextPanel("System Prompt", "", ("Default",)),
-            PanelNames.MISSION_PROMPT: EditableTextPanel("Mission Prompt", "", ("Default",)),
+            PanelNames.SYSTEM_PROMPT: EditableTextPanel(
+                "System Prompt", "", ("Default",)
+            ),
+            PanelNames.MISSION_PROMPT: EditableTextPanel(
+                "Mission Prompt", "", ("Default",)
+            ),
             PanelNames.RESPONSE: EditableTextPanel("Response", "", ()),
             PanelNames.PRODUCT: EditableTextPanel("Product", "", ()),
-            PanelNames.FEEDBACK: EditableTextPanel("Feedback", "", ("AI Review", "No comments")),
+            PanelNames.FEEDBACK: EditableTextPanel(
+                "Feedback", "", ("AI Review", "No comments")
+            ),
         }
         central_widget = QWidget()
         self.layout = QHBoxLayout(central_widget)
@@ -450,10 +550,16 @@ class PysideApp(QMainWindow, BaseApp):
         # Header:
         self.header = QLabel()
         self.header.setTextFormat(Qt.TextFormat.RichText)
-        self.header.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
-        self.header.setStyleSheet(f"color: {CURRENT_STEP_COLOR}; font-size: 24px; font-weight: bold;")
+        self.header.setSizePolicy(
+            QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed
+        )
+        self.header.setStyleSheet(
+            f"color: {CURRENT_STEP_COLOR}; font-size: 24px; font-weight: bold;"
+        )
 
-        spacer = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        spacer = QSpacerItem(
+            0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum
+        )
         header_and_checkbox.addWidget(self.header)
         header_and_checkbox.addItem(spacer)
 
@@ -466,7 +572,8 @@ class PysideApp(QMainWindow, BaseApp):
         self.bypass_continue_checkbox.setChecked(False)
         self.bypass_continue_checkbox.setToolTip(
             "When unchecked, a user 'Continue' approval is required for each LLM iteration.\n"
-            "When checked, the app only stops where explicit user choices are required.")
+            "When checked, the app only stops where explicit user choices are required."
+        )
         self.bypass_continue_checkbox.setStyleSheet(QCHECKBOX_STYLE)
         check_boxes.addWidget(self.bypass_continue_checkbox)
 
@@ -475,7 +582,8 @@ class PysideApp(QMainWindow, BaseApp):
         self.bypass_mission_prompt_checkbox.setChecked(False)
         self.bypass_mission_prompt_checkbox.setToolTip(
             "When unchecked, user can edit each mission prompt.\n"
-            "When checked, the default mission prompt is automatically used.")
+            "When checked, the default mission prompt is automatically used."
+        )
         self.bypass_mission_prompt_checkbox.setStyleSheet(QCHECKBOX_STYLE)
         check_boxes.addWidget(self.bypass_mission_prompt_checkbox)
 
@@ -486,6 +594,23 @@ class PysideApp(QMainWindow, BaseApp):
         self.api_usage_cost_button.clicked.connect(self.show_api_usage_cost_dialog)
         header_and_checkbox.addWidget(self.api_usage_cost_button)
 
+        self.llm_model_lineedit = QLineEdit()
+        self.llm_model_lineedit.setPlaceholderText("Select LLM model...")
+        current_model = self.model_manager.get_current_model()
+
+        if current_model:
+            self.llm_model_lineedit.setText(current_model)
+        completer = QCompleter(self.model_manager.get_chat_models())
+        completer.setCaseSensitivity(Qt.CaseInsensitive)
+        self.llm_model_lineedit.setCompleter(completer)
+
+        completer.activated.connect(self.on_model_activated)
+        self.llm_model_lineedit.editingFinished.connect(self.on_model_editing_finished)
+
+        self.model_manager.modelChanged.connect(self.on_backend_model_changed)
+
+        header_and_checkbox.addWidget(self.llm_model_lineedit)
+
         # Splitter with the text panels
         main_splitter = QSplitter(Qt.Orientation.Horizontal)
         left_splitter = QSplitter(Qt.Orientation.Vertical)
@@ -494,8 +619,12 @@ class PysideApp(QMainWindow, BaseApp):
         main_splitter.addWidget(right_splitter)
 
         # Add the panels to the splitters (the top-right panel is a tab widget)
-        self.tabs = create_tabs({'Response': self.panels[PanelNames.RESPONSE],
-                                 'Product': self.panels[PanelNames.PRODUCT]})
+        self.tabs = create_tabs(
+            {
+                "Response": self.panels[PanelNames.RESPONSE],
+                "Product": self.panels[PanelNames.PRODUCT],
+            }
+        )
         self.tabs.setStyleSheet(TABS_STYLE)
         left_splitter.addWidget(self.panels[PanelNames.SYSTEM_PROMPT])
         left_splitter.addWidget(self.panels[PanelNames.MISSION_PROMPT])
@@ -516,12 +645,16 @@ class PysideApp(QMainWindow, BaseApp):
         # Worker thread setup
         self.worker = Worker(mutex, condition)
         # Slot now accepts a string argument for the initial text
-        self.worker.request_panel_continue_signal.connect(self.upon_request_panel_continue)
+        self.worker.request_panel_continue_signal.connect(
+            self.upon_request_panel_continue
+        )
         self.worker.request_text_signal.connect(self.upon_request_text)
         self.worker.show_text_signal.connect(self.upon_show_text)
         self.worker.set_focus_on_panel_signal.connect(self.upon_set_focus_on_panel)
         self.worker.advance_stage_int_signal.connect(self.upon_advance_stage_int)
-        self.worker.send_product_of_stage_signal.connect(self.upon_send_product_of_stage)
+        self.worker.send_product_of_stage_signal.connect(
+            self.upon_send_product_of_stage
+        )
         self.worker.set_status_signal.connect(self.upon_set_status)
         self.worker.set_header_signal.connect(self.upon_set_header)
         self.worker.send_api_usage_cost_signal.connect(self.upon_send_api_usage_cost)
@@ -540,13 +673,18 @@ class PysideApp(QMainWindow, BaseApp):
         for panel_name in PanelNames:
             if panel_name == PanelNames.PRODUCT:
                 continue
-            self.panels[panel_name].submit_button.clicked.connect(partial(self.submit_text, panel_name=panel_name))
-            self.panels[panel_name].continue_button.clicked.connect(partial(self.upon_panel_continue,
-                                                                            panel_name=panel_name))
+            self.panels[panel_name].submit_button.clicked.connect(
+                partial(self.submit_text, panel_name=panel_name)
+            )
+            self.panels[panel_name].continue_button.clicked.connect(
+                partial(self.upon_panel_continue, panel_name=panel_name)
+            )
 
         # Connect the MainWindow signal to the worker's slot
         self.send_text_signal.connect(self.worker.receive_text_signal)
-        self.send_panel_continue_signal.connect(self.worker.receive_panel_continue_signal)
+        self.send_panel_continue_signal.connect(
+            self.worker.receive_panel_continue_signal
+        )
 
     def closeEvent(self, event):
         """Override the closeEvent to gracefully stop the worker thread."""
@@ -584,16 +722,20 @@ class PysideApp(QMainWindow, BaseApp):
 
     def initialize(self, func_to_run=None):
         self.step_panel.init_ui(
-            {(stage.value, stage.name, stage.resettable): (
-                partial(self.show_product_for_stage, stage),
-                partial(self.confirm_and_perform_reset_to_stage, stage)
-            ) for stage in self._get_stages()})
+            {
+                (stage.value, stage.name, stage.resettable): (
+                    partial(self.show_product_for_stage, stage),
+                    partial(self.confirm_and_perform_reset_to_stage, stage),
+                )
+                for stage in self._get_stages()
+            }
+        )
         self.show()
         self.start_worker(func_to_run)
         return get_or_create_q_application_if_app_is_pyside().exec()
 
     @Slot(PanelNames, int, str)
-    def upon_set_status(self, panel_name: PanelNames, position: int, status: str = ''):
+    def upon_set_status(self, panel_name: PanelNames, position: int, status: str = ""):
         if panel_name == PanelNames.PRODUCT or panel_name == PanelNames.RESPONSE:
             panel_name = [PanelNames.PRODUCT, PanelNames.RESPONSE]
         else:
@@ -613,7 +755,9 @@ class PysideApp(QMainWindow, BaseApp):
         """
         Open a popup window to show the product of a stage.
         """
-        product_text = self.products.get(stage, '<span style="color: white;">Not created yet.</span>')
+        product_text = self.products.get(
+            stage, '<span style="color: white;">Not created yet.</span>'
+        )
         if product_text.startswith('<a href="file://'):
             # open the file in the normal OS application
             file_path = product_text.split('"')[1]
@@ -650,18 +794,31 @@ class PysideApp(QMainWindow, BaseApp):
             panel.wait_for_continue()
 
     @Slot(PanelNames, str, str, dict)
-    def upon_request_text(self, panel_name: PanelNames, initial_text: str = '',
-                          title: Optional[str] = None,
-                          instructions: Optional[str] = None,
-                          in_field_instructions: Optional[str] = None,
-                          optional_suggestions: Dict[str, str] = None):
+    def upon_request_text(
+        self,
+        panel_name: PanelNames,
+        initial_text: str = "",
+        title: Optional[str] = None,
+        instructions: Optional[str] = None,
+        in_field_instructions: Optional[str] = None,
+        optional_suggestions: Dict[str, str] = None,
+    ):
         panel = self.panels[panel_name]
         if optional_suggestions is None:
             optional_suggestions = {}
-        if panel_name == PanelNames.MISSION_PROMPT and self.bypass_mission_prompt_checkbox.isChecked():
+        if (
+            panel_name == PanelNames.MISSION_PROMPT
+            and self.bypass_mission_prompt_checkbox.isChecked()
+        ):
             self.send_text_signal.emit(panel_name, initial_text)
             return
-        panel.edit_text(initial_text, title, instructions, in_field_instructions, list(optional_suggestions.values()))
+        panel.edit_text(
+            initial_text,
+            title,
+            instructions,
+            in_field_instructions,
+            list(optional_suggestions.values()),
+        )
 
     @Slot(PanelNames)
     def upon_panel_continue(self, panel_name: PanelNames):
@@ -674,8 +831,13 @@ class PysideApp(QMainWindow, BaseApp):
         self.send_text_signal.emit(panel_name, text)
 
     @Slot(PanelNames, str, bool, bool)
-    def upon_show_text(self, panel_name: PanelNames, text: str, is_html: bool = False,
-                       scroll_to_bottom: bool = False):
+    def upon_show_text(
+        self,
+        panel_name: PanelNames,
+        text: str,
+        is_html: bool = False,
+        scroll_to_bottom: bool = False,
+    ):
         panel = self.panels[panel_name]
         panel.set_text(text, is_html)
         if scroll_to_bottom:
@@ -708,8 +870,10 @@ class PysideApp(QMainWindow, BaseApp):
         dialog = QDialog(self)
         dialog.setWindowTitle("Reset to Step")
         layout = QVBoxLayout(dialog)
-        label = QLabel(f"Are you sure you want to reset to the '{stage.value}' step?\n"
-                       f"This will irrevocably delete all progress after this step.")
+        label = QLabel(
+            f"Are you sure you want to reset to the '{stage.value}' step?\n"
+            f"This will irrevocably delete all progress after this step."
+        )
         layout.addWidget(label)
         buttons_layout = QHBoxLayout()
         layout.addLayout(buttons_layout)
@@ -740,3 +904,38 @@ class PysideApp(QMainWindow, BaseApp):
             for button in [panel.submit_button, panel.continue_button]:
                 if button.isVisible():
                     button.click()
+
+    def on_model_activated(self, model: str):
+        """
+        Slot called when the user selects an option from the completer.
+        Updates the ModelManager's current model.
+        """
+        self.model_manager.set_current_model(model)
+        print(f"User selected model: {self.model_manager.get_current_model()}")
+
+    def on_model_editing_finished(self):
+        """
+        Slot called when the QLineEdit loses focus.
+        Only update if the text exactly matches one of the available models.
+        """
+        text = self.llm_model_lineedit.text().strip()
+        if text in self.model_manager.get_chat_models():
+            self.model_manager.set_current_model(text)
+            print(
+                f"Editing finished: model set to: {self.model_manager.get_current_model()}"
+            )
+        else:
+            # If invalid, reset the text to the current valid model.
+            self.llm_model_lineedit.blockSignals(True)
+            self.llm_model_lineedit.setText(self.model_manager.get_current_model())
+            self.llm_model_lineedit.blockSignals(False)
+
+    def on_backend_model_changed(self, new_model: str):
+        """
+        Slot called when the backend bumps the model.
+        Updates the QLineEdit's text to synchronize with the shared model.
+        """
+        self.llm_model_lineedit.blockSignals(True)
+        self.llm_model_lineedit.setText(new_model)
+        self.llm_model_lineedit.blockSignals(False)
+        print(f"Backend changed model to: {new_model}")

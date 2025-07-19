@@ -8,7 +8,7 @@ from data_to_paper.utils.nice_list import NiceList
 
 from .base_server import ParameterizedQueryServerCaller
 from .custom_types import Citation
-from .types import ServerErrorException
+from .server_types import ServerErrorException
 
 from data_to_paper.utils.print_to_file import print_and_log_red
 
