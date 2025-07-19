@@ -28,7 +28,6 @@ if SEMANTIC_SCHOLAR_API_KEY.key is not None:
 else:
     SCHOLAR_SERVER = ScholarServer("Crossref")
 
-
 # Use json mode when requesting LLM structured response:
 JSON_MODE = True
 
