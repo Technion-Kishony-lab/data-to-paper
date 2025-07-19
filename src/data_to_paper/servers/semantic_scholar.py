@@ -16,7 +16,7 @@ from data_to_paper.utils.nice_list import NiceList
 
 from .base_server import ParameterizedQueryServerCaller
 from .custom_types import Citation
-from .types import (
+from .server_types import (
     ServerErrorException,
     InvalidAPIKeyError,
     MissingSemanticScholarAPIKeyError,
@@ -37,7 +37,8 @@ PAPER_SEARCH_URL = "https://api.semanticscholar.org/graph/v1/paper/search"
 EMBEDDING_URL = "https://model-apis.semanticscholar.org/specter/v1/invoke"
 
 
-get_bibtex_id_from_bibtex = lambda bibtex: bibtex.split("{", 1)[1].split(",\n", 1)[0]
+def get_bibtex_id_from_bibtex(bibtex):
+    return bibtex.split("{", 1)[1].split(",\n", 1)[0]
 
 
 class SemanticCitation(Citation):

@@ -18,7 +18,7 @@ from data_to_paper.interactive.base_app_startup import BaseStartDialog
 from data_to_paper.servers.api_cost import StageToCost
 from data_to_paper.utils.file_utils import clear_directory
 from data_to_paper.utils.print_to_file import print_and_log, console_log_file_context
-from data_to_paper.servers.llm_call import OPENAI_SERVER_CALLER, LLMServerCaller
+from data_to_paper.servers.llm_call import LLM_SERVER_CALLER, LLMServerCaller
 from data_to_paper.servers.semantic_scholar import (
     SEMANTIC_SCHOLAR_EMBEDDING_SERVER_CALLER,
 )
@@ -366,7 +366,7 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
                 self.SEMANTIC_SCHOLAR_EMBEDDING_RESPONSES_FILENAME
             )
         )
-        @OPENAI_SERVER_CALLER.record_or_replay(
+        @LLM_SERVER_CALLER.record_or_replay(
             self._get_path_in_output_directory(self.OPENAI_RESPONSES_FILENAME),
             fail_if_not_all_responses_used=False,
         )
